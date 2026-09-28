@@ -41,6 +41,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 ## Phase Details
 
 ### Phase 1: Foundation & Day Loop
+
 **Goal**: A Godot 4.7.2 project where, on the prototype map, the player rides the king by day and spends scarce gold on Houses and a basic tower, earning income from one day to the next. From the first commit, the agent can lint, test, screenshot, and export the game headlessly on every push.
 **Mode:** mvp
 **Depends on**: Nothing (first phase)
@@ -54,10 +55,35 @@ Decimal phases appear between their surrounding integers in numeric order.
      - scripted scenes export screenshots
      - CI produces a Windows export
   5. A key toggles a debug overlay showing FPS, unit/enemy counts, and the current loop state (wave state and enemy paths join it once nights have enemies in Phase 2). Every third-party asset used so far is recorded in the repository's license/attribution log.
-**Plans**: TBD
+
+**Plans**: 10 plans
 **UI hint**: yes
 
+Plans:
+**Wave 1**
+- [ ] 01-01: Repo hygiene and pinned toolchain — consent-gated, checksum-verified bootstrap for Godot 4.7.2 + export templates, GUT 9.7.1, gdtoolkit, test/lint wrappers
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 01-02: Walking skeleton — ride the king to a House plot and hold to build it, end to end, with headless command-path tests
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 01-03: Command-line Windows export, pre-push leak check, CI (lint/test/export), repo-name decision, first push and green CI
+- [ ] 01-04: King riding feel (acceleration, facing) and the fixed-angle follow camera
+- [ ] 01-05: Full 8-spot prototype map, the basic tower, tight starting economy, upgrades and max tier
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 01-06: Floating spot label, coin drip, refund on release, denied shake
+- [ ] 01-07: Attribution log with coverage test; approved CC0 king, House, tower and castle models
+- [ ] 01-08: Read-only toggleable debug overlay
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 01-09: Day → night → dawn loop, hold-to-start-night, night banner and lighting, dawn income, gold carryover
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 01-10: Visible dawn payout, six scripted screenshots (local and CI), final push with green CI
+
 ### Phase 2: Night Defense & Playtest Gate
+
 **Goal**: The prototype map plays the full day → night → dawn loop. The player sees each night coming and starts it deliberately, defends with the king and basic towers, rebuilds and collects income at dawn, and wins or loses on a results screen. Seeded nights replay deterministically, and the owner confirms the loop is fun before anything is built on top of it.
 **Mode:** mvp
 **Depends on**: Phase 1
@@ -67,10 +93,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. The night ends only when every enemy is dead. At dawn, destroyed buildings return for free, surviving Houses pay tier-based income, and rebuilt buildings are visibly marked as paying nothing. The run ends on a results screen: a loss the instant the castle center falls, or a win after the final night.
   3. From the command line and in CI, a seeded scripted night replays with identical results, and headless GUT tests cover waves, combat, and loop transitions (day → night → dawn, loss, win). During nights, the debug overlay shows live enemy counts, wave state, and enemy paths.
   4. Human playtest gate: the owner plays the prototype map through several full runs and either signs off that gold trade-offs feel meaningful and nights feel tense and readable, or records the tuning/feel fixes that must land before later phases begin. No meta-progression work is scheduled until this sign-off.
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 3: King Combat & Troops
+
 **Goal**: The king leads an army. The player builds a Barracks and an Archery Range whose squads fight on their own, commands them with hotkeys, and fires the weapon's active ability. All of it is fully playable on keyboard or gamepad with a complete in-run HUD.
 **Mode:** mvp
 **Depends on**: Phase 2
@@ -81,10 +109,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. The player can trigger the king's weapon active ability and see its cooldown on the HUD. The king's health regenerates after a short time without taking damage.
   4. Every in-run action (move, sprint, hold-to-build/upgrade, active ability, unit commands, start night) works on keyboard and on gamepad. The player can switch devices at any moment, and on-screen prompts update to match the active device.
   5. The HUD shows gold, current night out of total, king health, ability cooldown, and unit group status without cluttering the play area.
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 4: Crowd-Scale Battles & Walls
+
 **Goal**: Nights scale to Thronefall-size battles, with hundreds of units, enemies, and projectiles at 60 fps. Walls and barricades shape enemy paths without gridlock. This lands before any content breadth is added.
 **Mode:** mvp
 **Depends on**: Phase 3
@@ -94,9 +124,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Enemies path to their targets around walls or by breaking through them and never jam indefinitely. A headless stress test that sends 200+ enemies through a single gate finishes with zero permanently stuck agents, and the paths are visible in the debug overlay.
   3. A scripted stress night with hundreds of units, enemies, and projectiles on screen holds 60 fps on GTX 970-class hardware, or within a documented equivalent frame-time budget on the dev machine.
   4. Nights from Phases 1–3 play the same after the switch to batched simulation and rendering. All existing headless loop and combat tests still pass.
+
 **Plans**: TBD
 
 ### Phase 5: Castle Center & Economy Depth
+
 **Goal**: Day decisions gain real depth. The castle center grows through tiers with run-defining ability picks that gate higher building tiers, and four new economic buildings each pay out on a different income curve. All bonuses stack in one tested order.
 **Mode:** mvp
 **Depends on**: Phase 4
@@ -110,10 +142,12 @@ Decimal phases appear between their surrounding integers in numeric order.
      - a Fishing Harbor, which gains a paying boat each night up to an upgradeable cap
      - a Shrine, which activates after enough nearby enemy deaths, then attacks, pays, and strengthens other active Shrines
   4. Bonuses from building upgrades and castle abilities combine in one fixed, documented order. Automated tests verify single-modifier and combined-modifier cases.
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 6: Enemy Roster & Tower Specializations
+
 **Goal**: Nights demand varied defenses. A shared roster covering eight enemy roles punishes single-strategy builds, and towers branch into specializations that answer them, landing counter pairs together (e.g. anti-air options alongside flyers).
 **Mode:** mvp
 **Depends on**: Phase 5
@@ -124,9 +158,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Flying enemies cross over walls and can only be hit by attackers that can reach air targets.
   4. The player can upgrade towers through a tier-2 choice of four specializations and a tier-3 choice of four more. Each has a visibly distinct attack behavior, and at least one option can hit flyers.
   5. In seeded headless simulation, a mixed-role night overwhelms a single-strategy defense (e.g. walls plus one tower type) but is survivable with a varied defense.
+
 **Plans**: TBD
 
 ### Phase 7: Army Variety & Heroes
+
 **Goal**: Military choices matter. Each Barracks and Archery Range specializes into one of four unit types, a Hero's Quarter fields one of four heroes, and unit roles form clear counters to the enemy roster.
 **Mode:** mvp
 **Depends on**: Phase 6
@@ -135,9 +171,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. When building a Barracks, the player picks one of four melee unit types. When building an Archery Range, the player picks one of four ranged types. Each building produces its squad over time, up to a cap that grows with tier.
   2. The player can build a Hero's Quarter and pick one of four heroes. The single hero grows stronger with each tier and revives after a long timer when killed.
   3. Unit types fill distinct counter roles (e.g. anti-air, anti-siege, anti-armor, healing). Seeded headless matchup tests show each counter outperforming a non-counter unit against its target enemy role.
+
 **Plans**: TBD
 
 ### Phase 8: Art, Readability & Sound
+
 **Goal**: Duskhold looks and sounds like one cohesive game: normalized CC0 low-poly art, nights that stay readable in big battles, satisfying visual feedback, and a mixed SFX layer for every core action. This happens before campaign maps are authored in the final asset kit.
 **Mode:** mvp
 **Depends on**: Phase 7
@@ -147,10 +185,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. In automated night-battle screenshots, the king, each unit type, each enemy role, and each building are identifiable by silhouette and color language. Day and night have distinct lighting moods.
   3. Building, upgrading, hits, destruction, and dawn gold payouts each give clear visual feedback.
   4. CC0 SFX play for king and unit attacks, hits, deaths, building and upgrading, gold payout, UI interactions, night start, and dawn. The largest scripted battle stays readable by ear, with no clipping or wall of noise.
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 9: Campaign Opening & Scoring
+
 **Goal**: The game becomes a campaign. Map 1 teaches the loop, map 2 unlocks after winning it, and every run is scored with a visible breakdown. Failed nights can be retried at a score cost, and progress survives relaunching under a versioned save.
 **Mode:** mvp
 **Depends on**: Phase 8
@@ -161,10 +201,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Winning map 1 unlocks map 2. Map select shows each map's lock state and best score.
   4. After a loss, the player can retry from the start of the failed night's day, which forfeits the no-restart bonus, or restart the map. The results screen breaks the score into survival, buildings protected, time bonus, unspent gold, mutator bonus, and no-restart bonus.
   5. Best scores and map unlocks persist across quitting and relaunching. The save file carries a schema version, and automated tests load older-version fixture saves and migrate them correctly.
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 10: Loadout & Meta-Progression
+
 **Goal**: Runs feed a persistent player level that unlocks a pre-run loadout of weapons, perks, and stacking mutators, and the owner confirms the meta layer feels rewarding before the campaign finale is authored.
 **Mode:** mvp
 **Depends on**: Phase 9
@@ -178,10 +220,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. The player can pause any run and resume, restart, or quit to the menu. Level, XP, and unlocks persist across relaunch.
   4. Every perk and mutator effect has an automated test through the documented stat-modifier order, including combined-stack cases.
   5. Human playtest gate: the owner plays maps 1–2 with several weapon/perk/mutator loadouts and signs off that weapons and perks feel distinct, mutators feel worth their risk, and the unlock pace feels rewarding, before maps 3–5 are authored.
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 11: Campaign Finale & Boss Nights
+
 **Goal**: The full 5-map campaign is playable end to end. Each map feels distinct, maps 3–5 end with boss nights, and difficulty climbs from map to map while every map stays winnable with the loadout available at that point.
 **Mode:** mvp
 **Depends on**: Phase 10
@@ -191,9 +235,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Every map has at least one distinguishing element (a unique building, terrain gimmick, or unique mechanic). Every map after the first introduces at least one enemy type found nowhere else.
   3. Maps 3, 4, and 5 each end with a boss night featuring a unique boss enemy.
   4. Difficulty rises from map to map. Seeded simulated playthroughs and an owner playtest confirm that each map, including each boss night, is winnable with the weapons, perks, and heroes unlocked by that point, with no difficulty cliff.
+
 **Plans**: TBD
 
 ### Phase 12: Research Buildings
+
 **Goal**: Players can invest in multi-day research at a Blacksmith and a Royal Forge for global buffs. This is a self-contained optional depth layer: it is the designated scope cut and can be deferred without affecting any other phase.
 **Mode:** mvp
 **Depends on**: Phase 11 (technically needs only Phase 5's stat-modifier system; no phase depends on this one)
@@ -202,10 +248,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. The player can build a Blacksmith and a Royal Forge, start timed research that spans multiple days, and watch its progress. Completed research grants global buffs to the king, units, or buildings.
   2. Research pauses while its building is destroyed and resumes after the dawn rebuild. Higher research-building tiers add research slots.
   3. Each research buff combines through the documented stat-modifier order with automated tests. Seeded campaign playthroughs confirm the maps stay challenging with research available.
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 13: Settings & Release
+
 **Goal**: A finished, shippable Windows game: full settings, credits, and menus that work with any device, published on itch.io as a build that runs on a clean machine.
 **Mode:** mvp
 **Depends on**: Phase 11 (and Phase 12 unless deferred)
@@ -216,6 +264,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. A credits screen lists every third-party asset and its license, matching the repository's attribution log.
   4. A Windows build exported from the command line launches and plays the full campaign on a clean Windows machine with no extra installs, holding 60 fps in the largest campaign battles.
   5. The game is live on itch.io with a store page that uses only original branding (no Thronefall names or assets) and explains the Windows SmartScreen warning.
+
 **Plans**: TBD
 **UI hint**: yes
 
@@ -226,7 +275,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Day Loop | 0/TBD | Not started | - |
+| 1. Foundation & Day Loop | 0/10 | Planned | - |
 | 2. Night Defense & Playtest Gate | 0/TBD | Not started | - |
 | 3. King Combat & Troops | 0/TBD | Not started | - |
 | 4. Crowd-Scale Battles & Walls | 0/TBD | Not started | - |
