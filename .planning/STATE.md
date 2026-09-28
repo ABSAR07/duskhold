@@ -53,6 +53,7 @@ Progress: [░░░░░░░░░░] 0%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- [Requirements]: Controls changed from the initial keyboard + mouse plan (click-to-build, mouse unit commands) to Thronefall's original scheme (owner decision, 2026-09-28). The king rides to a build spot and the player holds the action key to build or upgrade, units get hotkey commands (hold; follow the king — all or one unit type), gameplay is keyboard + gamepad, and the mouse is for menus only. Research docs carry an inline "Controls decision update" note wherever they described the old plan.
 - [Roadmap]: The core-loop slice is split in two (owner feedback, 2026-09-29). Phase 1 covers Godot 4.7.2 scaffolding, the agent-verification tooling (GUT, lint, CI with Windows export, screenshots, debug overlay, asset log), and a playable day phase. Phase 2 adds nights, dawn, win/loss, and seeded replays, and it ends in the first human playtest gate.
 - [Roadmap]: Phase 1 includes an enemy-free placeholder night between days so House income and gold carryover are verifiable. Phase 2 fills that same loop state machine with real nights instead of replacing it.
 - [Roadmap]: Data-oriented scale-up (Phase 4) comes before content breadth (Phases 5–7)

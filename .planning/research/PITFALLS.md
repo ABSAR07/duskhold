@@ -4,6 +4,8 @@
 **Researched:** 2026-09-28
 **Confidence:** MEDIUM-HIGH (engine-agnostic RTS/TD technical pitfalls and distribution issues are HIGH confidence, well-documented; Thronefall-specific design claims are MEDIUM — inferred from developer interviews/postmortems, not the source code; AI-agent-driven gamedev pitfalls are LOW-MEDIUM — this is an emerging practice with thin published literature, reasoned from first principles and adjacent reports)
 
+> **⚠ Controls decision update (2026-09-28, made after this research was written):** Partly in response to Pitfall 2 below, the owner **dropped click-to-build and mouse unit commands**. The mouse is used **for menus only**. Building and upgrading follow Thronefall: the king rides to a fixed build spot and the player **holds the action key**. Units are commanded with **hotkeys** (hold position; follow the king — all units or one unit type). Gameplay input is **keyboard + gamepad**. Pitfall 2 is therefore marked resolved, and the related UX, checklist, recovery, and mapping entries have been updated inline; see PROJECT.md → Key Decisions and REQUIREMENTS.md (BLDG-02/03/04/06, UNIT-05/06, INPT-01..03).
+
 ## Critical Pitfalls
 
 ### Pitfall 1: The Loop Becomes Either Trivial or Punishing — Trade-off Tension Erodes
@@ -28,21 +30,25 @@ Without the original's carefully tuned numbers, a recreation built from "the loo
 
 ---
 
-### Pitfall 2: Remote Click-to-Build Erodes King Presence, Camera Framing, and the Travel-Time Cost
+### Pitfall 2: Remote Click-to-Build Erodes King Presence, Camera Framing, and the Travel-Time Cost — ✅ RESOLVED BY DECISION
 
-**What goes wrong:**
-This project's deliberate deviation — mouse click-to-build from anywhere, instead of Thronefall's "ride the king to the spot and hold a button" — removes several things the original mechanic does simultaneously: (1) travel time is itself a resource cost (you can't build and be everywhere at once, especially at night), (2) it keeps the camera naturally anchored on the king as the single locus of attention, and (3) it makes "king presence" during building feel embodied rather than administrative. A naive remote-click implementation turns building into a menu-driven UI action disconnected from the avatar, which risks: the game feeling like a top-down management sim with a decorative avatar; the camera either staying fixed on the king (making distant build spots hard to see/click) or free-roaming (losing the "king as camera anchor" identity); and trivializing positioning decisions since there's no cost to building anywhere on the map at any time, including mid-fight.
+> **Status (2026-09-28): resolved.** The owner dropped click-to-build (and mouse unit commands) in favor of Thronefall's original controls: the king rides to a build spot and the player holds the action key; mouse is for menus only. The analysis below is kept because it explains *why* ride-up-and-hold matters. Implementation must preserve those properties: travel time as a real cost, a king-centric follow camera (KING-02), and day-only building (BLDG-06). The remaining risk is tuning, not design: interaction radius, hold duration, and king speed must feel like Thronefall — validate at the Phase 2 playtest gate.
+
+**What goes wrong (original analysis, written when click-to-build was planned):**
+The then-planned deviation — mouse click-to-build from anywhere, instead of Thronefall's "ride the king to the spot and hold a button" — removes several things the original mechanic does simultaneously: (1) travel time is itself a resource cost (you can't build and be everywhere at once, especially at night), (2) it keeps the camera naturally anchored on the king as the single locus of attention, and (3) it makes "king presence" during building feel embodied rather than administrative. A naive remote-click implementation turns building into a menu-driven UI action disconnected from the avatar, which risks: the game feeling like a top-down management sim with a decorative avatar; the camera either staying fixed on the king (making distant build spots hard to see/click) or free-roaming (losing the "king as camera anchor" identity); and trivializing positioning decisions since there's no cost to building anywhere on the map at any time, including mid-fight.
 
 **Why it happens:**
 Click-to-build is the obvious, easy-to-implement interaction for mouse-driven UI, and it's tempting to treat it as a pure UX improvement without noticing it silently removes a core resource-cost axis (king travel time/positioning) that the original design relied on for both pacing and camera behavior.
 
-**How to avoid:**
+**How to avoid (superseded — the chosen fix was to drop click-to-build entirely; the options below were the mitigations considered for keeping it):**
 - Reintroduce a *cost* for remote building that approximates travel time: e.g., a build range limit from the king's current position (forces repositioning to build across the map), and/or a short cast/channel delay after clicking that can be interrupted if the king takes damage (keeps risk during night building).
 - Keep the camera king-centric (follow-cam) rather than a free RTS camera; if players need to click distant spots, consider click-to-queue + auto-walk-to-build, or a soft camera pull toward the clicked spot that still frames the king, rather than decoupling the camera from the avatar entirely.
 - During nights specifically, consider disabling or heavily restricting remote building so the "king fights directly" identity isn't undercut by pause-and-administrate play; Thronefall's building is primarily a daytime action for a reason.
 - Treat this as a design hypothesis to validate at the core-loop-slice human playtest, not an assumption — this is the single highest-risk deliberate deviation in the project and deserves explicit before/after comparison against the reference game's feel.
 
-**Warning signs:**
+**Current guidance (after the decision):** build and upgrade only through king proximity + holding the action key (keyboard or gamepad), show the option, cost, and affordability as soon as the king is in range, show a hold-progress indicator, keep the follow camera on the king, and allow building only during the day. Tune interaction radius, hold duration, and king speed as data values.
+
+**Warning signs (original; still useful when tuning ride-up-and-hold):**
 - Playtesters describe the game as feeling like "a management screen with a guy walking around" rather than "playing as the king."
 - No meaningful decision is lost by being able to build anywhere instantly — i.e., removing a hypothetical range/cost limit doesn't change any playtester's strategy.
 - Camera work becomes fiddly/disorienting because it's torn between following the king and framing distant build spots.
@@ -375,7 +381,7 @@ Low relevance for a single-player, offline, non-commercial portfolio game, but a
 
 | Pitfall | User Impact | Better Approach |
 |---------|--------------|-------------------|
-| Remote click-to-build with no visual indication of build range/cost from king's position | Player builds impulsively without understanding the positioning trade-off (Pitfall 2), loop feels flat | Show a clear range indicator/cost-scaling cue tied to king distance, and disallow or visibly penalize out-of-range builds |
+| ~~Remote click-to-build with no visual indication of build range/cost from king's position~~ **Updated (click-to-build dropped):** proximity build prompt that doesn't clearly show the option, cost, affordability, or hold progress | Player can't tell what holding the action key will do or why nothing happens, loop feels clunky | Show option + cost + affordability as soon as the king is in the spot's interaction radius, and a clear hold-progress indicator; never fail silently |
 | Unit selection/command UI that doesn't clearly show what's selected or what "hold position" vs "move" does | Player loses track of army state mid-fight, frustration during chaotic night combat | Persistent, minimal selection indicator (per Thronefall's own minimalist HUD philosophy) and clear, immediate visual feedback on command issued |
 | No pre-night summary of incoming wave direction/composition strength | Player can't make an informed final build decision before committing to start the night | Telegraph wave direction/rough strength during the day (already an Active requirement in PROJECT.md) — treat this as a hard requirement, not nice-to-have, since it's core to the trade-off tension in Pitfall 1 |
 | Upgrade choice UI that doesn't clearly show the trade-off between branching options | Player picks upgrades semi-randomly rather than making a meaningful strategic choice, undermining Pitfall 1's core tension | Side-by-side comparison of branching upgrade effects at the point of choice, consistent formatting across all building types |
@@ -386,7 +392,7 @@ Low relevance for a single-player, offline, non-commercial portfolio game, but a
 - [ ] **Wave spawning:** Often missing telegraphing/direction indicators during the day — verify the player can see incoming spawn direction before the night starts, not just that enemies spawn correctly.
 - [ ] **Perk/mutator system:** Often missing combined-effect testing — verify with automated tests that stacking 2-3 modifiers simultaneously produces the mathematically expected result (Pitfall 6), not just that each perk works alone.
 - [ ] **Save/load system:** Often missing corruption/version-mismatch handling — verify by attempting to load a save file from an earlier schema version against current code, not just a freshly-saved file.
-- [ ] **Build-spot UI:** Often missing affordability/range feedback — verify build spots visually communicate whether they're affordable and (per Pitfall 2) in range before the player clicks, not just reject the click silently after the fact.
+- [ ] **Build-spot UI:** Often missing affordability feedback — verify the build-spot prompt shows the option, cost, and whether it's affordable as soon as the king is in range, before the player starts holding the action key, not just fail silently after the hold. *(Updated: originally referred to click range — click-to-build was dropped.)*
 - [ ] **Night end condition:** Often missing edge-case handling for an enemy stuck in geometry (behind a wall gap, wedged in a corner) that never dies and soft-locks the night — verify with a stress test that all enemies are always reachable/killable, not just that "night ends when enemy count reaches zero" logic is correct in the common case.
 - [ ] **Difficulty scaling across maps:** Often missing validation beyond the first map — verify each of the 3-5 maps has actually been difficulty-tuned via playtest or simulation (Pitfall 14), not just copy-pasted scaling formulas from map 1.
 - [ ] **Windows export build:** Often missing a clean-machine test — verify the actual distributed .exe runs and installs cleanly on a machine without the development environment's Defender exclusions (Pitfall 13).
@@ -397,7 +403,7 @@ Low relevance for a single-player, offline, non-commercial portfolio game, but a
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|----------------|------------------|
 | Loop trivial/punishing (Pitfall 1) | MEDIUM | Since numbers are data-driven (per prevention strategy), retune the gold-income/cost data tables directly; re-run simulated playthroughs and a human playtest pass to confirm before moving on |
-| Remote-build feel loss (Pitfall 2) | MEDIUM-HIGH | If discovered late, retrofitting range/cost limits and camera behavior touches input handling and UI broadly; cheaper the earlier it's caught — this is why it's flagged for the core-loop-slice checkpoint specifically |
+| ~~Remote-build feel loss~~ (Pitfall 2 — resolved by dropping click-to-build) | LOW | If ride-up-and-hold feels slow or fiddly, tune interaction radius, hold duration, and king speed data values and re-playtest; no input/camera re-architecture needed |
 | Unit jamming (Pitfall 4) | MEDIUM | Isolate to a reproducible stress-test scene, swap the specific avoidance/pathing strategy (e.g., add flow-field for the worst chokepoints) without needing to touch unrelated combat/AI code, since navigation should be decoupled from combat logic |
 | Stat stacking bugs (Pitfall 6) | LOW (if aggregation architecture exists) / HIGH (if not) | With a proper modifier-aggregation system, fixing a bucket-classification mistake is a small localized change; without one, may require refactoring every perk/mutator's implementation — strong argument for building the architecture correctly the first time |
 | Save corruption (Pitfall 7) | HIGH for affected players, LOW-MEDIUM for the codebase if versioning existed | With version fields already in place, write a new migration function; without them, may require accepting data loss for existing saves and communicating this clearly — much worse for any player who has invested campaign progress |
@@ -410,7 +416,7 @@ Low relevance for a single-player, offline, non-commercial portfolio game, but a
 | Pitfall | Prevention Phase | Verification |
 |---------|-------------------|----------------|
 | 1. Loop trivial/punishing | Core loop slice | Simulated playthrough harness + human playtest sign-off before any further phase begins |
-| 2. Remote-build feel loss | Core loop slice | Explicit before/after comparison against reference game feel at human playtest checkpoint |
+| 2. ~~Remote-build feel loss~~ Build-interaction feel (click-to-build dropped; ride-up-and-hold kept) | Core loop slice (roadmap Phases 1–2) | Phase 2 human playtest confirms interaction radius, hold duration, and king travel time feel like Thronefall |
 | 3. Night readability collapse | Units & combat (enemy/night visuals) | Automated screenshot review at fixed combat scenarios, repeated through content phases |
 | 4. Unit jamming at chokepoints | Units & combat (navigation architecture) | Headless stress test: 200+ units through a single gate, pass/fail on stuck-agent count and frame time |
 | 5. Target-selection thrash | Units & combat | Headless combat simulation asserting measured DPS matches theoretical DPS within tolerance |

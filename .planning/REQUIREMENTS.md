@@ -96,9 +96,11 @@ Requirements for the initial release (5-map campaign). Each maps to exactly one 
 
 ### Input
 
+> **Controls scheme (changed 2026-09-28):** Gameplay uses Thronefall's original controls on keyboard and gamepad — ride the king to a build spot and hold the action key to build/upgrade (BLDG-03/04), hotkeys for unit commands (UNIT-05/06). **The mouse is used for menus only (INPT-03).** The earlier keyboard + mouse plan (click-to-build, mouse unit commands) was dropped — see Out of Scope.
+
 - [ ] **INPT-01**: Player can play the game entirely on keyboard: move, sprint, action (hold to build or upgrade), active ability, unit commands, and start night
 - [ ] **INPT-02**: Player can play the game entirely on a gamepad with equivalent bindings, switching between keyboard and gamepad at any time with on-screen prompts matching the active device
-- [ ] **INPT-03**: Player can navigate every menu with mouse, keyboard, or gamepad
+- [ ] **INPT-03**: Player can navigate every menu with mouse, keyboard, or gamepad (menus are the only place the mouse is used)
 
 ### Interface & Presentation
 

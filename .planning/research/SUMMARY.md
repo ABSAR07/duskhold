@@ -5,6 +5,8 @@
 **Researched:** 2026-09-28
 **Confidence:** MEDIUM-HIGH
 
+> **⚠ Controls decision update (2026-09-28, made after the research was written):** The mouse is used **for menus only**. Building and upgrading follow Thronefall: the king rides to a fixed build spot and the player **holds the action key** (click-to-build was dropped). Units are commanded with **hotkeys** (hold position; follow the king — all units or one unit type), not mouse selection. Gameplay input is **keyboard + gamepad**. This summary has been updated inline where it referred to click-to-build or mouse unit commands; see PROJECT.md → Key Decisions and REQUIREMENTS.md (BLDG-02/03/04, UNIT-05/06, INPT-01..03).
+
 ## Executive Summary
 
 Duskhold is a faithful Windows PC recreation of Thronefall's core gameplay loop: alternating day (build/economy) and night (defense/combat) phases on handcrafted maps, with a mounted king who fights directly alongside troops. The game succeeds or fails on a narrow but achievable band of economic tension — gold is always scarce enough to force real trade-offs between economy/defense/military spending, but not so tight that a single mistake is unrecoverable.
@@ -13,7 +15,7 @@ Duskhold is a faithful Windows PC recreation of Thronefall's core gameplay loop:
 
 **Key risks and mitigations:**
 1. **Loop balance collapse** (trivial or punishing) — data-driven economic numbers, explicit scarcity targets (<20% gold surplus at night start), human playtest gate at core-loop completion.
-2. **Click-to-build feels disconnected** — reintroduce a build-range cost from the king's position, king-centric camera, validated at playtest.
+2. **Click-to-build feels disconnected** — *resolved by decision:* click-to-build was dropped; building uses Thronefall's ride-up-and-hold on keyboard/gamepad, which keeps travel time as a cost and the camera on the king. Remaining work is tuning interaction radius and hold duration, validated at playtest.
 3. **AI-agent blindness to feel regressions** — debug overlay + automated screenshot tooling from day one, mandatory human-playtest checkpoints per phase.
 4. **Night readability collapse** — silhouette-based design discipline, automated screenshot review, capped VFX.
 5. **Stat modifier stacking bugs** — unified aggregation system designed before the first perk is added.
@@ -64,7 +66,7 @@ Duskhold is a faithful Windows PC recreation of Thronefall's core gameplay loop:
 
 ### Architecture Approach
 
-The load-bearing decision is a hard **simulation / presentation / data** split. Simulation (run state machine, economy, buildings, combat, health, stats, scoring, meta) has zero dependency on rendering nodes, so it can be instantiated and ticked in headless GUT tests; presentation only reacts to EventBus signals and reads state; all content lives in read-only `.tres` Resource definitions. Player input becomes plain-data intents (BuildIntent, RallyIntent, SelectUnitsIntent) so tests can drive the game without a mouse, camera, or viewport.
+The load-bearing decision is a hard **simulation / presentation / data** split. Simulation (run state machine, economy, buildings, combat, health, stats, scoring, meta) has zero dependency on rendering nodes, so it can be instantiated and ticked in headless GUT tests; presentation only reacts to EventBus signals and reads state; all content lives in read-only `.tres` Resource definitions. Player input (keyboard/gamepad) becomes plain-data intents (BuildIntent, HoldPositionIntent, FollowKingIntent, ActivateAbilityIntent, StartNightIntent) so tests can drive the game without any input device, camera, or viewport.
 
 **Major components:**
 1. RunManager / FSM — explicit Boot→Menu→Loadout→Run→Results, nested Day↔Night↔Dawn; gated transitions
@@ -82,7 +84,7 @@ The load-bearing decision is a hard **simulation / presentation / data** split. 
 ### Critical Pitfalls
 
 1. **Loop trivial or punishing** — the narrow gold-scarcity band is Thronefall's design secret. Data-drive all numbers, set explicit tuning targets, and require a human playtest pass before meta-progression.
-2. **Click-to-build erodes king presence** — remote clicking removes the embodied "ride to the spot" cost axis. Limit build range to a radius around the king, keep the camera king-centric, consider restricting building at night; validate at playtest.
+2. **Click-to-build erodes king presence** — remote clicking removes the embodied "ride to the spot" cost axis. *Resolved by decision:* click-to-build was dropped in favor of Thronefall's ride-up-and-hold (keyboard/gamepad), with a king-centric camera and day-only building; tune interaction radius and hold duration at playtest.
 3. **Night readability collapse** — visual soup under hundreds of units and dark lighting. Art/lighting rules (silhouettes, color-coded threat tiers, capped VFX) plus automated screenshot review.
 4. **Unit jamming at chokepoints / target thrash** — naive per-agent navmesh at walls/gates causes gridlock. Staggered path requests, flow fields for dense same-goal groups, commitment-window targeting, headless stress tests (200+ units through one gate).
 5. **Stat-modifier stacking and save-corruption bugs** — silent wrong numbers and broken saves compound over phases. Fixed aggregation order with unit tests per perk and combined cases; schema-versioned saves with fixture regression tests.
@@ -97,11 +99,11 @@ Suggested phase structure (the roadmapper should adapt it to the project's "fine
 **Rationale:** Validates the single-map, zero-meta loop is fun before anything else is built; also proves the whole agent workflow (headless run/test/export).
 **Delivers:** Godot 4.7.2 project scaffolding (GUT, gdtoolkit, LFS, .gitattributes, CI), state machine, one simple map, basic economy + a few buildings, king with placeholder weapon, one enemy type + spawn scheduler, win/lose, debug overlay + automated screenshot tooling.
 **Addresses:** LOOP table stakes, core ECON/BLDG.
-**Avoids:** Pitfalls 1, 2, 8, 9, 10 (loop balance, click-to-build feel, agent blindness, scope creep).
+**Avoids:** Pitfalls 1, 2, 8, 9, 10 (loop balance, build-interaction feel, agent blindness, scope creep).
 
 ### Phase 2: King Combat & Unit Production
 **Rationale:** Combat is the second-most-essential system and unlocks meaningful nights.
-**Delivers:** Weapon system (passive + active), data-oriented UnitManager with MultiMesh rendering, barracks/archery range, mouse unit commands (select/rally/hold), CombatResolver, stat-system foundation.
+**Delivers:** Weapon system (passive + active), data-oriented UnitManager with MultiMesh rendering, barracks/archery range, hotkey unit commands (hold position; follow the king — all or one unit type; updated from "mouse unit commands"), CombatResolver, stat-system foundation.
 **Uses:** MultiMeshInstance3D, NavigationServer3D (or flow field).
 **Implements:** UnitManager, CombatResolver, StatModifier foundation.
 
@@ -159,7 +161,7 @@ Phases with standard patterns (research optional):
 
 ### Gaps to Address
 
-- **Core-loop feel with click-to-build:** only a Phase 1 playtest can confirm it; be ready to adjust build range/camera rules.
+- **Core-loop feel with ride-up-and-hold building:** only the core-loop playtest can confirm it; be ready to tune interaction radius, hold duration, and king speed. *(Updated: click-to-build was dropped.)*
 - **Unit scale threshold:** Phase 2 stress tests decide whether flow fields are needed.
 - **Difficulty tuning:** simulated playthroughs catch gross imbalance; humans validate feel (Phase 1, 5, 6 gates).
 - **King respawn rules:** not documented in sources — a design decision, not a research question.

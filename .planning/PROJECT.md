@@ -89,6 +89,8 @@ Full, testable list with REQ-IDs: `.planning/REQUIREMENTS.md`. Summary:
 
 **Deliberate deviations from Thronefall:** SFX only (no music) in v1; original names, maps, and CC0 art.
 
+**Controls change (2026-09-28):** The project was first scoped with keyboard + mouse controls (mouse click on build spots to build/upgrade, mouse unit commands). During requirements scoping, research flagged click-to-build as the #1 design risk, and the owner switched to Thronefall's original scheme: WASD / left stick moves the king, riding to a build spot and holding the action key builds or upgrades, hotkeys command units (hold position; follow the king — all or one unit type), gameplay works on keyboard and gamepad, and **the mouse is used only in menus**. Research documents written before the change carry an inline "Controls decision update" note.
+
 **Development context:**
 - Portfolio/learning project; Claude writes most of the code, so the project favors text-editable scenes/data and headless/CLI test runs
 - Engine chosen by research: Godot 4.7.2-stable + GDScript (see `.planning/research/STACK.md`)
@@ -100,7 +102,7 @@ Full, testable list with REQ-IDs: `.planning/REQUIREMENTS.md`. Summary:
 - **Tech stack**: Godot 4.7.2-stable, GDScript (standard build), GUT 9.7.1 tests, gdtoolkit lint/format — text-based scenes/resources and headless CLI for AI-driven development
 - **Assets**: CC0 (or equally permissive) only — clean licensing for a public portfolio; attribution log maintained
 - **IP**: No Thronefall trademarks, names, or assets; the mechanics are recreated, the content is original
-- **Platform**: Windows PC; keyboard and gamepad gameplay, mouse for menus
+- **Platform**: Windows PC; keyboard and gamepad gameplay (Thronefall-style: ride up and hold the action key to build, hotkeys for units); mouse for menus only — the earlier click-to-build and mouse unit-command plan was dropped
 - **Budget**: Zero-cost tools and assets (no code-signing certificate)
 - **Performance**: Modest hardware (roughly GTX 970 / 4 GB RAM); 60 fps with hundreds of units and projectiles on screen
 
@@ -138,4 +140,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-28 after requirements scoping*
+*Last updated: 2026-09-29 after documenting the controls change across planning docs*

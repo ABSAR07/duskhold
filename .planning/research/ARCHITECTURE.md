@@ -4,6 +4,8 @@
 **Researched:** 2026-09-28
 **Confidence:** MEDIUM-HIGH (core patterns are well-established game-architecture practice, verified against current Godot 4 docs/community sources; Unity 6 notes are secondary since Godot is the likely engine per stack research; some numeric performance claims are MEDIUM confidence — validate empirically once vertical slice exists)
 
+> **⚠ Controls decision update (2026-09-28, made after this research was written):** The mouse is used **for menus only**. Building and upgrading follow Thronefall: the king rides to a fixed build spot and the player **holds the action key** (no click-to-build, no mouse picking of build spots). Units are commanded with **hotkeys** (hold position; follow the king — all units or one unit type), not mouse/box selection. Gameplay input is **keyboard + gamepad**. This document has been updated inline where it described mouse picking, box-select, or click-driven intents; see PROJECT.md → Key Decisions and REQUIREMENTS.md (BLDG-02/03/04, UNIT-05/06, INPT-01..03).
+
 ## Standard Architecture
 
 ### System Overview
@@ -15,7 +17,7 @@ Games in this genre (Thronefall, Kingdom Rush, Kingdom Two Crowns, Bad North) sp
 │                          PRESENTATION LAYER                          │
 │  ┌───────────┐  ┌───────────┐  ┌───────────┐  ┌───────────────────┐ │
 │  │    HUD     │  │  3D Scene  │  │   Audio    │  │  Camera / Input    │ │
-│  │  (Control) │  │ (meshes,   │  │  (SFX bus) │  │  Picking            │ │
+│  │  (Control) │  │ (meshes,   │  │  (SFX bus) │  │  (keyboard/gamepad) │ │
 │  │            │  │  MultiMesh)│  │            │  │                     │ │
 │  └─────┬──────┘  └─────┬──────┘  └─────┬──────┘  └──────────┬──────────┘ │
 │        │  listens to    │  listens to   │  listens to        │ raw input  │
@@ -60,15 +62,15 @@ Games in this genre (Thronefall, Kingdom Rush, Kingdom Two Crowns, Bad North) sp
 | **BuildSpot / BuildingSystem** | Owns fixed build-spot slots per map, current building+tier per spot, upgrade-tree branching, build/upgrade validation & cost | Each build spot is a data record (spot id, position, current building id, tier) + a `BuildingDef` resource graph describing upgrade branches |
 | **KingController** | WASD movement, HP, knockout/respawn timer, equips one weapon (passive auto-attack + active ability on cooldown) | CharacterBody3D (physics-driven, singular — not batched, since it's one entity with player input) |
 | **Weapon system** | Defines passive attack pattern + active ability behavior, damage, cooldowns; swappable per weapon definition | Strategy pattern: `WeaponDef` resource + a small set of weapon "behavior scripts" referenced by id, not one script per weapon class exploding via inheritance |
-| **Unit/Squad system** | Spawns troops from military buildings, holds squad membership, executes player commands (select/rally/hold) and autonomous combat AI when idle | Data-oriented: units are lightweight structs/records processed in a manager, not one heavyweight Node per unit (see Unit Movement & AI at Scale) |
+| **Unit/Squad system** | Spawns troops from military buildings, holds squad membership, executes player hotkey commands (hold position; follow the king — all units or one unit type) and autonomous combat AI when idle *(updated: hotkey commands, no mouse selection)* | Data-oriented: units are lightweight structs/records processed in a manager, not one heavyweight Node per unit (see Unit Movement & AI at Scale) |
 | **Enemy Spawner + Wave defs** | Reads a `WaveDef` (list of spawn events: enemy type, count, spawn point, delay) for the current night and executes it on a timeline | A `WaveTimeline` resource per map per night; spawner is a simple event-driven scheduler, not "AI" |
 | **Targeting/Combat/Projectiles** | Resolves who attacks whom, applies damage, spawns/moves projectiles, resolves hits | Shared logic used by king, units, enemies, and towers alike — one `CombatResolver`, not four separate combat systems |
 | **Health & Destruction/Restoration** | HP tracking, death/destruction events, dawn-time restoration of destroyed buildings | Component attached to any damageable entity (building, unit, enemy, king); `RestorationService` runs at dawn transition |
 | **Perks & Mutators** | Stat modifiers applied at run start (perks chosen in loadout) or globally (mutators); pure data + modifier stack, no bespoke code per perk where avoidable | `StatModifier` resources applied to a `ModifiableStats` container (see Stat/Modifier System below) |
 | **Scoring** | Accumulates score events (gold earned, waves survived, night completed, mutator multipliers) into a run score; persists high score at run end | Listens to bus events; simple accumulator, decoupled from every other system |
 | **Meta-progression + Persistence** | Per-map XP/level, unlocked weapons/perks, high scores; save/load to disk | `SaveGame` resource serialized to JSON (or Godot's `ConfigFile`) on disk in user:// |
-| **UI/HUD layer** | Renders gold, day/night counter, build costs, upgrade choice popups, unit selection box, results screen | Pure presentation; reads state via bus signals + polling accessors, never mutates simulation directly except by issuing *commands* (e.g. "player wants to build X at spot Y") that the simulation validates |
-| **Input layer** | Keyboard movement, mouse picking of build spots/units (raycast or 2D screen-space box select), translates raw input into simulation-facing intents | Thin translation layer: `MoveIntent`, `BuildIntent(spot_id, building_id)`, `SelectUnitsIntent(ids)`, `RallyIntent(position)` — never lets input code touch simulation internals directly, always through a Command/Intent API |
+| **UI/HUD layer** | Renders gold, day/night counter, build-spot cost/hold-progress prompts near the king, upgrade choice cards, unit group status (which unit type the hotkeys target), results screen; menus accept mouse, keyboard, and gamepad *(updated: no unit selection box)* | Pure presentation; reads state via bus signals + polling accessors, never mutates simulation directly except by issuing *commands* (e.g. "player wants to build X at spot Y") that the simulation validates |
+| **Input layer** | Keyboard/gamepad movement and sprint; detects the nearest build spot within the king's interaction radius and tracks hold-to-build/upgrade progress on the action key; unit hotkeys (hold, follow king, cycle unit type); active ability; hold-to-confirm night start; translates raw input into simulation-facing intents. Mouse input is handled only by menus *(updated: no mouse picking or box select)* | Thin translation layer: `MoveIntent`, `BuildIntent(spot_id, building_id)`, `HoldPositionIntent(unit_type or all)`, `FollowKingIntent(unit_type or all)`, `ActivateAbilityIntent`, `StartNightIntent` — never lets input code touch simulation internals directly, always through a Command/Intent API |
 | **Audio (SFX) layer** | Plays one-shot SFX in reaction to bus events (hit, building placed, coin, UI click, night start, dawn) | Listens to the same event bus as UI; zero simulation knowledge, purely reactive |
 
 ## Recommended Project Structure
@@ -105,7 +107,7 @@ project/
 │   ├── hud/
 │   ├── menus/
 │   └── components/                # Reusable UI widgets (button, tooltip, health bar)
-├── input/                         # Raw input → Intent translation (mouse picking, WASD, box select)
+├── input/                         # Raw input → Intent translation (WASD/gamepad, build-spot proximity + hold-to-build, unit hotkeys; mouse only in ui/ menus)
 ├── audio/                         # SFX bus, event-reactive SFX player
 ├── meta/                          # SaveGame resource, persistence read/write, unlock logic
 ├── autoload/ (Godot) | Bootstrap/ (Unity)  # Singletons: EventBus, RunManager, SaveManager, GameStateMachine
@@ -121,7 +123,7 @@ project/
 - **`data/` is separated from `simulation/` and `presentation/`:** designers (or the AI agent) add a building/enemy/wave/perk by adding a `.tres` file, never by touching code. This is what makes content "cheap to add."
 - **`simulation/` has a hard rule: no dependency on `Node3D`, `MeshInstance3D`, `AnimationPlayer`, or any rendering API.** It may depend on Godot's core types (Vector3, math) but must be testable by instantiating scripts/objects directly in a headless test, not by loading a 3D scene. This is the single most important structural decision for AI-agent testability.
 - **`presentation/` only reads simulation state and event bus signals; it never mutates simulation state directly.** Visual entities (a building's mesh, a unit's model) hold a reference to their simulation-layer counterpart (id or object) and sync visuals from it each frame/on-event — never the reverse.
-- **`input/` exists as a boundary layer so mouse-picking (which needs a Camera3D and viewport, i.e. presentation-adjacent) never lets the *simulation* assume a screen exists.** Input translates raw device state into intents that are just data (structs/dictionaries), which the simulation validates and applies. This also means intents are trivially fabricated in tests without any input hardware.
+- **`input/` exists as a boundary layer so device handling (keyboard/gamepad bindings, rebinding, hold-to-build timing, build-spot proximity checks) never lets the *simulation* assume a screen or input device exists.** *(Updated: the original wording referred to mouse picking, which was dropped — mouse input is now confined to menus.)* Input translates raw device state into intents that are just data (structs/dictionaries), which the simulation validates and applies. This also means intents are trivially fabricated in tests without any input hardware.
 - **`tests/integration/` is the payoff:** a test can build a `MapConfig` fixture with a couple of build spots and a `WaveDef` with a handful of enemies, spin up `RunManager` + subsystems with no scene tree, advance to night, tick simulation N times, and assert final gold/HP/survivors — all without a window, camera, or GPU.
 
 ## Architectural Patterns
@@ -273,9 +275,9 @@ func _on_building_destroyed(_spot_id):
 
 ### Pattern 6: Flow-field or shared-grid pathfinding for crowd movement, not per-agent NavMesh queries
 
-**What:** Rather than each of hundreds of units independently querying a navmesh (`NavigationAgent3D` per unit) for a path to a potentially-shared destination (the castle, a rally point, an enemy target zone), compute a **flow field** (a grid where each cell stores a direction toward the goal) once per goal-change and have all agents heading to that goal simply read their cell's direction each tick. Godot's `NavigationServer3D` can still be used to *generate* the underlying walkable grid/cost field (respecting walls/buildings as obstacles), but per-tick per-agent direction lookup is O(1) grid read, not O(path length) graph search.
+**What:** Rather than each of hundreds of units independently querying a navmesh (`NavigationAgent3D` per unit) for a path to a potentially-shared destination (the castle, the king when units are told to follow, an enemy target zone), compute a **flow field** (a grid where each cell stores a direction toward the goal) once per goal-change and have all agents heading to that goal simply read their cell's direction each tick. Godot's `NavigationServer3D` can still be used to *generate* the underlying walkable grid/cost field (respecting walls/buildings as obstacles), but per-tick per-agent direction lookup is O(1) grid read, not O(path length) graph search.
 
-**When to use:** Whenever many agents share a small number of destinations — which is exactly this game's shape: enemies converge on a handful of spawn→castle lanes, friendly units converge on a rally point or "hold" position. Verified via multiple independent sources (Red Blob Games' canonical "Flow Field Pathfinding for Tower Defense" article; RTS pathfinding case studies): flow fields have a higher one-time setup cost than a single A* query but scale far better than navmesh/A* once agent counts reach the hundreds, precisely because the cost is paid once per goal, not once per agent.
+**When to use:** Whenever many agents share a small number of destinations — which is exactly this game's shape: enemies converge on a handful of spawn→castle lanes, friendly units converge on the king (follow-king hotkey) or a "hold" position. Verified via multiple independent sources (Red Blob Games' canonical "Flow Field Pathfinding for Tower Defense" article; RTS pathfinding case studies): flow fields have a higher one-time setup cost than a single A* query but scale far better than navmesh/A* once agent counts reach the hundreds, precisely because the cost is paid once per goal, not once per agent.
 
 **Godot-specific caution (verified):** Godot's built-in RVO avoidance (`NavigationAgent3D` avoidance, tied to `NavigationServer3D`) has a documented, non-trivial performance cost per registered avoidance agent and known behavioral rough edges in non-trivial (non-flat, multi-navmesh) scenes — agents can stall or get pushed off-mesh in crowded situations. Recommendation: use `NavigationServer3D`/baked navmesh data only to *build* the flow field / walkable cost grid (a one-time or per-map-change bake), implement movement and light local separation (simple neighbor-repulsion, not full RVO) by hand in the unit manager, and reserve Godot's built-in per-agent avoidance nodes only if agent counts stay in the dozens (e.g. just the king plus a small squad), not for full crowds of hundreds.
 
@@ -283,21 +285,23 @@ func _on_building_destroyed(_spot_id):
 
 ### Pattern 7: Command/Intent layer between input and simulation
 
-**What:** Mouse picking (raycast against build spots, box-select over units) and keyboard input never call simulation mutators directly. Instead, input code produces small intent objects (`BuildIntent`, `RallyIntent`, `SelectUnitsIntent`, `ActivateAbilityIntent`) that a thin `CommandProcessor` validates against current simulation state and applies. UI buttons (e.g. "confirm upgrade choice") go through the same intent path as direct world clicks.
+**What:** Keyboard and gamepad input (the king's proximity to a build spot plus a completed hold of the action key, unit hotkeys, ability and night-start inputs) never calls simulation mutators directly. Instead, input code produces small intent objects (`BuildIntent`, `HoldPositionIntent`, `FollowKingIntent`, `ActivateAbilityIntent`, `StartNightIntent`) that a thin `CommandProcessor` validates against current simulation state and applies. Upgrade choice cards (picked with keyboard/gamepad) go through the same intent path. *(Updated: originally described mouse picking and box-select, which were dropped — mouse is for menus only.)*
 
-**When to use:** Always — this is what lets tests fabricate "the player clicked build spot 3 and chose tier-2 archery range" as a plain data object with no mouse, camera, or viewport involved, and assert on the resulting gold deduction and building state.
+**When to use:** Always — this is what lets tests fabricate "the king completed a hold on build spot 3 and chose tier-2 archery range" as a plain data object with no input device, camera, or viewport involved, and assert on the resulting gold deduction and building state.
 
-**Trade-offs:** One extra layer of indirection versus calling `buildings.build(spot)` straight from a click handler — worth it because it's also where validation (can afford it? spot empty? not mid-night?) naturally lives once, instead of being duplicated between UI-affordance checks and actual mutation.
+**Trade-offs:** One extra layer of indirection versus calling `buildings.build(spot)` straight from an input handler — worth it because it's also where validation (can afford it? spot empty? not mid-night?) naturally lives once, instead of being duplicated between UI-affordance checks and actual mutation.
 
 ## Data Flow
 
 ### Day-phase build flow
 
 ```
-Mouse click (screen pos)
+King rides within interaction radius of a build spot (keyboard/gamepad movement)
     ↓
-[Input layer] raycast → build_spot_id
+[Input layer] nearest build spot in range → build_spot_id; HUD shows option + cost
     ↓
+[Input layer] player holds the action key until the hold-progress completes
+    ↓                      (updated: replaces the original mouse-click + raycast flow)
 [Input layer] emits BuildIntent(spot_id, building_choice)
     ↓
 [CommandProcessor] validates: phase==DAY, spot empty/upgradable, gold sufficient
@@ -310,7 +314,7 @@ Mouse click (screen pos)
     ↓
 [Presentation] spawns/updates mesh at spot's world position
 [Audio] plays "build" SFX
-[UI] refreshes gold display, closes build menu
+[UI] refreshes gold display, hides the build-spot prompt
 ```
 
 ### Night-phase combat flow (per tick)
@@ -456,7 +460,7 @@ This is the dependency-ordered backbone a vertical-slice-first roadmap should fo
 5. **Health/Destruction component + CombatResolver skeleton** — generic damage application usable by anything; test with synthetic "unit A deals 5 to unit B" before any real enemies exist.
 6. **Minimal enemy + SpawnScheduler + WaveDef** — one enemy type, one trivial wave, spawned via the scheduler. This is the first point the full Day→Night→combat→Dawn loop can run end-to-end, even with placeholder art/one box-mesh enemy. **This is the vertical slice milestone** — the core loop proven on one map with zero content breadth, matching the project's "must already be fun on a single map with zero meta-progression" requirement.
 7. **Stat/Modifier system** (Pattern 3) — introduce once there's at least one real number worth modifying (king damage or unit HP); build perks/mutators against this from the start rather than hardcoding then refactoring.
-8. **Unit/Squad system + command intents** (Pattern 7) — friendly troop spawning, selection, rally/hold commands. Depends on CombatResolver and Health already existing.
+8. **Unit/Squad system + command intents** (Pattern 7) — friendly troop spawning, hotkey hold-position and follow-king commands (per unit type or all; no mouse selection). Depends on CombatResolver and Health already existing.
 9. **Data-oriented scale-up** (Patterns 5 & 6: MultiMesh, flow fields, spatial hashing) — once the loop is proven correct at small scale (step 6-8), convert unit/enemy representation to the batched/data-oriented approach before adding wave/roster content volume, so content doesn't have to be re-touched for a performance refactor later.
 10. **Building upgrade trees, weapon system, perks, mutators, meta-progression/persistence, additional maps** — now purely additive content work layered on a proven, tested core, exactly the "cheap to add" state the architecture was built to reach.
 11. **UI/HUD polish, audio layer, menus, results/scoring screen** — presentation-layer work that can proceed in parallel with later content steps once the event bus contract (which events exist, what data they carry) is stable from step 6 onward.
