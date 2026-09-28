@@ -171,13 +171,106 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (filled by roadmapper) | | |
+| LOOP-01 | Phase 2 | Pending |
+| LOOP-02 | Phase 2 | Pending |
+| LOOP-03 | Phase 2 | Pending |
+| LOOP-04 | Phase 2 | Pending |
+| LOOP-05 | Phase 2 | Pending |
+| LOOP-06 | Phase 2 | Pending |
+| LOOP-07 | Phase 2 | Pending |
+| LOOP-08 | Phase 9 | Pending |
+| KING-01 | Phase 1 | Pending |
+| KING-02 | Phase 1 | Pending |
+| KING-03 | Phase 2 | Pending |
+| KING-04 | Phase 3 | Pending |
+| KING-05 | Phase 3 | Pending |
+| KING-06 | Phase 2 | Pending |
+| BLDG-01 | Phase 1 | Pending |
+| BLDG-02 | Phase 1 | Pending |
+| BLDG-03 | Phase 1 | Pending |
+| BLDG-04 | Phase 1 | Pending |
+| BLDG-05 | Phase 5 | Pending |
+| BLDG-06 | Phase 1 | Pending |
+| BLDG-07 | Phase 2 | Pending |
+| BLDG-08 | Phase 5 | Pending |
+| BLDG-09 | Phase 5 | Pending |
+| BLDG-10 | Phase 4 | Pending |
+| BLDG-11 | Phase 6 | Pending |
+| BLDG-12 | Phase 12 | Pending |
+| BLDG-13 | Phase 12 | Pending |
+| ECON-01 | Phase 1 | Pending |
+| ECON-02 | Phase 1 | Pending |
+| ECON-03 | Phase 5 | Pending |
+| ECON-04 | Phase 5 | Pending |
+| ECON-05 | Phase 5 | Pending |
+| ECON-06 | Phase 5 | Pending |
+| ECON-07 | Phase 1 | Pending |
+| UNIT-01 | Phase 7 | Pending |
+| UNIT-02 | Phase 7 | Pending |
+| UNIT-03 | Phase 7 | Pending |
+| UNIT-04 | Phase 3 | Pending |
+| UNIT-05 | Phase 3 | Pending |
+| UNIT-06 | Phase 3 | Pending |
+| UNIT-07 | Phase 3 | Pending |
+| UNIT-08 | Phase 7 | Pending |
+| ENMY-01 | Phase 6 | Pending |
+| ENMY-02 | Phase 6 | Pending |
+| ENMY-03 | Phase 6 | Pending |
+| ENMY-04 | Phase 4 | Pending |
+| ENMY-05 | Phase 9 | Pending |
+| ENMY-06 | Phase 11 | Pending |
+| ENMY-07 | Phase 11 | Pending |
+| MAP-01 | Phase 11 | Pending |
+| MAP-02 | Phase 9 | Pending |
+| MAP-03 | Phase 11 | Pending |
+| MAP-04 | Phase 9 | Pending |
+| MAP-05 | Phase 11 | Pending |
+| META-01 | Phase 10 | Pending |
+| META-02 | Phase 10 | Pending |
+| META-03 | Phase 10 | Pending |
+| META-04 | Phase 9 | Pending |
+| META-05 | Phase 10 | Pending |
+| META-06 | Phase 10 | Pending |
+| META-07 | Phase 9 | Pending |
+| META-08 | Phase 5 | Pending |
+| META-09 | Phase 9 | Pending |
+| INPT-01 | Phase 3 | Pending |
+| INPT-02 | Phase 3 | Pending |
+| INPT-03 | Phase 13 | Pending |
+| UI-01 | Phase 3 | Pending |
+| UI-02 | Phase 5 | Pending |
+| UI-03 | Phase 10 | Pending |
+| UI-04 | Phase 13 | Pending |
+| UI-05 | Phase 8 | Pending |
+| UI-06 | Phase 8 | Pending |
+| UI-07 | Phase 13 | Pending |
+| ART-01 | Phase 8 | Pending |
+| ART-02 | Phase 1 | Pending |
+| AUD-01 | Phase 8 | Pending |
+| AUD-02 | Phase 8 | Pending |
+| PLAT-01 | Phase 4 | Pending |
+| PLAT-02 | Phase 13 | Pending |
+| PLAT-03 | Phase 13 | Pending |
+| DEV-01 | Phase 1 | Pending |
+| DEV-02 | Phase 1 | Pending |
+| DEV-03 | Phase 1 | Pending |
+| DEV-04 | Phase 1 | Pending |
+| DEV-05 | Phase 2 | Pending |
 
 **Coverage:**
 - v1 requirements: 85 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 85 ⚠️
+- Mapped to phases: 85
+- Unmapped: 0 ✓
+
+**Mapping notes:**
+- The core-loop slice is split across Phase 1 (foundation, tooling, and the day phase) and Phase 2 (nights, dawn, win/loss, seeded replays, and the first playtest gate).
+- DEV-01 (headless simulation and GUT tests) and DEV-03 (debug overlay) are mapped to Phase 1, which *establishes* them: the headless harness with economy and building tests, and an overlay showing FPS, unit/enemy counts, and loop state. Phase 2 extends both with wave, combat, and loop-transition tests and with live wave state and enemy paths once nights have enemies.
+- ECON-02 (House income) and ECON-07 (gold carryover) are verified in Phase 1 through an enemy-free placeholder night between days. Phase 2 fills that same loop with real nights and adds the dawn rules from LOOP-04/LOOP-05 (free rebuild, rebuilt buildings not paying).
+- BLDG-11 is mapped to Phase 6, where the tower specialization tree completes it. A basic (tier-1) tower is buildable and upgradeable from Phase 1 and fires on enemies from Phase 2 as its first instance.
+- META-08 (stat-modifier order) and META-09 (versioned saves) are mapped to the phase that *establishes* them: Phase 5 (first buffs) and Phase 9 (first save). Later phases add new modifier sources (perks, mutators, research) and new save fields (level/XP in Phase 10, settings in Phase 13) under the same tested order and schema-versioning rules.
+- MAP-03 and ENMY-06 are mapped to Phase 11, where they are complete across all maps. Map 2's distinguishing element and unique enemy are authored in Phase 9 as the first instances.
+- PLAT-01 is established in Phase 4 (stress-tested before content breadth) and re-verified on real campaign battles in Phase 13.
 
 ---
 *Requirements defined: 2026-09-28*
-*Last updated: 2026-09-28 after initial definition*
+*Last updated: 2026-09-29 after roadmap revision (Phase 1 split into Phases 1–2; 13 phases)*
