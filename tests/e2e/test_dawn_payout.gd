@@ -179,6 +179,26 @@ func test_a_huge_payout_is_capped_in_coins_and_the_readout_never_goes_negative()
 	assert_eq(vfx.get_last_total(), total, "the total shown is the full payout")
 
 
+func test_the_last_coin_lands_inside_the_dawn_window_however_many_spots_pay() -> void:
+	var short_tuning: LoopTuning = _tuning.duplicate(true)
+	short_tuning.dawn_seconds = 1.0
+	var map_root: MapRoot = await E2eSupport.spawn_map(self, _rich_map(), short_tuning)
+	var vfx: DawnPayoutVfx = _vfx(map_root)
+	assert_not_null(vfx, "the HUD has a DawnPayoutVfx")
+	if vfx == null:
+		return
+	var many_spots_coins: int = 40
+
+	var stagger: float = vfx.launch_stagger(many_spots_coins)
+
+	var last_lands_at: float = float(many_spots_coins - 1) * stagger + DawnPayoutVfx.TRIP_SECONDS
+	assert_lte(last_lands_at, short_tuning.dawn_seconds + 0.001, "the flight fits the dawn window")
+	assert_lte(stagger, DawnPayoutVfx.STAGGER_SECONDS, "never slower than the default stagger")
+	assert_eq(
+		vfx.launch_stagger(2), DawnPayoutVfx.STAGGER_SECONDS, "a small payout keeps the default"
+	)
+
+
 func test_a_dawn_that_pays_nothing_shows_no_coins_and_no_total() -> void:
 	var map_root: MapRoot = await E2eSupport.spawn_map(self, _rich_map(), _tuning)
 	var ctx: RunContext = map_root.get_context()

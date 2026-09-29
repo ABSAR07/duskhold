@@ -17,9 +17,9 @@ const COIN_RIM_END: float = 0.9
 ## World-space offset above the plot where a coin starts.
 const SPOT_ANCHOR := Vector3(0.0, 2.5, 0.0)
 const STAGGER_SECONDS: float = 0.08
-## Most coins one payout launches. A bigger payout puts several gold on each coin, so the whole
-## flight (launch span plus one trip) stays inside the dawn window and the HUD readout never lags
-## the ledger into the next day.
+## Coin budget of one payout. A bigger payout puts several gold on each coin.
+## Every paying spot still sends at least one coin, so the launch stagger (see launch_stagger) is
+## what keeps the whole flight inside the dawn window.
 const MAX_COINS: int = 12
 const POP_SECONDS: float = 0.15
 const POP_HEIGHT_PX: float = 40.0
@@ -66,6 +66,13 @@ func get_spawned_count(spot_id: StringName) -> int:
 	return _launched.get(spot_id, 0)
 
 
+## Seconds between two coin launches for a payout of `coin_total` coins: STAGGER_SECONDS, tightened
+## when needed so the last coin lands before the dawn window ends.
+func launch_stagger(coin_total: int) -> float:
+	var window: float = _ctx.tuning.dawn_seconds - TRIP_SECONDS
+	return clampf(window / float(maxi(coin_total - 1, 1)), 0.0, STAGGER_SECONDS)
+
+
 func _make_coin_texture() -> GradientTexture2D:
 	# Gold in the middle, a darker rim, then transparent so the square texture reads as a disc.
 	var gradient: Gradient = Gradient.new()
@@ -88,10 +95,17 @@ func _on_dawn_payout(total: int, per_spot: Dictionary) -> void:
 	if total <= 0:
 		return
 	_pending_total = total
+	var coin_counts: Dictionary = {}
+	var coin_total: int = 0
+	for spot_id: StringName in per_spot:
+		var count: int = _coins_for_amount(per_spot[spot_id], total)
+		coin_counts[spot_id] = count
+		coin_total += count
+	var stagger: float = launch_stagger(coin_total)
 	var index: int = 0
 	for spot_id: StringName in per_spot:
 		var amount: int = per_spot[spot_id]
-		var coin_count: int = _coins_for_amount(amount, total)
+		var coin_count: int = coin_counts[spot_id]
 		for coin: int in range(coin_count):
 			_expected_coins += 1
 			_schedule_launch(
