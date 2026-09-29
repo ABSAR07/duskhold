@@ -2,22 +2,28 @@
 phase: 01-foundation-day-loop
 reviewed: 2026-09-29T00:00:00Z
 depth: standard
-files_reviewed: 9
+files_reviewed: 15
 files_reviewed_list:
   - .github/workflows/ci.yml
-  - presentation/map/map_root.gd
+  - input/start_night_hold_controller.gd
+  - presentation/buildings/building_views.gd
+  - simulation/defs/map_config.gd
   - tests/e2e/test_dawn_payout.gd
+  - tests/e2e/test_debug_overlay_toggle.gd
   - tests/e2e/test_map_binding.gd
-  - tests/e2e/test_walking_skeleton.gd
-  - tools/bootstrap.py
-  - tools/prepush_check.sh
+  - tests/unit/test_attribution_log.gd
+  - tests/unit/test_building_view_catalog.gd
+  - tests/unit/test_debug_overlay_readonly.gd
+  - tests/unit/test_prototype_map_data.gd
+  - tools/export.sh
+  - tools/screenshot.sh
   - ui/hud/dawn_payout_vfx.gd
-  - ui/hud/hud.gd
+  - ui/overlay/debug_overlay_model.gd
 findings:
-  critical: 0
-  warning: 2
-  info: 10
-  total: 12
+  critical: 1
+  warning: 5
+  info: 5
+  total: 11
 status: issues_found
 ---
 
@@ -25,112 +31,114 @@ status: issues_found
 
 **Reviewed:** 2026-09-29
 **Depth:** standard
-**Files Reviewed:** 9 (incremental scope: everything changed since 0b7a22c)
+**Files Reviewed:** 15
 **Status:** issues_found
 
 ## Summary
 
-This is an incremental re-review of the eight warning fixes recorded in 01-REVIEW-FIX.md, plus a carry-forward check of every finding in the prior report against current source.
+The 15 files are mostly sound. `StartNightHoldController`, `BuildingViews`, `DebugOverlayModel`, the shell scripts and the CI workflow all trace cleanly. The hold state machine handles early release, held-through-night and rejected-intent correctly. The model-swap seam frees mis-authored scene instances. The shell scripts quote the space-containing repo path throughout and delete stale outputs before checking for new ones.
 
-**Verified fixed (omitted from this report):** WR-01, WR-02, WR-03, WR-04, WR-05, WR-07, WR-08, WR-09.
+One real defect stands out. The WR-10 fix for the dawn coin stagger (commit f1f472d) computes the tightened stagger and then never uses it. The test added with it checks only the pure helper, so the suite cannot see the no-op. The remaining findings are robustness gaps in `MapConfig.validate()`, an edge case in the vfx, a hazard in the overlay-provider contract, and test fragility.
 
-- WR-01: `MapRoot._ready` binds only `run_bound` nodes for which `is_ancestor_of(node)` holds. `test_map_binding.gd` covers it.
-- WR-02: `MAX_COINS` caps the coins and `coin_landed(amount)` carries each coin's share. `_coin_share` sums exactly to the spot amount. `Hud._refresh` clamps at 0. One residual gap remains and is filed as a new finding (WR-10).
-- WR-03: `install_gut` skips when the vendored addon reports the pinned version.
-- WR-04: `Path.replace` and `timeout=60` are in place. `fetch_official_sums` deletes the sums file.
-- WR-05: the zip SHA256 is pinned and checked before extraction. Extraction and the version check happen in staging, and `swap_directory` restores the original on failure.
-- WR-07: `tick(minf(delta, MAX_SIM_STEP))`, with a test.
-- WR-08: the regex is extended to `gh[pousr]_`, Stripe, Google, npm and Slack formats, and gitleaks runs when installed. I read the pattern and found no self-match.
-- WR-09: all 20 `uses:` lines are pinned to 40-character SHAs with release comments. I did not re-resolve the SHAs against GitHub (no network use). Verify them once with `gh api` before relying on them. The optional re-hash of the cached Godot binary was not done. It was marked optional in the original finding, so this is not a regression.
+No structural findings (fallow) were supplied. No external reviewer evidence was supplied.
 
-**Carried forward, still open after re-reading the cited source:** WR-06 and IN-01 through IN-08. Line numbers were refreshed. The IN-06 `test_attribution_log.gd` reference was wrong in the prior report (786-797) and is corrected to 236-251.
+## Critical Issues
 
-**New findings:** WR-10, IN-09 and IN-10. No critical defect and no regression was found in the changed code. The full set of fixes is otherwise sound.
+### CR-01: WR-10 stagger fix is a no-op; the computed `stagger` is never used
+
+**File:** `ui/hud/dawn_payout_vfx.gd:104-113`
+**Issue:** `_on_dawn_payout` computes `var stagger: float = launch_stagger(coin_total)`. The launch loop then schedules each coin with `float(index) * STAGGER_SECONDS`, the un-tightened constant. `stagger` is dead, so the guarantee documented at lines 20-22 and 69-70 ("the last coin lands before the dawn window ends") is not enforced. The coin count is `MAX_COINS` plus up to one extra coin per paying spot, because each spot gets at least 1. With `dawn_seconds = 2.0` the window is 1.4 s, so about 19 coins (`18 * 0.08 = 1.44`) overrun it. A shorter `dawn_seconds` overruns sooner. When that happens the last coins land after day has returned and the HUD gold readout lags the ledger into the next day. That is the exact failure WR-10 was meant to close. Shipped data (5 houses, 10 coins) does not hit it, but `dawn_seconds` is a designer tuning knob.
+
+The test `test_the_last_coin_lands_inside_the_dawn_window_however_many_spots_pay` (`tests/e2e/test_dawn_payout.gd:182-199`) only calls `vfx.launch_stagger(40)` and does arithmetic on the result. It never emits a payout, so it passes while the real launch path ignores the value. Godot will also raise an UNUSED_VARIABLE warning on this line.
+
+**Fix:**
+```gdscript
+_schedule_launch(
+	spot_id, float(index) * stagger, _coin_share(amount, coin_count, coin)
+)
+```
+Then change the test to emit `dawn_payout` with more paying spots than `MAX_COINS` under a short `dawn_seconds`. Assert that the vfx's launched coin count reaches the expected total and that the HUD settles within `dawn_seconds`. Alternatively, expose the last scheduled delay and assert `delay + TRIP_SECONDS <= dawn_seconds`.
 
 ## Warnings
 
-### WR-06: License allow-list guard is defeated by self-declaration, and the horse asset conflicts with the CC0-only constraint
+### WR-01: `MapConfig.validate()` misses an empty building id, and `RunContext` proceeds on invalid data
 
-**File:** `assets/attribution.json:83-99` and `tests/unit/test_attribution_log.gd:11,153-159`
-**Issue:** `CLAUDE.md` requires CC0 (or equally permissive) assets only. The `quaternius-horse` entry declares `"license": "CC0-1.0"` and `"ships_in_build": true`, but its own notes say quaternius.com now publishes the Quaternius Asset License v1.0. That license forbids redistributing the assets "as a standalone asset". The GLB is shipped as a loose resource in the exported `.pck`, where it is trivially extractable, so it is arguably standalone redistribution. `test_every_license_is_on_the_allow_list` passes only because the manifest author typed `CC0-1.0`; the test cannot detect the conflict it was written to prevent. The caveat is disclosed but not resolved, and the build ships the asset today. The prior fix pass skipped this as an owner decision (UAT item 7 in 01-UAT.md). It remains open.
-**Fix:** Before the itch.io push, do one of the following and record it in the manifest:
-- Replace the horse with an asset whose current license page is unambiguously CC0.
-- Obtain written confirmation from the author.
-- Set the entry's license to `QAL-1.0`, and either drop it from the allow-list and swap the asset, or explicitly extend the constraint.
+**File:** `simulation/defs/map_config.gd:24-30` (consumer: `simulation/run/run_context.gd:16`, `simulation/buildings/building_system.gd:14`)
+**Issue:** There are two gaps.
+1. A `BuildingDef` with `id == &""` is not reported, though an empty spot id is (line 51). A spot whose `building_id` is also empty then resolves to that building, so the "unknown building id" check passes silently.
+2. `RunContext._init` only `push_error`s on validation errors and continues. A null entry in `buildings` is reported here, but `BuildingSystem._init` then does `building_def.id` on that null and crashes. A null spot is likewise dereferenced (`spot.id`). The T-01-10 "reported, not crashed" property therefore does not hold for the real construction path. The unit test only calls `validate()` in isolation.
 
-### WR-10: The `MAX_COINS` cap is soft, and the "stays inside the dawn window" guarantee does not hold for many paying spots or a shorter dawn
+**Fix:** In `validate()`, add `if building_def.id == &"": errors.append("a building has an empty id")`. In `RunContext._init`, either stop on errors (assert or return an error) or make `BuildingSystem._init` skip null entries. Add a test that constructs a `RunContext` from a map with a null building.
 
-**File:** `ui/hud/dawn_payout_vfx.gd:20-23,105-110`
-**Issue:** The WR-02 fix caps coins per payout at `MAX_COINS = 12`, and the constant's comment says the whole flight "stays inside the dawn window". The cap is per spot. `_coins_for_amount` returns `clampi(floor(amount * 12 / total), 1, amount)`, so every paying spot gets at least one coin. With N paying spots and `total > 12`, the payout launches at least N coins. The last coin lands at `(N-1) * 0.08 + 0.6` seconds. That exceeds `dawn_seconds = 2.0` once N is 19 or more. `STAGGER_SECONDS` and `TRIP_SECONDS` are also hard-coded and not tied to `LoopTuning.dawn_seconds`. Shortening the dawn in tuning (for example to 1.0 s) reintroduces the original WR-02 window, where the HUD label hides gold the player can already spend. The prototype map has only 5 house plots, so this is latent, but later phases add plots.
-**Fix:** Enforce the cap on the total coin count, not per spot. Either distribute the `MAX_COINS` budget with a largest-remainder method (spots beyond the budget share a coin), or compute the stagger from the available window. For example, `stagger = minf(STAGGER_SECONDS, (dawn_seconds - TRIP_SECONDS) / maxi(coin_total - 1, 1))`, using `_ctx.tuning.dawn_seconds`. Add a test with more paying spots than `MAX_COINS`.
+### WR-02: A payout with `total > 0` but no schedulable coins never shows a total and can leave the HUD lagging
+
+**File:** `ui/hud/dawn_payout_vfx.gd:93-114` (with `ui/hud/hud.gd:_on_dawn_payout`)
+**Issue:** `_on_dawn_payout` returns early only for `total <= 0`. If `per_spot` is empty or every amount is `<= 0` while `total > 0`, then `_expected_coins` stays 0 and `_show_total()` is never reached. `Hud._on_dawn_payout` has already set `_payout_pending = total`, and only `coin_landed` ever decrements it. The gold label would stay short by `total` until the next payout. `SimEvents.dawn_payout(total, per_spot)` does not guarantee that the parts sum to the total.
+
+**Fix:** In the vfx, after the launch loop, `if _expected_coins == 0: _show_total()`. Alternatively, have the HUD clear `_payout_pending` when `_per_spot` sums to zero. Consider asserting `sum(per_spot.values()) == total` at the producer.
+
+### WR-03: Registered overlay providers are trusted to return an `Array`; a bad one crashes every refresh
+
+**File:** `ui/overlay/debug_overlay_model.gd:30-36`
+**Issue:** The IN-07 fix guards against a freed owner but not against a provider that returns `null` or a non-Array. `_section(title, rows: Array)` is typed, so such a return raises a runtime error inside `collect()`. `collect()` runs about 4 times a second, and Phase 2 will register wave and path providers. The header comment promises that one bad section cannot take down the overlay.
+
+**Fix:**
+```gdscript
+var rows: Variant = provider.call()
+if rows is Array:
+	sections.append(_section(entry["title"], rows))
+```
+Add a test for a provider that returns null.
+
+### WR-04: `screenshot.sh` discards the import output, so an import failure is undiagnosable
+
+**File:** `tools/screenshot.sh:50-55`
+**Issue:** The `--import` warm-up is sent to `/dev/null`, so on failure the script prints only "exited with N". `export.sh` logs the same step to `build/export-import.log` and tails it on failure. In CI (the `screenshots` job) nothing is uploaded on failure, so there is no way to see why.
+
+**Fix:** Log to `${DUSKHOLD_ROOT}/build/screenshot-import.log`, mirroring `export.sh`. Print `tail -n 20` on failure. In `ci.yml`, add `if: always()` to the upload step, or upload the logs separately.
+
+### WR-05: `test_each_house_spawns_as_many_coins_as_it_pays` is coupled to balance data and to real time
+
+**File:** `tests/e2e/test_dawn_payout.gd:140-152`
+**Issue:** The test waits `EARLY_S` (0.5 s) and then asserts `get_spawned_count(house) == tier income`. That holds only while the total payout stays within both limits:
+- **Cap:** total gold must not exceed `MAX_COINS` (12), because the cap merges gold onto fewer coins.
+- **Launch time:** roughly 6 coins or fewer, because the last launch is at `(n-1) * 0.08` s.
+
+The current values (1 + 2 = 3) pass. Rebalancing house income, which `house.tres` is expected to undergo, makes the test fail for a non-bug reason. It also fails under a slow frame, since it waits wall-clock time (`await wait_seconds`).
+
+**Fix:** Assert against `_coins_for_amount`-derived expectations. Alternatively, wait with `wait_until` for the spawned count to reach the expected value instead of a fixed sleep, and set a low fixed income in a duplicated map.
 
 ## Info
 
-### IN-01: `BuildingViews._instance_model` leaks the instantiated scene when its root is not a `Node3D`
+### IN-01: Unused constant `HOUSE_SPOT`
 
-**File:** `presentation/buildings/building_views.gd:126-132`
-**Issue:** `scene.instantiate() as Node3D` yields null for a non-`Node3D` root, but the instantiated node is never freed. The caller then falls back to a primitive, so a mis-authored catalog entry silently leaks a node per build instead of failing loudly.
-**Fix:** Instantiate into a `Node` variable, and `push_warning` and `free()` it if the cast fails.
+**File:** `tests/e2e/test_map_binding.gd:8`
+**Issue:** `HOUSE_SPOT` is declared and never referenced.
+**Fix:** Delete it.
 
-### IN-02: `MapConfig.validate` has gaps that let unbuildable or crashing data through
+### IN-02: The `view_source` assertion compares an empty string to an empty string
 
-**File:** `simulation/defs/map_config.gd:19-47`
-**Issue:**
-- A spot with an empty `id` passes validation, but `nearest_spot_in_range` and `BuildHoldController` use `&""` as "no spot", so that spot can never be built.
-- Null entries in `buildings`, `spots` or `tiers` crash with a null dereference instead of a validation error.
-- `RunContext._init` only `push_error`s and continues, so invalid data still boots the run.
-**Fix:** Add `if spot.id == &"": errors.append(...)` and null guards in each loop. Consider refusing to start the run when `validate()` is non-empty.
+**File:** `tests/unit/test_building_view_catalog.gd:61`
+**Issue:** The stub scene is packed in memory, so `stub.resource_path` is `""`. The assertion `modelled.get_meta("view_source") == stub.resource_path` therefore passes for any empty-string meta. It does still distinguish the model path from `"primitive"`, but it does not prove that the source path is recorded.
+**Fix:** Save the stub to `user://` or a `res://` temp path first. Alternatively, assert `assert_ne(..., VIEW_SOURCE_PRIMITIVE)` together with an explicit check that the model branch ran.
 
-### IN-03: `StartNightHoldController._confirm` emits `night_requested` regardless of the submit result
+### IN-03: CI runs each push twice once a `gsd/**` branch has a pull request
 
-**File:** `input/start_night_hold_controller.gd:49-53`
-**Issue:** The return value of `commands.submit(StartNightIntent.new())` is ignored. Today the phase was just checked, so it cannot fail, but the signal is a future SFX or analytics hook and would fire on a rejection once other gates exist.
-**Fix:** `if _ctx.commands.submit(StartNightIntent.new()) == CommandProcessor.OK: night_requested.emit()`.
+**File:** `.github/workflows/ci.yml:9-13`
+**Issue:** `push: branches: [..., "gsd/**"]` plus `pull_request` runs every job for the same commit under two concurrency groups, `refs/heads/gsd/...` and `refs/pull/N/merge`, so neither cancels the other. This includes the 30-minute `export` job. The header comment justifies the push trigger for branches without a PR, but that trigger stays on after a PR exists.
+**Fix:** Accept the duplication, or gate the push trigger, for example with a job-level `if: github.event_name != 'push' || !contains(github.event.head_commit.message, ...)`. Better, use a shared concurrency group keyed on `github.head_ref || github.ref_name`.
 
-### IN-04: `tools/export.sh` ignores the import pass's exit status
+### IN-04: The screenshot job's artifact upload is skipped when capture fails
 
-**File:** `tools/export.sh:28`
-**Issue:** `--import >/dev/null 2>&1` discards both output and status, so a failed import surfaces only as a confusing export failure later, with no diagnostic. `tools/screenshot.sh` checks the same step.
-**Fix:** Capture the status as in `screenshot.sh:50-55`, and log the output to `build/`.
+**File:** `.github/workflows/ci.yml:153-159`
+**Issue:** The `test` job uses `if: always()` for its results upload. The `screenshots` job does not, so partial screenshots that would show which shot broke are dropped on failure (see WR-04).
+**Fix:** Add `if: always()` to the upload step. Keep `if-no-files-found: error`, or switch it to `warn` for the failure case.
 
-### IN-05: `tools/screenshot.sh` expands possibly-empty arrays under `set -u`
+### IN-05: Redundant `get_spot` lookups and a magic-number spacing in `_add_marker`
 
-**File:** `tools/screenshot.sh:76-78`
-**Issue:** `"${wrapper[@]}"` and `"${renderer_args[@]}"` are empty in the local Windows path. On bash older than 4.4 (for example macOS `/bin/bash` 3.2) this raises "unbound variable". Git Bash and Ubuntu CI are fine, so this is latent portability only.
-**Fix:** Use `${wrapper[@]+"${wrapper[@]}"}`, or drop `set -u` for those expansions.
-
-### IN-06: Loose or timing-dependent test assertions
-
-**File:** `tests/unit/test_attribution_log.gd:236-251`, `tests/e2e/test_debug_overlay_toggle.gd:8-10`, `tests/e2e/test_dawn_payout.gd:92-104`, `tests/e2e/test_king_ride.gd:62-69`
-**Issue:**
-- `test_assets_md_lists_every_entry_in_json_order` uses `text.find(name, cursor)`, which can match the name in prose rather than the table row, and then checks `row.contains(license)`. The substring `"MIT"` matches any row containing it.
-- The overlay test's `"DAY"` matches `Phase: DAY`, so the actual `Day:` and `Night:` rows are never checked in the e2e test. They are only covered in `test_dawn_income.gd`.
-- The dawn-lag test asserts wall-clock ordering, with a coin flight of 0.6 s against a 0.25 s wait, and the sprint test asserts a real-time ratio within 15%. Both are reasonable today but are the first candidates to flake on a loaded CI runner.
-**Fix:** Anchor the ASSETS.md check to the table row (for example `text.find("| %s |" % name)`). Assert `"Day: 1"` in the overlay test. Consider driving these e2e timings from `RunManager.tick` or a fixed-step harness.
-
-### IN-07: `DebugOverlay` ships in release exports and its section providers are called unguarded
-
-**File:** `ui/overlay/debug_overlay.gd:36-40,46-55` and `ui/overlay/debug_overlay_model.gd:30-33`
-**Issue:** The overlay is documented as accepted-risk (T-01-15), but F3 is reachable in the shipped build. `provider.call()` in `collect()` is unguarded, so an invalid or freed `Callable` registered by a later phase crashes the overlay every 0.25 s while it is visible.
-**Fix:** Gate the toggle with `OS.is_debug_build()` or a feature flag, and check `provider.is_valid()` before calling.
-
-### IN-08: CI runs every push twice on PR branches, and `cancel-in-progress` applies to `main`
-
-**File:** `.github/workflows/ci.yml:7-18`
-**Issue:** `push: branches: ["**"]` plus `pull_request` runs the whole matrix twice per commit on a PR branch. `concurrency` with `cancel-in-progress: true` can also cancel an in-flight `main` run, including the export job that produces the release artifact.
-**Fix:** Restrict `push` to `main` (PRs are covered by `pull_request`), and set `cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}`.
-
-### IN-09: `test_a_second_map_does_not_hear_the_first_maps_phase_changes` never triggers a phase change
-
-**File:** `tests/e2e/test_map_binding.gd:36-53`
-**Issue:** The test name and header claim the first map ignores the second map's phase changes, but no phase change is ever emitted. It only checks gold and the first HUD's label after a third map spawns. That does catch the old re-bind of the HUD (the label would show the rich map's gold). It does not exercise the `DayNightLighting`, `SpotLabel` or `CoinDripVfx` re-binding described in the original WR-01, so a regression there would pass.
-**Fix:** Submit a `StartNightIntent` on the second map and assert the first map's `RunManager` phase and `DayNightLighting` state are unchanged. Otherwise rename the test to what it asserts (for example `..._does_not_rebind_the_first_maps_hud`).
-
-### IN-10: The GUT SHA256 pin in `bootstrap.py` duplicates `assets/attribution.json` with nothing tying them together
-
-**File:** `tools/bootstrap.py:43-44`
-**Issue:** `GUT_ZIP_SHA256` is a hand-copied second source of truth for the value in `assets/attribution.json` (gut entry). A future GUT bump that updates only one of them leaves the installer rejecting a valid archive, or the manifest recording a hash that is not the pinned one. There is no test that compares them.
-**Fix:** Add a unit test that reads both and asserts equality, or have `bootstrap.py` read the value from `attribution.json`.
+**File:** `presentation/buildings/building_views.gd:87,92`
+**Issue:** `_ctx.buildings.get_spot(spot_id)` is called twice. A null (unknown spot) would crash at the first call. This is unreachable with `spot_ids()` today.
+**Fix:** `var spot: BuildSpotDef = _ctx.buildings.get_spot(spot_id)` once, then use `spot.building_id` and `spot.position`.
 
 ---
 
