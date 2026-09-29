@@ -46,7 +46,7 @@ Requirements for the initial release (5-map campaign). Each maps to exactly one 
 ### Economy
 
 - [x] **ECON-01**: Gold is the only currency, and the HUD always shows the player's current gold
-- [ ] **ECON-02**: A House pays a flat income each dawn that increases with its upgrade tier
+- [x] **ECON-02**: A House pays a flat income each dawn that increases with its upgrade tier
 - [ ] **ECON-03**: A Gold Mine pays a high income that declines by a fixed amount each night
 - [ ] **ECON-04**: A Mill pays income per tier and unlocks nearby Field build spots, each Field paying a flat income
 - [ ] **ECON-05**: A Fishing Harbor gains a boat each night up to a cap (raised by upgrading), and each boat pays income
@@ -128,9 +128,9 @@ Requirements for the initial release (5-map campaign). Each maps to exactly one 
 ### Development & Verification
 
 - [x] **DEV-01**: Game simulation (economy, waves, combat, stats, scoring) runs headlessly, and automated GUT tests cover it from the command line
-- [ ] **DEV-02**: CI runs lint and the test suite on every push, and can produce a Windows export
+- [x] **DEV-02**: CI runs lint and the test suite on every push, and can produce a Windows export
 - [x] **DEV-03**: A toggleable debug overlay shows FPS, unit/enemy counts, wave state, and pathing information
-- [ ] **DEV-04**: Automated screenshot capture of scripted scenes allows visual verification without a human watching
+- [x] **DEV-04**: Automated screenshot capture of scripted scenes allows visual verification without a human watching
 - [ ] **DEV-05**: Seeded, deterministic simulation allows scripted playthrough tests of full nights and maps
 
 ## v2 Requirements
@@ -201,7 +201,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BLDG-12 | Phase 12 | Pending |
 | BLDG-13 | Phase 12 | Pending |
 | ECON-01 | Phase 1 | Complete |
-| ECON-02 | Phase 1 | Pending |
+| ECON-02 | Phase 1 | Complete |
 | ECON-03 | Phase 5 | Pending |
 | ECON-04 | Phase 5 | Pending |
 | ECON-05 | Phase 5 | Pending |
@@ -254,9 +254,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PLAT-02 | Phase 13 | Pending |
 | PLAT-03 | Phase 13 | Pending |
 | DEV-01 | Phase 1 | Complete |
-| DEV-02 | Phase 1 | Pending |
+| DEV-02 | Phase 1 | Complete |
 | DEV-03 | Phase 1 | Complete |
-| DEV-04 | Phase 1 | Pending |
+| DEV-04 | Phase 1 | Complete |
 | DEV-05 | Phase 2 | Pending |
 
 **Coverage:**

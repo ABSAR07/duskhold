@@ -56,7 +56,7 @@ Decimal phases appear between their surrounding integers in numeric order.
      - CI produces a Windows export
   5. A key toggles a debug overlay showing FPS, unit/enemy counts, and the current loop state (wave state and enemy paths join it once nights have enemies in Phase 2). Every third-party asset used so far is recorded in the repository's license/attribution log.
 
-**Plans**: 9/10 plans executed
+**Plans**: 10/10 plans executed
 **UI hint**: yes
 
 Plans:
@@ -80,7 +80,7 @@ Plans:
 - [x] 01-09: Day → night → dawn loop, hold-to-start-night, night banner and lighting, dawn income, gold carryover
 
 **Wave 6** *(blocked on Wave 5 completion)*
-- [ ] 01-10: Visible dawn payout, six scripted screenshots (local and CI), final push with green CI
+- [x] 01-10: Visible dawn payout, six scripted screenshots (local and CI), final push with green CI
 
 ### Phase 2: Night Defense & Playtest Gate
 
@@ -275,7 +275,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Day Loop | 9/10 | In Progress|  |
+| 1. Foundation & Day Loop | 10/10 | In Progress|  |
 | 2. Night Defense & Playtest Gate | 0/TBD | Not started | - |
 | 3. King Combat & Troops | 0/TBD | Not started | - |
 | 4. Crowd-Scale Battles & Walls | 0/TBD | Not started | - |

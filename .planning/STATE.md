@@ -2,17 +2,17 @@
 gsd_state_version: "1.0"
 current_phase: 01
 current_phase_name: Foundation & Day Loop
-status: executing
-stopped_at: Completed 01-09-PLAN.md
-last_updated: "2026-09-29T11:01:40.806Z"
+status: verifying
+stopped_at: Completed 01-10-PLAN.md
+last_updated: "2026-09-29T11:24:51.915Z"
 last_activity: 2026-09-29
 last_activity_desc: Phase 01 execution started
-state_head: da006309ea7c3b29da3e2d9b406296684f3fe94e
+state_head: 72d9f18b8c563394d5ce9993e3aa689ba05a528c
 progress:
   total_phases: 13
   completed_phases: 0
   total_plans: 10
-  completed_plans: 9
+  completed_plans: 10
   percent: 0
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-28)
 
 Phase: 01 (Foundation & Day Loop) — EXECUTING
 Plan: 10 of 10
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-09-29 — Phase 01 execution started
 
 Progress: [░░░░░░░░░░] 0%
@@ -65,6 +65,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P07 | ~35 min (continuation) | 3 tasks | 90 files |
 | Phase 01 P08 | 5 min | 2 tasks | 7 files |
 | Phase 01 P09 | 20 min | 3 tasks | 23 files |
+| Phase 01 P10 | 19 min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -100,6 +101,8 @@ Recent decisions affecting current work:
 - [Phase 01]: 01-09: RunManager is the only phase writer (enforced by a source-scan test); Phase 2 replaces only _night_should_end and _apply_dawn_payout — Keeps one owner for the loop and gives Phase 2 two well-defined extension points
 - [Phase 01]: 01-09: start-night hold requires a fresh press after a confirm or a night held through, and is ignored outside DAY; night_number increments before the NIGHT_TRANSITION step — D-11 deliberate input, and listeners on phase_changed see the correct night number
 - [Phase 01]: 01-09: Python edits of files with an em dash must use encoding utf-8 on Windows (cp1252 broke the HUD script load) — Avoids invalid-UTF-8 script load errors in later plans
+- [Phase 01]: 01-10: dawn payout VFX is display only; HUD readout lags the ledger by coins still in flight (Hud._payout_pending) and settles exactly on Economy gold
+- [Phase 01]: 01-10: screenshot tooling never runs under --headless; runner exits 2 there and exits 1 on blank frames; CI screenshots run under xvfb with the Compatibility renderer
 
 ### Pending Todos
 
@@ -125,6 +128,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-29T11:01:40.765Z
-Stopped at: Completed 01-09-PLAN.md
+Last session: 2026-09-29T11:24:51.878Z
+Stopped at: Completed 01-10-PLAN.md
 Resume file: None
