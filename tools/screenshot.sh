@@ -44,13 +44,16 @@ for shot in "${SHOTS[@]}"; do
   fi
 done
 
-mkdir -p "${OUT_DIR}"
+IMPORT_LOG="${DUSKHOLD_ROOT}/build/screenshot-import.log"
+mkdir -p "${OUT_DIR}" "${DUSKHOLD_ROOT}/build"
 
 # The one headless call: warm the .godot import cache so the class_name scripts resolve.
-"${GODOT_BIN}" --headless --path "${DUSKHOLD_ROOT_NATIVE}" --import >/dev/null 2>&1
+# Its output is kept (like tools/export.sh) so a failed import can be diagnosed.
+"${GODOT_BIN}" --headless --path "${DUSKHOLD_ROOT_NATIVE}" --import >"${IMPORT_LOG}" 2>&1
 import_status=$?
 if [ "${import_status}" -ne 0 ]; then
-  echo "FAIL: godot --import exited with ${import_status}" >&2
+  echo "FAIL: godot --import exited with ${import_status}; see ${IMPORT_LOG}" >&2
+  tail -n 20 "${IMPORT_LOG}" >&2
   exit "${import_status}"
 fi
 
