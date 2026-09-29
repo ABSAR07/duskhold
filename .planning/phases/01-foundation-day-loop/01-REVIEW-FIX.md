@@ -1,77 +1,85 @@
 ---
 phase: 01-foundation-day-loop
-fixed_at: 2026-09-29T16:36:33Z
+fixed_at: 2026-09-29T17:15:00Z
 review_path: .planning/phases/01-foundation-day-loop/01-REVIEW.md
 iteration: 1
-findings_in_scope: 7
-fixed: 7
+findings_in_scope: 9
+fixed: 9
 skipped: 0
 status: all_fixed
 ---
 
 # Phase 1: Code Review Fix Report
 
-**Fixed at:** 2026-09-29T16:36:33Z
+**Fixed at:** 2026-09-29T17:15:00Z
 **Source review:** .planning/phases/01-foundation-day-loop/01-REVIEW.md
 **Iteration:** 1
 
 **Summary:**
-- Findings in scope: 7
-- Fixed: 7 (IN-04 is fixed except one sub-item that is a pending owner decision, see below)
+- Findings in scope: 9
+- Fixed: 9
 - Skipped: 0
 
-**Verification:** the full GUT suite (`bash tools/test.sh`, 215/215 green, up from 206) and `bash tools/lint.sh` (clean) ran in the main checkout on branch `gsd/phase-01-foundation-day-loop`, not in an isolated worktree (the orchestrator directed work on the main checkout). Each finding also had its own test file run and lint before its commit. The WR-01 regression test was confirmed to fail without the source fix (null dereference) and pass with it.
+**Verification:** run in the main checkout (no worktree, per orchestrator instruction) on branch `gsd/phase-01-foundation-day-loop`. `bash tools/lint.sh` was green before every commit. After the last fix the full `bash tools/test.sh` run passed 218/218 (was 215; three tests added).
 
 ## Fixed Issues
 
-### WR-01: Unknown spot id in `per_spot` crashes coin launch and strands the HUD readout
+### WR-01: DawnPayoutVfx.bind_run is not idempotent, and the "bind again" test does not cover it
 
-**Files modified:** `ui/hud/dawn_payout_vfx.gd`, `tests/e2e/test_dawn_payout.gd`
-**Commit:** ecea4ff
-**Applied fix:** `_start_point` now looks the spot up first and falls back to the screen centre when the spot is null (or there is no camera), so the coin still launches, lands and settles the HUD readout. Added an e2e test that pays out to an unknown spot id and asserts the readout settles and the total is shown.
+**Files modified:** `ui/hud/dawn_payout_vfx.gd`, `tests/e2e/test_map_binding.gd`
+**Commit:** 2d8dd35
+**Applied fix:** `bind_run` returns early when already bound (same guard as `Hud.bind_run`). The re-bind test (renamed `test_binding_the_hud_and_payout_view_again_connects_nothing_twice`) now also calls `payout_vfx.bind_run(...)`. Other `bind_run` implementations were not touched.
 
-### WR-02: BuildingSystem null-skip hardening leaves duplicate ids and unknown building ids unhandled
-
-**Files modified:** `simulation/buildings/building_system.gd`, `tests/unit/test_building_system_data_errors.gd` (new), `tests/unit/test_building_system_data_errors.gd.uid` (new)
-**Commit:** 3947eb2
-**Applied fix:** A spot whose id is already registered is skipped (first definition wins), so `spot_ids()` never lists an id twice. `dawn_income_by_spot` resolves the building def with `_defs.get(...)` and skips an instance whose building id is unknown instead of hard-indexing. The tests live in a new file because `test_prototype_map_data.gd` is already at gdlint's 20-public-method cap.
-
-### WR-03: Debug overlay only validates the top-level provider return, not the row shape
-
-**Files modified:** `ui/overlay/debug_overlay_model.gd`, `tests/unit/test_debug_overlay_readonly.gd`
-**Commit:** 491114f
-**Applied fix:** `collect` now passes provider rows through `_clean_rows`, which keeps only Array rows with at least two entries and stringifies label and value. Flat pairs, short rows and non-Array rows are dropped. Added a test covering all three malformed shapes plus a non-String value.
-
-### IN-01: `Hud.bind_run` is only partly idempotent
-
-**Files modified:** `ui/hud/hud.gd`, `tests/e2e/test_map_binding.gd`
-**Commit:** fe800bd
-**Applied fix:** `bind_run` returns early when a context is already bound, which protects every connection rather than only `coin_landed`; the special-case `is_connected` guard was removed and the single-call contract is documented. Added a test that a second `bind_run` leaves the `gold_changed`, `dawn_payout` and `coin_landed` connection counts unchanged.
-
-### IN-02: Player-facing strings hard-code the key hint and a placeholder
+### WR-02: Start-night prompt hint goes stale after a runtime rebind
 
 **Files modified:** `ui/hud/hud.gd`, `tests/e2e/test_start_night_hold.gd`
-**Commit:** 1dc27ae
-**Applied fix:** The start-night hint is built from `InputMap.action_get_events(&"start_night")` (keyboard keys first, gamepad buttons in parentheses), so it follows a runtime rebind the next time the prompt refreshes. With the default bindings the text is unchanged: "Hold N / (Y) to start Night 1". The prompt format and the placeholder night banner moved to constants (`START_NIGHT_PROMPT`, `NIGHT_BANNER`) for Phase 2 to replace; the banner text is unchanged. Added tests for the default text and for a rebind to M, and the test restores the InputMap in `after_each`.
+**Commit:** e701095
+**Applied fix:** The HUD remembers the `start_night` event list the prompt text was built from. A `_process` check, only while the prompt is visible, compares the current event list to it (one small array, no string building) and calls the new `_refresh_prompt_text()` when it differs. The default text is unchanged ("Hold N / (Y) to start Night 1"). The rebind test now rebinds and waits two frames, with no `day_started` emit. A rebind that mutates an existing event in place, instead of replacing the events, would not be noticed by this trigger.
 
-### IN-03: Read-only test watches only 4 of 7 simulation signals
+### WR-03: Wall-clock timing assertion in the short-dawn payout test
 
-**Files modified:** `tests/unit/test_debug_overlay_readonly.gd`
-**Commit:** 079d2af
-**Applied fix:** `SIM_SIGNALS` now lists `night_started`, `dawn_payout` and `day_started` as well. Added a guard test that compares the list with the signals `SimEvents` declares, so a future signal that is not watched fails the test.
+**Files modified:** `tests/e2e/test_dawn_payout.gd`, `tests/e2e/test_start_night_hold.gd`
+**Commit:** 32c62fa
+**Applied fix:** Removed the `Time.get_ticks_msec()` elapsed-time assertion and the `LAND_SLACK_S` constant from the short-dawn payout test. It now asserts the end state after `wait_until`, and the landing schedule stays proven by `launch_stagger`. In `test_the_night_hands_back_to_a_new_day_through_dawn` the fixed `wait_seconds` calls were replaced by `E2eSupport.wait_until` on the DAWN and DAY phases through a new `_in_phase` helper.
 
-### IN-04: Timing-sensitive e2e assertions and CI trigger overlap
+### WR-04: BuildingSystem duplicate handling is inconsistent (spots keep first, buildings keep last)
 
-**Files modified:** `ui/hud/dawn_payout_vfx.gd`, `tests/e2e/test_dawn_payout.gd`
-**Commit:** 9cae015
-**Applied fix (parts a and c):**
-- (a) The short-dawn-window test no longer sleeps a fixed `dawn_seconds + slack`. It polls until the total is shown (so a slow runner cannot fail the state assertions), then asserts the elapsed real time is within `dawn_seconds + LAND_SLACK_S`, with `LAND_SLACK_S` widened from 0.2 s to 0.5 s. The early-dawn lag test no longer waits 0.25 s against a 0.6 s trip; the first coin launches synchronously when dawn pays, so it asserts one frame after dawn began.
-- (c) `launch_stagger` returns the default `STAGGER_SECONDS` when called before `bind_run` instead of dereferencing a null `_ctx`; added a test.
+**Files modified:** `simulation/buildings/building_system.gd`, `tests/unit/test_building_system_data_errors.gd`
+**Commit:** c0c7870
+**Applied fix:** A duplicate building id is now skipped, so the first def is kept, matching spots. Added `test_a_duplicate_building_id_keeps_the_first_definition` (asserts reference identity and the first def's tier cost).
 
-**Not applied (owner decision pending):** the "CI builds a `gsd/**` branch twice once a PR is open" sub-item (push to `gsd/**` plus `pull_request`, and the header comment that says a feature branch is not built twice). `.github/workflows/ci.yml` triggers, concurrency and comment were left unchanged, as directed. The inaccurate comment and the double build still stand until the owner picks a trigger policy.
+### WR-05: spot_ids() exposes the internal order array
+
+**Files modified:** `simulation/buildings/building_system.gd`, `tests/unit/test_build_spot.gd`
+**Commit:** 5d3576d
+**Applied fix:** `spot_ids()` returns `_order.duplicate()`. Added `test_changing_the_returned_spot_ids_does_not_change_the_system`.
+
+### IN-01: DebugOverlayModel robustness gaps
+
+**Files modified:** `ui/overlay/debug_overlay_model.gd`, `tests/unit/test_debug_overlay_readonly.gd`
+**Commit:** b495b87
+**Applied fix:** The phase name comes from `RunPhase.find_key(phase)`. Providers that need an argument (`get_argument_count() > 0`) are skipped along with invalid ones, and a test covers this. The NIGHT_TRANSITION timer question was decided deliberately: no Timer row, because the phase has no clock and passes straight through to NIGHT (`get_phase_time_remaining` returns 0 for it). A code comment records this.
+
+### IN-02: Missing null guards in test_start_night_hold
+
+**Files modified:** `tests/e2e/test_start_night_hold.gd`
+**Commit:** 2fe6dc1 (shared with IN-03, both edit the same test file)
+**Applied fix:** `spot_label` and the fill bar are fetched up front, asserted with `assert_not_null`, and included in the early-return guard.
+
+### IN-03: Magic literals and a hidden coupling to tuning in test_start_night_hold
+
+**Files modified:** `tests/e2e/test_start_night_hold.gd`
+**Commit:** 2fe6dc1 (shared with IN-02)
+**Applied fix:** `PARTIAL_HOLD_S` is replaced by `PARTIAL_HOLD_FRACTION` (0.3), and the partial hold is derived from `_tuning.start_night_hold_seconds`. The `+ 0.1` literals became `PAST_END_S`. The `+ 0.2` literal cited by the review was already removed by the WR-03 fix.
+
+### IN-04: Weak identity assertion in the duplicate-spot test
+
+**Files modified:** `tests/unit/test_building_system_data_errors.gd`
+**Commit:** b82282b
+**Applied fix:** `assert_eq` replaced with `assert_same` so the test proves the first spot object was kept.
 
 ---
 
-_Fixed: 2026-09-29T16:36:33Z_
+_Fixed: 2026-09-29T17:15:00Z_
 _Fixer: Claude (gsd-code-fixer)_
 _Iteration: 1_
