@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 01
 current_phase_name: Foundation & Day Loop
 status: executing
-stopped_at: Completed 01-01-PLAN.md
-last_updated: "2026-09-29T04:21:50.179Z"
+stopped_at: Completed 01-02-PLAN.md
+last_updated: "2026-09-29T08:22:20.906Z"
 last_activity: 2026-09-29
 last_activity_desc: Phase 01 execution started
-state_head: 804dcda821b9831c76d3878ec00c2326b7221584
+state_head: 23b1a81e341f18e6b4d42ed2d2f4f994360ae4d1
 progress:
   total_phases: 13
   completed_phases: 0
   total_plans: 10
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-28)
 ## Current Position
 
 Phase: 01 (Foundation & Day Loop) — EXECUTING
-Plan: 2 of 10
+Plan: 3 of 10
 Status: Ready to execute
 Last activity: 2026-09-29 — Phase 01 execution started
 
@@ -57,6 +57,7 @@ Progress: [░░░░░░░░░░] 0%
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 01 P01 | 2h 41m | 3 tasks | 279 files |
+| Phase 01 P02 | ~4h (incl. gate wait) | 2 tasks | 33 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,9 @@ Recent decisions affecting current work:
 - [Phase 01]: [01-01] Phase 1 work lands on branch gsd/phase-01-foundation-day-loop; master holds Task 1 only, owner merges later — Owner decision after the pre-commit protected-branch halt
 - [Phase 01]: [01-01] Godot 4.7.2 runs self-contained (_sc_); only Windows export templates kept locally; untyped_declaration=2 enforced — Keeps editor data inside git-ignored .tools/ and enforces static typing at compile time
 - [Phase 01]: [01-01] Rejected operations return values, not push_error — GUT 9.7 can count engine errors as test failures
+- [Phase 01]: 01-02: RunManager.get_elapsed() and CommandProcessor.UNKNOWN_INTENT added; BuildingSystem.apply_next_tier returns null for unknown spot
+- [Phase 01]: 01-02: not-day revalidation test writes RunManager._phase directly; plan 01-08 should switch to public start_night
+- [Phase 01]: 01-02: use GUT wait_process_frames (wait_frames deprecated in 9.7.1); commit each .gd.uid with its script
 
 ### Pending Todos
 
@@ -100,6 +104,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-29T04:21:50.147Z
-Stopped at: Completed 01-01-PLAN.md
+Last session: 2026-09-29T08:22:20.873Z
+Stopped at: Completed 01-02-PLAN.md
 Resume file: None

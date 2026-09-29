@@ -127,7 +127,7 @@ Requirements for the initial release (5-map campaign). Each maps to exactly one 
 
 ### Development & Verification
 
-- [ ] **DEV-01**: Game simulation (economy, waves, combat, stats, scoring) runs headlessly, and automated GUT tests cover it from the command line
+- [x] **DEV-01**: Game simulation (economy, waves, combat, stats, scoring) runs headlessly, and automated GUT tests cover it from the command line
 - [ ] **DEV-02**: CI runs lint and the test suite on every push, and can produce a Windows export
 - [ ] **DEV-03**: A toggleable debug overlay shows FPS, unit/enemy counts, wave state, and pathing information
 - [ ] **DEV-04**: Automated screenshot capture of scripted scenes allows visual verification without a human watching
@@ -253,7 +253,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PLAT-01 | Phase 4 | Pending |
 | PLAT-02 | Phase 13 | Pending |
 | PLAT-03 | Phase 13 | Pending |
-| DEV-01 | Phase 1 | Pending |
+| DEV-01 | Phase 1 | Complete |
 | DEV-02 | Phase 1 | Pending |
 | DEV-03 | Phase 1 | Pending |
 | DEV-04 | Phase 1 | Pending |
