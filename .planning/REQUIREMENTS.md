@@ -20,8 +20,8 @@ Requirements for the initial release (5-map campaign). Each maps to exactly one 
 
 ### King
 
-- [ ] **KING-01**: Player can move the mounted king with WASD or the left stick, with a sprint modifier
-- [ ] **KING-02**: The camera follows the king from a fixed isometric-style angle
+- [x] **KING-01**: Player can move the mounted king with WASD or the left stick, with a sprint modifier
+- [x] **KING-02**: The camera follows the king from a fixed isometric-style angle
 - [ ] **KING-03**: The king automatically attacks enemies in range using the equipped weapon's passive attack
 - [ ] **KING-04**: Player can trigger the equipped weapon's active ability, which then shows a visible cooldown
 - [ ] **KING-05**: The king's health regenerates after a short period without taking damage
@@ -181,8 +181,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LOOP-06 | Phase 2 | Pending |
 | LOOP-07 | Phase 2 | Pending |
 | LOOP-08 | Phase 9 | Pending |
-| KING-01 | Phase 1 | Pending |
-| KING-02 | Phase 1 | Pending |
+| KING-01 | Phase 1 | Complete |
+| KING-02 | Phase 1 | Complete |
 | KING-03 | Phase 2 | Pending |
 | KING-04 | Phase 3 | Pending |
 | KING-05 | Phase 3 | Pending |

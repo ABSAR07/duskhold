@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 01
 current_phase_name: Foundation & Day Loop
 status: executing
-stopped_at: Completed 01-02-PLAN.md
-last_updated: "2026-09-29T08:22:20.906Z"
+stopped_at: Completed 01-04-PLAN.md
+last_updated: "2026-09-29T08:35:46.772Z"
 last_activity: 2026-09-29
 last_activity_desc: Phase 01 execution started
-state_head: 23b1a81e341f18e6b4d42ed2d2f4f994360ae4d1
+state_head: 6fb92c349fc3020d8003cb443272c35f8373a530
 progress:
   total_phases: 13
   completed_phases: 0
   total_plans: 10
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-28)
 ## Current Position
 
 Phase: 01 (Foundation & Day Loop) — EXECUTING
-Plan: 3 of 10
+Plan: 4 of 10
 Status: Ready to execute
 Last activity: 2026-09-29 — Phase 01 execution started
 
@@ -58,6 +58,7 @@ Progress: [░░░░░░░░░░] 0%
 |------|----------|-------|-------|
 | Phase 01 P01 | 2h 41m | 3 tasks | 279 files |
 | Phase 01 P02 | ~4h (incl. gate wait) | 2 tasks | 33 files |
+| Phase 01 P04 | 5 min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -79,6 +80,8 @@ Recent decisions affecting current work:
 - [Phase 01]: 01-02: RunManager.get_elapsed() and CommandProcessor.UNKNOWN_INTENT added; BuildingSystem.apply_next_tier returns null for unknown spot
 - [Phase 01]: 01-02: not-day revalidation test writes RunManager._phase directly; plan 01-08 should switch to public start_night
 - [Phase 01]: 01-02: use GUT wait_process_frames (wait_frames deprecated in 9.7.1); commit each .gd.uid with its script
+- [Phase 01]: 01-04: CameraRig is a detached perspective rig (fov 40, offset (0,16,11), yaw 0); rotation written only once in bind_run, position follows via exp() smoothing — Fixed angle the player cannot rotate (KING-02); offset and follow_sharpness are exported for Phase 2 playtest tuning
+- [Phase 01]: 01-04: KingDef acceleration 40 m/s^2 and turn_speed 12 rad/s are first-pass feel values; the plan's human-check (windowed keyboard + gamepad feel pass) is still outstanding — Plan only required > 0; values keep the sprint/walk distance ratio inside the 15% band
 
 ### Pending Todos
 
@@ -104,6 +107,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-29T08:22:20.873Z
-Stopped at: Completed 01-02-PLAN.md
+Last session: 2026-09-29T08:35:46.739Z
+Stopped at: Completed 01-04-PLAN.md
 Resume file: None
