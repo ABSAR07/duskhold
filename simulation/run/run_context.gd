@@ -25,9 +25,9 @@ func _init(map_config: MapConfig, loop_tuning: LoopTuning) -> void:
 
 ## Number of friendly units alive. Phase 1 spawns none; later phases read their manager here.
 func get_unit_count() -> int:
-	return -1
+	return 0
 
 
 ## Number of enemies alive. Phase 1 spawns none; later phases read their manager here.
 func get_enemy_count() -> int:
-	return -1
+	return 0
