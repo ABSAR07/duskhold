@@ -5,44 +5,44 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: fixed
-    title: "Unknown spot id in `per_spot` crashes coin launch and strands the HUD readout"
+    disposition: open
+    title: "DawnPayoutVfx.bind_run is not idempotent, and the \"bind again\" test does not cover it"
   - id: WR-02
     severity: warning
-    disposition: fixed
-    title: "BuildingSystem null-skip hardening leaves duplicate ids and unknown building ids unhandled"
+    disposition: open
+    title: "Start-night prompt hint goes stale after a runtime rebind"
   - id: WR-03
     severity: warning
-    disposition: fixed
-    title: "Debug overlay only validates the top-level provider return, not the row shape"
+    disposition: open
+    title: "Wall-clock timing assertion in the short-dawn payout test"
+  - id: WR-04
+    severity: warning
+    disposition: open
+    title: "BuildingSystem duplicate handling is inconsistent (spots keep first, buildings keep last)"
+  - id: WR-05
+    severity: warning
+    disposition: open
+    title: "spot_ids() exposes the internal order array"
   - id: IN-01
     severity: info
-    disposition: fixed
-    title: "`Hud.bind_run` is only partly idempotent"
+    disposition: open
+    title: "DebugOverlayModel robustness gaps"
   - id: IN-02
     severity: info
-    disposition: fixed
-    title: "Player-facing strings hard-code the key hint and a placeholder"
+    disposition: open
+    title: "Missing null guards in test_start_night_hold"
   - id: IN-03
     severity: info
-    disposition: fixed
-    title: "Read-only test watches only 4 of 7 simulation signals"
+    disposition: open
+    title: "Magic literals and a hidden coupling to tuning in test_start_night_hold"
   - id: IN-04
     severity: info
-    disposition: fixed
-    title: "Timing-sensitive e2e assertions and CI trigger overlap"
+    disposition: open
+    title: "Weak identity assertion in the duplicate-spot test"
   - id: CR-01
     severity: critical
     disposition: fixed
     title: "WR-10 stagger fix is a no-op; the computed `stagger` is never used"
-  - id: WR-04
-    severity: warning
-    disposition: fixed
-    title: "`screenshot.sh` discards the import output, so an import failure is undiagnosable"
-  - id: WR-05
-    severity: warning
-    disposition: fixed
-    title: "`test_each_house_spawns_as_many_coins_as_it_pays` is coupled to balance data and to real time"
   - id: IN-05
     severity: info
     disposition: fixed
@@ -87,25 +87,25 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 0
+open: 9
 total: 21
-recorded: 2026-09-29T16:39:09.445Z
+recorded: 2026-09-29T16:52:40.214Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-02 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-03 | warning | fixed | 01-REVIEW-FIX.md |
-| IN-01 | info | fixed | 01-REVIEW-FIX.md |
-| IN-02 | info | fixed | 01-REVIEW-FIX.md |
-| IN-03 | info | fixed | 01-REVIEW-FIX.md |
-| IN-04 | info | fixed | 01-REVIEW-FIX.md |
+| WR-01 | warning | open | - |
+| WR-02 | warning | open | - |
+| WR-03 | warning | open | - |
+| WR-04 | warning | open | - |
+| WR-05 | warning | open | - |
+| IN-01 | info | open | - |
+| IN-02 | info | open | - |
+| IN-03 | info | open | - |
+| IN-04 | info | open | - |
 | CR-01 | critical | fixed | 01-REVIEW-FIX.md (not in the current review) |
-| WR-04 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
-| WR-05 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-05 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-06 | warning | skipped | 01-REVIEW-FIX.md (not in the current review) |
 | WR-10 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
