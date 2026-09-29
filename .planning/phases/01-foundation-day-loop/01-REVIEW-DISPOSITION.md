@@ -17,11 +17,11 @@ findings:
     title: "A payout with `total > 0` but no schedulable coins never shows a total and can leave the HUD lagging"
   - id: WR-03
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "Registered overlay providers are trusted to return an `Array`; a bad one crashes every refresh"
   - id: WR-04
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`screenshot.sh` discards the import output, so an import failure is undiagnosable"
   - id: WR-05
     severity: warning
@@ -45,7 +45,7 @@ findings:
     title: "The screenshot job's artifact upload is skipped when capture fails"
   - id: IN-05
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Redundant `get_spot` lookups and a magic-number spacing in `_add_marker`"
   - id: WR-06
     severity: warning
@@ -87,9 +87,9 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 3
+open: 0
 total: 21
-recorded: 2026-09-29T14:36:08.177Z
+recorded: 2026-09-29T14:36:43.098Z
 ---
 
 # Phase 01: Code Review Disposition
@@ -99,14 +99,14 @@ recorded: 2026-09-29T14:36:08.177Z
 | CR-01 | critical | fixed | 01-REVIEW-FIX.md |
 | WR-01 | warning | fixed | 01-REVIEW-FIX.md |
 | WR-02 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-03 | warning | open | - |
-| WR-04 | warning | open | - |
+| WR-03 | warning | fixed | 01-REVIEW-FIX.md |
+| WR-04 | warning | fixed | 01-REVIEW-FIX.md |
 | WR-05 | warning | fixed | 01-REVIEW-FIX.md |
 | IN-01 | info | fixed | 01-REVIEW-FIX.md |
 | IN-02 | info | fixed | 01-REVIEW-FIX.md |
 | IN-03 | info | skipped | 01-REVIEW-FIX.md |
 | IN-04 | info | fixed | 01-REVIEW-FIX.md |
-| IN-05 | info | open | - |
+| IN-05 | info | fixed | 01-REVIEW-FIX.md |
 | WR-06 | warning | skipped | 01-REVIEW-FIX.md (not in the current review) |
 | WR-10 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-06 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
