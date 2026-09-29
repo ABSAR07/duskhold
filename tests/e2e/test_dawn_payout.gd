@@ -152,6 +152,33 @@ func test_each_house_spawns_as_many_coins_as_it_pays() -> void:
 	assert_eq(vfx.get_spawned_count(&"house_3"), 0, "an unbuilt plot sends nothing")
 
 
+func test_a_huge_payout_is_capped_in_coins_and_the_readout_never_goes_negative() -> void:
+	var map_root: MapRoot = await E2eSupport.spawn_map(self, _rich_map(), _tuning)
+	var ctx: RunContext = map_root.get_context()
+	var vfx: DawnPayoutVfx = _vfx(map_root)
+	assert_not_null(vfx, "the HUD has a DawnPayoutVfx")
+	if vfx == null:
+		return
+	var per_spot: Dictionary = {HOUSE_ONE: 120, HOUSE_TWO: 83}
+	var total: int = 203
+
+	ctx.events.dawn_payout.emit(total, per_spot)
+	await wait_process_frames(2)
+
+	assert_eq(
+		_gold_text(map_root), "Gold: 0", "the lagging readout is clamped at zero, not negative"
+	)
+	var settled: bool = await E2eSupport.wait_until(
+		self, _hud_gold_settled.bind(map_root), SETTLED_S
+	)
+	assert_true(settled, "every coin landed and the HUD shows exactly the ledger gold")
+	var launched: int = vfx.get_spawned_count(HOUSE_ONE) + vfx.get_spawned_count(HOUSE_TWO)
+	assert_lte(launched, DawnPayoutVfx.MAX_COINS, "a big payout is capped in coins")
+	assert_gte(vfx.get_spawned_count(HOUSE_ONE), 1, "each paying spot still sends a coin")
+	assert_gte(vfx.get_spawned_count(HOUSE_TWO), 1, "each paying spot still sends a coin")
+	assert_eq(vfx.get_last_total(), total, "the total shown is the full payout")
+
+
 func test_a_dawn_that_pays_nothing_shows_no_coins_and_no_total() -> void:
 	var map_root: MapRoot = await E2eSupport.spawn_map(self, _rich_map(), _tuning)
 	var ctx: RunContext = map_root.get_context()

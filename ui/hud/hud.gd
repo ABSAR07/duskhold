@@ -67,8 +67,8 @@ func _on_dawn_payout(total: int, _per_spot: Dictionary) -> void:
 	_refresh()
 
 
-func _on_coin_landed() -> void:
-	_payout_pending = maxi(_payout_pending - 1, 0)
+func _on_coin_landed(amount: int) -> void:
+	_payout_pending = maxi(_payout_pending - amount, 0)
 	_refresh()
 
 
@@ -108,4 +108,4 @@ func _refresh_loop() -> void:
 
 
 func _refresh() -> void:
-	_gold_label.text = "Gold: %d" % (_ctx.economy.get_gold() - _pending - _payout_pending)
+	_gold_label.text = "Gold: %d" % maxi(_ctx.economy.get_gold() - _pending - _payout_pending, 0)

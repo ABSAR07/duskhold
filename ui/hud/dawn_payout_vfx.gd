@@ -5,8 +5,9 @@ extends Control
 ## lands a "+X gold" total appears for a moment. Purely visual: the Economy was already credited
 ## when dawn began, and the HUD lags its readout behind the coins (see Hud).
 
-## Emitted once for every coin that reaches the gold counter.
-signal coin_landed
+## Emitted once for every coin that reaches the gold counter, with the gold that coin carries.
+## The amounts of one payout always sum to its total.
+signal coin_landed(amount: int)
 
 const COIN_SIZE := Vector2(22.0, 22.0)
 const COIN_CENTER_COLOR := Color(1.0, 0.93, 0.5)
@@ -16,6 +17,10 @@ const COIN_RIM_END: float = 0.9
 ## World-space offset above the plot where a coin starts.
 const SPOT_ANCHOR := Vector3(0.0, 2.5, 0.0)
 const STAGGER_SECONDS: float = 0.08
+## Most coins one payout launches. A bigger payout puts several gold on each coin, so the whole
+## flight (launch span plus one trip) stays inside the dawn window and the HUD readout never lags
+## the ledger into the next day.
+const MAX_COINS: int = 12
 const POP_SECONDS: float = 0.15
 const POP_HEIGHT_PX: float = 40.0
 ## Whole trip per coin: the pop plus the flight to the counter.
@@ -86,10 +91,30 @@ func _on_dawn_payout(total: int, per_spot: Dictionary) -> void:
 	var index: int = 0
 	for spot_id: StringName in per_spot:
 		var amount: int = per_spot[spot_id]
-		for _coin: int in range(amount):
+		var coin_count: int = _coins_for_amount(amount, total)
+		for coin: int in range(coin_count):
 			_expected_coins += 1
-			_schedule_launch(spot_id, float(index) * STAGGER_SECONDS)
+			_schedule_launch(
+				spot_id, float(index) * STAGGER_SECONDS, _coin_share(amount, coin_count, coin)
+			)
 			index += 1
+
+
+## One coin per gold while the payout fits under MAX_COINS; otherwise the spot's share of
+## MAX_COINS, at least one coin for any spot that pays.
+func _coins_for_amount(amount: int, total: int) -> int:
+	if amount <= 0:
+		return 0
+	if total <= MAX_COINS:
+		return amount
+	return clampi(floori(float(amount) * float(MAX_COINS) / float(total)), 1, amount)
+
+
+## The gold coin `coin` (0-based) of `coin_count` carries; a spot's coins sum to its amount.
+func _coin_share(amount: int, coin_count: int, coin: int) -> int:
+	var remainder: int = amount % coin_count
+	var base: int = floori(float(amount - remainder) / float(coin_count))
+	return base + (1 if coin < remainder else 0)
 
 
 func _reset_for_new_payout() -> void:
@@ -105,16 +130,16 @@ func _reset_for_new_payout() -> void:
 		child.queue_free()
 
 
-func _schedule_launch(spot_id: StringName, delay: float) -> void:
+func _schedule_launch(spot_id: StringName, delay: float, share: int) -> void:
 	if delay <= 0.0:
-		_launch_coin(spot_id, _generation)
+		_launch_coin(spot_id, _generation, share)
 		return
 	var tween: Tween = create_tween()
 	tween.tween_interval(delay)
-	tween.tween_callback(_launch_coin.bind(spot_id, _generation))
+	tween.tween_callback(_launch_coin.bind(spot_id, _generation, share))
 
 
-func _launch_coin(spot_id: StringName, generation: int) -> void:
+func _launch_coin(spot_id: StringName, generation: int, share: int) -> void:
 	if generation != _generation:
 		return
 	_launched[spot_id] = get_spawned_count(spot_id) + 1
@@ -140,7 +165,7 @@ func _launch_coin(spot_id: StringName, generation: int) -> void:
 		. set_trans(Tween.TRANS_QUAD)
 		. set_ease(Tween.EASE_IN)
 	)
-	tween.tween_callback(_on_coin_arrived.bind(coin, generation))
+	tween.tween_callback(_on_coin_arrived.bind(coin, generation, share))
 
 
 ## Where the plot appears on screen; the middle of the screen if there is no camera yet.
@@ -152,12 +177,12 @@ func _start_point(spot_id: StringName) -> Vector2:
 	return camera.unproject_position(world_point)
 
 
-func _on_coin_arrived(coin: TextureRect, generation: int) -> void:
+func _on_coin_arrived(coin: TextureRect, generation: int, share: int) -> void:
 	coin.queue_free()
 	if generation != _generation:
 		return
 	_landed_coins += 1
-	coin_landed.emit()
+	coin_landed.emit(share)
 	if _landed_coins >= _expected_coins:
 		_show_total()
 
