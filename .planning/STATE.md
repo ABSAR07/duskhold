@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 01
 current_phase_name: Foundation & Day Loop
 status: executing
-stopped_at: Completed 01-05-PLAN.md
-last_updated: "2026-09-29T09:47:52.418Z"
+stopped_at: Completed 01-06-PLAN.md
+last_updated: "2026-09-29T10:12:08.932Z"
 last_activity: 2026-09-29
 last_activity_desc: Phase 01 execution started
-state_head: cf5e2fe78397847b116795aa677966eab6fdd292
+state_head: 17083eea5b511e7132478a2004c00735b7f9c656
 progress:
   total_phases: 13
   completed_phases: 0
   total_plans: 10
-  completed_plans: 5
+  completed_plans: 6
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-28)
 ## Current Position
 
 Phase: 01 (Foundation & Day Loop) — EXECUTING
-Plan: 6 of 10
+Plan: 7 of 10
 Status: Ready to execute
 Last activity: 2026-09-29 — Phase 01 execution started
 
@@ -61,6 +61,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P04 | 5 min | 2 tasks | 9 files |
 | Phase 01 P03 | 71 min (incl. owner-decision wait) | 3 tasks | 5 files |
 | Phase 01 P05 | 25 min | 2 tasks | 12 files |
+| Phase 01 P06 | 14 min | 3 tasks | 21 files |
 
 ## Accumulated Context
 
@@ -88,6 +89,8 @@ Recent decisions affecting current work:
 - [Phase 01]: [01-03] Pushes to origin need the gh login: git's stored credential is account absarfraz-tenx (403). Use git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push, or owner runs gh auth setup-git — Avoids changing the owner's global git config without approval
 - [Phase 01]: [01-03] Windows export uses application/modify_resources=false (no Wine/rcedit); a custom icon or version resource in a later phase will need rcedit — Phase 1 has no custom icon; Linux CI export verified green
 - [Phase 01]: 01-05: MapConfig.validate() logs via RunContext push_error but never blocks construction; ride-time contract measures the farthest pair among spots, castle and king spawn (110 m, 22 s)
+- [Phase 01]: 01-06: Hold start is edge-triggered and the is_build_allowed/radius checks run every frame ahead of any drip, so a denial fires once per press and no coin lands after the day ends
+- [Phase 01]: 01-06: SpotLabelModel.affordable is true when gold covers the cost or a hold is under way, and always at max tier, so red never shows on a running hold or a finished building
 
 ### Pending Todos
 
@@ -113,6 +116,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-29T09:47:52.385Z
-Stopped at: Completed 01-05-PLAN.md
+Last session: 2026-09-29T10:12:08.892Z
+Stopped at: Completed 01-06-PLAN.md
 Resume file: None

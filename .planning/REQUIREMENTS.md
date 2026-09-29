@@ -30,8 +30,8 @@ Requirements for the initial release (5-map campaign). Each maps to exactly one 
 ### Building
 
 - [x] **BLDG-01**: Each map has fixed, pre-placed build spots, and buildings can only exist on those spots
-- [ ] **BLDG-02**: When the king is near a build spot during the day, player sees what can be built there and its gold cost
-- [ ] **BLDG-03**: Player can build on an empty spot by holding the action key near it, with a visible hold-progress indicator, if they can afford the cost
+- [x] **BLDG-02**: When the king is near a build spot during the day, player sees what can be built there and its gold cost
+- [x] **BLDG-03**: Player can build on an empty spot by holding the action key near it, with a visible hold-progress indicator, if they can afford the cost
 - [x] **BLDG-04**: Player can upgrade an existing building the same way, seeing the next tier's cost and effect
 - [ ] **BLDG-05**: When an upgrade tier offers branching options, player picks one of the offered choice cards (with keyboard or gamepad), and that choice is permanent for the run
 - [ ] **BLDG-06**: Building and upgrading is only possible during the day
@@ -188,8 +188,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | KING-05 | Phase 3 | Pending |
 | KING-06 | Phase 2 | Pending |
 | BLDG-01 | Phase 1 | Complete |
-| BLDG-02 | Phase 1 | Pending |
-| BLDG-03 | Phase 1 | Pending |
+| BLDG-02 | Phase 1 | Complete |
+| BLDG-03 | Phase 1 | Complete |
 | BLDG-04 | Phase 1 | Complete |
 | BLDG-05 | Phase 5 | Pending |
 | BLDG-06 | Phase 1 | Pending |
