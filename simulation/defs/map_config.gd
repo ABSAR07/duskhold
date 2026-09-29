@@ -13,3 +13,8 @@ extends Resource
 @export var buildings: Array[BuildingDef] = []
 ## Order is significant: it breaks nearest-spot ties and fixes payout order.
 @export var spots: Array[BuildSpotDef] = []
+
+
+## Human-readable data errors; empty when the map is well formed. (RED-phase stub.)
+func validate() -> PackedStringArray:
+	return PackedStringArray()
