@@ -274,3 +274,21 @@ func test_a_dawn_that_pays_nothing_shows_no_coins_and_no_total() -> void:
 	assert_true(_total_hidden(map_root), "no '+0 gold' total is shown")
 	assert_eq(vfx.get_last_total(), 0, "nothing was paid")
 	assert_true(_hud_gold_settled(map_root), "the HUD shows the ledger gold")
+
+
+func test_a_payout_naming_an_unknown_spot_still_lands_its_coin_and_settles_the_hud() -> void:
+	var map_root: MapRoot = await E2eSupport.spawn_map(self, _rich_map(), _tuning)
+	var ctx: RunContext = map_root.get_context()
+	var vfx: DawnPayoutVfx = _vfx(map_root)
+	assert_not_null(vfx, "the HUD has a DawnPayoutVfx")
+	if vfx == null:
+		return
+	var total: int = 1
+
+	ctx.events.dawn_payout.emit(total, {&"no_such_spot": total})
+
+	var settled: bool = await E2eSupport.wait_until(
+		self, _hud_gold_settled.bind(map_root), SETTLED_S
+	)
+	assert_true(settled, "the coin still landed, so the readout is not held back for good")
+	assert_eq(vfx.get_last_total(), total, "the total was shown")

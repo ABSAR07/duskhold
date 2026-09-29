@@ -186,10 +186,10 @@ func _launch_coin(spot_id: StringName, generation: int, share: int) -> void:
 ## Where the plot appears on screen; the middle of the screen if there is no camera yet.
 func _start_point(spot_id: StringName) -> Vector2:
 	var camera: Camera3D = get_viewport().get_camera_3d()
-	if camera == null:
+	var spot: BuildSpotDef = _ctx.buildings.get_spot(spot_id)
+	if camera == null or spot == null:
 		return get_viewport_rect().size * 0.5
-	var world_point: Vector3 = _ctx.buildings.get_spot(spot_id).position + SPOT_ANCHOR
-	return camera.unproject_position(world_point)
+	return camera.unproject_position(spot.position + SPOT_ANCHOR)
 
 
 func _on_coin_arrived(coin: TextureRect, generation: int, share: int) -> void:
