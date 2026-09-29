@@ -6,7 +6,13 @@ const PROTOTYPE_MAP := "res://data/maps/prototype_map.tres"
 const TUNING := "res://data/tuning/loop_tuning.tres"
 const COLLECT_REPEATS: int = 200
 const SIM_SIGNALS: Array[String] = [
-	"gold_changed", "building_built", "command_rejected", "phase_changed"
+	"gold_changed",
+	"building_built",
+	"command_rejected",
+	"phase_changed",
+	"night_started",
+	"dawn_payout",
+	"day_started",
 ]
 
 
@@ -155,3 +161,14 @@ func test_a_provider_with_malformed_rows_keeps_only_the_well_formed_ones() -> vo
 	assert_eq(mixed["rows"].size(), 2, "the short row and the non-Array row are dropped")
 	assert_eq(_row_value(mixed, "Answer"), "42", "a non-String value is turned into text")
 	assert_eq(_row_value(mixed, "Wide"), "1", "extra entries beyond label and value are ignored")
+
+
+func test_the_watched_signals_are_every_signal_the_simulation_declares() -> void:
+	var declared: Array[String] = []
+	for info: Dictionary in SimEvents.new().get_script().get_script_signal_list():
+		declared.append(info["name"])
+	declared.sort()
+	var watched: Array[String] = SIM_SIGNALS.duplicate()
+	watched.sort()
+
+	assert_eq(watched, declared, "a new SimEvents signal must be added to SIM_SIGNALS")
