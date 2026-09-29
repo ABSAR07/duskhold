@@ -2,28 +2,26 @@
 phase: 01-foundation-day-loop
 reviewed: 2026-09-29T00:00:00Z
 depth: standard
-files_reviewed: 15
+files_reviewed: 13
 files_reviewed_list:
   - .github/workflows/ci.yml
-  - input/start_night_hold_controller.gd
   - presentation/buildings/building_views.gd
+  - simulation/buildings/building_system.gd
   - simulation/defs/map_config.gd
   - tests/e2e/test_dawn_payout.gd
-  - tests/e2e/test_debug_overlay_toggle.gd
   - tests/e2e/test_map_binding.gd
-  - tests/unit/test_attribution_log.gd
   - tests/unit/test_building_view_catalog.gd
   - tests/unit/test_debug_overlay_readonly.gd
   - tests/unit/test_prototype_map_data.gd
-  - tools/export.sh
   - tools/screenshot.sh
   - ui/hud/dawn_payout_vfx.gd
+  - ui/hud/hud.gd
   - ui/overlay/debug_overlay_model.gd
 findings:
-  critical: 1
-  warning: 5
-  info: 5
-  total: 11
+  critical: 0
+  warning: 3
+  info: 4
+  total: 7
 status: issues_found
 ---
 
@@ -31,114 +29,86 @@ status: issues_found
 
 **Reviewed:** 2026-09-29
 **Depth:** standard
-**Files Reviewed:** 15
+**Files Reviewed:** 13
 **Status:** issues_found
 
 ## Summary
 
-The 15 files are mostly sound. `StartNightHoldController`, `BuildingViews`, `DebugOverlayModel`, the shell scripts and the CI workflow all trace cleanly. The hold state machine handles early release, held-through-night and rejected-intent correctly. The model-swap seam frees mis-authored scene instances. The shell scripts quote the space-containing repo path throughout and delete stale outputs before checking for new ones.
-
-One real defect stands out. The WR-10 fix for the dawn coin stagger (commit f1f472d) computes the tightened stagger and then never uses it. The test added with it checks only the pure helper, so the suite cannot see the no-op. The remaining findings are robustness gaps in `MapConfig.validate()`, an edge case in the vfx, a hazard in the overlay-provider contract, and test fragility.
-
-No structural findings (fallow) were supplied. No external reviewer evidence was supplied.
-
-## Critical Issues
-
-### CR-01: WR-10 stagger fix is a no-op; the computed `stagger` is never used
-
-**File:** `ui/hud/dawn_payout_vfx.gd:104-113`
-**Issue:** `_on_dawn_payout` computes `var stagger: float = launch_stagger(coin_total)`. The launch loop then schedules each coin with `float(index) * STAGGER_SECONDS`, the un-tightened constant. `stagger` is dead, so the guarantee documented at lines 20-22 and 69-70 ("the last coin lands before the dawn window ends") is not enforced. The coin count is `MAX_COINS` plus up to one extra coin per paying spot, because each spot gets at least 1. With `dawn_seconds = 2.0` the window is 1.4 s, so about 19 coins (`18 * 0.08 = 1.44`) overrun it. A shorter `dawn_seconds` overruns sooner. When that happens the last coins land after day has returned and the HUD gold readout lags the ledger into the next day. That is the exact failure WR-10 was meant to close. Shipped data (5 houses, 10 coins) does not hit it, but `dawn_seconds` is a designer tuning knob.
-
-The test `test_the_last_coin_lands_inside_the_dawn_window_however_many_spots_pay` (`tests/e2e/test_dawn_payout.gd:182-199`) only calls `vfx.launch_stagger(40)` and does arithmetic on the result. It never emits a payout, so it passes while the real launch path ignores the value. Godot will also raise an UNUSED_VARIABLE warning on this line.
-
-**Fix:**
-```gdscript
-_schedule_launch(
-	spot_id, float(index) * stagger, _coin_share(amount, coin_count, coin)
-)
-```
-Then change the test to emit `dawn_payout` with more paying spots than `MAX_COINS` under a short `dawn_seconds`. Assert that the vfx's launched coin count reaches the expected total and that the HUD settles within `dawn_seconds`. Alternatively, expose the last scheduled delay and assert `delay + TRIP_SECONDS <= dawn_seconds`.
+Reviewed the recent hardening pass (null-entry skipping, payout/HUD lag reconciliation, provider-return validation, CI/screenshot diagnostics) plus the tests around it. No blockers: the payout arithmetic (`_coins_for_amount`, `_coin_share`, `launch_stagger`, HUD `carried` clamp) checks out for zero, single-spot and many-spot payouts, and the shell script's shot names are whitelisted before they reach `rm -f`. The remaining problems are all the same class the hardening targeted: the fixes cover one malformed-data case while the adjacent case still crashes or desyncs.
 
 ## Warnings
 
-### WR-01: `MapConfig.validate()` misses an empty building id, and `RunContext` proceeds on invalid data
+### WR-01: Unknown spot id in `per_spot` crashes coin launch and strands the HUD readout
 
-**File:** `simulation/defs/map_config.gd:24-30` (consumer: `simulation/run/run_context.gd:16`, `simulation/buildings/building_system.gd:14`)
-**Issue:** There are two gaps.
-1. A `BuildingDef` with `id == &""` is not reported, though an empty spot id is (line 51). A spot whose `building_id` is also empty then resolves to that building, so the "unknown building id" check passes silently.
-2. `RunContext._init` only `push_error`s on validation errors and continues. A null entry in `buildings` is reported here, but `BuildingSystem._init` then does `building_def.id` on that null and crashes. A null spot is likewise dereferenced (`spot.id`). The T-01-10 "reported, not crashed" property therefore does not hold for the real construction path. The unit test only calls `validate()` in isolation.
-
-**Fix:** In `validate()`, add `if building_def.id == &"": errors.append("a building has an empty id")`. In `RunContext._init`, either stop on errors (assert or return an error) or make `BuildingSystem._init` skip null entries. Add a test that constructs a `RunContext` from a map with a null building.
-
-### WR-02: A payout with `total > 0` but no schedulable coins never shows a total and can leave the HUD lagging
-
-**File:** `ui/hud/dawn_payout_vfx.gd:93-114` (with `ui/hud/hud.gd:_on_dawn_payout`)
-**Issue:** `_on_dawn_payout` returns early only for `total <= 0`. If `per_spot` is empty or every amount is `<= 0` while `total > 0`, then `_expected_coins` stays 0 and `_show_total()` is never reached. `Hud._on_dawn_payout` has already set `_payout_pending = total`, and only `coin_landed` ever decrements it. The gold label would stay short by `total` until the next payout. `SimEvents.dawn_payout(total, per_spot)` does not guarantee that the parts sum to the total.
-
-**Fix:** In the vfx, after the launch loop, `if _expected_coins == 0: _show_total()`. Alternatively, have the HUD clear `_payout_pending` when `_per_spot` sums to zero. Consider asserting `sum(per_spot.values()) == total` at the producer.
-
-### WR-03: Registered overlay providers are trusted to return an `Array`; a bad one crashes every refresh
-
-**File:** `ui/overlay/debug_overlay_model.gd:30-36`
-**Issue:** The IN-07 fix guards against a freed owner but not against a provider that returns `null` or a non-Array. `_section(title, rows: Array)` is typed, so such a return raises a runtime error inside `collect()`. `collect()` runs about 4 times a second, and Phase 2 will register wave and path providers. The header comment promises that one bad section cannot take down the overlay.
-
+**File:** `ui/hud/dawn_payout_vfx.gd:191`
+**Issue:** `_start_point` does `_ctx.buildings.get_spot(spot_id).position`. `get_spot` returns null for an unknown id, so this is a null dereference at launch time. `_on_dawn_payout` has already incremented `_expected_coins` for that spot and `Hud._on_dawn_payout` has already counted its amount in `_payout_pending`. The coin never lands, `_show_total` never fires, and the HUD readout stays short by that gold until the next payout. This is exactly the "readout short for good" failure the latest change to `hud.gd` and the `_expected_coins == 0` branch set out to remove, but only for the empty-dict case.
 **Fix:**
 ```gdscript
-var rows: Variant = provider.call()
-if rows is Array:
-	sections.append(_section(entry["title"], rows))
+func _start_point(spot_id: StringName) -> Vector2:
+	var camera: Camera3D = get_viewport().get_camera_3d()
+	var spot: BuildSpotDef = _ctx.buildings.get_spot(spot_id)
+	if camera == null or spot == null:
+		return get_viewport_rect().size * 0.5
+	return camera.unproject_position(spot.position + SPOT_ANCHOR)
 ```
-Add a test for a provider that returns null.
 
-### WR-04: `screenshot.sh` discards the import output, so an import failure is undiagnosable
+### WR-02: BuildingSystem null-skip hardening leaves duplicate ids and unknown building ids unhandled
 
-**File:** `tools/screenshot.sh:50-55`
-**Issue:** The `--import` warm-up is sent to `/dev/null`, so on failure the script prints only "exited with N". `export.sh` logs the same step to `build/export-import.log` and tails it on failure. In CI (the `screenshots` job) nothing is uploaded on failure, so there is no way to see why.
+**File:** `simulation/buildings/building_system.gd:20-24, 81`
+**Issue:** The new null skip says data errors are "already reported by validate()" so the system should not crash, but two other errors `validate()` reports still corrupt state. (1) A duplicate spot id is appended to `_order` twice (line 23) while `_spots` keeps only the last def. `spot_ids()` then yields the id twice, so `BuildingViews.bind_run` creates two `Spot_<id>` markers, one carrying the wrong colour if the building ids differ. (2) `dawn_income_by_spot` hard-indexes `_defs[instance.building_id]` (line 81), which errors on a spot whose building id is unknown. `CommandProcessor` rejects the build in the normal path, but nothing enforces that here.
+**Fix:**
+```gdscript
+for spot: BuildSpotDef in map.spots:
+	if spot == null or _spots.has(spot.id):
+		continue
+	_order.append(spot.id)
+	_spots[spot.id] = spot
+...
+var building_def: BuildingDef = _defs.get(instance.building_id) as BuildingDef
+if building_def == null:
+	continue
+var tier_def: BuildingTierDef = building_def.tier_def(instance.tier)
+```
 
-**Fix:** Log to `${DUSKHOLD_ROOT}/build/screenshot-import.log`, mirroring `export.sh`. Print `tail -n 20` on failure. In `ci.yml`, add `if: always()` to the upload step, or upload the logs separately.
+### WR-03: Debug overlay only validates the top-level provider return, not the row shape
 
-### WR-05: `test_each_house_spawns_as_many_coins_as_it_pays` is coupled to balance data and to real time
-
-**File:** `tests/e2e/test_dawn_payout.gd:140-152`
-**Issue:** The test waits `EARLY_S` (0.5 s) and then asserts `get_spawned_count(house) == tier income`. That holds only while the total payout stays within both limits:
-- **Cap:** total gold must not exceed `MAX_COINS` (12), because the cap merges gold onto fewer coins.
-- **Launch time:** roughly 6 coins or fewer, because the last launch is at `(n-1) * 0.08` s.
-
-The current values (1 + 2 = 3) pass. Rebalancing house income, which `house.tres` is expected to undergo, makes the test fail for a non-bug reason. It also fails under a slow frame, since it waits wall-clock time (`await wait_seconds`).
-
-**Fix:** Assert against `_coins_for_amount`-derived expectations. Alternatively, wait with `wait_until` for the spawned count to reach the expected value instead of a fixed sleep, and set a low fixed income in a duplicated map.
+**File:** `ui/overlay/debug_overlay_model.gd:35-37` (consumer at `ui/overlay/debug_overlay.gd:54`)
+**Issue:** The change skips a provider that returns a non-Array, but `collect` still passes any Array through. The overlay then does `row[0]` / `row[1]` on every row. A provider returning `["Wave", "3"]` (a flat pair), rows with fewer than two entries, or a non-Array row raises a script error on every refresh. That is the same "crashes every refresh" outcome the surrounding comment says to avoid, and the contract in the doc comment (Array of `[String, String]`) is unenforced. The test only covers null and String returns.
+**Fix:** Normalise rows in `collect`:
+```gdscript
+var clean: Array = []
+for row: Variant in rows:
+	if row is Array and row.size() >= 2:
+		clean.append([str(row[0]), str(row[1])])
+sections.append(_section(entry["title"], clean))
+```
+and add a test for a malformed row.
 
 ## Info
 
-### IN-01: Unused constant `HOUSE_SPOT`
+### IN-01: `Hud.bind_run` is only partly idempotent
 
-**File:** `tests/e2e/test_map_binding.gd:8`
-**Issue:** `HOUSE_SPOT` is declared and never referenced.
-**Fix:** Delete it.
+**File:** `ui/hud/hud.gd:24-41`
+**Issue:** The comment justifies guarding `coin_landed` against a second `bind_run`, but every other `connect` in the method (hold signals, all `ctx.events` signals, `progress_changed`) is unguarded, and a second call would emit connect errors for those. The guard is inconsistent: either `bind_run` is called once (guard unneeded) or it is not (most connections are unprotected).
+**Fix:** Drop the guard and document single-call, or early-return with `if _ctx != null: return`.
 
-### IN-02: The `view_source` assertion compares an empty string to an empty string
+### IN-02: Player-facing strings hard-code the key hint and a placeholder
 
-**File:** `tests/unit/test_building_view_catalog.gd:61`
-**Issue:** The stub scene is packed in memory, so `stub.resource_path` is `""`. The assertion `modelled.get_meta("view_source") == stub.resource_path` therefore passes for any empty-string meta. It does still distinguish the model path from `"primitive"`, but it does not prove that the source path is recorded.
-**Fix:** Save the stub to `user://` or a `res://` temp path first. Alternatively, assert `assert_ne(..., VIEW_SOURCE_PRIMITIVE)` together with an explicit check that the model branch ran.
+**File:** `ui/hud/hud.gd:105, 112`
+**Issue:** "Hold N / (Y)" ignores runtime rebinding, which the project constraints require. "Night %d — no enemies yet" is Phase-1 placeholder copy that will ship stale once waves exist.
+**Fix:** Build the hint from `InputMap.action_get_events` for the start-night action, and move both strings to constants that Phase 2 replaces.
 
-### IN-03: CI runs each push twice once a `gsd/**` branch has a pull request
+### IN-03: Read-only test watches only 4 of 7 simulation signals
 
-**File:** `.github/workflows/ci.yml:9-13`
-**Issue:** `push: branches: [..., "gsd/**"]` plus `pull_request` runs every job for the same commit under two concurrency groups, `refs/heads/gsd/...` and `refs/pull/N/merge`, so neither cancels the other. This includes the 30-minute `export` job. The header comment justifies the push trigger for branches without a PR, but that trigger stays on after a PR exists.
-**Fix:** Accept the duplication, or gate the push trigger, for example with a job-level `if: github.event_name != 'push' || !contains(github.event.head_commit.message, ...)`. Better, use a shared concurrency group keyed on `github.head_ref || github.ref_name`.
+**File:** `tests/unit/test_debug_overlay_readonly.gd:8-10`
+**Issue:** `SIM_SIGNALS` omits `night_started`, `day_started` and `dawn_payout`, so "emits no events" is only partly asserted. A provider or model change that starts a night would not be caught by the signal check (only by the phase check).
+**Fix:** Add the three missing signal names, or enumerate them from `ctx.events.get_signal_list()`.
 
-### IN-04: The screenshot job's artifact upload is skipped when capture fails
+### IN-04: Timing-sensitive e2e assertions and CI trigger overlap
 
-**File:** `.github/workflows/ci.yml:153-159`
-**Issue:** The `test` job uses `if: always()` for its results upload. The `screenshots` job does not, so partial screenshots that would show which shot broke are dropped on failure (see WR-04).
-**Fix:** Add `if: always()` to the upload step. Keep `if-no-files-found: error`, or switch it to `warn` for the failure case.
-
-### IN-05: Redundant `get_spot` lookups and a magic-number spacing in `_add_marker`
-
-**File:** `presentation/buildings/building_views.gd:87,92`
-**Issue:** `_ctx.buildings.get_spot(spot_id)` is called twice. A null (unknown spot) would crash at the first call. This is unreachable with `spot_ids()` today.
-**Fix:** `var spot: BuildSpotDef = _ctx.buildings.get_spot(spot_id)` once, then use `spot.building_id` and `spot.position`.
+**File:** `tests/e2e/test_dawn_payout.gd:105, 231`; `.github/workflows/ci.yml:9-13`
+**Issue:** (a) `test_a_real_payout_lands_every_coin_inside_a_short_dawn_window` designs the last coin to land at exactly `dawn_seconds` (1.0 s) and waits only `LAND_SLACK_S = 0.2` of real time; tween delays are frame-quantised, so a slow llvmpipe/CI runner can flake it. The early-dawn lag test likewise relies on `wait_seconds(0.25)` being shorter than one 0.6 s trip. (b) Push to `gsd/**` plus `pull_request` means a phase branch with an open PR builds twice (the header comment says feature branches are not built twice, which holds only for non-`gsd/` branches). Also `launch_stagger` (`dawn_payout_vfx.gd:72`) dereferences `_ctx` and would crash if called before `bind_run`.
+**Fix:** (a) Widen the slack to about 0.5 s or drive the check off the `coin_landed` signal via `wait_for_signal`; (b) correct the comment, or add a `pull_request`-exists guard; guard `_ctx` in `launch_stagger`.
 
 ---
 
