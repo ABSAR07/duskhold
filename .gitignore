@@ -1,0 +1,32 @@
+# Godot editor cache / generated data
+.godot/
+*.translation
+
+# Local pinned toolchain (Godot editor, export templates, venv) — see tools/bootstrap.py
+.tools/
+
+# Python
+__pycache__/
+*.pyc
+
+# OS cruft
+.DS_Store
+Thumbs.db
+
+# Generated build output and screenshots — keep the directory markers
+/build/*
+!/build/.gdignore
+/screenshots/*
+!/screenshots/.gdignore
+
+# GSD tooling — keep only the project instructions file
+/.claude/*
+!/.claude/CLAUDE.md
+
+# GSD runtime state (not project instructions; never public) — same D-16/T-01-03 intent as /.claude/*
+/.gsd/
+/.planning/milestone.lock
+/.planning/state.json
+
+# Research cache
+/.planning/research/.cache/
