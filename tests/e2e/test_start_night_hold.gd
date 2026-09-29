@@ -307,6 +307,6 @@ func test_the_prompt_follows_a_runtime_rebind_of_start_night() -> void:
 	InputMap.action_erase_events(ACTION)
 	InputMap.action_add_event(ACTION, rebound)
 
-	map_root.get_context().events.day_started.emit(1)
+	await wait_process_frames(2)
 
 	assert_eq(_prompt(map_root).text, "Hold M to start Night 1", "the new key is named, no pad")

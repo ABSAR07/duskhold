@@ -28,6 +28,8 @@ const PAD_BUTTON_NAMES: Dictionary = {
 var _ctx: RunContext
 var _pending: int = 0
 var _payout_pending: int = 0
+## The start_night events the prompt text was built from, to notice a runtime rebind.
+var _hint_events: Array[InputEvent] = []
 
 @onready var _gold_label: Label = %GoldLabel
 @onready var _start_night_prompt: Label = %StartNightPrompt
@@ -59,6 +61,15 @@ func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
 		start_night_hold.progress_changed.connect(_on_start_night_progress)
 	_refresh()
 	_refresh_loop()
+
+
+## A rebind replaces the action's events, so a changed event list is the cheap trigger to rebuild
+## the prompt text. Nothing is rebuilt while the bindings are unchanged.
+func _process(_delta: float) -> void:
+	if _ctx == null or not _start_night_prompt.visible:
+		return
+	if InputMap.action_get_events(&"start_night") != _hint_events:
+		_refresh_prompt_text()
 
 
 func _on_hold_progress(_spot_id: StringName, coins_paid: int, _cost: int) -> void:
@@ -119,15 +130,20 @@ func _refresh_loop() -> void:
 	_start_night_fill.visible = by_day
 	if not by_day:
 		_start_night_fill.value = 0.0
-	_start_night_prompt.text = (
-		START_NIGHT_PROMPT % [_start_night_hint(), run_manager.get_night_number() + 1]
-	)
+	_refresh_prompt_text()
 	var at_night: bool = (
 		run_manager.get_phase() == RunManager.RunPhase.NIGHT_TRANSITION
 		or run_manager.get_phase() == RunManager.RunPhase.NIGHT
 	)
 	_phase_banner.visible = at_night
 	_phase_banner.text = NIGHT_BANNER % run_manager.get_night_number()
+
+
+func _refresh_prompt_text() -> void:
+	_hint_events = InputMap.action_get_events(&"start_night")
+	_start_night_prompt.text = (
+		START_NIGHT_PROMPT % [_start_night_hint(), _ctx.run_manager.get_night_number() + 1]
+	)
 
 
 ## The start-night keys as they are bound right now, e.g. "N / (Y)": keyboard keys first, gamepad
