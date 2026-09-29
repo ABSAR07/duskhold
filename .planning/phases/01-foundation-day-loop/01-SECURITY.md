@@ -44,19 +44,19 @@ created: "2026-09-29"
 | T-01-04 | Tampering | `CommandProcessor.submit` / `Economy.try_spend` | medium | mitigate | `_submit_build` re-runs `validate_build` at apply time; `try_spend` refuses unaffordable or negative costs and changes nothing; `test_build_flow.gd`, `test_economy_gold.gd` green | closed |
 | T-01-05 | Tampering | `BuildHoldController` partial-payment state | low | mitigate | Nothing is deducted while coins drip; completion goes through `commands.submit(BuildIntent)`; refund is a pure reset (D-06); `test_build_hold_refund.gd` green | closed |
 | T-01-06 | Information Disclosure | First push / `tools/prepush_check.sh` | high | mitigate | Pre-push check scans current tree and `git log --all` for local tooling, generated output, credential-shaped values (plus gitleaks when installed) and >5 MB blobs, and prints identities for owner review; re-run 2026-09-29: PASSED | closed |
-| T-01-07 | Elevation of Privilege | `.github/workflows/ci.yml` | medium | mitigate | `permissions: contents: read`; `pull_request` trigger only (no `pull_request_target`); no `secrets.` references; every action from the `actions/` org, pinned to a full commit SHA (stronger than the planned major tags) | closed |
+| T-01-07 | Elevation of Privilege | `.github/workflows/ci.yml` | medium | mitigate | `permissions: contents: read`; `pull_request` trigger only (no `pull_request_target`); no `secrets.` references; every action from the `actions/` org, pinned to a full commit SHA (stronger than the planned major tags; 17/17 `uses:` lines re-checked after the IN-04 change) | closed |
 | T-01-08 | Denial of Service | Git LFS quota in CI | low | mitigate | `.git/lfs` cache keyed on `hashFiles('.lfs-assets-id')`; lint job checks out with `lfs: false` | closed |
 | T-01-SC (01-03) | Tampering | CI Godot/templates/pip installs | high | mitigate | CI runs `python tools/bootstrap.py --godot [--templates] --yes --platform linux`, which verifies against the committed pin; lint installs `-r tools/requirements-lint.txt` (pinned) | closed |
 | T-01-09 | Tampering | `project.godot` `[input]` | low | mitigate | `test_input_map.gd` fails on any mouse binding in a project action, any missing keyboard/gamepad binding, or binding-table drift; green | closed |
-| T-01-10 | Tampering | `MapConfig` / `.tres` data | low | mitigate | `MapConfig.validate()` reports empty entries, duplicate/empty ids, empty tier lists and non-positive costs (hardened by review fix IN-02); `test_prototype_map_data.gd` green | closed |
+| T-01-10 | Tampering | `MapConfig` / `.tres` data | low | mitigate | `MapConfig.validate()` reports empty entries, duplicate/empty ids (building ids too since review-fix pass 2, WR-01), empty tier lists and non-positive costs (hardened by review fix IN-02); `BuildingSystem` skips null building/spot entries instead of crashing; `test_prototype_map_data.gd` green | closed |
 | T-01-11 | Tampering | `BuildHoldController` completion after leaving range, phase change or loss of affordability | medium | mitigate | Focus lock on the active spot; every frame cancels if the key is released, the spot is out of `interaction_radius` or `is_build_allowed()` is false; `submit` re-validates at completion; `test_build_hold_refund.gd`, `test_build_denied.gd` green | closed |
 | T-01-12 | Repudiation | `assets/attribution.json` licensing claims | medium | mitigate | `ALLOWED_LICENSES = ["CC0-1.0", "MIT"]` and full-coverage checks in `test_attribution_log.gd`; `License.txt` kept beside each of the 4 third-party asset folders; archive SHA256 on every model entry; source wording quoted in 01-07-SUMMARY | closed |
 | T-01-13 | Tampering | IP exposure in game content | medium | mitigate | Plan-scoped check `git grep -il thronefall -- data simulation input presentation ui assets project.godot export_presets.cfg ASSETS.md` is clean; only Kenney/Quaternius sources used | closed |
 | T-01-SC (01-07) | Tampering | CC0 archive downloads | high | mitigate | Owner approved exact URLs and sizes (01-07 Task 2); `curl --fail`; SHA256 recorded per archive in `attribution.json` (4 model entries); only chosen files extracted | closed |
 | T-01-14 | Tampering | `RunManager` transitions and dawn payout | low | mitigate | `start_night()` returns false unless `_phase == DAY`; `test_only_the_run_manager_assigns_the_loop_phase` source-scan test; `CommandProcessor` rejects StartNightIntent outside DAY; `test_run_manager.gd`, `test_build_phase_guard.gd`, `test_loop_gold_carryover.gd` green | closed |
 | T-01-15 | Elevation of Privilege | DebugOverlay in release builds | low | accept | See AR-01 | closed |
-| T-01-16 | Information Disclosure | `duskhold-screenshots` CI artifact | low | accept | See AR-02 (`retention-days: 7` confirmed in `ci.yml`) | closed |
-| T-01-17 | Information Disclosure | `git push` of new history | high | mitigate | `bash tools/prepush_check.sh` before every push; re-run 2026-09-29 over all refs, including the 28 local review-fix commits not yet pushed: PASSED | closed |
+| T-01-16 | Information Disclosure | `duskhold-screenshots` CI artifact | low | accept | See AR-02 (`retention-days: 7` confirmed in `ci.yml`; since IN-04 the upload runs `if: always()` and also carries `build/screenshot-import.log`) | closed |
+| T-01-17 | Information Disclosure | `git push` of new history | high | mitigate | `bash tools/prepush_check.sh` before every push; re-run 2026-09-29 over all refs, including the 47 local commits not yet pushed: PASSED | closed |
 | T-01-SC (01-10) | Tampering | apt packages on the CI runner | low | accept | See AR-03 | closed |
 | T-01-SC (no-install plans) | Tampering | Package installs in 01-02, 01-04, 01-05, 01-06, 01-08, 01-09 | low | accept | See AR-04 | closed |
 
@@ -68,7 +68,7 @@ The plans list T-01-SC seven times; the six identical "this plan installs no pac
 
 ### Observations (non-blocking)
 
-- **T-01-06 / T-01-17: enforcement is procedural.** `.git/hooks/pre-push` only runs Git LFS, so nothing forces `tools/prepush_check.sh` to run before a push. Run it before pushing the 28 pending review-fix commits (it passes today). Optional hardening: call it from the pre-push hook.
+- **T-01-06 / T-01-17: enforcement is procedural.** `.git/hooks/pre-push` only runs Git LFS, so nothing forces `tools/prepush_check.sh` to run before a push. Run it before pushing the 47 pending local commits (it passes today). Optional hardening: call it from the pre-push hook.
 - **T-01-12: residual licence risk.** The allow-list test trusts each entry's declared `license` field. The Quaternius horse is logged as CC0-1.0, based on the 2021 Poly Pizza CC0 statement, while Quaternius now publishes its own Asset License. That is review finding WR-06, disposition skipped, owner decision pending. It is also listed as a human verification item.
 - **T-01-13: out-of-scope mention.** A comment on line 3 of `tools/_common.sh` names the local checkout folder, which contains the reference game's name. `tools/*` is not game content and is excluded from the export (`exclude_filter="tests/*, addons/gut/*, tools/*"`). The owner may still want to reword it before release.
 
@@ -79,7 +79,7 @@ The plans list T-01-SC seven times; the six identical "this plan installs no pac
 | Risk ID | Threat Ref | Rationale | Accepted By | Date |
 |---------|------------|-----------|-------------|------|
 | AR-01 | T-01-15 | The overlay only calls getters. `test_debug_overlay_readonly.gd` shows 200 collects change no state and emit no events. Leaving the F3 / gamepad-Back toggle in Phase 1 release builds therefore gives no gameplay advantage. Revisit gating before the Phase 13 release. | Plan 01-08 threat model (recorded in STATE.md decisions) | 2026-09-29 |
-| AR-02 | T-01-16 | The screenshot artifact holds only the game's own frames of public content in a public repo, with 7-day retention. | Plan 01-10 threat model | 2026-09-29 |
+| AR-02 | T-01-16 | The screenshot artifact holds only the game's own frames of public content in a public repo, with 7-day retention. Since review fix IN-04 it also carries the Godot `--import` log: engine banner and import progress for the public repo's own files on an ephemeral runner, from a job with no secrets. | Plan 01-10 threat model; log added by review-fix pass 2 | 2026-09-29 |
 | AR-03 | T-01-SC (01-10) | apt/Mesa packages come from Ubuntu's signed archive on an ephemeral runner, with no secrets in the job and a read-only token. Nothing is installed on the owner's machine. | Plan 01-10 threat model | 2026-09-29 |
 | AR-04 | T-01-SC (01-02, 01-04, 01-05, 01-06, 01-08, 01-09) | These plans install no packages; the toolchain was pinned and owner-approved in 01-01. | Plan threat models | 2026-09-29 |
 
@@ -92,6 +92,7 @@ The plans list T-01-SC seven times; the six identical "this plan installs no pac
 | Audit Date | Threats Total | Closed | Open | Run By |
 |------------|---------------|--------|------|--------|
 | 2026-09-29 | 22 | 22 | 0 | secure-phase orchestrator (ASVS L1 grep-depth; short-circuit, no auditor spawn) |
+| 2026-09-29 (re-audit) | 22 | 22 | 0 | secure-phase orchestrator (State A; re-checked mitigations touched by review-fix pass 2) |
 
 ## Security Audit 2026-09-29
 
@@ -102,6 +103,23 @@ The plans list T-01-SC seven times; the six identical "this plan installs no pac
 | Open | 0 |
 
 Evidence gathered for this audit: grep-level inspection of `tools/bootstrap.py`, `tools/prepush_check.sh`, `.github/workflows/ci.yml`, `export_presets.cfg`, `simulation/commands/command_processor.gd`, `simulation/economy/economy.gd`, `input/build_hold_controller.gd`, `simulation/defs/map_config.gd`, `simulation/run/run_manager.gd`, `assets/attribution.json`. Also: `git check-ignore` probes; full GUT suite 201/201 green; `tools/prepush_check.sh` PASSED; export and headless launch OK.
+
+## Security Audit 2026-09-29 (re-audit after review-fix pass 2)
+
+| Metric | Count |
+|--------|-------|
+| Threats found | 22 |
+| Closed | 22 |
+| Open | 0 |
+
+Re-checked the mitigations touched by the 10 fix commits (`83b1c10`..`a8b919e`):
+- **T-01-07:** `ci.yml` is still `permissions: contents: read` with no `pull_request_target` and no secrets. All 17 `uses:` lines are SHA-pinned `actions/*`.
+- **T-01-16:** the screenshot artifact is still on 7-day retention. It now also uploads the non-sensitive import log.
+- **T-01-10:** strengthened. Empty building ids are reported, and null entries are skipped.
+- **T-01-15:** the overlay stays read-only. The new non-Array guard only skips; the 200-collect snapshot test is still green.
+- **T-01-13:** the scoped name check is clean.
+- **T-01-06 / T-01-17:** `tools/prepush_check.sh` PASSED over all refs, including the 47 unpushed commits.
+- **Tests:** full suite 206/206.
 
 ---
 
