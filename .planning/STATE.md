@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 01
 current_phase_name: Foundation & Day Loop
 status: executing
-stopped_at: Completed 01-04-PLAN.md
-last_updated: "2026-09-29T08:35:46.772Z"
+stopped_at: Completed 01-03-PLAN.md
+last_updated: "2026-09-29T09:37:20.710Z"
 last_activity: 2026-09-29
 last_activity_desc: Phase 01 execution started
-state_head: 6fb92c349fc3020d8003cb443272c35f8373a530
+state_head: 88a39c25de9335662f819b63138660eeaf650469
 progress:
   total_phases: 13
   completed_phases: 0
   total_plans: 10
-  completed_plans: 3
+  completed_plans: 4
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-28)
 ## Current Position
 
 Phase: 01 (Foundation & Day Loop) — EXECUTING
-Plan: 4 of 10
+Plan: 5 of 10
 Status: Ready to execute
 Last activity: 2026-09-29 — Phase 01 execution started
 
@@ -59,6 +59,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P01 | 2h 41m | 3 tasks | 279 files |
 | Phase 01 P02 | ~4h (incl. gate wait) | 2 tasks | 33 files |
 | Phase 01 P04 | 5 min | 2 tasks | 9 files |
+| Phase 01 P03 | 71 min (incl. owner-decision wait) | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,9 @@ Recent decisions affecting current work:
 - [Phase 01]: 01-02: use GUT wait_process_frames (wait_frames deprecated in 9.7.1); commit each .gd.uid with its script
 - [Phase 01]: 01-04: CameraRig is a detached perspective rig (fov 40, offset (0,16,11), yaw 0); rotation written only once in bind_run, position follows via exp() smoothing — Fixed angle the player cannot rotate (KING-02); offset and follow_sharpness are exported for Phase 2 playtest tuning
 - [Phase 01]: 01-04: KingDef acceleration 40 m/s^2 and turn_speed 12 rad/s are first-pass feel values; the plan's human-check (windowed keyboard + gamepad feel pass) is still outstanding — Plan only required > 0; values keep the sprint/walk distance ratio inside the 15% band
+- [Phase 01]: [01-03] Owner published ABSAR07/duskhold (public) with only the phase branch gsd/phase-01-foundation-day-loop pushed; master and tags stay local. GitHub default branch is the phase branch until the owner switches it after merging — Owner decision at the blocking Task 2 checkpoint (D-13 one-way door); local absolute paths in tracked PLAN files accepted as-is
+- [Phase 01]: [01-03] Pushes to origin need the gh login: git's stored credential is account absarfraz-tenx (403). Use git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push, or owner runs gh auth setup-git — Avoids changing the owner's global git config without approval
+- [Phase 01]: [01-03] Windows export uses application/modify_resources=false (no Wine/rcedit); a custom icon or version resource in a later phase will need rcedit — Phase 1 has no custom icon; Linux CI export verified green
 
 ### Pending Todos
 
@@ -107,6 +111,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-29T08:35:46.739Z
-Stopped at: Completed 01-04-PLAN.md
+Last session: 2026-09-29T09:37:20.676Z
+Stopped at: Completed 01-03-PLAN.md
 Resume file: None
