@@ -30,3 +30,20 @@ func get_elapsed() -> float:
 ## Advances simulation time. No timed phase is active yet, so only the clock moves.
 func tick(delta: float) -> void:
 	_elapsed += maxf(delta, 0.0)
+
+
+## Placeholder until the loop lands: always refuses.
+func start_night() -> bool:
+	return false
+
+
+func get_day_number() -> int:
+	return 0
+
+
+func get_night_number() -> int:
+	return 0
+
+
+func get_phase_time_remaining() -> float:
+	return 0.0
