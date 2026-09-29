@@ -30,8 +30,8 @@ func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
 	ctx.events.night_started.connect(_on_night_started)
 	ctx.events.day_started.connect(_on_day_started)
 	ctx.events.dawn_payout.connect(_on_dawn_payout)
-	# bind_run can run again on this HUD when a second map joins the tree (call_group hits every
-	# run_bound node); the vfx outlives a run, so its signal must not be connected twice.
+	# Defensive: the vfx outlives a run, so its signal must never be connected twice even if
+	# bind_run is called again on this HUD.
 	if not _payout_vfx.coin_landed.is_connected(_on_coin_landed):
 		_payout_vfx.coin_landed.connect(_on_coin_landed)
 	var start_night_hold: StartNightHoldController = (
