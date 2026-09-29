@@ -107,3 +107,48 @@ jobs:
           path: build/windows/
           retention-days: 7
           if-no-files-found: error
+
+  screenshots:
+    name: screenshots
+    needs: [test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: false
+      - name: List LFS objects for the cache key
+        run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-assets-id
+      - name: Cache LFS objects
+        uses: actions/cache@v6
+        with:
+          path: .git/lfs
+          key: lfs-${{ hashFiles('.lfs-assets-id') }}
+      - name: Pull LFS objects
+        run: git lfs pull
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Cache pinned Godot editor
+        uses: actions/cache@v6
+        with:
+          path: .tools/godot
+          key: godot-editor-linux-${{ hashFiles('tools/godot_version.txt', 'tools/godot_sha512sums.txt') }}
+      - name: Install pinned Godot (checksum-verified)
+        run: python tools/bootstrap.py --godot --yes --platform linux
+      # Ubuntu's signed archive on the ephemeral runner; nothing here touches secrets.
+      - name: Install a virtual display and Mesa software rendering
+        run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri libglx-mesa0
+      # Screenshots need a real renderer: Compatibility (OpenGL 3) on Mesa llvmpipe under Xvfb.
+      # Never --headless, which would save blank images.
+      - name: Capture scripted screenshots
+        run: bash tools/screenshot.sh
+        env:
+          DUSKHOLD_SCREENSHOT_COMPAT: "1"
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v7
+        with:
+          name: duskhold-screenshots
+          path: screenshots/*.png
+          retention-days: 7
+          if-no-files-found: error
