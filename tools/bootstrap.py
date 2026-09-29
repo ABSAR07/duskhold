@@ -4,7 +4,7 @@
 Installs the pinned Godot 4.7.2-stable editor and Windows export templates,
 vendors GUT 9.7.1 into addons/gut/, and creates a local venv with gdtoolkit
 4.5.0. Standard library only (argparse, urllib.request, hashlib, zipfile,
-subprocess, pathlib, shutil, os, sys, platform, stat).
+subprocess, pathlib, shutil, os, sys, platform, stat, tempfile).
 
 Downloads nothing unless a component flag AND --yes are both passed. With no
 component flag, or with --dry-run, it only prints the download table and
@@ -20,6 +20,7 @@ import shutil
 import stat
 import subprocess
 import sys
+import tempfile
 import urllib.error
 import urllib.request
 import zipfile
@@ -39,6 +40,8 @@ DOWNLOAD_TIMEOUT_S = 60
 GUT_TAG = "v9.7.1"
 GUT_ZIP_URL = f"https://github.com/bitwes/Gut/archive/refs/tags/{GUT_TAG}.zip"
 GUT_LOCAL_NAME = f"Gut-{GUT_TAG}.zip"
+# Same value as assets/attribution.json (gut entry). Compared before anything is extracted.
+GUT_ZIP_SHA256 = "14969aa46adc84aa08cdd21b9f6d1a64addd92ae60b36f02d0521ed305aa4086"
 
 _official_sums_cache: dict[str, str] | None = None
 
@@ -456,9 +459,40 @@ def install_gut(args: argparse.Namespace) -> str:
     downloaded = download_asset(GUT_LOCAL_NAME, GUT_ZIP_URL)
     sha256 = sha256_of_file(downloaded)
     print(f"GUT {GUT_TAG} zip SHA256: {sha256}")
+    # Git tags are mutable, so pin the archive by content before anything is extracted.
+    if sha256 != GUT_ZIP_SHA256:
+        print(f"FATAL: GUT {GUT_TAG} zip SHA256 mismatch", file=sys.stderr)
+        print(f"  expected: {GUT_ZIP_SHA256}", file=sys.stderr)
+        print(f"  actual:   {sha256}", file=sys.stderr)
+        downloaded.unlink(missing_ok=True)
+        sys.exit(1)
 
+    # Extract and verify in a staging directory; the committed addon is only replaced once the
+    # staged copy has passed every check.
+    staging = Path(tempfile.mkdtemp(prefix="gut-", dir=DOWNLOADS_DIR))
+    try:
+        staged_addon = staging / "gut"
+        extract_gut_addon(downloaded, staged_addon)
+        swap_directory(staged_addon, dest_dir, staging / "previous")
+    finally:
+        shutil.rmtree(staging, ignore_errors=True)
+
+    if not args.keep_downloads:
+        downloaded.unlink(missing_ok=True)
+
+    print(f"GUT {GUT_TAG} vendored to {dest_dir}")
+    return sha256
+
+
+def extract_gut_addon(zip_path: Path, dest_dir: Path) -> None:
+    """Extracts addons/gut/ from the GUT release zip into dest_dir and checks its plugin.cfg.
+
+    Exits 1 (leaving nothing that anything depends on) if the archive has no addon or the addon
+    does not report the pinned version.
+    """
+    version = GUT_TAG.lstrip("v")
     prefix = None
-    with zipfile.ZipFile(downloaded) as zf:
+    with zipfile.ZipFile(zip_path) as zf:
         for info in zf.infolist():
             idx = info.filename.find("addons/gut/")
             if idx != -1:
@@ -467,22 +501,29 @@ def install_gut(args: argparse.Namespace) -> str:
         if prefix is None:
             print("FATAL: addons/gut/ not found in GUT archive", file=sys.stderr)
             sys.exit(1)
-
-        if dest_dir.exists():
-            shutil.rmtree(dest_dir)
         for info, rel in safe_members(zf, prefix=prefix):
             extract_member(zf, info, rel, dest_dir)
 
     plugin_cfg = dest_dir / "plugin.cfg"
-    if not plugin_cfg.exists() or "9.7.1" not in plugin_cfg.read_text(encoding="utf-8"):
-        print("FATAL: addons/gut/plugin.cfg does not report version 9.7.1", file=sys.stderr)
+    if not plugin_cfg.exists() or version not in plugin_cfg.read_text(encoding="utf-8"):
+        print(f"FATAL: addons/gut/plugin.cfg does not report version {version}", file=sys.stderr)
         sys.exit(1)
 
-    if not args.keep_downloads:
-        downloaded.unlink(missing_ok=True)
 
-    print(f"GUT {GUT_TAG} vendored to {dest_dir}")
-    return sha256
+def swap_directory(staged: Path, dest_dir: Path, backup: Path) -> None:
+    """Replaces dest_dir with staged, restoring the original if the swap fails midway."""
+    had_original = dest_dir.exists()
+    if had_original:
+        dest_dir.rename(backup)
+    try:
+        dest_dir.parent.mkdir(parents=True, exist_ok=True)
+        staged.rename(dest_dir)
+    except OSError:
+        if had_original:
+            if dest_dir.exists():
+                shutil.rmtree(dest_dir, ignore_errors=True)
+            backup.rename(dest_dir)
+        raise
 
 
 def install_lint_tools(args: argparse.Namespace) -> None:
