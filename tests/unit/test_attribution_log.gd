@@ -241,14 +241,18 @@ func test_assets_md_lists_every_entry_in_json_order() -> void:
 	var text: String = file.get_as_text()
 	var cursor: int = 0
 	for entry: Dictionary in _entries():
-		var row_start: int = text.find(str(entry.get("name")), cursor)
+		# Anchor to the table row ("| <name> |") so prose that mentions a name cannot match.
+		var row_start: int = text.find("| %s |" % entry.get("name"), cursor)
 		assert_gt(row_start, -1, "ASSETS.md lists '%s' in order" % entry.get("name"))
 		if row_start < 0:
 			return
 		var row_end: int = text.find("\n", row_start)
-		var row: String = text.substr(row_start, row_end - row_start)
-		assert_true(
-			row.contains(str(entry.get("license"))),
+		var cells: PackedStringArray = text.substr(row_start, row_end - row_start).split("|")
+		# cells[0] is empty (before the leading pipe); Name, Kind and License follow.
+		var license_cell: String = cells[3].strip_edges() if cells.size() > 3 else ""
+		assert_eq(
+			license_cell,
+			str(entry.get("license")),
 			"row for '%s' names its license" % entry.get("name")
 		)
 		cursor = row_start + 1

@@ -6,7 +6,14 @@ const TOGGLE_ACTION := &"toggle_debug_overlay"
 const RIDE_TIMEOUT_S: float = 5.0
 const REFRESH_WINDOW_S: float = 0.5
 const REQUIRED_FIELDS: Array[String] = [
-	"FPS", "Phase", "DAY", "Gold", "Buildings", "Units", "Enemies"
+	"FPS",
+	"Phase: DAY",
+	"Day: 1",
+	"Night: 0",
+	"Gold",
+	"Buildings",
+	"Units",
+	"Enemies",
 ]
 
 
