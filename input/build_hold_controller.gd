@@ -49,12 +49,16 @@ func is_holding() -> bool:
 func _process(delta: float) -> void:
 	if _ctx == null or _king == null:
 		return
-	_update_focus()
 	var pressed: bool = Input.is_action_pressed(ACTION)
 	if is_holding():
 		_advance_hold(delta, pressed)
-	elif pressed and not _was_pressed and _focused != &"":
-		_try_start_hold()
+	else:
+		_update_focus()
+		var just_pressed: bool = (
+			Input.is_action_just_pressed(ACTION) or (pressed and not _was_pressed)
+		)
+		if just_pressed and _focused != &"":
+			_try_start_hold()
 	_was_pressed = pressed
 
 
@@ -67,6 +71,9 @@ func _update_focus() -> void:
 		focus_changed.emit(spot_id)
 
 
+## Focus is locked to the active spot for the whole hold; only release, leaving the interaction
+## range or the day ending cancels it. A hold that finishes or cancels needs a fresh key press to
+## start again, because starting is edge-triggered (the key must be released in between).
 func _try_start_hold() -> void:
 	var reason: StringName = _ctx.commands.validate_build(_focused)
 	if reason != CommandProcessor.OK:
@@ -79,8 +86,10 @@ func _try_start_hold() -> void:
 	hold_started.emit(_active, _cost)
 
 
+## The day check runs every frame, ahead of any drip, so a coin never lands after building
+## stops being allowed (plan 01-08's night transition relies on this).
 func _advance_hold(delta: float, pressed: bool) -> void:
-	if not pressed or _focused != _active:
+	if not pressed or not _active_spot_in_range() or not _ctx.run_manager.is_build_allowed():
 		_cancel_hold()
 		return
 	var interval: float = maxf(_ctx.tuning.coin_drip_interval, MIN_DRIP_INTERVAL)
@@ -91,6 +100,15 @@ func _advance_hold(delta: float, pressed: bool) -> void:
 		hold_progress.emit(_active, _coins_paid, _cost)
 	if _coins_paid >= _cost:
 		_finish_hold()
+
+
+func _active_spot_in_range() -> bool:
+	var spot: BuildSpotDef = _ctx.buildings.get_spot(_active)
+	if spot == null:
+		return false
+	var flat_king: Vector2 = Vector2(_king.global_position.x, _king.global_position.z)
+	var flat_spot: Vector2 = Vector2(spot.position.x, spot.position.z)
+	return flat_king.distance_to(flat_spot) <= _ctx.tuning.interaction_radius
 
 
 func _finish_hold() -> void:
