@@ -105,9 +105,17 @@ func _enter_day() -> void:
 	_events.day_started.emit(_day_number)
 
 
-## Pays dawn income. Filled in by the dawn-income task; Phase 2 extends it with the dawn rebuild.
+## Pays each House its current tier's income, exactly once per DAWN entry (ECON-02). Nothing here
+## or at day start resets or rebases gold, so unspent gold carries over (ECON-07). Phase 2 extends
+## this with the dawn rebuild (LOOP-04) and the rule that rebuilt buildings pay nothing (LOOP-05).
 func _apply_dawn_payout() -> void:
-	pass
+	var per_spot: Dictionary = _buildings.dawn_income_by_spot()
+	var total: int = 0
+	for amount: int in per_spot.values():
+		total += amount
+	if total > 0:
+		_economy.grant(total)
+	_events.dawn_payout.emit(total, per_spot)
 
 
 func _change_phase(new_phase: RunPhase) -> void:

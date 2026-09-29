@@ -39,11 +39,17 @@ func _section(title: String, rows: Array) -> Dictionary:
 
 func _loop_rows() -> Array:
 	var phase_name: String = RunManager.RunPhase.keys()[_ctx.run_manager.get_phase()]
-	return [
+	var rows: Array = [
 		["Phase", phase_name],
+		["Day", str(_ctx.run_manager.get_day_number())],
+		["Night", str(_ctx.run_manager.get_night_number())],
 		["Gold", str(_ctx.economy.get_gold())],
 		["Buildings", str(_count_buildings())],
 	]
+	var phase: RunManager.RunPhase = _ctx.run_manager.get_phase()
+	if phase == RunManager.RunPhase.NIGHT or phase == RunManager.RunPhase.DAWN:
+		rows.append(["Timer", "%.1f" % _ctx.run_manager.get_phase_time_remaining()])
+	return rows
 
 
 func _agent_rows() -> Array:

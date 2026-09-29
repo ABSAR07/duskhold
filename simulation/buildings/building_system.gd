@@ -65,9 +65,18 @@ func next_action_cost(spot_id: StringName) -> int:
 	return tier_def.cost
 
 
-## Placeholder until dawn income lands: reports nothing.
+## What each standing building pays at dawn: spot_id -> gold, in MapConfig order, listing only
+## spots whose current tier pays more than 0. Pure: it never mutates anything.
 func dawn_income_by_spot() -> Dictionary:
-	return {}
+	var income: Dictionary = {}
+	for spot_id: StringName in _order:
+		var instance: BuildingInstance = get_instance(spot_id)
+		if instance == null:
+			continue
+		var tier_def: BuildingTierDef = _defs[instance.building_id].tier_def(instance.tier)
+		if tier_def != null and tier_def.dawn_income > 0:
+			income[spot_id] = tier_def.dawn_income
+	return income
 
 
 ## Nearest spot within `radius` (XZ distance, inclusive). Ties go to the earlier MapConfig
