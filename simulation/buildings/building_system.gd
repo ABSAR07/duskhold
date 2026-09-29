@@ -18,7 +18,8 @@ func _init(map: MapConfig, events: SimEvents) -> void:
 			continue
 		_defs[building_def.id] = building_def
 	for spot: BuildSpotDef in map.spots:
-		if spot == null:
+		# A duplicate id is also a reported data error; keep the first def so spot_ids() stays unique.
+		if spot == null or _spots.has(spot.id):
 			continue
 		_order.append(spot.id)
 		_spots[spot.id] = spot
@@ -78,7 +79,10 @@ func dawn_income_by_spot() -> Dictionary:
 		var instance: BuildingInstance = get_instance(spot_id)
 		if instance == null:
 			continue
-		var tier_def: BuildingTierDef = _defs[instance.building_id].tier_def(instance.tier)
+		var building_def: BuildingDef = _defs.get(instance.building_id) as BuildingDef
+		if building_def == null:
+			continue
+		var tier_def: BuildingTierDef = building_def.tier_def(instance.tier)
 		if tier_def != null and tier_def.dawn_income > 0:
 			income[spot_id] = tier_def.dawn_income
 	return income
