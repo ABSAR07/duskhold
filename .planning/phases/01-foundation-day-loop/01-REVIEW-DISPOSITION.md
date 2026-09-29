@@ -5,31 +5,31 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "Unknown spot id in `per_spot` crashes coin launch and strands the HUD readout"
   - id: WR-02
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "BuildingSystem null-skip hardening leaves duplicate ids and unknown building ids unhandled"
   - id: WR-03
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "Debug overlay only validates the top-level provider return, not the row shape"
   - id: IN-01
     severity: info
-    disposition: open
+    disposition: fixed
     title: "`Hud.bind_run` is only partly idempotent"
   - id: IN-02
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Player-facing strings hard-code the key hint and a placeholder"
   - id: IN-03
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Read-only test watches only 4 of 7 simulation signals"
   - id: IN-04
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Timing-sensitive e2e assertions and CI trigger overlap"
   - id: CR-01
     severity: critical
@@ -87,22 +87,22 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 7
+open: 0
 total: 21
-recorded: 2026-09-29T16:13:29.111Z
+recorded: 2026-09-29T16:39:09.445Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
-| WR-02 | warning | open | - |
-| WR-03 | warning | open | - |
-| IN-01 | info | open | - |
-| IN-02 | info | open | - |
-| IN-03 | info | open | - |
-| IN-04 | info | open | - |
+| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
+| WR-02 | warning | fixed | 01-REVIEW-FIX.md |
+| WR-03 | warning | fixed | 01-REVIEW-FIX.md |
+| IN-01 | info | fixed | 01-REVIEW-FIX.md |
+| IN-02 | info | fixed | 01-REVIEW-FIX.md |
+| IN-03 | info | fixed | 01-REVIEW-FIX.md |
+| IN-04 | info | fixed | 01-REVIEW-FIX.md |
 | CR-01 | critical | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-04 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-05 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
