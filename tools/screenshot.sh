@@ -73,9 +73,9 @@ saved=()
 for shot in "${SHOTS[@]}"; do
   rm -f "${OUT_DIR}/${shot}.png"
   echo "== ${shot}"
-  "${wrapper[@]}" timeout "${RUN_TIMEOUT_S}" "${GODOT_BIN}" \
+  ${wrapper[@]+"${wrapper[@]}"} timeout "${RUN_TIMEOUT_S}" "${GODOT_BIN}" \
     --path "${DUSKHOLD_ROOT_NATIVE}" --resolution 1280x720 \
-    "${renderer_args[@]}" \
+    ${renderer_args[@]+"${renderer_args[@]}"} \
     res://tools/screenshot/shot_runner.tscn -- "--shot=${shot}" "--out=${OUT_DIR_NATIVE}"
   status=$?
   if [ "${status}" -ne 0 ]; then
@@ -92,7 +92,7 @@ for shot in "${SHOTS[@]}"; do
 done
 
 echo "Saved ${#saved[@]} of ${#SHOTS[@]} screenshots:"
-for file in "${saved[@]}"; do
+for file in ${saved[@]+"${saved[@]}"}; do
   echo "  ${file}"
 done
 exit "${fail}"
