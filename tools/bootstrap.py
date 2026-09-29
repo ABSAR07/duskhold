@@ -440,7 +440,17 @@ def install_templates(args: argparse.Namespace) -> None:
 def install_gut(args: argparse.Namespace) -> str:
     dest_dir = ROOT / "addons" / "gut"
     if dest_dir.exists() and not args.force:
-        print("FATAL: addons/gut already exists; use --force to overwrite", file=sys.stderr)
+        # GUT is vendored and committed, so an existing addon is the normal case (and must not make
+        # `--all` die before the lint tools are installed). Skip when it is already the pinned version.
+        plugin_cfg = dest_dir / "plugin.cfg"
+        if plugin_cfg.exists() and GUT_TAG.lstrip("v") in plugin_cfg.read_text(encoding="utf-8"):
+            print(f"addons/gut already present at {GUT_TAG}; skipping (use --force to reinstall)")
+            return ""
+        print(
+            f"FATAL: addons/gut exists but does not report version {GUT_TAG.lstrip('v')}; "
+            "use --force to overwrite",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     downloaded = download_asset(GUT_LOCAL_NAME, GUT_ZIP_URL)
