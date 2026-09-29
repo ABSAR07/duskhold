@@ -108,9 +108,7 @@ func _on_dawn_payout(total: int, per_spot: Dictionary) -> void:
 		var coin_count: int = coin_counts[spot_id]
 		for coin: int in range(coin_count):
 			_expected_coins += 1
-			_schedule_launch(
-				spot_id, float(index) * STAGGER_SECONDS, _coin_share(amount, coin_count, coin)
-			)
+			_schedule_launch(spot_id, float(index) * stagger, _coin_share(amount, coin_count, coin))
 			index += 1
 
 

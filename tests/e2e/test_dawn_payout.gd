@@ -11,6 +11,7 @@ const FAST_NIGHT_S: float = 0.5
 const WAIT_SLACK_S: float = 3.0
 const EARLY_S: float = 0.5
 const SETTLED_S: float = 3.0
+const LAND_SLACK_S: float = 0.2
 const HOUSE_ONE: StringName = &"house_1"
 const HOUSE_TWO: StringName = &"house_2"
 
@@ -197,6 +198,31 @@ func test_the_last_coin_lands_inside_the_dawn_window_however_many_spots_pay() ->
 	assert_eq(
 		vfx.launch_stagger(2), DawnPayoutVfx.STAGGER_SECONDS, "a small payout keeps the default"
 	)
+
+
+func test_a_real_payout_lands_every_coin_inside_a_short_dawn_window() -> void:
+	# 12 coins at the default 0.08 s stagger would launch the last one at 0.88 s and land it at
+	# 1.48 s, well past a 1.0 s dawn. The tightened stagger must land it inside the window.
+	var short_tuning: LoopTuning = _tuning.duplicate(true)
+	short_tuning.dawn_seconds = 1.0
+	var map_root: MapRoot = await E2eSupport.spawn_map(self, _rich_map(), short_tuning)
+	var ctx: RunContext = map_root.get_context()
+	var vfx: DawnPayoutVfx = _vfx(map_root)
+	assert_not_null(vfx, "the HUD has a DawnPayoutVfx")
+	if vfx == null:
+		return
+	var per_spot: Dictionary = {HOUSE_ONE: 6, HOUSE_TWO: 6}
+	var total: int = 12
+
+	ctx.events.dawn_payout.emit(total, per_spot)
+	await wait_seconds(short_tuning.dawn_seconds + LAND_SLACK_S)
+
+	assert_eq(
+		vfx.get_spawned_count(HOUSE_ONE) + vfx.get_spawned_count(HOUSE_TWO), total, "12 coins"
+	)
+	assert_true(_hud_gold_settled(map_root), "every coin landed before the dawn window ended")
+	assert_eq(vfx.get_last_total(), total, "the total was shown once the last coin landed")
+	assert_eq(vfx.live_coin_count(), 0, "no coin is still in the air")
 
 
 func test_a_dawn_that_pays_nothing_shows_no_coins_and_no_total() -> void:
