@@ -26,9 +26,9 @@ func _init(map: MapConfig, events: SimEvents) -> void:
 		_spots[spot.id] = spot
 
 
-## Spot ids in MapConfig order.
+## Spot ids in MapConfig order. A copy: changing it cannot corrupt the system's own order.
 func spot_ids() -> Array[StringName]:
-	return _order
+	return _order.duplicate()
 
 
 ## Null if the spot is unknown.

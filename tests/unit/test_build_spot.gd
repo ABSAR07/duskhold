@@ -53,6 +53,16 @@ func test_spot_ids_always_come_back_in_map_order() -> void:
 			assert_eq(ids[index], map.spots[index].id, "index %d keeps MapConfig order" % index)
 
 
+func test_changing_the_returned_spot_ids_does_not_change_the_system() -> void:
+	var ctx: RunContext = _context_for(load(PROTOTYPE_MAP))
+	var before: Array[StringName] = ctx.buildings.spot_ids()
+	var scribbled: Array[StringName] = ctx.buildings.spot_ids()
+
+	scribbled.clear()
+
+	assert_eq(ctx.buildings.spot_ids(), before, "the system's spot order is untouched")
+
+
 func test_the_nearer_of_two_in_range_spots_wins() -> void:
 	var ctx: RunContext = _context_for(load(FIXTURE_TIE))
 	var near_a: Vector3 = Vector3(1.5, 0.0, 0.0)
