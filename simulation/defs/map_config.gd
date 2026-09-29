@@ -22,6 +22,9 @@ func validate() -> PackedStringArray:
 		errors.append("starting_gold is negative (%d)" % starting_gold)
 	var building_ids: Dictionary = {}
 	for building_def: BuildingDef in buildings:
+		if building_def == null:
+			errors.append("a building entry is empty")
+			continue
 		if building_ids.has(building_def.id):
 			errors.append("duplicate building id '%s'" % building_def.id)
 		building_ids[building_def.id] = true
@@ -29,6 +32,9 @@ func validate() -> PackedStringArray:
 			errors.append("building '%s' has no tiers" % building_def.id)
 		for index: int in range(building_def.tiers.size()):
 			var tier: BuildingTierDef = building_def.tiers[index]
+			if tier == null:
+				errors.append("building '%s' tier %d is empty" % [building_def.id, index + 1])
+				continue
 			if tier.cost <= 0:
 				errors.append(
 					"building '%s' tier %d cost is %d" % [building_def.id, index + 1, tier.cost]
@@ -39,6 +45,11 @@ func validate() -> PackedStringArray:
 				)
 	var spot_ids: Dictionary = {}
 	for spot: BuildSpotDef in spots:
+		if spot == null:
+			errors.append("a spot entry is empty")
+			continue
+		if spot.id == &"":
+			errors.append("a spot has an empty id")
 		if spot_ids.has(spot.id):
 			errors.append("duplicate spot id '%s'" % spot.id)
 		spot_ids[spot.id] = true

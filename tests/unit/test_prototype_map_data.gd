@@ -188,3 +188,21 @@ func test_validate_reports_negative_income_and_negative_starting_gold() -> void:
 	var gold_map: MapConfig = _valid_map()
 	gold_map.starting_gold = -1
 	assert_gt(gold_map.validate().size(), 0, "negative starting gold is reported")
+
+
+func test_validate_reports_a_spot_with_an_empty_id() -> void:
+	var map: MapConfig = _valid_map()
+	map.spots[0].id = &""
+	assert_gt(map.validate().size(), 0, "an empty spot id can never be built, so it is reported")
+
+
+func test_validate_reports_null_entries_instead_of_crashing() -> void:
+	var building_map: MapConfig = _valid_map()
+	building_map.buildings.append(null)
+	assert_gt(building_map.validate().size(), 0, "a null building is reported")
+	var spot_map: MapConfig = _valid_map()
+	spot_map.spots.append(null)
+	assert_gt(spot_map.validate().size(), 0, "a null spot is reported")
+	var tier_map: MapConfig = _valid_map()
+	tier_map.buildings[0].tiers.append(null)
+	assert_gt(tier_map.validate().size(), 0, "a null tier is reported")
