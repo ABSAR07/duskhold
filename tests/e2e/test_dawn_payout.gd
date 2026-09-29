@@ -49,6 +49,10 @@ func _vfx(map_root: MapRoot) -> DawnPayoutVfx:
 	return _hud(map_root).get_node_or_null("%DawnPayoutVfx") as DawnPayoutVfx
 
 
+func _coins_launched(vfx: DawnPayoutVfx, expected: int) -> bool:
+	return vfx.get_spawned_count(HOUSE_ONE) + vfx.get_spawned_count(HOUSE_TWO) >= expected
+
+
 func _is_dawn(ctx: RunContext) -> bool:
 	return ctx.run_manager.get_phase() == RunManager.RunPhase.DAWN
 
@@ -145,9 +149,18 @@ func test_each_house_spawns_as_many_coins_as_it_pays() -> void:
 	if vfx == null:
 		return
 	var amounts: Array[int] = _expected_amounts()
+	var gold_paid: int = amounts[0] + amounts[1]
+	# One coin per gold only holds while the payout fits the coin budget; a rebalance past it
+	# should fail here, with a reason, rather than as a wrong coin count below.
+	assert_lte(
+		gold_paid, DawnPayoutVfx.MAX_COINS, "the payout fits the coin cap: one coin per gold"
+	)
 
-	await wait_seconds(EARLY_S)
+	var all_launched: bool = await E2eSupport.wait_until(
+		self, _coins_launched.bind(vfx, gold_paid), SETTLED_S
+	)
 
+	assert_true(all_launched, "every coin left its plot")
 	assert_eq(vfx.get_spawned_count(HOUSE_ONE), amounts[0], "the tier I House sends its income")
 	assert_eq(vfx.get_spawned_count(HOUSE_TWO), amounts[1], "the tier II House sends its income")
 	assert_eq(vfx.get_spawned_count(&"house_3"), 0, "an unbuilt plot sends nothing")
