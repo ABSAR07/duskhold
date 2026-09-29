@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="MapConfig" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://simulation/defs/map_config.gd" id="1_map"]
+[ext_resource type="Script" path="res://simulation/defs/build_spot_def.gd" id="2_spot"]
+[ext_resource type="Script" path="res://simulation/defs/building_def.gd" id="3_bdef"]
+[ext_resource type="Script" path="res://simulation/defs/building_tier_def.gd" id="4_tier"]
+
+[sub_resource type="Resource" id="Resource_tier1"]
+script = ExtResource("4_tier")
+cost = 1
+dawn_income = 1
+
+[sub_resource type="Resource" id="Resource_shed"]
+script = ExtResource("3_bdef")
+id = &"shed"
+display_name = "Shed"
+tiers = Array[ExtResource("4_tier")]([SubResource("Resource_tier1")])
+
+[sub_resource type="Resource" id="Resource_spot_a"]
+script = ExtResource("2_spot")
+id = &"spot_a"
+position = Vector3(3, 0, 0)
+building_id = &"shed"
+
+[resource]
+script = ExtResource("1_map")
+id = &"fixture_one_tier"
+display_name = "Fixture One Tier"
+is_sandbox = true
+starting_gold = 10
+king_spawn = Vector3(0, 0, 0)
+castle_position = Vector3(0, 0, 0)
+buildings = Array[ExtResource("3_bdef")]([SubResource("Resource_shed")])
+spots = Array[ExtResource("2_spot")]([SubResource("Resource_spot_a")])
