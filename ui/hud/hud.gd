@@ -8,6 +8,23 @@ extends CanvasLayer
 ## At dawn the Economy is credited at once, but the readout stays behind by the gold whose coins
 ## are still flying in, and ticks up as each one lands (D-12).
 
+## Player-facing copy. The night banner is Phase-1 placeholder text: Phase 2 replaces it once
+## waves exist.
+const START_NIGHT_PROMPT := "Hold %s to start Night %d"
+const NIGHT_BANNER := "Night %d — no enemies yet"
+const UNBOUND_HINT := "(unbound)"
+## Gamepad button names shown in the start-night hint, by JoyButton index.
+const PAD_BUTTON_NAMES: Dictionary = {
+	JOY_BUTTON_A: "A",
+	JOY_BUTTON_B: "B",
+	JOY_BUTTON_X: "X",
+	JOY_BUTTON_Y: "Y",
+	JOY_BUTTON_BACK: "Back",
+	JOY_BUTTON_START: "Start",
+	JOY_BUTTON_LEFT_SHOULDER: "LB",
+	JOY_BUTTON_RIGHT_SHOULDER: "RB",
+}
+
 var _ctx: RunContext
 var _pending: int = 0
 var _payout_pending: int = 0
@@ -103,14 +120,35 @@ func _refresh_loop() -> void:
 	if not by_day:
 		_start_night_fill.value = 0.0
 	_start_night_prompt.text = (
-		"Hold N / (Y) to start Night %d" % (run_manager.get_night_number() + 1)
+		START_NIGHT_PROMPT % [_start_night_hint(), run_manager.get_night_number() + 1]
 	)
 	var at_night: bool = (
 		run_manager.get_phase() == RunManager.RunPhase.NIGHT_TRANSITION
 		or run_manager.get_phase() == RunManager.RunPhase.NIGHT
 	)
 	_phase_banner.visible = at_night
-	_phase_banner.text = "Night %d — no enemies yet" % run_manager.get_night_number()
+	_phase_banner.text = NIGHT_BANNER % run_manager.get_night_number()
+
+
+## The start-night keys as they are bound right now, e.g. "N / (Y)": keyboard keys first, gamepad
+## buttons in parentheses. Read from the InputMap so a runtime rebind shows up in the prompt.
+func _start_night_hint() -> String:
+	var keys: PackedStringArray = PackedStringArray()
+	var pad: PackedStringArray = PackedStringArray()
+	for event: InputEvent in InputMap.action_get_events(&"start_night"):
+		if event is InputEventKey:
+			var key_event: InputEventKey = event as InputEventKey
+			var code: Key = key_event.physical_keycode
+			if code == KEY_NONE:
+				code = key_event.keycode
+			keys.append(OS.get_keycode_string(code))
+		elif event is InputEventJoypadButton:
+			var button: int = (event as InputEventJoypadButton).button_index
+			pad.append("(%s)" % PAD_BUTTON_NAMES.get(button, "Pad %d" % button))
+	var parts: PackedStringArray = keys + pad
+	if parts.is_empty():
+		return UNBOUND_HINT
+	return " / ".join(parts)
 
 
 func _refresh() -> void:

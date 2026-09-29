@@ -17,14 +17,19 @@ const OVERSHOOT_S: float = 0.3
 const SETTLE_SLACK_S: float = 0.3
 
 var _tuning: LoopTuning
+var _saved_events: Array[InputEvent] = []
 
 
 func before_each() -> void:
 	_tuning = load(TUNING)
+	_saved_events = InputMap.action_get_events(ACTION)
 
 
 func after_each() -> void:
 	E2eSupport.release_all_actions()
+	InputMap.action_erase_events(ACTION)
+	for event: InputEvent in _saved_events:
+		InputMap.action_add_event(ACTION, event)
 
 
 func _hud(map_root: MapRoot) -> Node:
@@ -285,3 +290,23 @@ func test_a_key_still_held_when_the_day_returns_needs_a_fresh_press() -> void:
 	assert_signal_not_emitted(night_hold, "night_requested")
 	assert_eq(ctx.run_manager.get_night_number(), 1, "no second night began by itself")
 	Input.action_release(ACTION)
+
+
+func test_the_prompt_names_the_default_start_night_bindings() -> void:
+	var map_root: MapRoot = await E2eSupport.spawn_map(self, null, _tuning)
+
+	assert_eq(
+		_prompt(map_root).text, "Hold N / (Y) to start Night 1", "keyboard key, then gamepad button"
+	)
+
+
+func test_the_prompt_follows_a_runtime_rebind_of_start_night() -> void:
+	var map_root: MapRoot = await E2eSupport.spawn_map(self, null, _tuning)
+	var rebound: InputEventKey = InputEventKey.new()
+	rebound.physical_keycode = KEY_M
+	InputMap.action_erase_events(ACTION)
+	InputMap.action_add_event(ACTION, rebound)
+
+	map_root.get_context().events.day_started.emit(1)
+
+	assert_eq(_prompt(map_root).text, "Hold M to start Night 1", "the new key is named, no pad")
