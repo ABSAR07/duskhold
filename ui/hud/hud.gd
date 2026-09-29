@@ -19,7 +19,11 @@ var _payout_pending: int = 0
 @onready var _payout_vfx: DawnPayoutVfx = %DawnPayoutVfx
 
 
+## Binds the HUD to one run. MapRoot calls this once; a repeat call is ignored so no signal is
+## ever connected twice.
 func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
+	if _ctx != null:
+		return
 	_ctx = ctx
 	var hold: BuildHoldController = map_root.get_build_hold()
 	hold.hold_progress.connect(_on_hold_progress)
@@ -30,10 +34,7 @@ func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
 	ctx.events.night_started.connect(_on_night_started)
 	ctx.events.day_started.connect(_on_day_started)
 	ctx.events.dawn_payout.connect(_on_dawn_payout)
-	# Defensive: the vfx outlives a run, so its signal must never be connected twice even if
-	# bind_run is called again on this HUD.
-	if not _payout_vfx.coin_landed.is_connected(_on_coin_landed):
-		_payout_vfx.coin_landed.connect(_on_coin_landed)
+	_payout_vfx.coin_landed.connect(_on_coin_landed)
 	var start_night_hold: StartNightHoldController = (
 		map_root.find_child("StartNightHold", true, false) as StartNightHoldController
 	)

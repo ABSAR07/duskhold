@@ -68,3 +68,19 @@ func test_a_third_map_does_not_rebind_the_first_maps_hud() -> void:
 		"Gold: %d" % first_gold_before,
 		"the first map's HUD still shows the first map's gold, not the rich map's"
 	)
+
+
+func test_binding_the_hud_again_connects_nothing_twice() -> void:
+	var map_root: MapRoot = await E2eSupport.spawn_map(self)
+	var ctx: RunContext = map_root.get_context()
+	var hud: Hud = map_root.get_node("HUD") as Hud
+	var payout_vfx: DawnPayoutVfx = hud.get_node("%DawnPayoutVfx") as DawnPayoutVfx
+	var gold_links_before: int = ctx.events.gold_changed.get_connections().size()
+	var payout_links_before: int = ctx.events.dawn_payout.get_connections().size()
+	var landed_links_before: int = payout_vfx.coin_landed.get_connections().size()
+
+	hud.bind_run(ctx, map_root)
+
+	assert_eq(ctx.events.gold_changed.get_connections().size(), gold_links_before, "gold_changed")
+	assert_eq(ctx.events.dawn_payout.get_connections().size(), payout_links_before, "dawn_payout")
+	assert_eq(payout_vfx.coin_landed.get_connections().size(), landed_links_before, "coin_landed")
