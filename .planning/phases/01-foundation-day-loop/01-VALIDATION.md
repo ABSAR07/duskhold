@@ -3,16 +3,17 @@ phase: "1"
 slug: "foundation-day-loop"
 # status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6)
 # audit-milestone §5.5 distinguishes NOT-VALIDATED (draft) from PARTIAL (validated + nyquist_compliant: false) (#2117)
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: "2026-09-29"
+validated: "2026-09-29"
 ---
 
 # Phase 1 — Validation Strategy
 
 > Per-phase validation contract for feedback sampling during execution.
-> Seeded from `01-RESEARCH.md` § Validation Architecture. Task IDs, plans and waves are filled in once the plans exist.
+> Seeded from `01-RESEARCH.md` § Validation Architecture, then audited against the executed plans on 2026-09-29 (after the code-review fixes).
 
 ---
 
@@ -21,57 +22,93 @@ created: "2026-09-29"
 | Property | Value |
 |----------|-------|
 | **Framework** | GUT (Godot Unit Test) 9.7.1 on Godot 4.7.2-stable (standard build), run headless |
-| **Config file** | none yet — Wave 0 creates `.gutconfig.json` at the project root |
-| **Quick run command** | `godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit` |
-| **Full suite command** | `godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit,res://tests/integration -gexit` |
-| **Estimated runtime** | ~30 seconds (estimate, including engine start-up; confirm after Wave 0) |
+| **Config file** | `.gutconfig.json` (dirs `tests/unit`, `tests/integration`, `tests/e2e`; JUnit XML to `build/test-results/gut-junit.xml`) |
+| **Quick run command** | `bash tools/test.sh -gdir=res://tests/unit` |
+| **Full suite command** | `bash tools/test.sh` (headless import pass, then GUT over all three dirs; fails on any first-party parse/load error) |
+| **Single file** | `bash tools/test.sh -gselect=<test_file>.gd` |
+| **Lint** | `bash tools/lint.sh` (gdtoolkit 4.5.0: `gdformat --check` + `gdlint`) |
+| **Measured runtime** | Quick: ~12 s wall (15 scripts, 122 tests). Full: ~85 s wall (30 scripts, 201 tests, 76 s in GUT) |
 
-`godot` stands for the pinned binary the setup script installs under `.tools/godot/` (D-14); the plans define the wrapper scripts that resolve it. Run `godot --headless --path . --import --quit` once after a fresh checkout so imports exist before the first test run.
+The `tools/*.sh` wrappers need Git Bash on Windows; they resolve the pinned binary under `.tools/godot/4.7.2-stable/` (D-14).
 
-Screenshots (DEV-04) use a different mode: a real rendering driver under a virtual display (`xvfb-run ... --rendering-driver opengl3`, no `--headless`) on Linux CI, or a normal window locally. Never capture screenshots under `--headless`: it produces blank images without erroring.
+Screenshots (DEV-04) use a different mode: a real rendering driver (a normal window locally, `xvfb-run` with the Compatibility renderer in CI). `tools/screenshot/shot_runner.tscn` refuses to run under `--headless` (exit 2) because that mode produces blank images without an error.
 
 ---
 
 ## Sampling Rate
 
-- **After every task commit:** Run the quick run command (unit tests)
-- **After every plan wave:** Run the full suite command (unit + integration) plus `gdlint` on changed scripts
-- **Before `/gsd-verify-work`:** Full suite green, lint clean, and the five DEV-04 screenshots reviewed (not blank)
-- **Max feedback latency:** 60 seconds
+- **After every task commit:** Run the quick run command (unit tests, ~12 s)
+- **After every plan wave:** Run the full suite command plus `bash tools/lint.sh`
+- **Before `/gsd-verify-work`:** Full suite green, lint clean, and the six DEV-04 screenshots captured and non-blank
+- **Max feedback latency:** 60 seconds per commit (quick run ~12 s). The full suite (~85 s) runs per wave, not per commit.
 
 ---
 
 ## Per-Task Verification Map
 
+GUT rows run as `bash tools/test.sh -gselect=<file>`. Threat refs are the plans' `<threat_model>` IDs.
+
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| TBD | TBD | TBD | BLDG-01 | — | N/A | unit | `-gtest=res://tests/unit/test_build_spot.gd` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | BLDG-02 | — | N/A | unit | `-gtest=res://tests/unit/test_build_spot_affordability.gd` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | BLDG-03 | T-1 (input validation) | Build applied only after simulation-side validation | integration | `-gtest=res://tests/integration/test_build_flow.gd` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | BLDG-04 | T-1 (input validation) | Upgrade applied only after simulation-side validation | integration | `-gtest=res://tests/integration/test_upgrade_flow.gd` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | BLDG-06 | T-1 (input validation) | Build/upgrade rejected outside the day phase, checked when applied | unit | `-gtest=res://tests/unit/test_build_phase_guard.gd` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | ECON-01 | — | Gold never goes negative | unit | `-gtest=res://tests/unit/test_economy_gold.gd` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | ECON-02 | — | N/A | unit | `-gtest=res://tests/unit/test_dawn_income.gd` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | ECON-07 | — | N/A | integration | `-gtest=res://tests/integration/test_loop_gold_carryover.gd` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | D-06 refund | — | No partial payment state persists | integration | `-gtest=res://tests/integration/test_build_hold_refund.gd` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | KING-01/02 | — | N/A | unit (config constants) + screenshot | `-gtest=res://tests/unit/test_king_movement_config.gd` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | DEV-03 | T-2 (debug overlay) | Overlay reads state, never mutates it | unit | `-gtest=res://tests/unit/test_debug_overlay_readonly.gd` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | DEV-04 | — | N/A | screenshot (non-blank check) | `xvfb-run --auto-servernum godot --path . --rendering-driver opengl3 ...` | ❌ W0 | ⬜ pending |
+| 01-01-T1 | 01-01 | 1 | DEV-01 | T-01-02, T-01-03 | No download without owner consent; tool caches and local settings git-ignored | script (one-time, pre-install) | `python tools/bootstrap.py --dry-run` + `git check-ignore` asserts (01-01 Task 1 verify) | ✅ | ✅ green (at execution; asserts a pre-install state, so not re-runnable) |
+| 01-01-T3 | 01-01 | 1 | DEV-01 | T-01-01 | Godot and export templates SHA512-verified before install | unit + lint | `test_toolchain_smoke.gd` + `bash tools/lint.sh` | ✅ | ✅ green |
+| 01-02-T1 | 01-02 | 2 | KING-01, BLDG-01, BLDG-03, ECON-01 | T-01-04 | Build applied only after CommandProcessor re-validation | e2e | `test_walking_skeleton.gd` | ✅ | ✅ green |
+| 01-02-T2 | 01-02 | 2 | BLDG-03, ECON-01, DEV-01 | T-01-04 | Gold never goes negative; refused spends change nothing | integration + unit (no scene tree) | `test_build_flow.gd`, `test_economy_gold.gd` | ✅ | ✅ green |
+| 01-03-T1 | 01-03 | 3 | DEV-02 | T-01-06, T-01-07 | Pre-push gate blocks credentials and tool caches; CI token is read-only | script | `bash tools/export.sh` + `build/windows/Duskhold.exe --headless --quit-after 120` + `ci.yml` jobs/permissions assert + `bash tools/prepush_check.sh` | ✅ | ✅ green (re-run 2026-09-29) |
+| 01-03-T3 | 01-03 | 3 | DEV-02 | T-01-17 | Only approved content pushed | CI | `gh run list --workflow ci.yml` conclusion + `duskhold-windows` artifact | ✅ | ✅ green (last CI run on `981e4c8`; the review-fix commits are not pushed yet) |
+| 01-04-T1 | 01-04 | 3 | KING-01 | T-01-09 | Input Map contract fixed by test | unit | `test_input_map.gd`, `test_king_movement_config.gd` | ✅ | ✅ green |
+| 01-04-T2 | 01-04 | 3 | KING-01, KING-02 | — | N/A | e2e | `test_king_ride.gd` | ✅ | ✅ green |
+| 01-05-T1 | 01-05 | 3 | BLDG-01, BLDG-02 | T-01-10 | `MapConfig.validate()` reports bad map data | unit | `test_prototype_map_data.gd`, `test_build_spot.gd`, `test_build_spot_affordability.gd` | ✅ | ✅ green |
+| 01-05-T2 | 01-05 | 3 | BLDG-04 | T-01-04 | Upgrade applied only after re-validation; max tier rejected | integration + e2e | `test_upgrade_flow.gd`, `test_upgrade_at_spot.gd` | ✅ | ✅ green |
+| 01-06-T1 | 01-06 | 4 | BLDG-03 | T-01-05, T-01-11 | No partial payment persists; refund on release, leaving range or night | integration + e2e | `test_build_hold_refund.gd`, `test_build_denied.gd` | ✅ | ✅ green |
+| 01-06-T2 | 01-06 | 4 | BLDG-02, BLDG-04 | — | N/A | unit + e2e | `test_spot_label_model.gd`, `test_spot_label.gd` | ✅ | ✅ green |
+| 01-06-T3 | 01-06 | 4 | BLDG-03, ECON-01 | — | HUD shows gold minus coins in flight, restores on refund | e2e | `test_coin_drip.gd` | ✅ | ✅ green |
+| 01-07-T1 | 01-07 | 4 | ART-02 | T-01-12 | Only allow-listed licences; every third-party file logged exactly once | unit | `test_attribution_log.gd`, `test_building_view_catalog.gd` | ✅ | ✅ green |
+| 01-07-T3 | 01-07 | 4 | ART-02 | T-01-12, T-01-13 | Imported models logged with archive SHA256 | unit + e2e | `test_attribution_log.gd`, `test_building_models.gd` | ✅ | ✅ green |
+| 01-08-T1 | 01-08 | 4 | DEV-03 | T-01-15 | Overlay reads state, never mutates it (200-collect snapshot) | unit | `test_debug_overlay_readonly.gd` | ✅ | ✅ green |
+| 01-08-T2 | 01-08 | 4 | DEV-03 | T-01-15 | — | e2e | `test_debug_overlay_toggle.gd` | ✅ | ✅ green |
+| 01-09-T1 | 01-09 | 5 | BLDG-06 | T-01-14 | Build/upgrade rejected outside DAY, checked when applied; RunManager is the only phase writer | unit | `test_run_manager.gd`, `test_build_phase_guard.gd` | ✅ | ✅ green |
+| 01-09-T2 | 01-09 | 5 | ECON-02, ECON-07 | T-01-14 | Dawn income exact per tier; gold carries over exactly | unit + integration | `test_dawn_income.gd`, `test_loop_gold_carryover.gd` | ✅ | ✅ green |
+| 01-09-T3 | 01-09 | 5 | BLDG-06, ECON-01 | — | Start-night needs a fresh deliberate hold | e2e | `test_start_night_hold.gd` | ✅ | ✅ green |
+| 01-10-T1 | 01-10 | 6 | ECON-01, ECON-02 | — | Payout VFX is display-only; HUD settles exactly on ledger gold | e2e | `test_dawn_payout.gd` | ✅ | ✅ green |
+| 01-10-T2 | 01-10 | 6 | DEV-04 | — | Never captures under `--headless` (exit 2); blank frames fail | screenshot + unit | `bash tools/screenshot.sh` (6 PNGs) + headless guard exit 2 + `test_shot_blank_check.gd` | ✅ | ✅ green (re-run 2026-09-29) |
+| 01-10-T3 | 01-10 | 6 | DEV-02, DEV-04 | T-01-16 | Screenshot artifact holds game images only | CI | `ci.yml` `screenshots` job needs `test` + CI run conclusion + artifacts | ✅ | ✅ green (last CI run on `981e4c8`) |
+| WR-01 fix | review | — | BLDG-01, ECON-01 | — | One map's binding never reaches another map's views or HUD | e2e | `test_map_binding.gd` | ✅ | ✅ green |
 
-Each `-gtest=` entry runs as `godot --headless --path . -s addons/gut/gut_cmdln.gd -gtest=<file> -gexit`. Threat refs are placeholders until the plans' `<threat_model>` blocks assign real IDs.
+Owner gates with no automated verify by design: 01-01-T2 (toolchain download approval), 01-03-T2 (public repo name), 01-07-T2 (CC0 model download approval). No run of three consecutive tasks lacks automated verification.
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+
+### Requirement Coverage
+
+| Requirement | Automated evidence | Status |
+|-------------|--------------------|--------|
+| KING-01 | `test_input_map`, `test_king_movement_config`, `test_king_ride`, `test_walking_skeleton` | COVERED |
+| KING-02 | `test_king_ride` (detached rig, rotation never changes, settles at offset, trails a jump) | COVERED |
+| BLDG-01 | `test_build_spot`, `test_prototype_map_data`, `test_map_binding` | COVERED |
+| BLDG-02 | `test_build_spot_affordability`, `test_spot_label_model`, `test_spot_label` | COVERED |
+| BLDG-03 | `test_build_flow`, `test_build_hold_refund`, `test_build_denied`, `test_coin_drip`, `test_walking_skeleton` | COVERED |
+| BLDG-04 | `test_upgrade_flow`, `test_upgrade_at_spot`, `test_spot_label_model` | COVERED |
+| BLDG-06 | `test_build_phase_guard`, `test_run_manager` | COVERED |
+| ECON-01 | `test_economy_gold`, HUD `GoldLabel` asserts in `test_coin_drip` and `test_dawn_payout` | COVERED |
+| ECON-02 | `test_dawn_income`, `test_dawn_payout` | COVERED |
+| ECON-07 | `test_loop_gold_carryover` | COVERED |
+| ART-02 | `test_attribution_log` (every third-party file covered by exactly one entry, allow-listed licences, ASSETS.md in sync) | COVERED |
+| DEV-01 | Whole suite runs headless from the command line (`tools/test.sh`); `test_build_flow` runs without a scene tree; `test_toolchain_smoke` | COVERED |
+| DEV-02 | `ci.yml` lint/test/export/screenshots jobs on push; export + launch + pre-push checks re-run locally | COVERED |
+| DEV-03 | `test_debug_overlay_readonly`, `test_debug_overlay_toggle` (FPS, phase, gold, buildings, units, enemies; wave-state and pathing rows are Phase 2 scope per ROADMAP SC5) | COVERED (Phase 1 scope) |
+| DEV-04 | `tools/screenshot.sh` six scenes, `test_shot_blank_check`, headless guard, CI `screenshots` job | COVERED |
 
 ---
 
 ## Wave 0 Requirements
 
-- [ ] `addons/gut/` — GUT 9.7.1 installed and enabled
-- [ ] `.gutconfig.json` — shared config for local and CI runs
-- [ ] `tests/unit/`, `tests/integration/`, `tests/fixtures/` — directory scaffolding
-- [ ] `tests/fixtures/` — minimal `MapConfig` / `BuildingDef` test resources
-- [ ] `tools/screenshot/` — the screenshot capture script(s), with a non-blank image check
-- [ ] gdtoolkit 4.5.0 installed (`gdlint`, `gdformat`)
+- [x] `addons/gut/` — GUT 9.7.1 installed and enabled
+- [x] `.gutconfig.json` — shared config for local and CI runs
+- [x] `tests/unit/`, `tests/integration/`, `tests/fixtures/` — directory scaffolding (plus `tests/e2e/`)
+- [x] `tests/fixtures/` — minimal `MapConfig` test resources (`fixture_map_empty`, `fixture_map_one_tier`, `fixture_map_poor`, `fixture_map_tie`)
+- [x] `tools/screenshot/` — the screenshot capture scripts, with a non-blank image check
+- [x] gdtoolkit 4.5.0 installed (`gdlint`, `gdformat`)
 
 ---
 
@@ -79,21 +116,33 @@ Each `-gtest=` entry runs as `godot --headless --path . -s addons/gut/gut_cmdln.
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| Riding feel: walk/sprint speed, turning, camera follow | KING-01, KING-02 | Movement feel can't be unit-tested | Play the prototype map with keyboard and gamepad; ride edge to edge (~20–30 s at walk speed per D-03); confirm the camera never rotates |
+| Riding feel: walk/sprint speed, turning, camera follow | KING-01, KING-02 | Movement feel can't be unit-tested (speeds, ratio, deadzone and fixed rotation are) | Play the prototype map with keyboard and gamepad; ride edge to edge (~20–30 s at walk speed per D-03); confirm the camera never rotates |
 | Floating spot label, coin drip, denied shake | BLDG-02, BLDG-03, D-07, D-08 | Visual and feel checks | Ride to each spot type; hold to build with enough gold and without; release early to confirm the refund |
 | Dawn payout animation and banners | ECON-02, D-12 | Visual check | End the day with the start-night hold; confirm the night banner, then the coins flying to the HUD and the "+X gold" total |
-| Screenshot contents | DEV-04 | Needs someone to look at the images | Open the five captured PNGs (day overview, near-spot label, build in progress, dawn payout, overlay on) and confirm each shows its scene |
-| Attribution log completeness | ART-02 | Compares files against a document | Every third-party file under the asset folders has an entry in the attribution log |
+| Screenshot contents | DEV-04 | Needs someone to look at the images | Open the six captured PNGs (day overview, spot label, build in progress, night banner, dawn payout, overlay on) and confirm each shows its scene |
+| Licence judgment for logged assets | ART-02 | The test proves every file is logged under an allow-listed licence, not that a self-declared licence is right | Owner decision on the Quaternius horse licence (review finding WR-06) before the itch.io release |
 
 ---
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 60s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies (owner gates excepted by design)
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 60s (per-commit quick run ~12 s)
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-09-29
+
+---
+
+## Validation Audit 2026-09-29
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Audited after the code-review fixes: 15/15 requirements COVERED. Evidence from this audit's runs: full suite 201/201 passing (30 scripts, 1393 asserts), unit quick run 122/122, lint clean, Windows export plus a headless launch of the exported exe, pre-push check passed, six screenshots captured and non-blank, headless screenshot guard exits 2, `ci.yml` job/permission structure asserted. No auditor spawn was needed because no gaps were found.
