@@ -110,6 +110,9 @@ func _on_dawn_payout(total: int, per_spot: Dictionary) -> void:
 			_expected_coins += 1
 			_schedule_launch(spot_id, float(index) * stagger, _coin_share(amount, coin_count, coin))
 			index += 1
+	if _expected_coins == 0:
+		# Nothing to fly (malformed per_spot): no coin will ever land, so show the total now.
+		_show_total()
 
 
 ## One coin per gold while the payout fits under MAX_COINS; otherwise the spot's share of

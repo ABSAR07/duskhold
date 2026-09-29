@@ -225,6 +225,23 @@ func test_a_real_payout_lands_every_coin_inside_a_short_dawn_window() -> void:
 	assert_eq(vfx.live_coin_count(), 0, "no coin is still in the air")
 
 
+func test_a_payout_with_no_coin_to_fly_does_not_leave_the_hud_short() -> void:
+	var map_root: MapRoot = await E2eSupport.spawn_map(self, _rich_map(), _tuning)
+	var ctx: RunContext = map_root.get_context()
+	var vfx: DawnPayoutVfx = _vfx(map_root)
+	assert_not_null(vfx, "the HUD has a DawnPayoutVfx")
+	if vfx == null:
+		return
+	var total: int = 5
+
+	ctx.events.dawn_payout.emit(total, {})
+	await wait_process_frames(2)
+
+	assert_eq(vfx.live_coin_count(), 0, "no coin flew")
+	assert_true(_hud_gold_settled(map_root), "the readout is not held back by gold no coin carries")
+	assert_eq(vfx.get_last_total(), total, "the total is still shown")
+
+
 func test_a_dawn_that_pays_nothing_shows_no_coins_and_no_total() -> void:
 	var map_root: MapRoot = await E2eSupport.spawn_map(self, _rich_map(), _tuning)
 	var ctx: RunContext = map_root.get_context()

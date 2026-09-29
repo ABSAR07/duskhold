@@ -62,8 +62,13 @@ func _on_gold_changed(_new_amount: int, _delta: int) -> void:
 	_refresh()
 
 
-func _on_dawn_payout(total: int, _per_spot: Dictionary) -> void:
-	_payout_pending = maxi(total, 0)
+func _on_dawn_payout(total: int, per_spot: Dictionary) -> void:
+	# Only the gold that coins will carry can ever land, so lag by that much and no more. A payout
+	# whose parts do not add up to its total would otherwise leave the readout short for good.
+	var carried: int = 0
+	for amount: int in per_spot.values():
+		carried += maxi(amount, 0)
+	_payout_pending = mini(maxi(total, 0), carried)
 	_refresh()
 
 
