@@ -6,7 +6,8 @@
 # (git log --all), contains:
 #   - local tooling or generated output: .claude/ (except .claude/CLAUDE.md), .tools/, .godot/,
 #     files under build/ or screenshots/ (except their .gdignore), settings.local.json, .env
-#   - a credential-shaped string (token VALUE formats only, never variable names)
+#   - a credential-shaped string (token VALUE formats only, never variable names); also runs
+#     gitleaks when it is installed
 #   - a blob larger than 5 MB (a Git LFS pointer is ~130 bytes, so this flags un-routed binaries)
 # It always prints what would become public: tracked-file count, top-level tracked directories,
 # refs covered, and the distinct author/committer identities, for the owner to review.
@@ -55,7 +56,10 @@ fi
 # Token VALUE formats only. Each pattern is written so this file does not match itself.
 echo
 echo "== Credential scan (full history, all refs) =="
-CRED_RE='-----BEGIN [A-Z ]*PRIVATE KEY-----|gh[pos]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{20,}|AKIA[0-9A-Z]{16}|xox[abprs]-[0-9A-Za-z-]{10,}|(^|[^A-Za-z0-9])sk-[A-Za-z0-9_-]{20,}'
+# Covered: PEM private keys, GitHub tokens (ghp/gho/ghu/ghs/ghr and fine-grained), AWS access keys,
+# Slack tokens and webhook URLs, OpenAI-style sk- keys, Stripe sk_/rk_ live/test keys, Google API
+# keys, npm tokens.
+CRED_RE='-----BEGIN [A-Z ]*PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{20,}|AKIA[0-9A-Z]{16}|xox[abprs]-[0-9A-Za-z-]{10,}|(^|[^A-Za-z0-9])sk-[A-Za-z0-9_-]{20,}|(sk|rk)_(live|test)_[A-Za-z0-9]{16,}|AIza[0-9A-Za-z_-]{35}|npm_[A-Za-z0-9]{36}|hooks\.slack\.com/services/T[A-Z0-9]{8,}/B[A-Z0-9]{8,}/[A-Za-z0-9]{20,}'
 hits="$(git log -p --all --no-color 2>/dev/null | grep -noE -e "${CRED_RE}" | sed -E 's/^([0-9]+:.{0,8}).*/\1.../' || true)"
 if [ -n "${hits}" ]; then
   echo "FAIL: credential-shaped strings found in history (patch line number and first 8 chars only; the rest is masked):" >&2
@@ -63,6 +67,18 @@ if [ -n "${hits}" ]; then
   fail=1
 else
   echo "  OK: no credential-shaped strings"
+fi
+# The regex scan only sees added text lines: LFS-tracked files and binary blobs are not inspected.
+# A maintained scanner covers far more formats, so run it too when it is installed.
+if command -v gitleaks >/dev/null 2>&1; then
+  if gitleaks detect --no-banner --redact --source . >/dev/null 2>&1; then
+    echo "  OK: gitleaks found no leaks"
+  else
+    echo "FAIL: gitleaks reported leaks (run: gitleaks detect --redact --source . for details)" >&2
+    fail=1
+  fi
+else
+  echo "  NOTE: gitleaks not installed; LFS and binary contents were not scanned (recommended: install gitleaks)"
 fi
 
 # --- oversized blobs ---------------------------------------------------------------------------
