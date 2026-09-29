@@ -2,6 +2,7 @@ extends GutTest
 ## The model-swap seam (plan 01-07): catalog lookups and the primitive fallback.
 
 const CATALOG_PATH := "res://presentation/buildings/building_view_catalog.tres"
+const STUB_SCENE_PATH := "user://stub_building_view.tscn"
 
 
 func _scene() -> PackedScene:
@@ -55,10 +56,12 @@ func test_views_use_a_catalog_scene_and_fall_back_to_primitive() -> void:
 	add_child_autofree(views)
 	var catalog: BuildingViewCatalog = BuildingViewCatalog.new()
 	var stub: PackedScene = _scene()
+	# A packed-in-memory scene has no path; give it one so the recorded source is checkable.
+	stub.take_over_path(STUB_SCENE_PATH)
 	catalog.entries = [_entry(&"house", 1, stub)]
 	views.catalog = catalog
 	var modelled: Node3D = views._make_visual(&"house", 1)
-	assert_eq(modelled.get_meta(&"view_source"), stub.resource_path)
+	assert_eq(modelled.get_meta(&"view_source"), STUB_SCENE_PATH, "the model's path is recorded")
 	modelled.free()
 	var fallback: Node3D = views._make_visual(&"house", 2)
 	assert_eq(fallback.get_meta(&"view_source"), BuildingViews.VIEW_SOURCE_PRIMITIVE)
