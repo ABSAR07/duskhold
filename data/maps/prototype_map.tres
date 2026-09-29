@@ -1,15 +1,58 @@
-[gd_resource type="Resource" script_class="MapConfig" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="MapConfig" load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://simulation/defs/map_config.gd" id="1_map"]
 [ext_resource type="Script" path="res://simulation/defs/build_spot_def.gd" id="2_spot"]
 [ext_resource type="Script" path="res://simulation/defs/building_def.gd" id="3_bdef"]
 [ext_resource type="Resource" path="res://data/buildings/house.tres" id="4_house"]
+[ext_resource type="Resource" path="res://data/buildings/tower.tres" id="5_tower"]
 
-[sub_resource type="Resource" id="Resource_house1"]
+[sub_resource type="Resource" id="Resource_house_1"]
 script = ExtResource("2_spot")
 id = &"house_1"
 position = Vector3(-9, 0, 9)
 building_id = &"house"
+
+[sub_resource type="Resource" id="Resource_house_2"]
+script = ExtResource("2_spot")
+id = &"house_2"
+position = Vector3(9, 0, 9)
+building_id = &"house"
+
+[sub_resource type="Resource" id="Resource_house_3"]
+script = ExtResource("2_spot")
+id = &"house_3"
+position = Vector3(-18, 0, -12)
+building_id = &"house"
+
+[sub_resource type="Resource" id="Resource_house_4"]
+script = ExtResource("2_spot")
+id = &"house_4"
+position = Vector3(18, 0, -12)
+building_id = &"house"
+
+[sub_resource type="Resource" id="Resource_house_5"]
+script = ExtResource("2_spot")
+id = &"house_5"
+position = Vector3(0, 0, -24)
+building_id = &"house"
+
+[sub_resource type="Resource" id="Resource_tower_1"]
+script = ExtResource("2_spot")
+id = &"tower_1"
+position = Vector3(-55, 0, 20)
+building_id = &"tower"
+
+[sub_resource type="Resource" id="Resource_tower_2"]
+script = ExtResource("2_spot")
+id = &"tower_2"
+position = Vector3(55, 0, 20)
+building_id = &"tower"
+
+[sub_resource type="Resource" id="Resource_tower_3"]
+script = ExtResource("2_spot")
+id = &"tower_3"
+position = Vector3(0, 0, -55)
+building_id = &"tower"
 
 [resource]
 script = ExtResource("1_map")
@@ -19,5 +62,5 @@ is_sandbox = true
 starting_gold = 4
 king_spawn = Vector3(0, 0, 7)
 castle_position = Vector3(0, 0, 0)
-buildings = Array[ExtResource("3_bdef")]([ExtResource("4_house")])
-spots = Array[ExtResource("2_spot")]([SubResource("Resource_house1")])
+buildings = Array[ExtResource("3_bdef")]([ExtResource("4_house"), ExtResource("5_tower")])
+spots = Array[ExtResource("2_spot")]([SubResource("Resource_house_1"), SubResource("Resource_house_2"), SubResource("Resource_house_3"), SubResource("Resource_house_4"), SubResource("Resource_house_5"), SubResource("Resource_tower_1"), SubResource("Resource_tower_2"), SubResource("Resource_tower_3")])
