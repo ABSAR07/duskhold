@@ -1,6 +1,6 @@
 ---
 phase: 01-foundation-day-loop
-fixed_at: 2026-09-29T19:40:00Z
+fixed_at: 2026-09-29T14:36:41Z
 review_path: .planning/phases/01-foundation-day-loop/01-REVIEW.md
 iteration: 1
 findings_in_scope: 11
@@ -42,13 +42,13 @@ status: partial
 **Commit:** 964f489
 **Applied fix:** The HUD now lags only by the gold coins can carry (`min(total, sum of positive per_spot amounts)`), so a malformed payout cannot leave the readout permanently short. The vfx calls `_show_total()` when no coin was scheduled. Added a test that emits `dawn_payout(5, {})` and asserts the HUD settles and the total is shown. This avoids emitting `coin_landed` from the vfx, which would race the HUD's own handler ordering.
 
-### WR-03: Registered overlay providers are trusted to return an `Array`
+### WR-03: Registered overlay providers are trusted to return an `Array`; a bad one crashes every refresh
 
 **Files modified:** `ui/overlay/debug_overlay_model.gd`, `tests/unit/test_debug_overlay_readonly.gd`
 **Commit:** 57da6f8
 **Applied fix:** `collect()` now stores the provider result as a `Variant` and appends the section only when it is an `Array`. Added a test with providers returning null and a String alongside a valid one.
 
-### WR-04: `screenshot.sh` discards the import output
+### WR-04: `screenshot.sh` discards the import output, so an import failure is undiagnosable
 
 **Files modified:** `tools/screenshot.sh`
 **Commit:** fc8f904
@@ -78,7 +78,7 @@ status: partial
 **Commit:** a344178
 **Applied fix:** The upload step has `if: always()`, also uploads `build/screenshot-import.log`, and `if-no-files-found` is `warn`. YAML parse checked; the workflow itself cannot be run locally.
 
-### IN-05: Redundant `get_spot` lookups in `_add_marker`
+### IN-05: Redundant `get_spot` lookups and a magic-number spacing in `_add_marker`
 
 **Files modified:** `presentation/buildings/building_views.gd`
 **Commit:** a8b919e
