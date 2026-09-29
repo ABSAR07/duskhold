@@ -29,8 +29,9 @@ func collect(fps: float) -> Array:
 	]
 	for entry: Dictionary in _registered:
 		var provider: Callable = entry["provider"]
-		if not provider.is_valid():
-			# A freed owner leaves an invalid Callable; skip it instead of crashing every refresh.
+		# A freed owner leaves an invalid Callable, and a provider that needs an argument cannot be
+		# called with none; skip either instead of raising a script error on every refresh.
+		if not provider.is_valid() or provider.get_argument_count() > 0:
 			continue
 		var rows: Variant = provider.call()
 		if rows is Array:
@@ -53,7 +54,8 @@ func _section(title: String, rows: Array) -> Dictionary:
 
 
 func _loop_rows() -> Array:
-	var phase_name: String = RunManager.RunPhase.keys()[_ctx.run_manager.get_phase()]
+	var phase: RunManager.RunPhase = _ctx.run_manager.get_phase()
+	var phase_name: String = str(RunManager.RunPhase.find_key(phase))
 	var rows: Array = [
 		["Phase", phase_name],
 		["Day", str(_ctx.run_manager.get_day_number())],
@@ -61,7 +63,7 @@ func _loop_rows() -> Array:
 		["Gold", str(_ctx.economy.get_gold())],
 		["Buildings", str(_count_buildings())],
 	]
-	var phase: RunManager.RunPhase = _ctx.run_manager.get_phase()
+	# NIGHT_TRANSITION has no clock of its own (it passes straight through to NIGHT), so no Timer row.
 	if phase == RunManager.RunPhase.NIGHT or phase == RunManager.RunPhase.DAWN:
 		rows.append(["Timer", "%.1f" % _ctx.run_manager.get_phase_time_remaining()])
 	return rows

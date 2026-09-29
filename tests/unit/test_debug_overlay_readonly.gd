@@ -134,6 +134,17 @@ func test_a_freed_section_provider_is_skipped_instead_of_crashing() -> void:
 	assert_eq(_row_value(_section(sections, "Live"), "Answer"), "42", "valid sections still show")
 
 
+func test_a_provider_that_needs_an_argument_is_skipped_instead_of_crashing() -> void:
+	var model: DebugOverlayModel = DebugOverlayModel.new(_prototype_with_one_house())
+	model.register_section("Needy", func(wave: int) -> Array: return [["Wave", str(wave)]])
+	model.register_section("Live", func() -> Array: return [["Answer", "42"]])
+
+	var sections: Array = model.collect(60.0)
+
+	assert_eq(_section(sections, "Needy"), {}, "a provider needing an argument is left out")
+	assert_eq(_row_value(_section(sections, "Live"), "Answer"), "42", "valid sections still show")
+
+
 func test_a_provider_that_returns_a_non_array_is_skipped_instead_of_crashing() -> void:
 	var model: DebugOverlayModel = DebugOverlayModel.new(_prototype_with_one_house())
 	model.register_section("Null", func() -> Variant: return null)
