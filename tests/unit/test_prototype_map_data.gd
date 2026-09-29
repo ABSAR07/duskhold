@@ -206,3 +206,25 @@ func test_validate_reports_null_entries_instead_of_crashing() -> void:
 	var tier_map: MapConfig = _valid_map()
 	tier_map.buildings[0].tiers.append(null)
 	assert_gt(tier_map.validate().size(), 0, "a null tier is reported")
+
+
+func test_validate_reports_a_building_with_an_empty_id() -> void:
+	var map: MapConfig = _valid_map()
+	map.buildings[0].id = &""
+	map.spots[0].building_id = &""
+	assert_gt(map.validate().size(), 0, "an empty building id is reported, not matched by a spot")
+
+
+func test_run_context_survives_null_entries_that_validate_reports() -> void:
+	var map: MapConfig = _valid_map()
+	map.buildings.append(null)
+	map.spots.append(null)
+	var tuning: LoopTuning = LoopTuning.new()
+
+	var ctx: RunContext = RunContext.new(map, tuning)
+
+	assert_push_error("a building entry is empty")
+	assert_push_error("a spot entry is empty")
+	assert_not_null(ctx.buildings, "the context still builds")
+	assert_eq(ctx.buildings.spot_ids().size(), 1, "the null spot is skipped, the real one kept")
+	assert_not_null(ctx.buildings.get_building_def_for_spot(&"a"), "the real building resolves")

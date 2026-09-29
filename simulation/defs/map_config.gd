@@ -25,6 +25,8 @@ func validate() -> PackedStringArray:
 		if building_def == null:
 			errors.append("a building entry is empty")
 			continue
+		if building_def.id == &"":
+			errors.append("a building has an empty id")
 		if building_ids.has(building_def.id):
 			errors.append("duplicate building id '%s'" % building_def.id)
 		building_ids[building_def.id] = true
