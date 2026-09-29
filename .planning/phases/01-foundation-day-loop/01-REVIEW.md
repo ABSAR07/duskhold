@@ -2,26 +2,23 @@
 phase: 01-foundation-day-loop
 reviewed: 2026-09-29T00:00:00Z
 depth: standard
-files_reviewed: 13
+files_reviewed: 10
 files_reviewed_list:
-  - .github/workflows/ci.yml
-  - presentation/buildings/building_views.gd
   - simulation/buildings/building_system.gd
-  - simulation/defs/map_config.gd
   - tests/e2e/test_dawn_payout.gd
   - tests/e2e/test_map_binding.gd
-  - tests/unit/test_building_view_catalog.gd
+  - tests/e2e/test_start_night_hold.gd
+  - tests/unit/test_building_system_data_errors.gd
+  - tests/unit/test_building_system_data_errors.gd.uid
   - tests/unit/test_debug_overlay_readonly.gd
-  - tests/unit/test_prototype_map_data.gd
-  - tools/screenshot.sh
   - ui/hud/dawn_payout_vfx.gd
   - ui/hud/hud.gd
   - ui/overlay/debug_overlay_model.gd
 findings:
   critical: 0
-  warning: 3
+  warning: 5
   info: 4
-  total: 7
+  total: 9
 status: issues_found
 ---
 
@@ -29,86 +26,142 @@ status: issues_found
 
 **Reviewed:** 2026-09-29
 **Depth:** standard
-**Files Reviewed:** 13
+**Files Reviewed:** 10
 **Status:** issues_found
 
 ## Summary
 
-Reviewed the recent hardening pass (null-entry skipping, payout/HUD lag reconciliation, provider-return validation, CI/screenshot diagnostics) plus the tests around it. No blockers: the payout arithmetic (`_coins_for_amount`, `_coin_share`, `launch_stagger`, HUD `carried` clamp) checks out for zero, single-spot and many-spot payouts, and the shell script's shot names are whitelisted before they reach `rm -f`. The remaining problems are all the same class the hardening targeted: the fixes cover one malformed-data case while the adjacent case still crashes or desyncs.
+Reviewed the building system, the dawn payout VFX, the HUD, the debug overlay model and their unit and e2e tests. I cross-checked `RunContext`, `MapRoot`, `MapConfig.validate`, `BuildingDef.tier_def`, `E2eSupport` and `loop_tuning.tres`.
+
+No crashes, data-loss or security defects were found. The coin/lag accounting holds up:
+- Coin shares sum to each spot's amount.
+- The HUD lag is capped by what coins can carry.
+- Stale generations are ignored.
+
+The remaining problems are latent bugs and test reliability:
+- An unguarded second bind on the VFX node.
+- A prompt hint that does not follow rebinds.
+- A wall-clock assertion, which is the same class of timing race the IN-04 fix set out to remove.
+- Some inconsistent duplicate-handling in `BuildingSystem`.
 
 ## Warnings
 
-### WR-01: Unknown spot id in `per_spot` crashes coin launch and strands the HUD readout
+### WR-01: DawnPayoutVfx.bind_run is not idempotent, and the "bind again" test does not cover it
 
-**File:** `ui/hud/dawn_payout_vfx.gd:191`
-**Issue:** `_start_point` does `_ctx.buildings.get_spot(spot_id).position`. `get_spot` returns null for an unknown id, so this is a null dereference at launch time. `_on_dawn_payout` has already incremented `_expected_coins` for that spot and `Hud._on_dawn_payout` has already counted its amount in `_payout_pending`. The coin never lands, `_show_total` never fires, and the HUD readout stays short by that gold until the next payout. This is exactly the "readout short for good" failure the latest change to `hud.gd` and the `_expected_coins == 0` branch set out to remove, but only for the empty-dict case.
+**File:** `ui/hud/dawn_payout_vfx.gd:44-47`, `tests/e2e/test_map_binding.gd:73-86`
+**Issue:**
+- `Hud.bind_run` returns early on a repeat call ("so no signal is ever connected twice").
+- `DawnPayoutVfx.bind_run` has no such guard. A second call runs `ctx.events.dawn_payout.connect(_on_dawn_payout)` again, which raises Godot's "already connected" error. It also rebuilds the coin texture.
+- `test_binding_the_hud_again_connects_nothing_twice` only calls `hud.bind_run(...)`. That returns on its first line and never reaches the VFX node. The test asserts unchanged connection counts, but it exercises only the HUD guard.
+- `payout_vfx.coin_landed.get_connections()` is unaffected by any `bind_run` call, so that assertion can never fail.
+- `MapRoot._ready` binds every `run_bound` node in its subtree, and `DawnPayoutVfx` is such a node. Any re-bind path (a future scene reload or a second `_ready`) breaks it.
+
 **Fix:**
 ```gdscript
-func _start_point(spot_id: StringName) -> Vector2:
-	var camera: Camera3D = get_viewport().get_camera_3d()
-	var spot: BuildSpotDef = _ctx.buildings.get_spot(spot_id)
-	if camera == null or spot == null:
-		return get_viewport_rect().size * 0.5
-	return camera.unproject_position(spot.position + SPOT_ANCHOR)
+func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
+	if _ctx != null:
+		return
+	_ctx = ctx
+	_coin_texture = _make_coin_texture()
+	ctx.events.dawn_payout.connect(_on_dawn_payout)
 ```
+Have the test also call `payout_vfx.bind_run(ctx, map_root)` and assert the `dawn_payout` connection count is unchanged. Consider guarding the other `bind_run` implementations the same way.
 
-### WR-02: BuildingSystem null-skip hardening leaves duplicate ids and unknown building ids unhandled
+### WR-02: Start-night prompt hint goes stale after a runtime rebind
 
-**File:** `simulation/buildings/building_system.gd:20-24, 81`
-**Issue:** The new null skip says data errors are "already reported by validate()" so the system should not crash, but two other errors `validate()` reports still corrupt state. (1) A duplicate spot id is appended to `_order` twice (line 23) while `_spots` keeps only the last def. `spot_ids()` then yields the id twice, so `BuildingViews.bind_run` creates two `Spot_<id>` markers, one carrying the wrong colour if the building ids differ. (2) `dawn_income_by_spot` hard-indexes `_defs[instance.building_id]` (line 81), which errors on a spot whose building id is unknown. `CommandProcessor` rejects the build in the normal path, but nothing enforces that here.
+**File:** `ui/hud/hud.gd:114-151`, `tests/e2e/test_start_night_hold.gd:303-312`
+**Issue:**
+- `_start_night_hint` reads the InputMap "so a runtime rebind shows up in the prompt". The text is only rebuilt in `_refresh_loop`, which runs on phase, night and day signals.
+- A rebind during the day therefore leaves the old key on screen until the next phase change.
+- The test hides this by manually emitting `day_started` after the rebind. It never checks that a rebind alone updates the prompt.
+- No rebind UI exists yet, but the CLAUDE.md constraints require runtime rebinding, so this will surface as soon as it does.
+
+**Fix:** Refresh the prompt when the map changes. Either:
+- Connect to a rebind signal or hook (for example a `Settings`/`InputRebinder` signal) and call `_refresh_loop()`.
+- Or rebuild the hint every time the day prompt is shown or the pause menu closes.
+
+Change the test to rebind without emitting `day_started` and assert the new text.
+
+### WR-03: Wall-clock timing assertion in the short-dawn payout test
+
+**File:** `tests/e2e/test_dawn_payout.gd:220-250`
+**Issue:**
+- `test_a_real_payout_lands_every_coin_inside_a_short_dawn_window` asserts `elapsed_s <= dawn_seconds + LAND_SLACK_S`. That is 1.0 s + 0.5 s, measured with `Time.get_ticks_msec()`.
+- The nominal landing time is about 1.0 s, so a frame hitch or a slow CI runner can exceed the 0.5 s slack and fail the test. It has no relation to product correctness.
+- The commit history says IN-04 "removed timing races from payout e2e tests", so this is the same class of defect.
+- The payout is emitted while the run is still in DAY (`dawn_payout.emit` directly). No real dawn window exists, so the test measures tween speed, not a dawn boundary.
+- `test_the_night_hands_back_to_a_new_day_through_dawn` has a similar structure. It uses fixed `wait_seconds(night + 0.5)` and `wait_seconds(dawn + 0.3)` while `MapRoot` clamps the sim step to 0.25 s per frame. At low frame rates the sim clock runs slower than wall time.
+
+**Fix:**
+- For the payout test, drop the wall-clock bound. The schedule is already proven by `test_the_last_coin_lands_inside_the_dawn_window_however_many_spots_pay` through `launch_stagger`.
+- Assert only the observable end state after `wait_until`.
+- Replace fixed waits in the hand-back test with `E2eSupport.wait_until(... phase == DAWN / DAY ...)`.
+
+### WR-04: BuildingSystem duplicate handling is inconsistent (spots keep first, buildings keep last)
+
+**File:** `simulation/buildings/building_system.gd:16-25`
+**Issue:**
+- Duplicate spot ids are skipped, and the comment says "keep the first def".
+- Duplicate building ids are silently overwritten by the last definition: `_defs[building_def.id] = building_def` runs with no `has` check.
+- `MapConfig.validate()` reports both as data errors. The two collections then behave oppositely, which is surprising.
+- A tier table can quietly change under a running map depending on list order.
+- The new data-error test covers only the spot case.
+
 **Fix:**
 ```gdscript
-for spot: BuildSpotDef in map.spots:
-	if spot == null or _spots.has(spot.id):
-		continue
-	_order.append(spot.id)
-	_spots[spot.id] = spot
-...
-var building_def: BuildingDef = _defs.get(instance.building_id) as BuildingDef
-if building_def == null:
+if building_def == null or _defs.has(building_def.id):
 	continue
-var tier_def: BuildingTierDef = building_def.tier_def(instance.tier)
+_defs[building_def.id] = building_def
 ```
+Add a matching test for a duplicate building id.
 
-### WR-03: Debug overlay only validates the top-level provider return, not the row shape
+### WR-05: spot_ids() exposes the internal order array
 
-**File:** `ui/overlay/debug_overlay_model.gd:35-37` (consumer at `ui/overlay/debug_overlay.gd:54`)
-**Issue:** The change skips a provider that returns a non-Array, but `collect` still passes any Array through. The overlay then does `row[0]` / `row[1]` on every row. A provider returning `["Wave", "3"]` (a flat pair), rows with fewer than two entries, or a non-Array row raises a script error on every refresh. That is the same "crashes every refresh" outcome the surrounding comment says to avoid, and the contract in the doc comment (Array of `[String, String]`) is unenforced. The test only covers null and String returns.
-**Fix:** Normalise rows in `collect`:
-```gdscript
-var clean: Array = []
-for row: Variant in rows:
-	if row is Array and row.size() >= 2:
-		clean.append([str(row[0]), str(row[1])])
-sections.append(_section(entry["title"], clean))
-```
-and add a test for a malformed row.
+**File:** `simulation/buildings/building_system.gd:29-30`
+**Issue:**
+- `spot_ids()` returns `_order` itself, not a copy.
+- The class promises "Reads never mutate", but any caller can `append`, `sort` or `clear` the result and corrupt `nearest_spot_in_range`, `dawn_income_by_spot` and the payout ordering. `nearest_spot_in_range` would then hit a missing key in `_spots[spot_id]` and raise a script error.
+- Presentation code and the debug overlay hold this array.
+
+**Fix:** `return _order.duplicate()`. The arrays are small and read per frame at most. Alternatively document it as read-only and accept the risk.
 
 ## Info
 
-### IN-01: `Hud.bind_run` is only partly idempotent
+### IN-01: DebugOverlayModel robustness gaps
 
-**File:** `ui/hud/hud.gd:24-41`
-**Issue:** The comment justifies guarding `coin_landed` against a second `bind_run`, but every other `connect` in the method (hold signals, all `ctx.events` signals, `progress_changed`) is unguarded, and a second call would emit connect errors for those. The guard is inconsistent: either `bind_run` is called once (guard unneeded) or it is not (most connections are unprotected).
-**Fix:** Drop the guard and document single-call, or early-return with `if _ctx != null: return`.
+**File:** `ui/overlay/debug_overlay_model.gd:35, 56, 64-66`
+**Issue:**
+- `provider.call()` is guarded only by `is_valid()`. A provider with a required argument, or one that errors, still raises a script error every refresh.
+- `RunManager.RunPhase.keys()[phase]` indexes by enum value and only works while the enum stays contiguous from 0. `NIGHT_TRANSITION` is also the only non-DAY phase that shows no Timer row.
 
-### IN-02: Player-facing strings hard-code the key hint and a placeholder
+**Fix:** Look the name up with `RunManager.RunPhase.find_key(phase)`, and decide deliberately whether NIGHT_TRANSITION should show a timer.
 
-**File:** `ui/hud/hud.gd:105, 112`
-**Issue:** "Hold N / (Y)" ignores runtime rebinding, which the project constraints require. "Night %d — no enemies yet" is Phase-1 placeholder copy that will ship stale once waves exist.
-**Fix:** Build the hint from `InputMap.action_get_events` for the start-night action, and move both strings to constants that Phase 2 replaces.
+### IN-02: Missing null guards in test_start_night_hold
 
-### IN-03: Read-only test watches only 4 of 7 simulation signals
+**File:** `tests/e2e/test_start_night_hold.gd:117-121, 137-139`
+**Issue:**
+- Other nodes use the `assert_not_null` plus early-return pattern.
+- `spot_label` is dereferenced (`spot_label.visible`) with no null check, and `_fill(map_root).visible` is called on a possibly-null Control. A scene change turns these into a script error instead of a clear assertion.
 
-**File:** `tests/unit/test_debug_overlay_readonly.gd:8-10`
-**Issue:** `SIM_SIGNALS` omits `night_started`, `day_started` and `dawn_payout`, so "emits no events" is only partly asserted. A provider or model change that starts a night would not be caught by the signal check (only by the phase check).
-**Fix:** Add the three missing signal names, or enumerate them from `ctx.events.get_signal_list()`.
+**Fix:** Add `assert_not_null(spot_label)` and include it in the early-return guard.
 
-### IN-04: Timing-sensitive e2e assertions and CI trigger overlap
+### IN-03: Magic literals and a hidden coupling to tuning in test_start_night_hold
 
-**File:** `tests/e2e/test_dawn_payout.gd:105, 231`; `.github/workflows/ci.yml:9-13`
-**Issue:** (a) `test_a_real_payout_lands_every_coin_inside_a_short_dawn_window` designs the last coin to land at exactly `dawn_seconds` (1.0 s) and waits only `LAND_SLACK_S = 0.2` of real time; tween delays are frame-quantised, so a slow llvmpipe/CI runner can flake it. The early-dawn lag test likewise relies on `wait_seconds(0.25)` being shorter than one 0.6 s trip. (b) Push to `gsd/**` plus `pull_request` means a phase branch with an open PR builds twice (the header comment says feature branches are not built twice, which holds only for non-`gsd/` branches). Also `launch_stagger` (`dawn_payout_vfx.gd:72`) dereferences `_ctx` and would crash if called before `bind_run`.
-**Fix:** (a) Widen the slack to about 0.5 s or drive the check off the `coin_landed` signal via `wait_for_signal`; (b) correct the comment, or add a `pull_request`-exists guard; guard `_ctx` in `launch_stagger`.
+**File:** `tests/e2e/test_start_night_hold.gd:157, 239, 283`
+**Issue:**
+- `+ 0.2` and `+ 0.1` are inline literals next to named `SETTLE_SLACK_S` and `OVERSHOOT_S`.
+- `test_a_tap_fills_the_prompt_but_releasing_early_keeps_the_day` relies on `PARTIAL_HOLD_S` (0.5) being below `start_night_hold_seconds` (1.5 in `loop_tuning.tres`). If tuning drops below 0.5, the night starts and the test fails with a confusing message.
+
+**Fix:** Name the constants. Derive the partial hold as `_tuning.start_night_hold_seconds * 0.3` instead of hard-coding it.
+
+### IN-04: Weak identity assertion in the duplicate-spot test
+
+**File:** `tests/unit/test_building_system_data_errors.gd:34`
+**Issue:**
+- `assert_eq(ctx.buildings.get_spot(&"a"), map.spots[0], ...)` is meant to prove the first definition was kept. The twin is field-identical, so a value comparison cannot tell them apart.
+- The test would still pass if the twin replaced the original.
+
+**Fix:** Use `assert_same(...)` (reference identity), or give the twin a distinct `position` and assert on that.
 
 ---
 
