@@ -27,7 +27,7 @@ validated: "2026-09-29"
 | **Full suite command** | `bash tools/test.sh` (headless import pass, then GUT over all three dirs; fails on any first-party parse/load error) |
 | **Single file** | `bash tools/test.sh -gselect=<test_file>.gd` |
 | **Lint** | `bash tools/lint.sh` (gdtoolkit 4.5.0: `gdformat --check` + `gdlint`) |
-| **Measured runtime** | Quick: ~12 s wall (15 scripts, 122 tests). Full: ~85 s wall (30 scripts, 201 tests, 76 s in GUT) |
+| **Measured runtime** | Quick: ~13 s wall (15 scripts, 125 tests). Full: ~85 s wall (30 scripts, 206 tests) |
 
 The `tools/*.sh` wrappers need Git Bash on Windows; they resolve the pinned binary under `.tools/godot/4.7.2-stable/` (D-14).
 
@@ -74,6 +74,10 @@ GUT rows run as `bash tools/test.sh -gselect=<file>`. Threat refs are the plans'
 | 01-10-T2 | 01-10 | 6 | DEV-04 | — | Never captures under `--headless` (exit 2); blank frames fail | screenshot + unit | `bash tools/screenshot.sh` (6 PNGs) + headless guard exit 2 + `test_shot_blank_check.gd` | ✅ | ✅ green (re-run 2026-09-29) |
 | 01-10-T3 | 01-10 | 6 | DEV-02, DEV-04 | T-01-16 | Screenshot artifact holds game images only | CI | `ci.yml` `screenshots` job needs `test` + CI run conclusion + artifacts | ✅ | ✅ green (last CI run on `981e4c8`) |
 | WR-01 fix | review | — | BLDG-01, ECON-01 | — | One map's binding never reaches another map's views or HUD | e2e | `test_map_binding.gd` | ✅ | ✅ green |
+| CR-01 fix (pass 2) | review | — | ECON-02 | — | Every dawn coin lands inside a short dawn window on a real payout | e2e | `test_dawn_payout.gd` (`test_a_real_payout_lands_every_coin_inside_a_short_dawn_window`) | ✅ | ✅ green |
+| WR-01 fix (pass 2) | review | — | BLDG-01 | T-01-10 | Empty building ids reported; null map entries skipped instead of crashing | unit | `test_prototype_map_data.gd` (2 tests) | ✅ | ✅ green |
+| WR-02 fix (pass 2) | review | — | ECON-01 | — | A payout with no coin to fly never leaves the HUD gold short | e2e | `test_dawn_payout.gd` (`test_a_payout_with_no_coin_to_fly_does_not_leave_the_hud_short`) | ✅ | ✅ green |
+| WR-03 fix (pass 2) | review | — | DEV-03 | T-01-15 | A provider returning a non-Array is skipped, not a crash | unit | `test_debug_overlay_readonly.gd` | ✅ | ✅ green |
 
 Owner gates with no automated verify by design: 01-01-T2 (toolchain download approval), 01-03-T2 (public repo name), 01-07-T2 (CC0 model download approval). No run of three consecutive tasks lacks automated verification.
 
@@ -130,7 +134,7 @@ Owner gates with no automated verify by design: 01-01-T2 (toolchain download app
 - [x] Sampling continuity: no 3 consecutive tasks without automated verify
 - [x] Wave 0 covers all MISSING references
 - [x] No watch-mode flags
-- [x] Feedback latency < 60s (per-commit quick run ~12 s)
+- [x] Feedback latency < 60s (per-commit quick run ~13 s)
 - [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** approved 2026-09-29
@@ -146,3 +150,18 @@ Owner gates with no automated verify by design: 01-01-T2 (toolchain download app
 | Escalated | 0 |
 
 Audited after the code-review fixes: 15/15 requirements COVERED. Evidence from this audit's runs: full suite 201/201 passing (30 scripts, 1393 asserts), unit quick run 122/122, lint clean, Windows export plus a headless launch of the exported exe, pre-push check passed, six screenshots captured and non-blank, headless screenshot guard exits 2, `ci.yml` job/permission structure asserted. No auditor spawn was needed because no gaps were found.
+
+## Validation Audit 2026-09-29 (re-audit after review-fix pass 2)
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Re-audited after the second review-fix pass (10 fix commits, `83b1c10`..`a8b919e`). 15/15 requirements are still COVERED. The pass added 5 tests, for ECON-02, BLDG-01, ECON-01 and DEV-03 (rows above). Evidence:
+- Full suite 206/206 on the post-fix code.
+- Unit quick run 125/125 (~13 s).
+- `tools/screenshot.sh`, changed by WR-04: 6/6 non-blank captures, with its import log now kept at `build/screenshot-import.log`.
+- Headless guard exits 2.
+- `ci.yml`, changed by IN-04: job/needs/permissions structure asserted; no `pull_request_target`; no secrets referenced.
