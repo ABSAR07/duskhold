@@ -41,7 +41,10 @@ var _total_tween: Tween
 @onready var _payout_total: Label = %PayoutTotal
 
 
+## Binds the payout view to one run. A repeat call is ignored so no signal is connected twice.
 func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
+	if _ctx != null:
+		return
 	_ctx = ctx
 	_coin_texture = _make_coin_texture()
 	ctx.events.dawn_payout.connect(_on_dawn_payout)

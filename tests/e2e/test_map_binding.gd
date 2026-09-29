@@ -70,7 +70,7 @@ func test_a_third_map_does_not_rebind_the_first_maps_hud() -> void:
 	)
 
 
-func test_binding_the_hud_again_connects_nothing_twice() -> void:
+func test_binding_the_hud_and_payout_view_again_connects_nothing_twice() -> void:
 	var map_root: MapRoot = await E2eSupport.spawn_map(self)
 	var ctx: RunContext = map_root.get_context()
 	var hud: Hud = map_root.get_node("HUD") as Hud
@@ -80,6 +80,7 @@ func test_binding_the_hud_again_connects_nothing_twice() -> void:
 	var landed_links_before: int = payout_vfx.coin_landed.get_connections().size()
 
 	hud.bind_run(ctx, map_root)
+	payout_vfx.bind_run(ctx, map_root)
 
 	assert_eq(ctx.events.gold_changed.get_connections().size(), gold_links_before, "gold_changed")
 	assert_eq(ctx.events.dawn_payout.get_connections().size(), payout_links_before, "dawn_payout")
