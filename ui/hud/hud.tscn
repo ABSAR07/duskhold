@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://ui/hud/hud.gd" id="1_hud"]
 [ext_resource type="PackedScene" path="res://ui/overlay/debug_overlay.tscn" id="2_overlay"]
+[ext_resource type="Script" path="res://ui/hud/dawn_payout_vfx.gd" id="3_payout"]
 
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1_hud")
@@ -62,5 +63,27 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 36
 text = "Night 1 — no enemies yet"
 horizontal_alignment = 1
+
+[node name="PayoutTotal" type="Label" parent="."]
+unique_name_in_owner = true
+visible = false
+offset_left = 16.0
+offset_top = 52.0
+offset_right = 216.0
+offset_bottom = 84.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 24
+text = "+0 gold"
+
+[node name="DawnPayoutVfx" type="Control" parent="." groups=["run_bound"]]
+unique_name_in_owner = true
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("3_payout")
 
 [node name="DebugOverlay" parent="." groups=["run_bound"] instance=ExtResource("2_overlay")]

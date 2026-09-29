@@ -1,0 +1,173 @@
+extends GutTest
+## D-12 / ECON-02 on the real scene: at dawn a coin pops out of the plot of each paying House and
+## flies to the gold counter, the counter ticks up as they land, and a "+X gold" total follows.
+## Amounts come from house.tres and every duration from loop_tuning.tres.
+
+const PROTOTYPE_MAP := "res://data/maps/prototype_map.tres"
+const TUNING := "res://data/tuning/loop_tuning.tres"
+const HOUSE := "res://data/buildings/house.tres"
+const RICH_GOLD: int = 20
+const FAST_NIGHT_S: float = 0.5
+const WAIT_SLACK_S: float = 3.0
+const EARLY_S: float = 0.5
+const SETTLED_S: float = 3.0
+const HOUSE_ONE: StringName = &"house_1"
+const HOUSE_TWO: StringName = &"house_2"
+
+var _tuning: LoopTuning
+
+
+func before_each() -> void:
+	_tuning = (load(TUNING) as LoopTuning).duplicate(true)
+	_tuning.placeholder_night_seconds = FAST_NIGHT_S
+
+
+func after_each() -> void:
+	E2eSupport.release_all_actions()
+
+
+func _rich_map() -> MapConfig:
+	var map: MapConfig = (load(PROTOTYPE_MAP) as MapConfig).duplicate(true)
+	map.starting_gold = RICH_GOLD
+	return map
+
+
+func _hud(map_root: MapRoot) -> Node:
+	return map_root.get_node("HUD")
+
+
+func _gold_text(map_root: MapRoot) -> String:
+	return (_hud(map_root).get_node("%GoldLabel") as Label).text
+
+
+func _payout_total(map_root: MapRoot) -> Label:
+	return _hud(map_root).get_node_or_null("%PayoutTotal") as Label
+
+
+func _vfx(map_root: MapRoot) -> DawnPayoutVfx:
+	return _hud(map_root).get_node_or_null("%DawnPayoutVfx") as DawnPayoutVfx
+
+
+func _is_dawn(ctx: RunContext) -> bool:
+	return ctx.run_manager.get_phase() == RunManager.RunPhase.DAWN
+
+
+func _hud_gold_settled(map_root: MapRoot) -> bool:
+	var ctx: RunContext = map_root.get_context()
+	return _gold_text(map_root) == "Gold: %d" % ctx.economy.get_gold()
+
+
+func _total_shown(map_root: MapRoot) -> bool:
+	var label: Label = _payout_total(map_root)
+	return label != null and label.visible
+
+
+func _total_hidden(map_root: MapRoot) -> bool:
+	return not _total_shown(map_root)
+
+
+## house_1 at tier I and house_2 at tier II, the night started, the scene waiting at the first
+## frames of dawn.
+func _dawn_with_two_houses() -> MapRoot:
+	var map_root: MapRoot = await E2eSupport.spawn_map(self, _rich_map(), _tuning)
+	var ctx: RunContext = map_root.get_context()
+	assert_eq(ctx.commands.submit(BuildIntent.new(HOUSE_ONE)), CommandProcessor.OK, "house_1 I")
+	assert_eq(ctx.commands.submit(BuildIntent.new(HOUSE_TWO)), CommandProcessor.OK, "house_2 I")
+	assert_eq(ctx.commands.submit(BuildIntent.new(HOUSE_TWO)), CommandProcessor.OK, "house_2 II")
+	assert_eq(ctx.commands.submit(StartNightIntent.new()), CommandProcessor.OK, "night started")
+	var reached: bool = await E2eSupport.wait_until(
+		self, _is_dawn.bind(ctx), FAST_NIGHT_S + WAIT_SLACK_S
+	)
+	assert_true(reached, "dawn arrived")
+	return map_root
+
+
+func _expected_amounts() -> Array[int]:
+	var house: BuildingDef = load(HOUSE)
+	var tier_one: int = house.tiers[0].dawn_income
+	var tier_two: int = house.tiers[1].dawn_income
+	return [tier_one, tier_two]
+
+
+func test_coins_are_in_flight_and_the_counter_lags_early_in_dawn() -> void:
+	var map_root: MapRoot = await _dawn_with_two_houses()
+	var ctx: RunContext = map_root.get_context()
+	var vfx: DawnPayoutVfx = _vfx(map_root)
+	assert_not_null(vfx, "the HUD has a DawnPayoutVfx")
+	if vfx == null:
+		return
+
+	await wait_seconds(EARLY_S * 0.5)
+
+	assert_gte(vfx.live_coin_count(), 1, "at least one coin is in the air")
+	var shown: int = _gold_text(map_root).trim_prefix("Gold: ").to_int()
+	assert_lt(shown, ctx.economy.get_gold(), "the payout is still landing, HUD lags the ledger")
+
+
+func test_after_landing_the_hud_settles_on_the_ledger_and_the_total_is_shown() -> void:
+	var map_root: MapRoot = await _dawn_with_two_houses()
+	var vfx: DawnPayoutVfx = _vfx(map_root)
+	var label: Label = _payout_total(map_root)
+	assert_not_null(vfx, "the HUD has a DawnPayoutVfx")
+	assert_not_null(label, "the HUD has a PayoutTotal label")
+	if vfx == null or label == null:
+		return
+	var amounts: Array[int] = _expected_amounts()
+	var expected_total: int = amounts[0] + amounts[1]
+
+	var shown: bool = await E2eSupport.wait_until(self, _total_shown.bind(map_root), SETTLED_S)
+
+	assert_true(shown, "the total appears once the coins have landed")
+	assert_eq(label.text, "+%d gold" % expected_total, "the total is derived from house.tres")
+	assert_eq(vfx.get_last_total(), expected_total, "the vfx reports the same total")
+	var settled: bool = await E2eSupport.wait_until(
+		self, _hud_gold_settled.bind(map_root), SETTLED_S
+	)
+	assert_true(settled, "the HUD shows exactly the ledger gold once the coins landed")
+	assert_eq(vfx.live_coin_count(), 0, "no coin is left in the air")
+
+
+func test_the_total_fades_after_a_couple_of_seconds() -> void:
+	var map_root: MapRoot = await _dawn_with_two_houses()
+	var appeared: bool = await E2eSupport.wait_until(self, _total_shown.bind(map_root), SETTLED_S)
+	assert_true(appeared, "the total appears")
+
+	var gone: bool = await E2eSupport.wait_until(self, _total_hidden.bind(map_root), SETTLED_S)
+
+	assert_true(gone, "the total is hidden again a moment later")
+
+
+func test_each_house_spawns_as_many_coins_as_it_pays() -> void:
+	var map_root: MapRoot = await _dawn_with_two_houses()
+	var vfx: DawnPayoutVfx = _vfx(map_root)
+	assert_not_null(vfx, "the HUD has a DawnPayoutVfx")
+	if vfx == null:
+		return
+	var amounts: Array[int] = _expected_amounts()
+
+	await wait_process_frames(2)
+
+	assert_eq(vfx.get_spawned_count(HOUSE_ONE), amounts[0], "the tier I House sends its income")
+	assert_eq(vfx.get_spawned_count(HOUSE_TWO), amounts[1], "the tier II House sends its income")
+	assert_eq(vfx.get_spawned_count(&"house_3"), 0, "an unbuilt plot sends nothing")
+
+
+func test_a_dawn_that_pays_nothing_shows_no_coins_and_no_total() -> void:
+	var map_root: MapRoot = await E2eSupport.spawn_map(self, _rich_map(), _tuning)
+	var ctx: RunContext = map_root.get_context()
+	var vfx: DawnPayoutVfx = _vfx(map_root)
+	assert_not_null(vfx, "the HUD has a DawnPayoutVfx")
+	if vfx == null:
+		return
+	assert_eq(ctx.commands.submit(StartNightIntent.new()), CommandProcessor.OK, "night started")
+	var reached: bool = await E2eSupport.wait_until(
+		self, _is_dawn.bind(ctx), FAST_NIGHT_S + WAIT_SLACK_S
+	)
+	assert_true(reached, "dawn arrived")
+
+	await wait_seconds(EARLY_S)
+
+	assert_eq(vfx.live_coin_count(), 0, "no coins with no Houses")
+	assert_true(_total_hidden(map_root), "no '+0 gold' total is shown")
+	assert_eq(vfx.get_last_total(), 0, "nothing was paid")
+	assert_true(_hud_gold_settled(map_root), "the HUD shows the ledger gold")
