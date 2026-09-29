@@ -84,12 +84,13 @@ func _add_marker(spot_id: StringName) -> void:
 	mesh.top_radius = MARKER_RADIUS
 	mesh.bottom_radius = MARKER_RADIUS
 	mesh.height = MARKER_HEIGHT
-	mesh.material = _make_material(_marker_color(_ctx.buildings.get_spot(spot_id).building_id))
+	var spot: BuildSpotDef = _ctx.buildings.get_spot(spot_id)
+	mesh.material = _make_material(_marker_color(spot.building_id))
 	var marker: MeshInstance3D = MeshInstance3D.new()
 	marker.name = "Spot_%s" % spot_id
 	marker.mesh = mesh
 	add_child(marker)
-	marker.position = _ctx.buildings.get_spot(spot_id).position
+	marker.position = spot.position
 
 
 func _marker_color(building_id: StringName) -> Color:
