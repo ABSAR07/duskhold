@@ -34,8 +34,18 @@ func collect(fps: float) -> Array:
 			continue
 		var rows: Variant = provider.call()
 		if rows is Array:
-			sections.append(_section(entry["title"], rows))
+			sections.append(_section(entry["title"], _clean_rows(rows)))
 	return sections
+
+
+## Keeps only rows shaped like [label, value] (as strings), so a malformed provider row is dropped
+## here rather than raising a script error in the overlay on every refresh.
+func _clean_rows(rows: Array) -> Array:
+	var clean: Array = []
+	for row: Variant in rows:
+		if row is Array and (row as Array).size() >= 2:
+			clean.append([str(row[0]), str(row[1])])
+	return clean
 
 
 func _section(title: String, rows: Array) -> Dictionary:
