@@ -3,7 +3,7 @@ status: testing
 phase: 01-foundation-day-loop
 source: [01-VERIFICATION.md]
 started: 2026-09-29T12:10:00Z
-updated: 2026-09-29T16:19:31Z
+updated: 2026-09-29T16:57:41Z
 ---
 
 ## Current Test
@@ -40,7 +40,7 @@ result: [pending]
 expected: Prompt fills, banner and night lighting show, dawn coins fly from each paying House to the gold counter, '+X gold' appears, day returns with carried-over gold (known: the dawn capture looks mostly night-coloured because the 1.0 s lighting ease outlasts the 0.6 s coin flight)
 result: [pending]
 
-### 7. Owner decision on the Quaternius horse licence (WR-06, skipped in review-fix)
+### 7. Owner decision on the Quaternius horse licence (review WR-06, skipped in review-fix)
 expected: Owner confirms keeping the 2021 CC0 Poly Pizza copy despite the newer Quaternius Asset License, or replaces it before the itch.io release
 result: [pending]
 
