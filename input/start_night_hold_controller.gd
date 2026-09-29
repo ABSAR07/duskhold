@@ -49,8 +49,8 @@ func _process(delta: float) -> void:
 func _confirm() -> void:
 	_await_release = true
 	_set_held(0.0)
-	_ctx.commands.submit(StartNightIntent.new())
-	night_requested.emit()
+	if _ctx.commands.submit(StartNightIntent.new()) == CommandProcessor.OK:
+		night_requested.emit()
 
 
 func _set_held(seconds: float) -> void:
