@@ -3,6 +3,7 @@
 # Usage: bash tools/export.sh
 # Writes build/windows/Duskhold.exe + Duskhold.pck and build/export.log. Works from Git Bash on
 # Windows and from bash on Linux CI (the Windows export needs no Wine: modify_resources=false).
+# The import pass logs to build/export-import.log; a failed import stops the script with that status.
 # Exit status is non-zero unless Godot succeeds, the exe (> 1 MB) and pck exist, and the log has
 # no missing-template or rcedit complaint.
 set -u
@@ -20,12 +21,19 @@ OUT_DIR="${DUSKHOLD_ROOT}/build/windows"
 EXE="${OUT_DIR}/Duskhold.exe"
 PCK="${OUT_DIR}/Duskhold.pck"
 LOG="${DUSKHOLD_ROOT}/build/export.log"
+IMPORT_LOG="${DUSKHOLD_ROOT}/build/export-import.log"
 
 mkdir -p "${OUT_DIR}"
 rm -f "${EXE}" "${PCK}"
 
 # Import pass first so a fresh checkout (CI) has .godot/ imported resources before exporting.
-"${GODOT_BIN}" --headless --path "${DUSKHOLD_ROOT_NATIVE}" --import >/dev/null 2>&1
+"${GODOT_BIN}" --headless --path "${DUSKHOLD_ROOT_NATIVE}" --import >"${IMPORT_LOG}" 2>&1
+import_status=$?
+if [ "${import_status}" -ne 0 ]; then
+  echo "FAIL: godot --import exited with ${import_status}; see ${IMPORT_LOG}" >&2
+  tail -n 20 "${IMPORT_LOG}" >&2
+  exit "${import_status}"
+fi
 
 "${GODOT_BIN}" --headless --path "${DUSKHOLD_ROOT_NATIVE}" \
   --export-release "Windows Desktop" "${DUSKHOLD_ROOT_NATIVE}/build/windows/Duskhold.exe" 2>&1 | tee "${LOG}"
