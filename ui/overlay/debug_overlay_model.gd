@@ -29,6 +29,9 @@ func collect(fps: float) -> Array:
 	]
 	for entry: Dictionary in _registered:
 		var provider: Callable = entry["provider"]
+		if not provider.is_valid():
+			# A freed owner leaves an invalid Callable; skip it instead of crashing every refresh.
+			continue
 		sections.append(_section(entry["title"], provider.call()))
 	return sections
 

@@ -113,3 +113,16 @@ func test_collecting_200_times_changes_no_state_and_emits_no_events() -> void:
 	assert_eq(_tier_snapshot(ctx), tiers_before, "every spot's tier unchanged")
 	for signal_name: String in SIM_SIGNALS:
 		assert_signal_not_emitted(ctx.events, signal_name)
+
+
+func test_a_freed_section_provider_is_skipped_instead_of_crashing() -> void:
+	var model: DebugOverlayModel = DebugOverlayModel.new(_prototype_with_one_house())
+	var owner_node: Node = Node.new()
+	model.register_section("Ghost", owner_node.get_children)
+	model.register_section("Live", func() -> Array: return [["Answer", "42"]])
+	owner_node.free()
+
+	var sections: Array = model.collect(60.0)
+
+	assert_eq(_section(sections, "Ghost"), {}, "the invalid provider's section is left out")
+	assert_eq(_row_value(_section(sections, "Live"), "Answer"), "42", "valid sections still show")
