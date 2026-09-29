@@ -3,6 +3,10 @@ extends Node3D
 ## Scene composition root. Builds the RunContext from the exported .tres data, binds every node
 ## in group "run_bound" that lives under this map, and drives the simulation clock from _process.
 
+## Longest simulation step per frame. A window drag, alt-tab or debugger stall delivers one huge
+## frame delta; clamping it keeps night and dawn timers (and later wave timers) from jumping.
+const MAX_SIM_STEP: float = 0.25
+
 @export var map_config: MapConfig
 @export var loop_tuning: LoopTuning
 
@@ -22,7 +26,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	_ctx.run_manager.tick(delta)
+	_ctx.run_manager.tick(minf(delta, MAX_SIM_STEP))
 
 
 func get_context() -> RunContext:

@@ -52,3 +52,23 @@ func test_teleported_king_focuses_the_plot() -> void:
 	E2eSupport.teleport_king(map_root, ctx.buildings.get_spot(spot_id).position)
 	await wait_process_frames(2)
 	assert_eq(map_root.get_build_hold().get_focused_spot(), spot_id, "teleport lands in range")
+
+
+func test_a_stalled_frame_advances_the_simulation_by_at_most_the_clamp() -> void:
+	var scene: PackedScene = load(MAP_SCENE_PATH)
+	var map_root: MapRoot = add_child_autofree(scene.instantiate())
+	await wait_process_frames(2)
+	var ctx: RunContext = map_root.get_context()
+	assert_eq(ctx.commands.submit(StartNightIntent.new()), CommandProcessor.OK, "night started")
+	var before: float = ctx.run_manager.get_elapsed()
+
+	map_root._process(100.0)
+
+	assert_almost_eq(
+		ctx.run_manager.get_elapsed() - before, MapRoot.MAX_SIM_STEP, 0.0001, "one stall, one clamp"
+	)
+	assert_eq(
+		ctx.run_manager.get_phase(),
+		RunManager.RunPhase.NIGHT,
+		"a stalled frame does not end the night"
+	)
