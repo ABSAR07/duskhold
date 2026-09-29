@@ -34,6 +34,8 @@ VERSION_FILE = TOOLS_DIR / "godot_version.txt"
 REQUIREMENTS_LINT_FILE = TOOLS_DIR / "requirements-lint.txt"
 
 USER_AGENT = "duskhold-bootstrap"
+# Seconds of silence after which a stalled connection is abandoned (and the attempt retried).
+DOWNLOAD_TIMEOUT_S = 60
 GUT_TAG = "v9.7.1"
 GUT_ZIP_URL = f"https://github.com/bitwes/Gut/archive/refs/tags/{GUT_TAG}.zip"
 GUT_LOCAL_NAME = f"Gut-{GUT_TAG}.zip"
@@ -176,9 +178,10 @@ def download_asset(name: str, url: str, retries: int = 3) -> Path:
     for attempt in range(1, retries + 1):
         try:
             req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-            with urllib.request.urlopen(req) as resp, open(part_path, "wb") as f:
+            with urllib.request.urlopen(req, timeout=DOWNLOAD_TIMEOUT_S) as resp, open(part_path, "wb") as f:
                 shutil.copyfileobj(resp, f)
-            part_path.rename(final_path)
+            # replace(), not rename(): rename raises FileExistsError on Windows when the target exists.
+            part_path.replace(final_path)
             return final_path
         except (urllib.error.URLError, OSError) as exc:  # pragma: no cover - network dependent
             last_err = exc
@@ -224,6 +227,8 @@ def fetch_official_sums() -> dict[str, str]:
         digest = parts[0].lower()
         fname = parts[-1].lstrip("*")
         sums[fname] = digest
+    # Never leave a stale copy behind for the next run to trip over.
+    downloaded.unlink(missing_ok=True)
     return sums
 
 
