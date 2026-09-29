@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 01
 current_phase_name: Foundation & Day Loop
 status: executing
-stopped_at: Completed 01-06-PLAN.md
-last_updated: "2026-09-29T10:12:08.932Z"
+stopped_at: Completed 01-07-PLAN.md
+last_updated: "2026-09-29T10:28:24.215Z"
 last_activity: 2026-09-29
 last_activity_desc: Phase 01 execution started
-state_head: 17083eea5b511e7132478a2004c00735b7f9c656
+state_head: 90d1b6c00b99aae595f109c8d53ec890be3bf590
 progress:
   total_phases: 13
   completed_phases: 0
   total_plans: 10
-  completed_plans: 6
+  completed_plans: 7
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-28)
 ## Current Position
 
 Phase: 01 (Foundation & Day Loop) — EXECUTING
-Plan: 7 of 10
+Plan: 8 of 10
 Status: Ready to execute
 Last activity: 2026-09-29 — Phase 01 execution started
 
@@ -62,6 +62,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P03 | 71 min (incl. owner-decision wait) | 3 tasks | 5 files |
 | Phase 01 P05 | 25 min | 2 tasks | 12 files |
 | Phase 01 P06 | 14 min | 3 tasks | 21 files |
+| Phase 01 P07 | ~35 min (continuation) | 3 tasks | 90 files |
 
 ## Accumulated Context
 
@@ -91,6 +92,8 @@ Recent decisions affecting current work:
 - [Phase 01]: 01-05: MapConfig.validate() logs via RunContext push_error but never blocks construction; ride-time contract measures the farthest pair among spots, castle and king spawn (110 m, 22 s)
 - [Phase 01]: 01-06: Hold start is edge-triggered and the is_build_allowed/radius checks run every frame ahead of any drip, so a denial fires once per press and no coin lands after the day ends
 - [Phase 01]: 01-06: SpotLabelModel.affordable is true when gold covers the cost or a hold is under way, and always at max tier, so red never shows on a running hold or a finished building
+- [Phase 01]: 01-07: Owner approved Kenney Castle Kit, Fantasy Town Kit, Mini Characters and the animated Quaternius horse (4b); horse recorded CC0-1.0 with the Quaternius QAL v1.0 wording quoted beside the Poly Pizza CC0 statement — Auditable provenance; obtained as CC0 and used inside a game, not redistributed standalone
+- [Phase 01]: 01-07: Houses and castle keep are composed from kit pieces in text wrapper scenes; king is Kenney character-male-b plus a gold crown primitive on the Quaternius horse (bind pose) — Neither kit ships a complete house or keep and the pack has no crowned figure; animation and normalization deferred to Phase 8
 
 ### Pending Todos
 
@@ -116,6 +119,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-29T10:12:08.892Z
-Stopped at: Completed 01-06-PLAN.md
+Last session: 2026-09-29T10:28:24.180Z
+Stopped at: Completed 01-07-PLAN.md
 Resume file: None

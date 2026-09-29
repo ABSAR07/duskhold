@@ -115,7 +115,7 @@ Requirements for the initial release (5-map campaign). Each maps to exactly one 
 ### Art & Audio
 
 - [ ] **ART-01**: The game has a cohesive low-poly look built from CC0 asset packs normalized to consistent scale, palette, and shading
-- [ ] **ART-02**: Every third-party asset is recorded in a license/attribution log in the repository
+- [x] **ART-02**: Every third-party asset is recorded in a license/attribution log in the repository
 - [ ] **AUD-01**: SFX play for king and unit attacks, hits, deaths, building and upgrading, gold payout, UI interactions, night start, and dawn
 - [ ] **AUD-02**: SFX use CC0 sources and are mixed so that large battles stay readable
 
@@ -247,7 +247,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UI-06 | Phase 8 | Pending |
 | UI-07 | Phase 13 | Pending |
 | ART-01 | Phase 8 | Pending |
-| ART-02 | Phase 1 | Pending |
+| ART-02 | Phase 1 | Complete |
 | AUD-01 | Phase 8 | Pending |
 | AUD-02 | Phase 8 | Pending |
 | PLAT-01 | Phase 4 | Pending |
