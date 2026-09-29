@@ -122,13 +122,20 @@ func _make_visual(building_id: StringName, tier: int) -> Node3D:
 	return _make_primitive_visual(building_id, tier)
 
 
-## Instances a model scene and tags it with its source path; null if there is no scene.
+## Instances a model scene and tags it with its source path; null if there is no scene or its
+## root is not a Node3D (warned about, and freed so a mis-authored catalog entry does not leak).
 func _instance_model(scene: PackedScene) -> Node3D:
 	if scene == null:
 		return null
-	var model: Node3D = scene.instantiate() as Node3D
-	if model != null:
-		model.set_meta(&"view_source", scene.resource_path)
+	var instance: Node = scene.instantiate()
+	var model: Node3D = instance as Node3D
+	if model == null:
+		push_warning(
+			"BuildingViews: '%s' root is not a Node3D; using the primitive" % scene.resource_path
+		)
+		instance.free()
+		return null
+	model.set_meta(&"view_source", scene.resource_path)
 	return model
 
 

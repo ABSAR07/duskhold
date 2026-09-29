@@ -67,3 +67,24 @@ func test_views_use_a_catalog_scene_and_fall_back_to_primitive() -> void:
 	var no_catalog: Node3D = views._make_visual(&"house", 1)
 	assert_eq(no_catalog.get_meta(&"view_source"), BuildingViews.VIEW_SOURCE_PRIMITIVE)
 	no_catalog.free()
+
+
+func test_a_model_scene_with_a_non_3d_root_falls_back_and_is_not_leaked() -> void:
+	var views: BuildingViews = BuildingViews.new()
+	add_child_autofree(views)
+	var plain_root: Node = Node.new()
+	var plain_scene: PackedScene = PackedScene.new()
+	plain_scene.pack(plain_root)
+	plain_root.free()
+	var catalog: BuildingViewCatalog = BuildingViewCatalog.new()
+	catalog.entries = [_entry(&"house", 1, plain_scene)]
+	views.catalog = catalog
+	var orphans_before: int = int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT))
+
+	var view: Node3D = views._make_visual(&"house", 1)
+
+	assert_eq(view.get_meta(&"view_source"), BuildingViews.VIEW_SOURCE_PRIMITIVE, "primitive")
+	var orphans_after: int = int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT))
+	# The primitive view itself (a Node3D plus its body) is the only node still alive.
+	assert_lte(orphans_after - orphans_before, 2, "the rejected instance was freed, not leaked")
+	view.free()
