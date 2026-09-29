@@ -5,7 +5,6 @@ extends GutTest
 const CASTLE_NAME := "CastleCenter"
 const PROTOTYPE_MAP := "res://data/maps/prototype_map.tres"
 const RICH_GOLD: int = 50
-const HOUSE_SPOT: StringName = &"house_1"
 
 
 func after_each() -> void:
