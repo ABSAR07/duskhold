@@ -27,7 +27,7 @@ validated: "2026-09-29"
 | **Full suite command** | `bash tools/test.sh` (headless import pass, then GUT over all three dirs; fails on any first-party parse/load error) |
 | **Single file** | `bash tools/test.sh -gselect=<test_file>.gd` |
 | **Lint** | `bash tools/lint.sh` (gdtoolkit 4.5.0: `gdformat --check` + `gdlint`) |
-| **Measured runtime** | Quick: ~13 s wall (15 scripts, 125 tests). Full: ~85 s wall (30 scripts, 206 tests) |
+| **Measured runtime** | Quick: ~12 s wall (16 scripts, 129 tests). Full: ~85 s wall (31 scripts, 215 tests) |
 
 The `tools/*.sh` wrappers need Git Bash on Windows; they resolve the pinned binary under `.tools/godot/4.7.2-stable/` (D-14).
 
@@ -78,6 +78,12 @@ GUT rows run as `bash tools/test.sh -gselect=<file>`. Threat refs are the plans'
 | WR-01 fix (pass 2) | review | — | BLDG-01 | T-01-10 | Empty building ids reported; null map entries skipped instead of crashing | unit | `test_prototype_map_data.gd` (2 tests) | ✅ | ✅ green |
 | WR-02 fix (pass 2) | review | — | ECON-01 | — | A payout with no coin to fly never leaves the HUD gold short | e2e | `test_dawn_payout.gd` (`test_a_payout_with_no_coin_to_fly_does_not_leave_the_hud_short`) | ✅ | ✅ green |
 | WR-03 fix (pass 2) | review | — | DEV-03 | T-01-15 | A provider returning a non-Array is skipped, not a crash | unit | `test_debug_overlay_readonly.gd` | ✅ | ✅ green |
+| WR-01 fix (pass 3) | review | — | ECON-01, ECON-02 | — | A payout naming an unknown spot still lands its coin and settles the HUD | e2e | `test_dawn_payout.gd` (`test_a_payout_naming_an_unknown_spot_still_lands_its_coin_and_settles_the_hud`) | ✅ | ✅ green |
+| WR-02 fix (pass 3) | review | — | BLDG-01, ECON-02 | T-01-10 | Duplicate spot id listed once (first definition wins); unknown building id skipped in dawn income | unit | `test_building_system_data_errors.gd` (2 tests) | ✅ | ✅ green |
+| WR-03 / IN-03 fix (pass 3) | review | — | DEV-03 | T-01-15 | Malformed provider rows dropped; the read-only test watches every simulation signal | unit | `test_debug_overlay_readonly.gd` (2 tests) | ✅ | ✅ green |
+| IN-01 fix (pass 3) | review | — | ECON-01 | — | Binding the HUD twice connects nothing twice | e2e | `test_map_binding.gd` (`test_binding_the_hud_again_connects_nothing_twice`) | ✅ | ✅ green |
+| IN-02 fix (pass 3) | review | — | BLDG-06 (start-night input) | — | The start-night prompt names the live bindings and follows a runtime rebind | e2e | `test_start_night_hold.gd` (2 tests) | ✅ | ✅ green |
+| IN-04 fix (pass 3) | review | — | ECON-02 | — | `launch_stagger` falls back to the default before `bind_run`; payout timing tests poll instead of racing | e2e | `test_dawn_payout.gd` (`test_launch_stagger_before_the_run_is_bound_falls_back_to_the_default`) | ✅ | ✅ green |
 
 Owner gates with no automated verify by design: 01-01-T2 (toolchain download approval), 01-03-T2 (public repo name), 01-07-T2 (CC0 model download approval). No run of three consecutive tasks lacks automated verification.
 
@@ -134,7 +140,7 @@ Owner gates with no automated verify by design: 01-01-T2 (toolchain download app
 - [x] Sampling continuity: no 3 consecutive tasks without automated verify
 - [x] Wave 0 covers all MISSING references
 - [x] No watch-mode flags
-- [x] Feedback latency < 60s (per-commit quick run ~13 s)
+- [x] Feedback latency < 60s (per-commit quick run ~12 s)
 - [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** approved 2026-09-29
@@ -165,3 +171,18 @@ Re-audited after the second review-fix pass (10 fix commits, `83b1c10`..`a8b919e
 - `tools/screenshot.sh`, changed by WR-04: 6/6 non-blank captures, with its import log now kept at `build/screenshot-import.log`.
 - Headless guard exits 2.
 - `ci.yml`, changed by IN-04: job/needs/permissions structure asserted; no `pull_request_target`; no secrets referenced.
+
+## Validation Audit 2026-09-29 (re-audit after review-fix pass 3)
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Re-audited after the third review-fix pass (7 fix commits, `ecea4ff`..`9cae015`). 15/15 requirements are still COVERED. The pass added 9 tests (rows above), including the new `tests/unit/test_building_system_data_errors.gd`. Evidence:
+- Full suite 215/215 (31 scripts) on the post-fix code; lint clean.
+- Unit quick run 129/129 (~12 s).
+- `tools/screenshot.sh`: 6/6 non-blank captures. `day_overview` still reads "Hold N / (Y) to start Night 1" now that the hint is built from the InputMap.
+- Headless guard exits 2.
+- `ci.yml` unchanged in this pass.
