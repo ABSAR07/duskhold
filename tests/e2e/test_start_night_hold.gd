@@ -12,7 +12,11 @@ const WAIT_SLACK_S: float = 3.0
 const HOUSE_SPOT: StringName = &"house_1"
 const NEAR_OFFSET := Vector3(0.5, 0.0, 0.0)
 const NIGHT_BANNER := "Night 1 — no enemies yet"
-const PARTIAL_HOLD_S: float = 0.5
+## A partial hold is this share of start_night_hold_seconds, so it stays short of the full hold
+## whatever the tuning says.
+const PARTIAL_HOLD_FRACTION: float = 0.3
+## Ticks the sim this far past the end of a phase to be sure it has ended.
+const PAST_END_S: float = 0.1
 const OVERSHOOT_S: float = 0.3
 const SETTLE_SLACK_S: float = 0.3
 
@@ -93,7 +97,7 @@ func test_a_tap_fills_the_prompt_but_releasing_early_keeps_the_day() -> void:
 		return
 
 	Input.action_press(ACTION)
-	await wait_seconds(PARTIAL_HOLD_S)
+	await wait_seconds(_tuning.start_night_hold_seconds * PARTIAL_HOLD_FRACTION)
 	assert_gt(night_hold.get_ratio(), 0.0, "the ratio fills while held")
 	assert_lt(night_hold.get_ratio(), 1.0, "but a short hold is not enough")
 	assert_gt(fill.value, 0.0, "the bar fills while held")
@@ -112,13 +116,23 @@ func test_a_full_hold_starts_the_night_with_its_banner_and_mood() -> void:
 	var lighting: DayNightLighting = _lighting(map_root)
 	var prompt: Label = _prompt(map_root)
 	var banner: Label = _banner(map_root)
+	var fill: ProgressBar = _fill(map_root)
+	var spot_label: Node3D = _spot_label(map_root)
 	assert_not_null(night_hold, "the map has a StartNightHold node")
 	assert_not_null(lighting, "the Lighting node runs DayNightLighting")
 	assert_not_null(prompt, "the HUD has a start-night prompt")
 	assert_not_null(banner, "the HUD has a phase banner")
-	if night_hold == null or lighting == null or prompt == null or banner == null:
+	assert_not_null(fill, "the HUD has a start-night fill bar")
+	assert_not_null(spot_label, "the map has a spot label")
+	if (
+		night_hold == null
+		or lighting == null
+		or prompt == null
+		or banner == null
+		or fill == null
+		or spot_label == null
+	):
 		return
-	var spot_label: Node3D = _spot_label(map_root)
 	E2eSupport.teleport_king(map_root, ctx.buildings.get_spot(HOUSE_SPOT).position + NEAR_OFFSET)
 	await wait_process_frames(2)
 	assert_true(spot_label.visible, "the spot label shows by day next to a plot")
@@ -140,7 +154,7 @@ func test_a_full_hold_starts_the_night_with_its_banner_and_mood() -> void:
 	assert_eq(lighting.get_mood(), &"night", "night mood")
 	assert_false(spot_label.visible, "the spot label is hidden at night")
 	assert_false(prompt.visible, "the start-night prompt is hidden at night")
-	assert_false(_fill(map_root).visible, "and so is its fill bar")
+	assert_false(fill.visible, "and so is its fill bar")
 
 
 func test_the_night_hands_back_to_a_new_day_through_dawn() -> void:
@@ -246,7 +260,7 @@ func test_a_build_hold_is_cancelled_when_the_night_starts() -> void:
 
 	assert_signal_emitted(hold, "hold_cancelled", "the hold was cancelled at once")
 	assert_false(hold.is_holding(), "the hold ended")
-	ctx.run_manager.tick(slow.placeholder_night_seconds + 0.1)
+	ctx.run_manager.tick(slow.placeholder_night_seconds + PAST_END_S)
 	assert_eq(ctx.run_manager.get_phase(), RunManager.RunPhase.DAWN, "dawn reached")
 	var dawn_income: int = 0
 	for amount: int in ctx.buildings.dawn_income_by_spot().values():
@@ -270,7 +284,7 @@ func test_holding_start_night_outside_the_day_does_nothing() -> void:
 	watch_signals(ctx.events)
 
 	Input.action_press(ACTION)
-	await wait_seconds(_tuning.start_night_hold_seconds * 0.5)
+	await wait_seconds(_tuning.start_night_hold_seconds * PARTIAL_HOLD_FRACTION)
 
 	assert_eq(night_hold.get_ratio(), 0.0, "no fill outside the day")
 	assert_eq(fill.value, 0.0, "the bar stays empty")
@@ -290,7 +304,7 @@ func test_a_key_still_held_when_the_day_returns_needs_a_fresh_press() -> void:
 	_start_night_now(ctx)
 	Input.action_press(ACTION)
 	await wait_process_frames(2)
-	ctx.run_manager.tick(_tuning.placeholder_night_seconds + 0.1)
+	ctx.run_manager.tick(_tuning.placeholder_night_seconds + PAST_END_S)
 	ctx.run_manager.tick(_tuning.dawn_seconds)
 	assert_eq(ctx.run_manager.get_phase(), RunManager.RunPhase.DAY, "the day is back")
 	watch_signals(night_hold)
