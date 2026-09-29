@@ -5,39 +5,39 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`MapRoot` binds every `run_bound` node in the whole tree, so a second map cross-binds and duplicates the first map's views"
   - id: WR-02
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "Dawn payout readout lag is unbounded and the HUD gold label can go negative"
   - id: WR-03
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`tools/bootstrap.py --all` always exits 1 on a normal checkout and never installs the lint tools"
   - id: WR-04
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`download_asset` fails permanently on Windows once a target file already exists, and has no timeout"
   - id: WR-05
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "GUT is downloaded from a mutable tag and never checked against a pin, and a failed check destroys the committed addon"
   - id: WR-06
     severity: warning
-    disposition: open
+    disposition: skipped
     title: "License allow-list guard is defeated by self-declaration, and the horse asset conflicts with the CC0-only constraint"
   - id: WR-07
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "Simulation clock takes raw frame `delta` with no clamp"
   - id: WR-08
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`prepush_check.sh` credential regex misses common token formats"
   - id: WR-09
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
   - id: IN-01
     severity: info
@@ -71,24 +71,24 @@ findings:
     severity: info
     disposition: open
     title: "CI runs every push twice on PR branches, and `cancel-in-progress` applies to `main`"
-open: 17
+open: 8
 total: 17
-recorded: 2026-09-29T11:39:13.369Z
+recorded: 2026-09-29T12:42:29.771Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
-| WR-02 | warning | open | - |
-| WR-03 | warning | open | - |
-| WR-04 | warning | open | - |
-| WR-05 | warning | open | - |
-| WR-06 | warning | open | - |
-| WR-07 | warning | open | - |
-| WR-08 | warning | open | - |
-| WR-09 | warning | open | - |
+| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
+| WR-02 | warning | fixed | 01-REVIEW-FIX.md |
+| WR-03 | warning | fixed | 01-REVIEW-FIX.md |
+| WR-04 | warning | fixed | 01-REVIEW-FIX.md |
+| WR-05 | warning | fixed | 01-REVIEW-FIX.md |
+| WR-06 | warning | skipped | 01-REVIEW-FIX.md |
+| WR-07 | warning | fixed | 01-REVIEW-FIX.md |
+| WR-08 | warning | fixed | 01-REVIEW-FIX.md |
+| WR-09 | warning | fixed | 01-REVIEW-FIX.md |
 | IN-01 | info | open | - |
 | IN-02 | info | open | - |
 | IN-03 | info | open | - |
