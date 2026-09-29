@@ -18,4 +18,49 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 28
 text = "Gold: 0"
 
+[node name="StartNightBox" type="VBoxContainer" parent="."]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -96.0
+offset_right = 200.0
+offset_bottom = -24.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="StartNightPrompt" type="Label" parent="StartNightBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Hold N / (Y) to start Night 1"
+horizontal_alignment = 1
+
+[node name="StartNightFill" type="ProgressBar" parent="StartNightBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 14)
+layout_mode = 2
+max_value = 1.0
+step = 0.001
+show_percentage = false
+
+[node name="PhaseBannerBox" type="CenterContainer" parent="."]
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 40.0
+offset_bottom = 100.0
+grow_horizontal = 2
+mouse_filter = 2
+
+[node name="PhaseBanner" type="Label" parent="PhaseBannerBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "Night 1 — no enemies yet"
+horizontal_alignment = 1
+
 [node name="DebugOverlay" parent="." groups=["run_bound"] instance=ExtResource("2_overlay")]

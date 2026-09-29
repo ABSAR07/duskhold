@@ -1,6 +1,7 @@
 class_name Hud
 extends CanvasLayer
-## Gold readout. Gold is the only currency the HUD shows.
+## Gold readout, the start-night prompt and the night banner. Gold is the only currency the HUD
+## shows and its label is always visible (ECON-01).
 ## While a hold is dripping, the readout shows the gold the player would have left
 ## (Economy gold minus the coins in flight). This is display only: Economy stays
 ## all-or-nothing and only changes when a BuildIntent is accepted (D-06).
@@ -9,6 +10,9 @@ var _ctx: RunContext
 var _pending: int = 0
 
 @onready var _gold_label: Label = %GoldLabel
+@onready var _start_night_prompt: Label = %StartNightPrompt
+@onready var _start_night_fill: ProgressBar = %StartNightFill
+@onready var _phase_banner: Label = %PhaseBanner
 
 
 func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
@@ -18,7 +22,16 @@ func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
 	hold.hold_cancelled.connect(_on_hold_cancelled)
 	hold.hold_completed.connect(_on_hold_completed)
 	ctx.events.gold_changed.connect(_on_gold_changed)
+	ctx.events.phase_changed.connect(_on_phase_changed)
+	ctx.events.night_started.connect(_on_night_started)
+	ctx.events.day_started.connect(_on_day_started)
+	var start_night_hold: StartNightHoldController = (
+		map_root.find_child("StartNightHold", true, false) as StartNightHoldController
+	)
+	if start_night_hold != null:
+		start_night_hold.progress_changed.connect(_on_start_night_progress)
 	_refresh()
+	_refresh_loop()
 
 
 func _on_hold_progress(_spot_id: StringName, coins_paid: int, _cost: int) -> void:
@@ -38,6 +51,41 @@ func _on_hold_completed(_spot_id: StringName) -> void:
 
 func _on_gold_changed(_new_amount: int, _delta: int) -> void:
 	_refresh()
+
+
+func _on_phase_changed(_old_phase: int, _new_phase: int) -> void:
+	_refresh_loop()
+
+
+func _on_night_started(_night_number: int) -> void:
+	_refresh_loop()
+
+
+func _on_day_started(_day_number: int) -> void:
+	_refresh_loop()
+
+
+func _on_start_night_progress(ratio: float) -> void:
+	_start_night_fill.value = ratio
+
+
+## The prompt shows only by day (D-11); the banner only during the night itself (D-12).
+func _refresh_loop() -> void:
+	var run_manager: RunManager = _ctx.run_manager
+	var by_day: bool = run_manager.get_phase() == RunManager.RunPhase.DAY
+	_start_night_prompt.visible = by_day
+	_start_night_fill.visible = by_day
+	if not by_day:
+		_start_night_fill.value = 0.0
+	_start_night_prompt.text = (
+		"Hold N / (Y) to start Night %d" % (run_manager.get_night_number() + 1)
+	)
+	var at_night: bool = (
+		run_manager.get_phase() == RunManager.RunPhase.NIGHT_TRANSITION
+		or run_manager.get_phase() == RunManager.RunPhase.NIGHT
+	)
+	_phase_banner.visible = at_night
+	_phase_banner.text = "Night %d — no enemies yet" % run_manager.get_night_number()
 
 
 func _refresh() -> void:

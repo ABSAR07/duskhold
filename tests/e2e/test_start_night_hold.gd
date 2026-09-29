@@ -190,6 +190,8 @@ func test_a_fresh_run_starts_in_day_lighting_even_after_a_night() -> void:
 	assert_not_null(lighting, "the Lighting node runs DayNightLighting")
 	if lighting == null:
 		return
+	var day_ambient: float = lighting.day_ambient_energy
+	var day_sun: float = lighting.day_sun_energy
 	_start_night_now(first.get_context())
 	await wait_seconds(lighting.transition_seconds + SETTLE_SLACK_S)
 	first.queue_free()
@@ -199,11 +201,11 @@ func test_a_fresh_run_starts_in_day_lighting_even_after_a_night() -> void:
 
 	assert_almost_eq(
 		_environment(second).ambient_light_energy,
-		lighting.day_ambient_energy,
+		day_ambient,
 		0.01,
 		"the shared scene resource was not left in night lighting"
 	)
-	assert_almost_eq(_sun(second).light_energy, lighting.day_sun_energy, 0.01, "day sun")
+	assert_almost_eq(_sun(second).light_energy, day_sun, 0.01, "day sun")
 
 
 func test_a_build_hold_is_cancelled_when_the_night_starts() -> void:
