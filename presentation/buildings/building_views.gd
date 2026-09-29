@@ -1,8 +1,12 @@
 class_name BuildingViews
 extends Node3D
-## World views for spots, buildings and the castle landmark. Placeholder primitives until the
-## CC0 models (plan 01-07), which swap in at _make_visual.
+## World views for spots, buildings and the castle landmark. A BuildingViewCatalog supplies CC0
+## model scenes (plan 01-07); anything the catalog lacks falls back to a primitive stand-in.
 
+const DEFAULT_CATALOG: BuildingViewCatalog = preload(
+	"res://presentation/buildings/building_view_catalog.tres"
+)
+const VIEW_SOURCE_PRIMITIVE := "primitive"
 const MARKER_RADIUS: float = 1.6
 const MARKER_HEIGHT: float = 0.1
 ## D-02: one building type per plot, so the plot colour says which type it takes.
@@ -21,6 +25,9 @@ const HOUSE_HEIGHT_PER_TIER: float = 0.6
 const TOWER_RADIUS: float = 0.9
 const TOWER_BASE_HEIGHT: float = 3.0
 const TOWER_HEIGHT_PER_TIER: float = 2.0
+
+## Model lookup; assign before bind_run. A null catalog means primitives everywhere.
+@export var catalog: BuildingViewCatalog = DEFAULT_CATALOG
 
 var _ctx: RunContext
 var _views: Dictionary = {}
@@ -41,8 +48,15 @@ func get_view(spot_id: StringName) -> Node3D:
 
 ## Landmark only in Phase 1 (D-03): no health, no interaction.
 func _add_castle(castle_position: Vector3) -> void:
-	var castle: Node3D = Node3D.new()
+	var castle: Node3D = _instance_model(catalog.find_castle() if catalog != null else null)
+	if castle != null:
+		castle.name = "CastleCenter"
+		add_child(castle)
+		castle.position = castle_position
+		return
+	castle = Node3D.new()
 	castle.name = "CastleCenter"
+	castle.set_meta(&"view_source", VIEW_SOURCE_PRIMITIVE)
 	add_child(castle)
 	castle.position = castle_position
 	var keep_mesh: BoxMesh = BoxMesh.new()
@@ -98,9 +112,29 @@ func _on_building_built(spot_id: StringName, building_id: StringName, new_tier: 
 	_views[spot_id] = view
 
 
-## The single seam where a building's look is chosen; plan 01-07 swaps in CC0 models here.
+## The single seam where a building's look is chosen: a catalog model if one is assigned for
+## this building and tier, else the primitive. Meta `view_source` records which.
 func _make_visual(building_id: StringName, tier: int) -> Node3D:
+	if catalog != null:
+		var model: Node3D = _instance_model(catalog.find(building_id, tier))
+		if model != null:
+			return model
+	return _make_primitive_visual(building_id, tier)
+
+
+## Instances a model scene and tags it with its source path; null if there is no scene.
+func _instance_model(scene: PackedScene) -> Node3D:
+	if scene == null:
+		return null
+	var model: Node3D = scene.instantiate() as Node3D
+	if model != null:
+		model.set_meta(&"view_source", scene.resource_path)
+	return model
+
+
+func _make_primitive_visual(building_id: StringName, tier: int) -> Node3D:
 	var view: Node3D = Node3D.new()
+	view.set_meta(&"view_source", VIEW_SOURCE_PRIMITIVE)
 	var body: MeshInstance3D = MeshInstance3D.new()
 	body.name = "Body"
 	var height: float

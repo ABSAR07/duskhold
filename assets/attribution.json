@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "id": "godot-engine",
+      "name": "Godot Engine 4.7.2",
+      "kind": "engine",
+      "license": "MIT",
+      "author": "Godot Engine contributors",
+      "source_url": "https://godotengine.org/",
+      "license_url": "https://godotengine.org/license/",
+      "paths": [],
+      "retrieved": "2026-09-29",
+      "sha256": "",
+      "ships_in_build": true,
+      "notes": "Engine and third-party notices must appear in the Phase 13 credits. The editor and export-template archives are verified by SHA512 against the official SHA512-SUMS.txt (pinned in tools/godot_sha512sums.txt), so no SHA256 is recorded."
+    },
+    {
+      "id": "gut",
+      "name": "GUT (Godot Unit Test) 9.7.1",
+      "kind": "code",
+      "license": "MIT",
+      "author": "Tom \"Butch\" Wesley (bitwes) and contributors",
+      "source_url": "https://github.com/bitwes/Gut/releases/tag/v9.7.1",
+      "license_url": "res://addons/gut/LICENSE.md",
+      "paths": [
+        "res://addons/gut/"
+      ],
+      "retrieved": "2026-09-29",
+      "sha256": "14969aa46adc84aa08cdd21b9f6d1a64addd92ae60b36f02d0521ed305aa4086",
+      "ships_in_build": false,
+      "notes": "Test framework only; excluded from the export by export_presets.cfg (exclude_filter addons/gut/*). sha256 is of the v9.7.1 source zip."
+    }
+  ]
+}

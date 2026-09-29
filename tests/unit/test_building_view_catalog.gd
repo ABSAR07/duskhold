@@ -1,0 +1,69 @@
+extends GutTest
+## The model-swap seam (plan 01-07): catalog lookups and the primitive fallback.
+
+const CATALOG_PATH := "res://presentation/buildings/building_view_catalog.tres"
+
+
+func _scene() -> PackedScene:
+	var root: Node3D = Node3D.new()
+	root.name = "Stub"
+	var scene: PackedScene = PackedScene.new()
+	scene.pack(root)
+	root.free()
+	return scene
+
+
+func _entry(building_id: StringName, tier: int, scene: PackedScene) -> BuildingViewEntry:
+	var entry: BuildingViewEntry = BuildingViewEntry.new()
+	entry.building_id = building_id
+	entry.tier = tier
+	entry.scene = scene
+	return entry
+
+
+func test_find_returns_null_when_absent() -> void:
+	var catalog: BuildingViewCatalog = BuildingViewCatalog.new()
+	assert_null(catalog.find(&"house", 1))
+	assert_null(catalog.find_castle())
+
+
+func test_find_matches_building_and_tier() -> void:
+	var house_1: PackedScene = _scene()
+	var house_2: PackedScene = _scene()
+	var catalog: BuildingViewCatalog = BuildingViewCatalog.new()
+	catalog.entries = [_entry(&"house", 1, house_1), _entry(&"house", 2, house_2)]
+	assert_eq(catalog.find(&"house", 1), house_1)
+	assert_eq(catalog.find(&"house", 2), house_2)
+	assert_null(catalog.find(&"house", 3), "tier without an entry")
+	assert_null(catalog.find(&"tower", 1), "building without an entry")
+
+
+func test_find_castle_returns_the_castle_scene() -> void:
+	var castle: PackedScene = _scene()
+	var catalog: BuildingViewCatalog = BuildingViewCatalog.new()
+	catalog.castle_scene = castle
+	assert_eq(catalog.find_castle(), castle)
+
+
+func test_default_catalog_resource_loads() -> void:
+	var catalog: BuildingViewCatalog = load(CATALOG_PATH)
+	assert_not_null(catalog)
+
+
+func test_views_use_a_catalog_scene_and_fall_back_to_primitive() -> void:
+	var views: BuildingViews = BuildingViews.new()
+	add_child_autofree(views)
+	var catalog: BuildingViewCatalog = BuildingViewCatalog.new()
+	var stub: PackedScene = _scene()
+	catalog.entries = [_entry(&"house", 1, stub)]
+	views.catalog = catalog
+	var modelled: Node3D = views._make_visual(&"house", 1)
+	assert_eq(modelled.get_meta(&"view_source"), stub.resource_path)
+	modelled.free()
+	var fallback: Node3D = views._make_visual(&"house", 2)
+	assert_eq(fallback.get_meta(&"view_source"), BuildingViews.VIEW_SOURCE_PRIMITIVE)
+	fallback.free()
+	views.catalog = null
+	var no_catalog: Node3D = views._make_visual(&"house", 1)
+	assert_eq(no_catalog.get_meta(&"view_source"), BuildingViews.VIEW_SOURCE_PRIMITIVE)
+	no_catalog.free()
