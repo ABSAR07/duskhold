@@ -145,7 +145,7 @@ func test_each_house_spawns_as_many_coins_as_it_pays() -> void:
 		return
 	var amounts: Array[int] = _expected_amounts()
 
-	await wait_process_frames(2)
+	await wait_seconds(EARLY_S)
 
 	assert_eq(vfx.get_spawned_count(HOUSE_ONE), amounts[0], "the tier I House sends its income")
 	assert_eq(vfx.get_spawned_count(HOUSE_TWO), amounts[1], "the tier II House sends its income")

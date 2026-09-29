@@ -5,14 +5,18 @@ extends CanvasLayer
 ## While a hold is dripping, the readout shows the gold the player would have left
 ## (Economy gold minus the coins in flight). This is display only: Economy stays
 ## all-or-nothing and only changes when a BuildIntent is accepted (D-06).
+## At dawn the Economy is credited at once, but the readout stays behind by the gold whose coins
+## are still flying in, and ticks up as each one lands (D-12).
 
 var _ctx: RunContext
 var _pending: int = 0
+var _payout_pending: int = 0
 
 @onready var _gold_label: Label = %GoldLabel
 @onready var _start_night_prompt: Label = %StartNightPrompt
 @onready var _start_night_fill: ProgressBar = %StartNightFill
 @onready var _phase_banner: Label = %PhaseBanner
+@onready var _payout_vfx: DawnPayoutVfx = %DawnPayoutVfx
 
 
 func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
@@ -25,6 +29,11 @@ func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
 	ctx.events.phase_changed.connect(_on_phase_changed)
 	ctx.events.night_started.connect(_on_night_started)
 	ctx.events.day_started.connect(_on_day_started)
+	ctx.events.dawn_payout.connect(_on_dawn_payout)
+	# bind_run can run again on this HUD when a second map joins the tree (call_group hits every
+	# run_bound node); the vfx outlives a run, so its signal must not be connected twice.
+	if not _payout_vfx.coin_landed.is_connected(_on_coin_landed):
+		_payout_vfx.coin_landed.connect(_on_coin_landed)
 	var start_night_hold: StartNightHoldController = (
 		map_root.find_child("StartNightHold", true, false) as StartNightHoldController
 	)
@@ -50,6 +59,16 @@ func _on_hold_completed(_spot_id: StringName) -> void:
 
 
 func _on_gold_changed(_new_amount: int, _delta: int) -> void:
+	_refresh()
+
+
+func _on_dawn_payout(total: int, _per_spot: Dictionary) -> void:
+	_payout_pending = maxi(total, 0)
+	_refresh()
+
+
+func _on_coin_landed() -> void:
+	_payout_pending = maxi(_payout_pending - 1, 0)
 	_refresh()
 
 
@@ -89,4 +108,4 @@ func _refresh_loop() -> void:
 
 
 func _refresh() -> void:
-	_gold_label.text = "Gold: %d" % (_ctx.economy.get_gold() - _pending)
+	_gold_label.text = "Gold: %d" % (_ctx.economy.get_gold() - _pending - _payout_pending)
