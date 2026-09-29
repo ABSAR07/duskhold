@@ -123,3 +123,5 @@ func test_tower_view_is_a_cylinder_and_house_view_a_box_that_grows_with_tier() -
 	ctx.commands.submit(BuildIntent.new(house_spot))
 	var tier_two_box: BoxMesh = _body_mesh(views.get_view(house_spot)) as BoxMesh
 	assert_gt(tier_two_box.size.y, tier_one_height, "a higher tier House is taller")
+	# Let the replaced tier I view finish its queue_free before GUT counts orphans.
+	await wait_process_frames(1)
