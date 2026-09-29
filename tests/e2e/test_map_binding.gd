@@ -33,7 +33,25 @@ func test_a_second_map_does_not_duplicate_the_first_maps_views() -> void:
 	assert_eq(views.get_child_count(), children_before, "no extra markers on the first map")
 
 
-func test_a_second_map_does_not_hear_the_first_maps_phase_changes() -> void:
+func test_a_second_maps_night_does_not_reach_the_first_map() -> void:
+	var first: MapRoot = await E2eSupport.spawn_map(self)
+	var second: MapRoot = await E2eSupport.spawn_map(self)
+	var first_ctx: RunContext = first.get_context()
+	var second_ctx: RunContext = second.get_context()
+	var first_lighting: DayNightLighting = first.get_node("Lighting") as DayNightLighting
+	var second_lighting: DayNightLighting = second.get_node("Lighting") as DayNightLighting
+	assert_eq(first_lighting.get_mood(), &"day", "the first map starts in day lighting")
+
+	var result: StringName = second_ctx.commands.submit(StartNightIntent.new())
+	await wait_process_frames(2)
+
+	assert_eq(result, CommandProcessor.OK, "the second map starts its night")
+	assert_eq(second_lighting.get_mood(), &"night", "the second map's lighting follows its phase")
+	assert_eq(first_ctx.run_manager.get_phase(), RunManager.RunPhase.DAY, "first map still day")
+	assert_eq(first_lighting.get_mood(), &"day", "the first map's lighting did not follow")
+
+
+func test_a_third_map_does_not_rebind_the_first_maps_hud() -> void:
 	var first: MapRoot = await E2eSupport.spawn_map(self)
 	var second: MapRoot = await E2eSupport.spawn_map(self)
 	var first_gold_before: int = first.get_context().economy.get_gold()
