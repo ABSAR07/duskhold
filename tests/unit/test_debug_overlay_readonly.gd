@@ -126,3 +126,16 @@ func test_a_freed_section_provider_is_skipped_instead_of_crashing() -> void:
 
 	assert_eq(_section(sections, "Ghost"), {}, "the invalid provider's section is left out")
 	assert_eq(_row_value(_section(sections, "Live"), "Answer"), "42", "valid sections still show")
+
+
+func test_a_provider_that_returns_a_non_array_is_skipped_instead_of_crashing() -> void:
+	var model: DebugOverlayModel = DebugOverlayModel.new(_prototype_with_one_house())
+	model.register_section("Null", func() -> Variant: return null)
+	model.register_section("Text", func() -> Variant: return "not rows")
+	model.register_section("Live", func() -> Array: return [["Answer", "42"]])
+
+	var sections: Array = model.collect(60.0)
+
+	assert_eq(_section(sections, "Null"), {}, "a null return leaves its section out")
+	assert_eq(_section(sections, "Text"), {}, "a non-Array return leaves its section out")
+	assert_eq(_row_value(_section(sections, "Live"), "Answer"), "42", "valid sections still show")

@@ -32,7 +32,9 @@ func collect(fps: float) -> Array:
 		if not provider.is_valid():
 			# A freed owner leaves an invalid Callable; skip it instead of crashing every refresh.
 			continue
-		sections.append(_section(entry["title"], provider.call()))
+		var rows: Variant = provider.call()
+		if rows is Array:
+			sections.append(_section(entry["title"], rows))
 	return sections
 
 
