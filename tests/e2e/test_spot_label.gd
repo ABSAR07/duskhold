@@ -113,9 +113,7 @@ func test_the_label_hides_when_building_is_not_allowed() -> void:
 	await _stand_near(map_root, HOUSE_SPOT)
 	assert_true(label.visible, "visible by day")
 
-	# Plan 01-08 adds the real night transition; until then force the phase and announce it.
-	ctx.run_manager._phase = RunManager.RunPhase.NIGHT
-	ctx.events.phase_changed.emit(RunManager.RunPhase.DAY, RunManager.RunPhase.NIGHT)
+	assert_eq(ctx.commands.submit(StartNightIntent.new()), CommandProcessor.OK, "night started")
 	await wait_process_frames(2)
 	assert_false(label.visible, "no label at night")
 

@@ -211,8 +211,7 @@ func test_a_hold_is_refunded_if_building_stops_being_allowed_mid_hold() -> void:
 	)
 	assert_true(dripped, "at least one coin dripped by day")
 	var paid: int = hold.get_coins_paid()
-	# Plan 01-08 adds the real night transition; until then force the phase directly.
-	ctx.run_manager._phase = RunManager.RunPhase.NIGHT
+	assert_eq(ctx.commands.submit(StartNightIntent.new()), CommandProcessor.OK, "night started")
 	await wait_process_frames(2)
 
 	assert_signal_emitted_with_parameters(hold, "hold_cancelled", [SPOT, paid])

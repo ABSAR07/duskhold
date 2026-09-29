@@ -117,9 +117,7 @@ func test_build_is_revalidated_when_applied_outside_day() -> void:
 	assert_eq(ctx.commands.validate_build(spot_id), CommandProcessor.OK, "valid during the day")
 	var start_gold: int = ctx.economy.get_gold()
 	# A stale input-layer view (validated by day) must not slip through once it is not day.
-	# RunManager has no public way to leave DAY until plan 01-08 adds start_night; that plan
-	# should replace this direct phase write with the public call.
-	ctx.run_manager._phase = RunManager.RunPhase.NIGHT
+	assert_eq(ctx.commands.submit(StartNightIntent.new()), CommandProcessor.OK, "night started")
 
 	var result: StringName = ctx.commands.submit(BuildIntent.new(spot_id))
 

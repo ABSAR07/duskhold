@@ -19,7 +19,7 @@ func _init(map_config: MapConfig, loop_tuning: LoopTuning) -> void:
 	events = SimEvents.new()
 	economy = Economy.new(events, map_config.starting_gold)
 	buildings = BuildingSystem.new(map_config, events)
-	run_manager = RunManager.new(events)
+	run_manager = RunManager.new(events, economy, buildings, tuning)
 	commands = CommandProcessor.new(economy, buildings, run_manager, events)
 
 

@@ -6,3 +6,6 @@
 script = ExtResource("1_tuning")
 coin_drip_interval = 0.2
 interaction_radius = 2.5
+start_night_hold_seconds = 1.5
+placeholder_night_seconds = 4.0
+dawn_seconds = 2.0

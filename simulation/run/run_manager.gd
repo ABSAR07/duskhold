@@ -1,17 +1,31 @@
 class_name RunManager
 extends RefCounted
 ## Sole owner of the run phase. `tick` is the only time source for the simulation.
-## Plan 01-08 adds start_night and the timed NIGHT and DAWN phases to this same class.
+## The loop is DAY -> NIGHT_TRANSITION -> NIGHT -> DAWN -> DAY. It leaves DAY only through
+## `start_night` (the deliberate hold-to-confirm input, D-11) and makes at most one phase change
+## per `tick`. Phase 2 fills the same NIGHT and DAWN states with real waves instead of replacing
+## them: only `_night_should_end` and `_apply_dawn_payout` change.
 
 enum RunPhase { DAY, NIGHT_TRANSITION, NIGHT, DAWN }
 
 var _events: SimEvents
+var _economy: Economy
+var _buildings: BuildingSystem
+var _tuning: LoopTuning
 var _phase: RunPhase = RunPhase.DAY
 var _elapsed: float = 0.0
+var _phase_elapsed: float = 0.0
+var _day_number: int = 1
+var _night_number: int = 0
 
 
-func _init(events: SimEvents) -> void:
+func _init(
+	events: SimEvents, economy: Economy, buildings: BuildingSystem, tuning: LoopTuning
+) -> void:
 	_events = events
+	_economy = economy
+	_buildings = buildings
+	_tuning = tuning
 
 
 func get_phase() -> RunPhase:
@@ -27,23 +41,77 @@ func get_elapsed() -> float:
 	return _elapsed
 
 
-## Advances simulation time. No timed phase is active yet, so only the clock moves.
-func tick(delta: float) -> void:
-	_elapsed += maxf(delta, 0.0)
-
-
-## Placeholder until the loop lands: always refuses.
-func start_night() -> bool:
-	return false
-
-
+## 1 on the first day; grows by one each time dawn hands over to a new day.
 func get_day_number() -> int:
-	return 0
+	return _day_number
 
 
+## Number of nights started so far (0 before the first).
 func get_night_number() -> int:
-	return 0
+	return _night_number
 
 
+## Seconds left in the current timed phase (NIGHT or DAWN); 0.0 by day.
 func get_phase_time_remaining() -> float:
+	match _phase:
+		RunPhase.NIGHT:
+			return maxf(_tuning.placeholder_night_seconds - _phase_elapsed, 0.0)
+		RunPhase.DAWN:
+			return maxf(_tuning.dawn_seconds - _phase_elapsed, 0.0)
 	return 0.0
+
+
+## Ends the day. Only legal from DAY; returns false and changes nothing otherwise. Phase 1 has no
+## waves to spawn, so NIGHT_TRANSITION passes through to NIGHT within the same call.
+func start_night() -> bool:
+	if _phase != RunPhase.DAY:
+		return false
+	_night_number += 1
+	_change_phase(RunPhase.NIGHT_TRANSITION)
+	_change_phase(RunPhase.NIGHT)
+	_events.night_started.emit(_night_number)
+	return true
+
+
+## Advances simulation time and performs at most one phase transition.
+func tick(delta: float) -> void:
+	var step: float = maxf(delta, 0.0)
+	_elapsed += step
+	match _phase:
+		RunPhase.NIGHT:
+			_phase_elapsed += step
+			if _night_should_end():
+				_enter_dawn()
+		RunPhase.DAWN:
+			_phase_elapsed += step
+			if _phase_elapsed >= _tuning.dawn_seconds:
+				_enter_day()
+
+
+## Phase 1 night is an enemy-free placeholder timer (D-12). Phase 2 replaces this one body with
+## "every enemy is dead" (LOOP-03).
+func _night_should_end() -> bool:
+	return _phase_elapsed >= _tuning.placeholder_night_seconds
+
+
+func _enter_dawn() -> void:
+	_change_phase(RunPhase.DAWN)
+	_apply_dawn_payout()
+
+
+func _enter_day() -> void:
+	_day_number += 1
+	_change_phase(RunPhase.DAY)
+	_events.day_started.emit(_day_number)
+
+
+## Pays dawn income. Filled in by the dawn-income task; Phase 2 extends it with the dawn rebuild.
+func _apply_dawn_payout() -> void:
+	pass
+
+
+func _change_phase(new_phase: RunPhase) -> void:
+	var old_phase: RunPhase = _phase
+	_phase = new_phase
+	_phase_elapsed = 0.0
+	_events.phase_changed.emit(old_phase, new_phase)

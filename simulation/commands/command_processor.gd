@@ -44,7 +44,16 @@ func validate_build(spot_id: StringName) -> StringName:
 func submit(intent: RefCounted) -> StringName:
 	if intent is BuildIntent:
 		return _submit_build(intent as BuildIntent)
+	if intent is StartNightIntent:
+		return _submit_start_night()
 	return UNKNOWN_INTENT
+
+
+func _submit_start_night() -> StringName:
+	if not _run_manager.is_build_allowed() or not _run_manager.start_night():
+		_events.command_rejected.emit(&"start_night", &"", NOT_DAY)
+		return NOT_DAY
+	return OK
 
 
 func _submit_build(intent: BuildIntent) -> StringName:

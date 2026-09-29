@@ -84,8 +84,7 @@ func test_pressing_at_night_is_denied_with_not_day() -> void:
 	var hold: BuildHoldController = map_root.get_build_hold()
 	var gold_before: int = ctx.economy.get_gold()
 	await _stand_at(map_root, MAX_SPOT)
-	# Plan 01-08 adds the real night transition; until then force the phase directly.
-	ctx.run_manager._phase = RunManager.RunPhase.NIGHT
+	assert_eq(ctx.commands.submit(StartNightIntent.new()), CommandProcessor.OK, "night started")
 	watch_signals(hold)
 
 	await E2eSupport.hold_action_seconds(self, &"action_build", HOLD_SECONDS)
