@@ -1,0 +1,63 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_fantasy_town_kit/models/wall-door.glb" id="1_wall_door"]
+
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_fantasy_town_kit/models/wall-window-shutters.glb" id="2_wall_window_shutters"]
+
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_fantasy_town_kit/models/wall-window-small.glb" id="3_wall_window_small"]
+
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_fantasy_town_kit/models/wall.glb" id="4_wall"]
+
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_fantasy_town_kit/models/roof-high-gable.glb" id="5_roof_high_gable"]
+
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_fantasy_town_kit/models/chimney.glb" id="6_chimney"]
+
+[node name="HouseT3" type="Node3D"]
+
+[node name="Model" type="Node3D" parent="."]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)
+
+[node name="WallS1" parent="Model" instance=ExtResource("1_wall_door")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -0.5, 0, 0)
+
+[node name="WallS2" parent="Model" instance=ExtResource("2_wall_window_shutters")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 0.5, 0, 0)
+
+[node name="WallN1" parent="Model" instance=ExtResource("3_wall_window_small")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -0.5, 0, 0)
+
+[node name="WallN2" parent="Model" instance=ExtResource("3_wall_window_small")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 0.5, 0, 0)
+
+[node name="WallE" parent="Model" instance=ExtResource("3_wall_window_small")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0, 0)
+
+[node name="WallW" parent="Model" instance=ExtResource("4_wall")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -0.5, 0, 0)
+
+[node name="UpS1" parent="Model" instance=ExtResource("2_wall_window_shutters")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -0.5, 1, 0)
+
+[node name="UpS2" parent="Model" instance=ExtResource("2_wall_window_shutters")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 0.5, 1, 0)
+
+[node name="UpN1" parent="Model" instance=ExtResource("3_wall_window_small")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -0.5, 1, 0)
+
+[node name="UpN2" parent="Model" instance=ExtResource("3_wall_window_small")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 0.5, 1, 0)
+
+[node name="UpE" parent="Model" instance=ExtResource("3_wall_window_small")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 1, 0)
+
+[node name="UpW" parent="Model" instance=ExtResource("3_wall_window_small")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -0.5, 1, 0)
+
+[node name="Roof1" parent="Model" instance=ExtResource("5_roof_high_gable")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, 2, 0)
+
+[node name="Roof2" parent="Model" instance=ExtResource("5_roof_high_gable")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 2, 0)
+
+[node name="Chimney" parent="Model" instance=ExtResource("6_chimney")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 2.3, -0.32)

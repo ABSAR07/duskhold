@@ -1,0 +1,28 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/third_party/quaternius_horse/horse_animated.glb" id="1_horse"]
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_mini_characters/models/character-male-b.glb" id="2_rider"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_crown"]
+albedo_color = Color(1, 0.82, 0.25, 1)
+metallic = 0.6
+roughness = 0.35
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_crown"]
+material = SubResource("StandardMaterial3D_crown")
+top_radius = 0.2
+bottom_radius = 0.17
+height = 0.08
+radial_segments = 8
+
+[node name="KingModel" type="Node3D"]
+
+[node name="Horse" parent="." instance=ExtResource("1_horse")]
+transform = Transform3D(0.42, 0, 0, 0, 0.42, 0, 0, 0, 0.42, 0, 0, 0)
+
+[node name="Rider" parent="." instance=ExtResource("2_rider")]
+transform = Transform3D(1.6, 0, 0, 0, 1.6, 0, 0, 0, 1.6, 0, 1.4, 0.15)
+
+[node name="Crown" type="MeshInstance3D" parent="Rider"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.72, 0)
+mesh = SubResource("CylinderMesh_crown")

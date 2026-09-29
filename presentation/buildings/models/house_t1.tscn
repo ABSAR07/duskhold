@@ -1,0 +1,29 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_fantasy_town_kit/models/wall-window-small.glb" id="1_wall_window_small"]
+
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_fantasy_town_kit/models/wall-door.glb" id="2_wall_door"]
+
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_fantasy_town_kit/models/wall.glb" id="3_wall"]
+
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_fantasy_town_kit/models/roof-gable.glb" id="4_roof_gable"]
+
+[node name="HouseT1" type="Node3D"]
+
+[node name="Model" type="Node3D" parent="."]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)
+
+[node name="WallE" parent="Model" instance=ExtResource("1_wall_window_small")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="WallS" parent="Model" instance=ExtResource("2_wall_door")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 0, 0, 0)
+
+[node name="WallW" parent="Model" instance=ExtResource("1_wall_window_small")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
+
+[node name="WallN" parent="Model" instance=ExtResource("3_wall")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 0, 0, 0)
+
+[node name="Roof1" parent="Model" instance=ExtResource("4_roof_gable")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)

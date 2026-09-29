@@ -1,6 +1,45 @@
-[gd_resource type="Resource" script_class="BuildingViewCatalog" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="BuildingViewCatalog" load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://presentation/buildings/building_view_catalog.gd" id="1_catalog"]
+[ext_resource type="Script" path="res://presentation/buildings/building_view_entry.gd" id="2_entry"]
+[ext_resource type="PackedScene" path="res://presentation/buildings/models/house_t1.tscn" id="3_house_t1"]
+[ext_resource type="PackedScene" path="res://presentation/buildings/models/house_t2.tscn" id="4_house_t2"]
+[ext_resource type="PackedScene" path="res://presentation/buildings/models/house_t3.tscn" id="5_house_t3"]
+[ext_resource type="PackedScene" path="res://presentation/buildings/models/tower_t1.tscn" id="6_tower_t1"]
+[ext_resource type="PackedScene" path="res://presentation/buildings/models/tower_t2.tscn" id="7_tower_t2"]
+[ext_resource type="PackedScene" path="res://presentation/buildings/models/castle_center.tscn" id="8_castle_center"]
+
+[sub_resource type="Resource" id="Resource_house_t1"]
+script = ExtResource("2_entry")
+building_id = &"house"
+tier = 1
+scene = ExtResource("3_house_t1")
+
+[sub_resource type="Resource" id="Resource_house_t2"]
+script = ExtResource("2_entry")
+building_id = &"house"
+tier = 2
+scene = ExtResource("4_house_t2")
+
+[sub_resource type="Resource" id="Resource_house_t3"]
+script = ExtResource("2_entry")
+building_id = &"house"
+tier = 3
+scene = ExtResource("5_house_t3")
+
+[sub_resource type="Resource" id="Resource_tower_t1"]
+script = ExtResource("2_entry")
+building_id = &"tower"
+tier = 1
+scene = ExtResource("6_tower_t1")
+
+[sub_resource type="Resource" id="Resource_tower_t2"]
+script = ExtResource("2_entry")
+building_id = &"tower"
+tier = 2
+scene = ExtResource("7_tower_t2")
 
 [resource]
 script = ExtResource("1_catalog")
+entries = Array[ExtResource("2_entry")]([SubResource("Resource_house_t1"), SubResource("Resource_house_t2"), SubResource("Resource_house_t3"), SubResource("Resource_tower_t1"), SubResource("Resource_tower_t2")])
+castle_scene = ExtResource("8_castle_center")

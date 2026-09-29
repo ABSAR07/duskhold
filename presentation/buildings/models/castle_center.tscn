@@ -1,0 +1,66 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_castle_kit/models/tower-square-base.glb" id="1_tower_square_base"]
+
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_castle_kit/models/tower-square-mid-windows.glb" id="2_tower_square_mid_windows"]
+
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_castle_kit/models/tower-square-top-roof-high.glb" id="3_tower_square_top_roof_high"]
+
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_castle_kit/models/flag.glb" id="4_flag"]
+
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_castle_kit/models/tower-square-top-roof.glb" id="5_tower_square_top_roof"]
+
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_castle_kit/models/wall.glb" id="6_wall"]
+
+[node name="CastleCenter" type="Node3D"]
+
+[node name="Model" type="Node3D" parent="."]
+transform = Transform3D(2.4, 0, 0, 0, 2.4, 0, 0, 0, 2.4, 0, 0, 0)
+
+[node name="KeepBase" parent="Model" instance=ExtResource("1_tower_square_base")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="KeepMid" parent="Model" instance=ExtResource("2_tower_square_mid_windows")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="KeepRoof" parent="Model" instance=ExtResource("3_tower_square_top_roof_high")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+
+[node name="KeepFlag" parent="Model" instance=ExtResource("4_flag")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.35, 0)
+
+[node name="TurretWNBase" parent="Model" instance=ExtResource("1_tower_square_base")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, -1)
+
+[node name="TurretWNRoof" parent="Model" instance=ExtResource("5_tower_square_top_roof")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1, -1)
+
+[node name="TurretWSBase" parent="Model" instance=ExtResource("1_tower_square_base")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 1)
+
+[node name="TurretWSRoof" parent="Model" instance=ExtResource("5_tower_square_top_roof")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1, 1)
+
+[node name="TurretENBase" parent="Model" instance=ExtResource("1_tower_square_base")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, -1)
+
+[node name="TurretENRoof" parent="Model" instance=ExtResource("5_tower_square_top_roof")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, -1)
+
+[node name="TurretESBase" parent="Model" instance=ExtResource("1_tower_square_base")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1)
+
+[node name="TurretESRoof" parent="Model" instance=ExtResource("5_tower_square_top_roof")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1)
+
+[node name="WallS" parent="Model" instance=ExtResource("6_wall")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1)
+
+[node name="WallN" parent="Model" instance=ExtResource("6_wall")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
+
+[node name="WallE" parent="Model" instance=ExtResource("6_wall")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1, 0, 0)
+
+[node name="WallW" parent="Model" instance=ExtResource("6_wall")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1, 0, 0)

@@ -100,15 +100,18 @@ func test_markers_are_colour_coded_by_building_type() -> void:
 	assert_ne(house_color, tower_color, "House and tower plots read differently at a glance")
 
 
-func test_tower_view_is_a_cylinder_and_house_view_a_box_that_grows_with_tier() -> void:
+## Plan 01-07 ships CC0 models in the default catalog, so this test clears the catalog to keep
+## covering the primitive fallback (a tier the catalog lacks); test_building_models covers models.
+func test_primitive_fallback_tower_is_a_cylinder_and_house_a_box_that_grows_with_tier() -> void:
 	var map_root: MapRoot = await _spawn_map()
 	var ctx: RunContext = map_root.get_context()
+	var views: BuildingViews = map_root.get_node("BuildingViews")
+	views.catalog = null
 	ctx.economy.grant(EXTRA_GOLD)
 	var house_spot: StringName = &"house_1"
 	var tower_spot: StringName = &"tower_1"
 	ctx.commands.submit(BuildIntent.new(house_spot))
 	ctx.commands.submit(BuildIntent.new(tower_spot))
-	var views: BuildingViews = map_root.get_node("BuildingViews")
 
 	var tower_view: Node3D = views.get_view(tower_spot)
 	assert_not_null(tower_view, "the tower has a view")

@@ -1,0 +1,25 @@
+Horse (animated) - Quaternius, 2021
+File: horse_animated.glb
+
+This folder's licence notice was written by the Duskhold project; the model file itself
+carries no embedded licence text.
+
+Source
+  Poly Pizza model page : https://poly.pizza/m/qvTrSG9pZF
+  Direct download       : https://static.poly.pizza/d37dbc87-ca61-4b2c-a2da-d2f0c4240bef.glb
+  Original pack         : "Ultimate Animated Animals" by Quaternius (2021)
+                          https://quaternius.com/packs/ultimateanimatedanimals.html
+  Retrieved             : 2026-09-29
+
+Licence evidence (checked 2026-09-29)
+  Poly Pizza page states: "Public Domain (CC0)" and links
+    https://creativecommons.org/publicdomain/zero/1.0/
+  The 2021 pack page on quaternius.com states: "License CC0".
+  Quaternius's licence page (https://quaternius.com/license.html) now shows the
+  "Quaternius Asset License (QAL) v1.0", last updated 8/28/2026. It forbids redistributing
+  "the Assets themselves ... as a standalone asset" and says "the version in effect at the
+  time you obtained the Assets governs your use of them". This model was obtained as CC0
+  (Poly Pizza page and the 2021 pack page above), so it is recorded here as CC0-1.0. It is
+  used inside a game and is not redistributed as a standalone asset.
+
+Licence: Creative Commons Zero 1.0 (CC0-1.0), https://creativecommons.org/publicdomain/zero/1.0/

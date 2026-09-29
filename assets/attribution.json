@@ -30,6 +30,70 @@
       "sha256": "14969aa46adc84aa08cdd21b9f6d1a64addd92ae60b36f02d0521ed305aa4086",
       "ships_in_build": false,
       "notes": "Test framework only; excluded from the export by export_presets.cfg (exclude_filter addons/gut/*). sha256 is of the v9.7.1 source zip."
+    },
+    {
+      "id": "kenney-castle-kit",
+      "name": "Kenney Castle Kit 2.0",
+      "kind": "model",
+      "license": "CC0-1.0",
+      "author": "Kenney (www.kenney.nl)",
+      "source_url": "https://kenney.nl/assets/castle-kit",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "paths": [
+        "res://assets/third_party/kenney_castle_kit/"
+      ],
+      "retrieved": "2026-09-29",
+      "sha256": "921f3f73927bb23106cae34bc21d5ab4b033a9fc120475e96f714a406e3169df",
+      "ships_in_build": true,
+      "notes": "Author's asset page states CC0 (https://kenney.nl/assets/castle-kit); the pack's own License.txt is kept beside the files (CC0, the basic tower tiers I-II and the castle center). Archive downloaded from https://kenney.nl/media/pages/assets/castle-kit/a395102d20-1711543616/kenney_castle-kit.zip (2232589 bytes); sha256 is of that zip. Kept files (GLBs in models/ plus Textures/colormap.png): tower-square-base, tower-square-mid, tower-square-mid-windows, tower-square-top-roof, tower-square-top-roof-high, wall, flag. Used for Castle Kit 2.0. Attribution to Kenney is optional under CC0; the Phase 13 credits still list it."
+    },
+    {
+      "id": "kenney-fantasy-town-kit",
+      "name": "Kenney Fantasy Town Kit 2.0",
+      "kind": "model",
+      "license": "CC0-1.0",
+      "author": "Kenney (www.kenney.nl)",
+      "source_url": "https://kenney.nl/assets/fantasy-town-kit",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "paths": [
+        "res://assets/third_party/kenney_fantasy_town_kit/"
+      ],
+      "retrieved": "2026-09-29",
+      "sha256": "1a7530c09f4d2fa2cdee259876f089334f8b1f27fa86a0c4f54ef86cdd8676ef",
+      "ships_in_build": true,
+      "notes": "Author's asset page states CC0 (https://kenney.nl/assets/fantasy-town-kit); the pack's own License.txt is kept beside the files (CC0, House tiers I-III (composed from wall and roof pieces in text wrapper scenes; the kit has no complete house model)). Archive downloaded from https://kenney.nl/media/pages/assets/fantasy-town-kit/efe948d309-1754222374/kenney_fantasy-town-kit_2.0.zip (3854691 bytes); sha256 is of that zip. Kept files (GLBs in models/ plus Textures/colormap.png): wall, wall-door, wall-window-small, wall-window-shutters, roof-gable, roof-high-gable, chimney. Used for Fantasy Town Kit 2.0. Attribution to Kenney is optional under CC0; the Phase 13 credits still list it."
+    },
+    {
+      "id": "kenney-mini-characters",
+      "name": "Kenney Mini Characters 1.0",
+      "kind": "model",
+      "license": "CC0-1.0",
+      "author": "Kenney (www.kenney.nl)",
+      "source_url": "https://kenney.nl/assets/mini-characters",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "paths": [
+        "res://assets/third_party/kenney_mini_characters/"
+      ],
+      "retrieved": "2026-09-29",
+      "sha256": "9e1d48e6d7b8479ebbe84df71eb5bd8e1b3f0da546dea641890dccc8a02d0999",
+      "ships_in_build": true,
+      "notes": "Author's asset page states CC0 (https://kenney.nl/assets/mini-characters); the pack's own License.txt is kept beside the files (CC0, the king's rider (no crowned figure exists in the pack; a small gold crown primitive is added in king_model.tscn)). Archive downloaded from https://kenney.nl/media/pages/assets/mini-characters/bfc7e272b4-1774770718/kenney_mini-characters.zip (2403059 bytes); sha256 is of that zip. Kept files (GLBs in models/ plus Textures/colormap.png): character-male-b. Used for Mini Characters 1.0. Attribution to Kenney is optional under CC0; the Phase 13 credits still list it."
+    },
+    {
+      "id": "quaternius-horse",
+      "name": "Horse (animated), Quaternius 2021",
+      "kind": "model",
+      "license": "CC0-1.0",
+      "author": "Quaternius",
+      "source_url": "https://poly.pizza/m/qvTrSG9pZF",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "paths": [
+        "res://assets/third_party/quaternius_horse/"
+      ],
+      "retrieved": "2026-09-29",
+      "sha256": "fae7a7ec91e0d6a33554efb896fac9c4e8c632644183bcb8cc962f673d3ce609",
+      "ships_in_build": true,
+      "notes": "Single GLB downloaded from https://static.poly.pizza/d37dbc87-ca61-4b2c-a2da-d2f0c4240bef.glb (1108124 bytes); sha256 is of that file (no archive). Licence evidence, checked 2026-09-29: the Poly Pizza page states \"Public Domain (CC0)\" and links creativecommons.org/publicdomain/zero/1.0/; the 2021 pack page https://quaternius.com/packs/ultimateanimatedanimals.html states \"License CC0\". Caveat: quaternius.com/license.html now shows the \"Quaternius Asset License (QAL) v1.0\", last updated 8/28/2026, which forbids redistributing \"the Assets themselves ... as a standalone asset\" and says \"the version in effect at the time you obtained the Assets governs your use of them\". The model was obtained as CC0 and is used inside a game, not redistributed standalone. The folder's License.txt records this evidence. Used for the king's horse."
     }
   ]
 }
