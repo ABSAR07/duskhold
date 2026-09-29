@@ -2,7 +2,8 @@ name: CI
 
 # Runs on every push to any branch (no path filters: a push that touches no GDScript still runs
 # all jobs), on pull requests, and on demand. lint and test are independent; export runs only
-# after both succeed. The token is read-only and no secrets are used anywhere.
+# after both succeed. The token is read-only and no secrets are used anywhere. Every action is
+# pinned to a full commit SHA (the trailing comment names the release); bump SHA and comment together.
 on:
   push:
     branches: ["**"]
@@ -22,10 +23,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           lfs: false
-      - uses: actions/setup-python@v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
       - name: Install gdtoolkit (pinned)
@@ -38,23 +39,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           lfs: false
       - name: List LFS objects for the cache key
         run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-assets-id
       - name: Cache LFS objects
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .git/lfs
           key: lfs-${{ hashFiles('.lfs-assets-id') }}
       - name: Pull LFS objects
         run: git lfs pull
-      - uses: actions/setup-python@v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
       - name: Cache pinned Godot editor
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .tools/godot
           key: godot-editor-linux-${{ hashFiles('tools/godot_version.txt', 'tools/godot_sha512sums.txt') }}
@@ -64,7 +65,7 @@ jobs:
         run: bash tools/test.sh
       - name: Upload GUT results
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: gut-results
           path: build/test-results/
@@ -76,23 +77,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           lfs: false
       - name: List LFS objects for the cache key
         run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-assets-id
       - name: Cache LFS objects
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .git/lfs
           key: lfs-${{ hashFiles('.lfs-assets-id') }}
       - name: Pull LFS objects
         run: git lfs pull
-      - uses: actions/setup-python@v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
       - name: Cache pinned Godot editor and Windows export templates
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .tools/godot
           key: godot-linux-with-templates-${{ hashFiles('tools/godot_version.txt', 'tools/godot_sha512sums.txt') }}
@@ -101,7 +102,7 @@ jobs:
       - name: Export Windows build
         run: bash tools/export.sh
       - name: Upload Windows build
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: duskhold-windows
           path: build/windows/
@@ -114,23 +115,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           lfs: false
       - name: List LFS objects for the cache key
         run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-assets-id
       - name: Cache LFS objects
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .git/lfs
           key: lfs-${{ hashFiles('.lfs-assets-id') }}
       - name: Pull LFS objects
         run: git lfs pull
-      - uses: actions/setup-python@v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
       - name: Cache pinned Godot editor
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .tools/godot
           key: godot-editor-linux-${{ hashFiles('tools/godot_version.txt', 'tools/godot_sha512sums.txt') }}
@@ -146,7 +147,7 @@ jobs:
         env:
           DUSKHOLD_SCREENSHOT_COMPAT: "1"
       - name: Upload screenshots
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: duskhold-screenshots
           path: screenshots/*.png
