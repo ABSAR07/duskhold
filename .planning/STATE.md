@@ -1,17 +1,18 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 1
+current_phase: 01
 current_phase_name: Foundation & Day Loop
 status: executing
-stopped_at: Phase 1 context gathered
-last_updated: "2026-09-28T22:37:51.673Z"
-last_activity: "2026-09-29: Roadmap revised (old Phase 1 split into Phases 1–2; 13 phases, 85/85 v1 requirements mapped)"
-state_head: 100dc65298664be8799ac3b53c81ceb5131bf4a5
+stopped_at: Completed 01-01-PLAN.md
+last_updated: "2026-09-29T04:21:50.179Z"
+last_activity: 2026-09-29
+last_activity_desc: Phase 01 execution started
+state_head: 804dcda821b9831c76d3878ec00c2326b7221584
 progress:
   total_phases: 13
   completed_phases: 0
   total_plans: 10
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -22,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-28)
 
 **Core value:** The day/night build-then-defend loop must feel as tight and satisfying as Thronefall's, with meaningful gold trade-offs by day and readable, tense defense by night. It must be fun on a single map with zero meta-progression.
-**Current focus:** Phase 1: Foundation & Day Loop
+**Current focus:** Phase 01 — Foundation & Day Loop
 
 ## Current Position
 
-Phase: 1 (Foundation & Day Loop) — READY TO EXECUTE
-Plan: 0 of TBD in current phase
+Phase: 01 (Foundation & Day Loop) — EXECUTING
+Plan: 2 of 10
 Status: Ready to execute
-Last activity: 2026-09-29: Roadmap revised (old Phase 1 split into Phases 1–2; 13 phases, 85/85 v1 requirements mapped)
+Last activity: 2026-09-29 — Phase 01 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -51,6 +52,11 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: -
 
 *Updated after each plan completion*
+**Per-Plan Metrics:**
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 01 P01 | 2h 41m | 3 tasks | 279 files |
 
 ## Accumulated Context
 
@@ -66,6 +72,9 @@ Recent decisions affecting current work:
 - [Roadmap]: META-08 stat-modifier order lands in Phase 5 with the first buffs, and META-09 save versioning lands in Phase 9 with the first save; later phases extend both
 - [Roadmap]: Scoring stabilizes in Phase 9 before mutators are tuned in Phase 10 (second playtest gate)
 - [Roadmap]: Research buildings are isolated in Phase 12 as the designated scope cut; no other phase depends on them
+- [Phase 01]: [01-01] Phase 1 work lands on branch gsd/phase-01-foundation-day-loop; master holds Task 1 only, owner merges later — Owner decision after the pre-commit protected-branch halt
+- [Phase 01]: [01-01] Godot 4.7.2 runs self-contained (_sc_); only Windows export templates kept locally; untyped_declaration=2 enforced — Keeps editor data inside git-ignored .tools/ and enforces static typing at compile time
+- [Phase 01]: [01-01] Rejected operations return values, not push_error — GUT 9.7 can count engine errors as test failures
 
 ### Pending Todos
 
@@ -91,6 +100,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-28T21:08:26.414Z
-Stopped at: Phase 1 context gathered
-Resume file: .planning/phases/01-foundation-day-loop/01-CONTEXT.md
+Last session: 2026-09-29T04:21:50.147Z
+Stopped at: Completed 01-01-PLAN.md
+Resume file: None

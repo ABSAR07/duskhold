@@ -56,12 +56,12 @@ Decimal phases appear between their surrounding integers in numeric order.
      - CI produces a Windows export
   5. A key toggles a debug overlay showing FPS, unit/enemy counts, and the current loop state (wave state and enemy paths join it once nights have enemies in Phase 2). Every third-party asset used so far is recorded in the repository's license/attribution log.
 
-**Plans**: 10 plans
+**Plans**: 1/10 plans executed
 **UI hint**: yes
 
 Plans:
 **Wave 1**
-- [ ] 01-01: Repo hygiene and pinned toolchain — consent-gated, checksum-verified bootstrap for Godot 4.7.2 + export templates, GUT 9.7.1, gdtoolkit, test/lint wrappers
+- [x] 01-01: Repo hygiene and pinned toolchain — consent-gated, checksum-verified bootstrap for Godot 4.7.2 + export templates, GUT 9.7.1, gdtoolkit, test/lint wrappers
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 01-02: Walking skeleton — ride the king to a House plot and hold to build it, end to end, with headless command-path tests
@@ -275,7 +275,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Day Loop | 0/10 | Planned | - |
+| 1. Foundation & Day Loop | 1/10 | In Progress|  |
 | 2. Night Defense & Playtest Gate | 0/TBD | Not started | - |
 | 3. King Combat & Troops | 0/TBD | Not started | - |
 | 4. Crowd-Scale Battles & Walls | 0/TBD | Not started | - |
