@@ -1,0 +1,52 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://presentation/map/map_root.gd" id="1_map"]
+[ext_resource type="Script" path="res://input/build_hold_controller.gd" id="2_hold"]
+[ext_resource type="Script" path="res://presentation/buildings/building_views.gd" id="3_views"]
+[ext_resource type="PackedScene" path="res://presentation/king/king.tscn" id="4_king"]
+[ext_resource type="PackedScene" path="res://ui/hud/hud.tscn" id="5_hud"]
+[ext_resource type="Resource" path="res://data/maps/prototype_map.tres" id="6_map"]
+[ext_resource type="Resource" path="res://data/tuning/loop_tuning.tres" id="7_tuning"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
+size = Vector2(140, 140)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
+albedo_color = Color(0.36, 0.45, 0.37, 1)
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
+
+[sub_resource type="Sky" id="Sky_sky"]
+sky_material = SubResource("ProceduralSkyMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_day"]
+background_mode = 2
+sky = SubResource("Sky_sky")
+
+[node name="PrototypeMap" type="Node3D"]
+script = ExtResource("1_map")
+map_config = ExtResource("6_map")
+loop_tuning = ExtResource("7_tuning")
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+mesh = SubResource("PlaneMesh_ground")
+surface_material_override/0 = SubResource("StandardMaterial3D_ground")
+
+[node name="Lighting" type="Node3D" parent="."]
+
+[node name="Sun" type="DirectionalLight3D" parent="Lighting"]
+transform = Transform3D(0.866025, 0.25, -0.433013, 0, 0.866025, 0.5, 0.5, -0.433013, 0.75, 0, 10, 0)
+shadow_enabled = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="Lighting"]
+environment = SubResource("Environment_day")
+
+[node name="King" parent="." instance=ExtResource("4_king")]
+
+[node name="BuildHold" type="Node" parent="." groups=["run_bound"]]
+script = ExtResource("2_hold")
+
+[node name="BuildingViews" type="Node3D" parent="." groups=["run_bound"]]
+script = ExtResource("3_views")
+
+[node name="HUD" parent="." groups=["run_bound"] instance=ExtResource("5_hud")]

@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="MapConfig" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://simulation/defs/map_config.gd" id="1_map"]
+[ext_resource type="Script" path="res://simulation/defs/build_spot_def.gd" id="2_spot"]
+[ext_resource type="Script" path="res://simulation/defs/building_def.gd" id="3_bdef"]
+[ext_resource type="Resource" path="res://data/buildings/house.tres" id="4_house"]
+
+[sub_resource type="Resource" id="Resource_house1"]
+script = ExtResource("2_spot")
+id = &"house_1"
+position = Vector3(-9, 0, 9)
+building_id = &"house"
+
+[resource]
+script = ExtResource("1_map")
+id = &"prototype"
+display_name = "Prototype Sandbox"
+is_sandbox = true
+starting_gold = 4
+king_spawn = Vector3(0, 0, 7)
+castle_position = Vector3(0, 0, 0)
+buildings = Array[ExtResource("3_bdef")]([ExtResource("4_house")])
+spots = Array[ExtResource("2_spot")]([SubResource("Resource_house1")])

@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="KingDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://simulation/defs/king_def.gd" id="1_king"]
+
+[resource]
+script = ExtResource("1_king")
+walk_speed = 5.0
+sprint_multiplier = 1.6
