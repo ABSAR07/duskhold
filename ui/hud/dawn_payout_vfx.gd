@@ -67,8 +67,11 @@ func get_spawned_count(spot_id: StringName) -> int:
 
 
 ## Seconds between two coin launches for a payout of `coin_total` coins: STAGGER_SECONDS, tightened
-## when needed so the last coin lands before the dawn window ends.
+## when needed so the last coin lands before the dawn window ends. Before bind_run there is no dawn
+## window to fit, so the default applies.
 func launch_stagger(coin_total: int) -> float:
+	if _ctx == null:
+		return STAGGER_SECONDS
 	var window: float = _ctx.tuning.dawn_seconds - TRIP_SECONDS
 	return clampf(window / float(maxi(coin_total - 1, 1)), 0.0, STAGGER_SECONDS)
 

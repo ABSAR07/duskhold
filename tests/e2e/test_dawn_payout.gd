@@ -11,7 +11,9 @@ const FAST_NIGHT_S: float = 0.5
 const WAIT_SLACK_S: float = 3.0
 const EARLY_S: float = 0.5
 const SETTLED_S: float = 3.0
-const LAND_SLACK_S: float = 0.2
+## Real-time allowance on top of the dawn window: tween delays are frame-quantised, so a slow
+## runner lands a coin a few frames late.
+const LAND_SLACK_S: float = 0.5
 const HOUSE_ONE: StringName = &"house_1"
 const HOUSE_TWO: StringName = &"house_2"
 
@@ -102,7 +104,9 @@ func test_coins_are_in_flight_and_the_counter_lags_early_in_dawn() -> void:
 	if vfx == null:
 		return
 
-	await wait_seconds(EARLY_S * 0.5)
+	# The first coin launches the moment dawn pays and needs TRIP_SECONDS to land, so one frame
+	# after dawn began it is in the air and the readout lags. No real-time wait, so no race.
+	await wait_process_frames(1)
 
 	assert_gte(vfx.live_coin_count(), 1, "at least one coin is in the air")
 	var shown: int = _gold_text(map_root).trim_prefix("Gold: ").to_int()
@@ -227,9 +231,17 @@ func test_a_real_payout_lands_every_coin_inside_a_short_dawn_window() -> void:
 	var per_spot: Dictionary = {HOUSE_ONE: 6, HOUSE_TWO: 6}
 	var total: int = 12
 
+	var started_ms: int = Time.get_ticks_msec()
 	ctx.events.dawn_payout.emit(total, per_spot)
-	await wait_seconds(short_tuning.dawn_seconds + LAND_SLACK_S)
+	var landed: bool = await E2eSupport.wait_until(
+		self, _total_shown.bind(map_root), short_tuning.dawn_seconds + SETTLED_S
+	)
+	var elapsed_s: float = float(Time.get_ticks_msec() - started_ms) / 1000.0
 
+	assert_true(landed, "the last coin landed and the total appeared")
+	assert_lte(
+		elapsed_s, short_tuning.dawn_seconds + LAND_SLACK_S, "it all landed inside the dawn window"
+	)
 	assert_eq(
 		vfx.get_spawned_count(HOUSE_ONE) + vfx.get_spawned_count(HOUSE_TWO), total, "12 coins"
 	)
@@ -292,3 +304,11 @@ func test_a_payout_naming_an_unknown_spot_still_lands_its_coin_and_settles_the_h
 	)
 	assert_true(settled, "the coin still landed, so the readout is not held back for good")
 	assert_eq(vfx.get_last_total(), total, "the total was shown")
+
+
+func test_launch_stagger_before_the_run_is_bound_falls_back_to_the_default() -> void:
+	var unbound: DawnPayoutVfx = DawnPayoutVfx.new()
+
+	assert_eq(unbound.launch_stagger(40), DawnPayoutVfx.STAGGER_SECONDS, "no dawn window yet")
+
+	unbound.free()
