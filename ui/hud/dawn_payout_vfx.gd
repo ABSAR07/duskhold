@@ -11,6 +11,8 @@ signal coin_landed
 const COIN_SIZE := Vector2(22.0, 22.0)
 const COIN_CENTER_COLOR := Color(1.0, 0.93, 0.5)
 const COIN_EDGE_COLOR := Color(0.93, 0.62, 0.08)
+const COIN_RIM_START: float = 0.8
+const COIN_RIM_END: float = 0.9
 ## World-space offset above the plot where a coin starts.
 const SPOT_ANCHOR := Vector3(0.0, 2.5, 0.0)
 const STAGGER_SECONDS: float = 0.08
@@ -60,9 +62,12 @@ func get_spawned_count(spot_id: StringName) -> int:
 
 
 func _make_coin_texture() -> GradientTexture2D:
+	# Gold in the middle, a darker rim, then transparent so the square texture reads as a disc.
 	var gradient: Gradient = Gradient.new()
-	gradient.set_color(0, COIN_CENTER_COLOR)
-	gradient.set_color(1, COIN_EDGE_COLOR)
+	gradient.offsets = PackedFloat32Array([0.0, COIN_RIM_START, COIN_RIM_END])
+	gradient.colors = PackedColorArray(
+		[COIN_CENTER_COLOR, COIN_EDGE_COLOR, Color(COIN_EDGE_COLOR, 0.0)]
+	)
 	var texture: GradientTexture2D = GradientTexture2D.new()
 	texture.gradient = gradient
 	texture.fill = GradientTexture2D.FILL_RADIAL
