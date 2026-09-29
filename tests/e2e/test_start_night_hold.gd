@@ -72,6 +72,10 @@ func _environment(map_root: MapRoot) -> Environment:
 	return (map_root.find_child("WorldEnvironment", true, false) as WorldEnvironment).environment
 
 
+func _in_phase(ctx: RunContext, phase: RunManager.RunPhase) -> bool:
+	return ctx.run_manager.get_phase() == phase
+
+
 func _start_night_now(ctx: RunContext) -> void:
 	assert_eq(
 		ctx.commands.submit(StartNightIntent.new()), CommandProcessor.OK, "the night is started"
@@ -154,13 +158,19 @@ func test_the_night_hands_back_to_a_new_day_through_dawn() -> void:
 	assert_string_contains(prompt.text, "Night 1", "the prompt names the coming night")
 	_start_night_now(ctx)
 
-	await wait_seconds(_tuning.placeholder_night_seconds + SETTLE_SLACK_S + 0.2)
-	assert_eq(ctx.run_manager.get_phase(), RunManager.RunPhase.DAWN, "dawn after the night")
+	var dawn: bool = await E2eSupport.wait_until(
+		self,
+		_in_phase.bind(ctx, RunManager.RunPhase.DAWN),
+		_tuning.placeholder_night_seconds + WAIT_SLACK_S
+	)
+	assert_true(dawn, "dawn arrived after the night")
 	assert_eq(lighting.get_mood(), &"dawn", "dawn mood")
 	assert_false(banner.visible, "the banner is gone at dawn")
 
-	await wait_seconds(_tuning.dawn_seconds + SETTLE_SLACK_S)
-	assert_eq(ctx.run_manager.get_phase(), RunManager.RunPhase.DAY, "a new day")
+	var day: bool = await E2eSupport.wait_until(
+		self, _in_phase.bind(ctx, RunManager.RunPhase.DAY), _tuning.dawn_seconds + WAIT_SLACK_S
+	)
+	assert_true(day, "a new day arrived after dawn")
 	assert_eq(ctx.run_manager.get_day_number(), 2, "day two")
 	assert_eq(lighting.get_mood(), &"day", "day mood again")
 	assert_true(prompt.visible, "the prompt is back")
