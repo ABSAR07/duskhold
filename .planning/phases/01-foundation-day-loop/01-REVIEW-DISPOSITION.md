@@ -5,15 +5,15 @@ titles: json
 findings:
   - id: CR-01
     severity: critical
-    disposition: open
+    disposition: fixed
     title: "WR-10 stagger fix is a no-op; the computed `stagger` is never used"
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`MapConfig.validate()` misses an empty building id, and `RunContext` proceeds on invalid data"
   - id: WR-02
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "A payout with `total > 0` but no schedulable coins never shows a total and can leave the HUD lagging"
   - id: WR-03
     severity: warning
@@ -25,23 +25,23 @@ findings:
     title: "`screenshot.sh` discards the import output, so an import failure is undiagnosable"
   - id: WR-05
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`test_each_house_spawns_as_many_coins_as_it_pays` is coupled to balance data and to real time"
   - id: IN-01
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Unused constant `HOUSE_SPOT`"
   - id: IN-02
     severity: info
-    disposition: open
+    disposition: fixed
     title: "The `view_source` assertion compares an empty string to an empty string"
   - id: IN-03
     severity: info
-    disposition: open
+    disposition: skipped
     title: "CI runs each push twice once a `gsd/**` branch has a pull request"
   - id: IN-04
     severity: info
-    disposition: open
+    disposition: fixed
     title: "The screenshot job's artifact upload is skipped when capture fails"
   - id: IN-05
     severity: info
@@ -87,25 +87,25 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 11
+open: 3
 total: 21
-recorded: 2026-09-29T14:04:45.137Z
+recorded: 2026-09-29T14:36:08.177Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| CR-01 | critical | open | - |
-| WR-01 | warning | open | - |
-| WR-02 | warning | open | - |
+| CR-01 | critical | fixed | 01-REVIEW-FIX.md |
+| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
+| WR-02 | warning | fixed | 01-REVIEW-FIX.md |
 | WR-03 | warning | open | - |
 | WR-04 | warning | open | - |
-| WR-05 | warning | open | - |
-| IN-01 | info | open | - |
-| IN-02 | info | open | - |
-| IN-03 | info | open | - |
-| IN-04 | info | open | - |
+| WR-05 | warning | fixed | 01-REVIEW-FIX.md |
+| IN-01 | info | fixed | 01-REVIEW-FIX.md |
+| IN-02 | info | fixed | 01-REVIEW-FIX.md |
+| IN-03 | info | skipped | 01-REVIEW-FIX.md |
+| IN-04 | info | fixed | 01-REVIEW-FIX.md |
 | IN-05 | info | open | - |
 | WR-06 | warning | skipped | 01-REVIEW-FIX.md (not in the current review) |
 | WR-10 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
