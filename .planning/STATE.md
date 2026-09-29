@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 01
 current_phase_name: Foundation & Day Loop
 status: executing
-stopped_at: Completed 01-08-PLAN.md
-last_updated: "2026-09-29T10:37:40.792Z"
+stopped_at: Completed 01-09-PLAN.md
+last_updated: "2026-09-29T11:01:40.806Z"
 last_activity: 2026-09-29
 last_activity_desc: Phase 01 execution started
-state_head: 86f04dc09e5d71ff037ffe6e4c38449355fa069e
+state_head: da006309ea7c3b29da3e2d9b406296684f3fe94e
 progress:
   total_phases: 13
   completed_phases: 0
   total_plans: 10
-  completed_plans: 8
+  completed_plans: 9
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-28)
 ## Current Position
 
 Phase: 01 (Foundation & Day Loop) — EXECUTING
-Plan: 9 of 10
+Plan: 10 of 10
 Status: Ready to execute
 Last activity: 2026-09-29 — Phase 01 execution started
 
@@ -64,6 +64,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P06 | 14 min | 3 tasks | 21 files |
 | Phase 01 P07 | ~35 min (continuation) | 3 tasks | 90 files |
 | Phase 01 P08 | 5 min | 2 tasks | 7 files |
+| Phase 01 P09 | 20 min | 3 tasks | 23 files |
 
 ## Accumulated Context
 
@@ -96,6 +97,9 @@ Recent decisions affecting current work:
 - [Phase 01]: 01-07: Owner approved Kenney Castle Kit, Fantasy Town Kit, Mini Characters and the animated Quaternius horse (4b); horse recorded CC0-1.0 with the Quaternius QAL v1.0 wording quoted beside the Poly Pizza CC0 statement — Auditable provenance; obtained as CC0 and used inside a game, not redistributed standalone
 - [Phase 01]: 01-07: Houses and castle keep are composed from kit pieces in text wrapper scenes; king is Kenney character-male-b plus a gold crown primitive on the Quaternius horse (bind pose) — Neither kit ships a complete house or keep and the pack has no crowned figure; animation and normalization deferred to Phase 8
 - [Phase 01]: 01-08: debug overlay renders immediately on show then every 0.25 s; ships in all builds (T-01-15 accepted, revisit gating before Phase 13); extended via register_section
+- [Phase 01]: 01-09: RunManager is the only phase writer (enforced by a source-scan test); Phase 2 replaces only _night_should_end and _apply_dawn_payout — Keeps one owner for the loop and gives Phase 2 two well-defined extension points
+- [Phase 01]: 01-09: start-night hold requires a fresh press after a confirm or a night held through, and is ignored outside DAY; night_number increments before the NIGHT_TRANSITION step — D-11 deliberate input, and listeners on phase_changed see the correct night number
+- [Phase 01]: 01-09: Python edits of files with an em dash must use encoding utf-8 on Windows (cp1252 broke the HUD script load) — Avoids invalid-UTF-8 script load errors in later plans
 
 ### Pending Todos
 
@@ -121,6 +125,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-29T10:37:40.756Z
-Stopped at: Completed 01-08-PLAN.md
+Last session: 2026-09-29T11:01:40.765Z
+Stopped at: Completed 01-09-PLAN.md
 Resume file: None

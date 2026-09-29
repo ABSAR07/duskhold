@@ -34,7 +34,7 @@ Requirements for the initial release (5-map campaign). Each maps to exactly one 
 - [x] **BLDG-03**: Player can build on an empty spot by holding the action key near it, with a visible hold-progress indicator, if they can afford the cost
 - [x] **BLDG-04**: Player can upgrade an existing building the same way, seeing the next tier's cost and effect
 - [ ] **BLDG-05**: When an upgrade tier offers branching options, player picks one of the offered choice cards (with keyboard or gamepad), and that choice is permanent for the run
-- [ ] **BLDG-06**: Building and upgrading is only possible during the day
+- [x] **BLDG-06**: Building and upgrading is only possible during the day
 - [ ] **BLDG-07**: Buildings have health, take damage from enemies, and are visibly destroyed at zero health
 - [ ] **BLDG-08**: Player can upgrade the castle center through its tiers for more health, picking one of four run-wide abilities or passives at each tier
 - [ ] **BLDG-09**: The castle center's tier gates which higher building tiers can be purchased
@@ -45,13 +45,13 @@ Requirements for the initial release (5-map campaign). Each maps to exactly one 
 
 ### Economy
 
-- [ ] **ECON-01**: Gold is the only currency, and the HUD always shows the player's current gold
+- [x] **ECON-01**: Gold is the only currency, and the HUD always shows the player's current gold
 - [ ] **ECON-02**: A House pays a flat income each dawn that increases with its upgrade tier
 - [ ] **ECON-03**: A Gold Mine pays a high income that declines by a fixed amount each night
 - [ ] **ECON-04**: A Mill pays income per tier and unlocks nearby Field build spots, each Field paying a flat income
 - [ ] **ECON-05**: A Fishing Harbor gains a boat each night up to a cap (raised by upgrading), and each boat pays income
 - [ ] **ECON-06**: A Shrine activates after enough enemies die near it; once active it attacks enemies and pays income, and each additional active Shrine strengthens the others
-- [ ] **ECON-07**: Unspent gold carries over from day to day
+- [x] **ECON-07**: Unspent gold carries over from day to day
 
 ### Military Units
 
@@ -192,7 +192,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BLDG-03 | Phase 1 | Complete |
 | BLDG-04 | Phase 1 | Complete |
 | BLDG-05 | Phase 5 | Pending |
-| BLDG-06 | Phase 1 | Pending |
+| BLDG-06 | Phase 1 | Complete |
 | BLDG-07 | Phase 2 | Pending |
 | BLDG-08 | Phase 5 | Pending |
 | BLDG-09 | Phase 5 | Pending |
@@ -200,13 +200,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BLDG-11 | Phase 6 | Pending |
 | BLDG-12 | Phase 12 | Pending |
 | BLDG-13 | Phase 12 | Pending |
-| ECON-01 | Phase 1 | Pending |
+| ECON-01 | Phase 1 | Complete |
 | ECON-02 | Phase 1 | Pending |
 | ECON-03 | Phase 5 | Pending |
 | ECON-04 | Phase 5 | Pending |
 | ECON-05 | Phase 5 | Pending |
 | ECON-06 | Phase 5 | Pending |
-| ECON-07 | Phase 1 | Pending |
+| ECON-07 | Phase 1 | Complete |
 | UNIT-01 | Phase 7 | Pending |
 | UNIT-02 | Phase 7 | Pending |
 | UNIT-03 | Phase 7 | Pending |
