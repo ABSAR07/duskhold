@@ -3,22 +3,38 @@ phase: 01
 review: 01-REVIEW.md
 titles: json
 findings:
+  - id: WR-01
+    severity: warning
+    disposition: open
+    title: "Unknown spot id in `per_spot` crashes coin launch and strands the HUD readout"
+  - id: WR-02
+    severity: warning
+    disposition: open
+    title: "BuildingSystem null-skip hardening leaves duplicate ids and unknown building ids unhandled"
+  - id: WR-03
+    severity: warning
+    disposition: open
+    title: "Debug overlay only validates the top-level provider return, not the row shape"
+  - id: IN-01
+    severity: info
+    disposition: open
+    title: "`Hud.bind_run` is only partly idempotent"
+  - id: IN-02
+    severity: info
+    disposition: open
+    title: "Player-facing strings hard-code the key hint and a placeholder"
+  - id: IN-03
+    severity: info
+    disposition: open
+    title: "Read-only test watches only 4 of 7 simulation signals"
+  - id: IN-04
+    severity: info
+    disposition: open
+    title: "Timing-sensitive e2e assertions and CI trigger overlap"
   - id: CR-01
     severity: critical
     disposition: fixed
     title: "WR-10 stagger fix is a no-op; the computed `stagger` is never used"
-  - id: WR-01
-    severity: warning
-    disposition: fixed
-    title: "`MapConfig.validate()` misses an empty building id, and `RunContext` proceeds on invalid data"
-  - id: WR-02
-    severity: warning
-    disposition: fixed
-    title: "A payout with `total > 0` but no schedulable coins never shows a total and can leave the HUD lagging"
-  - id: WR-03
-    severity: warning
-    disposition: fixed
-    title: "Registered overlay providers are trusted to return an `Array`; a bad one crashes every refresh"
   - id: WR-04
     severity: warning
     disposition: fixed
@@ -27,22 +43,6 @@ findings:
     severity: warning
     disposition: fixed
     title: "`test_each_house_spawns_as_many_coins_as_it_pays` is coupled to balance data and to real time"
-  - id: IN-01
-    severity: info
-    disposition: fixed
-    title: "Unused constant `HOUSE_SPOT`"
-  - id: IN-02
-    severity: info
-    disposition: fixed
-    title: "The `view_source` assertion compares an empty string to an empty string"
-  - id: IN-03
-    severity: info
-    disposition: skipped
-    title: "CI runs each push twice once a `gsd/**` branch has a pull request"
-  - id: IN-04
-    severity: info
-    disposition: fixed
-    title: "The screenshot job's artifact upload is skipped when capture fails"
   - id: IN-05
     severity: info
     disposition: fixed
@@ -87,26 +87,26 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 0
+open: 7
 total: 21
-recorded: 2026-09-29T14:36:43.098Z
+recorded: 2026-09-29T16:13:29.111Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| CR-01 | critical | fixed | 01-REVIEW-FIX.md |
-| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-02 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-03 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-04 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-05 | warning | fixed | 01-REVIEW-FIX.md |
-| IN-01 | info | fixed | 01-REVIEW-FIX.md |
-| IN-02 | info | fixed | 01-REVIEW-FIX.md |
-| IN-03 | info | skipped | 01-REVIEW-FIX.md |
-| IN-04 | info | fixed | 01-REVIEW-FIX.md |
-| IN-05 | info | fixed | 01-REVIEW-FIX.md |
+| WR-01 | warning | open | - |
+| WR-02 | warning | open | - |
+| WR-03 | warning | open | - |
+| IN-01 | info | open | - |
+| IN-02 | info | open | - |
+| IN-03 | info | open | - |
+| IN-04 | info | open | - |
+| CR-01 | critical | fixed | 01-REVIEW-FIX.md (not in the current review) |
+| WR-04 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
+| WR-05 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
+| IN-05 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-06 | warning | skipped | 01-REVIEW-FIX.md (not in the current review) |
 | WR-10 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-06 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
