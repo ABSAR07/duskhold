@@ -382,6 +382,12 @@ def install_godot(args: argparse.Namespace, platform_name: str) -> None:
 
 
 def install_templates(args: argparse.Namespace) -> None:
+    templates_root = DOT_TOOLS / "godot" / VERSION / "editor_data" / "export_templates"
+    if not args.force and any(templates_root.glob("*/windows_release_x86_64.exe")):
+        # Skip the ~1.2 GB download when a cached/previous install already has the templates.
+        print(f"Export templates already installed under {templates_root}; skipping (use --force to reinstall)")
+        return
+
     asset = ARTIFACTS["templates_tpz"]
     url = GODOT_RELEASE_BASE + asset["name"]
     downloaded = download_asset(asset["name"], url)

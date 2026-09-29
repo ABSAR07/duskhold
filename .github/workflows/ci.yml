@@ -1,0 +1,109 @@
+name: CI
+
+# Runs on every push to any branch (no path filters: a push that touches no GDScript still runs
+# all jobs), on pull requests, and on demand. lint and test are independent; export runs only
+# after both succeed. The token is read-only and no secrets are used anywhere.
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install gdtoolkit (pinned)
+        run: python -m pip install -r tools/requirements-lint.txt
+      - name: gdformat --check and gdlint
+        run: bash tools/lint.sh
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: false
+      - name: List LFS objects for the cache key
+        run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-assets-id
+      - name: Cache LFS objects
+        uses: actions/cache@v6
+        with:
+          path: .git/lfs
+          key: lfs-${{ hashFiles('.lfs-assets-id') }}
+      - name: Pull LFS objects
+        run: git lfs pull
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Cache pinned Godot editor
+        uses: actions/cache@v6
+        with:
+          path: .tools/godot
+          key: godot-editor-linux-${{ hashFiles('tools/godot_version.txt', 'tools/godot_sha512sums.txt') }}
+      - name: Install pinned Godot (checksum-verified)
+        run: python tools/bootstrap.py --godot --yes --platform linux
+      - name: Headless import and GUT
+        run: bash tools/test.sh
+      - name: Upload GUT results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: gut-results
+          path: build/test-results/
+          if-no-files-found: warn
+
+  export:
+    name: export
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: false
+      - name: List LFS objects for the cache key
+        run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-assets-id
+      - name: Cache LFS objects
+        uses: actions/cache@v6
+        with:
+          path: .git/lfs
+          key: lfs-${{ hashFiles('.lfs-assets-id') }}
+      - name: Pull LFS objects
+        run: git lfs pull
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Cache pinned Godot editor and Windows export templates
+        uses: actions/cache@v6
+        with:
+          path: .tools/godot
+          key: godot-linux-with-templates-${{ hashFiles('tools/godot_version.txt', 'tools/godot_sha512sums.txt') }}
+      - name: Install pinned Godot and export templates (checksum-verified)
+        run: python tools/bootstrap.py --godot --templates --yes --platform linux
+      - name: Export Windows build
+        run: bash tools/export.sh
+      - name: Upload Windows build
+        uses: actions/upload-artifact@v7
+        with:
+          name: duskhold-windows
+          path: build/windows/
+          retention-days: 7
+          if-no-files-found: error
