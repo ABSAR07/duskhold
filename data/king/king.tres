@@ -6,3 +6,5 @@
 script = ExtResource("1_king")
 walk_speed = 5.0
 sprint_multiplier = 1.6
+acceleration = 40.0
+turn_speed = 12.0
