@@ -3,6 +3,54 @@ phase: 01
 review: 01-REVIEW.md
 titles: json
 findings:
+  - id: WR-06
+    severity: warning
+    disposition: skipped
+    title: "License allow-list guard is defeated by self-declaration, and the horse asset conflicts with the CC0-only constraint"
+  - id: WR-10
+    severity: warning
+    disposition: fixed
+    title: "The `MAX_COINS` cap is soft, and the \"stays inside the dawn window\" guarantee does not hold for many paying spots or a shorter dawn"
+  - id: IN-01
+    severity: info
+    disposition: fixed
+    title: "`BuildingViews._instance_model` leaks the instantiated scene when its root is not a `Node3D`"
+  - id: IN-02
+    severity: info
+    disposition: fixed
+    title: "`MapConfig.validate` has gaps that let unbuildable or crashing data through"
+  - id: IN-03
+    severity: info
+    disposition: fixed
+    title: "`StartNightHoldController._confirm` emits `night_requested` regardless of the submit result"
+  - id: IN-04
+    severity: info
+    disposition: fixed
+    title: "`tools/export.sh` ignores the import pass's exit status"
+  - id: IN-05
+    severity: info
+    disposition: fixed
+    title: "`tools/screenshot.sh` expands possibly-empty arrays under `set -u`"
+  - id: IN-06
+    severity: info
+    disposition: fixed
+    title: "Loose or timing-dependent test assertions"
+  - id: IN-07
+    severity: info
+    disposition: fixed
+    title: "`DebugOverlay` ships in release exports and its section providers are called unguarded"
+  - id: IN-08
+    severity: info
+    disposition: fixed
+    title: "CI runs every push twice on PR branches, and `cancel-in-progress` applies to `main`"
+  - id: IN-09
+    severity: info
+    disposition: fixed
+    title: "`test_a_second_map_does_not_hear_the_first_maps_phase_changes` never triggers a phase change"
+  - id: IN-10
+    severity: info
+    disposition: fixed
+    title: "The GUT SHA256 pin in `bootstrap.py` duplicates `assets/attribution.json` with nothing tying them together"
   - id: WR-01
     severity: warning
     disposition: fixed
@@ -23,10 +71,6 @@ findings:
     severity: warning
     disposition: fixed
     title: "GUT is downloaded from a mutable tag and never checked against a pin, and a failed check destroys the committed addon"
-  - id: WR-06
-    severity: warning
-    disposition: skipped
-    title: "License allow-list guard is defeated by self-declaration, and the horse asset conflicts with the CC0-only constraint"
   - id: WR-07
     severity: warning
     disposition: fixed
@@ -39,64 +83,35 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-  - id: IN-01
-    severity: info
-    disposition: open
-    title: "`BuildingViews._instance_model` leaks the instantiated scene when its root is not a `Node3D`"
-  - id: IN-02
-    severity: info
-    disposition: open
-    title: "`MapConfig.validate` has gaps that let unbuildable or crashing data through"
-  - id: IN-03
-    severity: info
-    disposition: open
-    title: "`StartNightHoldController._confirm` emits `night_requested` regardless of the submit result"
-  - id: IN-04
-    severity: info
-    disposition: open
-    title: "`tools/export.sh` ignores the import pass's exit status"
-  - id: IN-05
-    severity: info
-    disposition: open
-    title: "`tools/screenshot.sh` expands possibly-empty arrays under `set -u`"
-  - id: IN-06
-    severity: info
-    disposition: open
-    title: "Loose or timing-dependent test assertions"
-  - id: IN-07
-    severity: info
-    disposition: open
-    title: "`DebugOverlay` ships in release exports and its section providers are called unguarded"
-  - id: IN-08
-    severity: info
-    disposition: open
-    title: "CI runs every push twice on PR branches, and `cancel-in-progress` applies to `main`"
-open: 8
-total: 17
-recorded: 2026-09-29T12:42:29.771Z
+open: 0
+total: 20
+recorded: 2026-09-29T13:12:01.010Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-02 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-03 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-04 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-05 | warning | fixed | 01-REVIEW-FIX.md |
 | WR-06 | warning | skipped | 01-REVIEW-FIX.md |
-| WR-07 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-08 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-09 | warning | fixed | 01-REVIEW-FIX.md |
-| IN-01 | info | open | - |
-| IN-02 | info | open | - |
-| IN-03 | info | open | - |
-| IN-04 | info | open | - |
-| IN-05 | info | open | - |
-| IN-06 | info | open | - |
-| IN-07 | info | open | - |
-| IN-08 | info | open | - |
+| WR-10 | warning | fixed | 01-REVIEW-FIX.md |
+| IN-01 | info | fixed | 01-REVIEW-FIX.md |
+| IN-02 | info | fixed | 01-REVIEW-FIX.md |
+| IN-03 | info | fixed | 01-REVIEW-FIX.md |
+| IN-04 | info | fixed | 01-REVIEW-FIX.md |
+| IN-05 | info | fixed | 01-REVIEW-FIX.md |
+| IN-06 | info | fixed | 01-REVIEW-FIX.md |
+| IN-07 | info | fixed | 01-REVIEW-FIX.md |
+| IN-08 | info | fixed | 01-REVIEW-FIX.md |
+| IN-09 | info | fixed | 01-REVIEW-FIX.md |
+| IN-10 | info | fixed | 01-REVIEW-FIX.md |
+| WR-01 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
+| WR-02 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
+| WR-03 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
+| WR-04 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
+| WR-05 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
+| WR-07 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
+| WR-08 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
+| WR-09 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
 Set `deferred` by hand and put the reason in the Source cell; both are preserved. A `|` in the reason is kept as prose and escaped on the next run.
