@@ -31,7 +31,7 @@ func test_a_duplicate_spot_id_is_listed_once_and_keeps_the_first_definition() ->
 
 	assert_push_error("duplicate spot id")
 	assert_eq(ctx.buildings.spot_ids().size(), 1, "the duplicate is skipped, not listed twice")
-	assert_eq(ctx.buildings.get_spot(&"a"), map.spots[0], "the first definition is the one kept")
+	assert_same(ctx.buildings.get_spot(&"a"), map.spots[0], "the first definition is the one kept")
 
 
 func test_a_duplicate_building_id_keeps_the_first_definition() -> void:
