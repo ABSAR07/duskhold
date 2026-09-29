@@ -65,6 +65,11 @@ func next_action_cost(spot_id: StringName) -> int:
 	return tier_def.cost
 
 
+## Placeholder until dawn income lands: reports nothing.
+func dawn_income_by_spot() -> Dictionary:
+	return {}
+
+
 ## Nearest spot within `radius` (XZ distance, inclusive). Ties go to the earlier MapConfig
 ## order. Returns &"" if none is in range.
 func nearest_spot_in_range(pos: Vector3, radius: float) -> StringName:
