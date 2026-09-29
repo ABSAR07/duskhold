@@ -14,7 +14,8 @@ func _init(map: MapConfig, events: SimEvents) -> void:
 	_events = events
 	# A null entry is a data error MapConfig.validate() already reported; skip it rather than crash.
 	for building_def: BuildingDef in map.buildings:
-		if building_def == null:
+		# A duplicate id is a reported data error too; keep the first def, as spots do.
+		if building_def == null or _defs.has(building_def.id):
 			continue
 		_defs[building_def.id] = building_def
 	for spot: BuildSpotDef in map.spots:
