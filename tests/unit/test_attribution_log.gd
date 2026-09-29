@@ -6,6 +6,7 @@ extends GutTest
 
 const LOG_PATH := "res://assets/attribution.json"
 const ASSETS_MD_PATH := "res://ASSETS.md"
+const BOOTSTRAP_PATH := "res://tools/bootstrap.py"
 const THIRD_PARTY_DIR := "res://assets/third_party/"
 const ADDONS_DIR := "res://addons/"
 const ALLOWED_LICENSES: Array[String] = ["CC0-1.0", "MIT"]
@@ -228,6 +229,27 @@ func test_every_addon_folder_has_an_entry() -> void:
 		[] as Array[String],
 		"each addons/<name>/ folder is logged"
 	)
+
+
+# --- the GUT pin in tools/bootstrap.py ---------------------------------------------------------
+
+
+func test_bootstrap_gut_sha256_matches_the_manifest() -> void:
+	var file: FileAccess = FileAccess.open(BOOTSTRAP_PATH, FileAccess.READ)
+	assert_not_null(file, "tools/bootstrap.py must exist")
+	if file == null:
+		return
+	var pin: RegEx = RegEx.new()
+	pin.compile('(?m)^GUT_ZIP_SHA256 = "([0-9a-f]+)"')
+	var found: RegExMatch = pin.search(file.get_as_text())
+	assert_not_null(found, "bootstrap.py declares GUT_ZIP_SHA256")
+	var manifest_sha: String = ""
+	for entry: Dictionary in _entries():
+		if str(entry.get("id")) == "gut":
+			manifest_sha = str(entry.get("sha256"))
+	assert_ne(manifest_sha, "", "the manifest has a gut entry with a sha256")
+	if found != null:
+		assert_eq(found.get_string(1), manifest_sha, "the installer pin equals the manifest hash")
 
 
 # --- ASSETS.md ------------------------------------------------------------------------------
