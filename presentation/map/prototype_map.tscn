@@ -1,8 +1,9 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://presentation/map/map_root.gd" id="1_map"]
 [ext_resource type="Script" path="res://input/build_hold_controller.gd" id="2_hold"]
 [ext_resource type="Script" path="res://presentation/buildings/building_views.gd" id="3_views"]
+[ext_resource type="Script" path="res://presentation/camera/camera_rig.gd" id="8_rig"]
 [ext_resource type="PackedScene" path="res://presentation/king/king.tscn" id="4_king"]
 [ext_resource type="PackedScene" path="res://ui/hud/hud.tscn" id="5_hud"]
 [ext_resource type="Resource" path="res://data/maps/prototype_map.tres" id="6_map"]
@@ -50,3 +51,10 @@ script = ExtResource("2_hold")
 script = ExtResource("3_views")
 
 [node name="HUD" parent="." groups=["run_bound"] instance=ExtResource("5_hud")]
+
+[node name="CameraRig" type="Node3D" parent="." groups=["run_bound"]]
+script = ExtResource("8_rig")
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+fov = 40.0
+current = true

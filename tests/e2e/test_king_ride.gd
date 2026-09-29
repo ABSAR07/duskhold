@@ -110,7 +110,7 @@ func test_model_turns_to_face_the_ride_direction_and_the_body_does_not() -> void
 
 func test_camera_is_a_detached_rig_and_not_a_child_of_the_king() -> void:
 	var map_root: MapRoot = await _start_map()
-	var rig: Node = map_root.get_node_or_null("CameraRig")
+	var rig: CameraRig = map_root.get_node_or_null("CameraRig")
 	assert_not_null(rig, "the map has a CameraRig")
 	var camera: Camera3D = get_viewport().get_camera_3d()
 	assert_not_null(camera, "a camera is active")
@@ -131,11 +131,11 @@ func test_camera_rotation_never_changes_while_riding_in_all_directions() -> void
 
 func test_camera_settles_at_the_rig_offset_when_the_king_stands_still() -> void:
 	var map_root: MapRoot = await _start_map()
-	var rig: Node = map_root.get_node_or_null("CameraRig")
+	var rig: CameraRig = map_root.get_node_or_null("CameraRig")
 	assert_not_null(rig, "the map has a CameraRig")
 	if rig == null:
 		return
-	var offset: Vector3 = rig.get(&"offset")
+	var offset: Vector3 = rig.offset
 	var camera: Camera3D = get_viewport().get_camera_3d()
 	await wait_seconds(1.0)
 	var king_xz: Vector2 = _xz(map_root.get_king().global_position)
@@ -146,11 +146,11 @@ func test_camera_settles_at_the_rig_offset_when_the_king_stands_still() -> void:
 
 func test_camera_trails_a_sudden_king_jump_and_then_catches_up() -> void:
 	var map_root: MapRoot = await _start_map()
-	var rig: Node = map_root.get_node_or_null("CameraRig")
+	var rig: CameraRig = map_root.get_node_or_null("CameraRig")
 	assert_not_null(rig, "the map has a CameraRig")
 	if rig == null:
 		return
-	var offset: Vector3 = rig.get(&"offset")
+	var offset: Vector3 = rig.offset
 	var camera: Camera3D = get_viewport().get_camera_3d()
 	var king: King = map_root.get_king()
 	E2eSupport.teleport_king(map_root, king.global_position + Vector3(TELEPORT_DISTANCE, 0, 0))
