@@ -21,3 +21,13 @@ func _init(map_config: MapConfig, loop_tuning: LoopTuning) -> void:
 	buildings = BuildingSystem.new(map_config, events)
 	run_manager = RunManager.new(events)
 	commands = CommandProcessor.new(economy, buildings, run_manager, events)
+
+
+## Number of friendly units alive. Phase 1 spawns none; later phases read their manager here.
+func get_unit_count() -> int:
+	return -1
+
+
+## Number of enemies alive. Phase 1 spawns none; later phases read their manager here.
+func get_enemy_count() -> int:
+	return -1
