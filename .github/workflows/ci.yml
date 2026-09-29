@@ -1,13 +1,14 @@
 name: CI
 
-# Runs on every push to main and on every pull request (branch pushes are covered by their pull
-# request, so a PR branch is not built twice), plus on demand. There are no path filters: a change
-# that touches no GDScript still runs all jobs. lint and test are independent; export runs only
-# after both succeed. The token is read-only and no secrets are used anywhere. Every action is
-# pinned to a full commit SHA (the trailing comment names the release); bump SHA and comment together.
+# Runs on pushes to the default branches and to GSD phase branches (gsd/**, which are pushed
+# without a pull request), on every pull request, and on demand. Other branch pushes are covered
+# by their pull request, so a feature branch is not built twice. There are no path filters: a
+# change that touches no GDScript still runs all jobs. lint and test are independent; export runs
+# only after both succeed. The token is read-only and no secrets are used anywhere. Every action
+# is pinned to a full commit SHA (the trailing comment names the release); bump SHA and comment together.
 on:
   push:
-    branches: [main]
+    branches: [main, master, "gsd/**"]
   pull_request:
   workflow_dispatch:
 
@@ -16,9 +17,9 @@ permissions:
 
 concurrency:
   group: ci-${{ github.ref }}
-  # A newer push supersedes an in-flight branch run, but never cancels a run on main (the export
-  # job there produces the release artifact).
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+  # A newer push supersedes an in-flight branch run, but never cancels a run on a default branch
+  # (the export job there produces the release artifact).
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master' }}
 
 jobs:
   lint:
