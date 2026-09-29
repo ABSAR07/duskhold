@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 01
 current_phase_name: Foundation & Day Loop
 status: executing
-stopped_at: Completed 01-07-PLAN.md
-last_updated: "2026-09-29T10:28:24.215Z"
+stopped_at: Completed 01-08-PLAN.md
+last_updated: "2026-09-29T10:37:40.792Z"
 last_activity: 2026-09-29
 last_activity_desc: Phase 01 execution started
-state_head: 90d1b6c00b99aae595f109c8d53ec890be3bf590
+state_head: 86f04dc09e5d71ff037ffe6e4c38449355fa069e
 progress:
   total_phases: 13
   completed_phases: 0
   total_plans: 10
-  completed_plans: 7
+  completed_plans: 8
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-28)
 ## Current Position
 
 Phase: 01 (Foundation & Day Loop) — EXECUTING
-Plan: 8 of 10
+Plan: 9 of 10
 Status: Ready to execute
 Last activity: 2026-09-29 — Phase 01 execution started
 
@@ -63,6 +63,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P05 | 25 min | 2 tasks | 12 files |
 | Phase 01 P06 | 14 min | 3 tasks | 21 files |
 | Phase 01 P07 | ~35 min (continuation) | 3 tasks | 90 files |
+| Phase 01 P08 | 5 min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -94,6 +95,7 @@ Recent decisions affecting current work:
 - [Phase 01]: 01-06: SpotLabelModel.affordable is true when gold covers the cost or a hold is under way, and always at max tier, so red never shows on a running hold or a finished building
 - [Phase 01]: 01-07: Owner approved Kenney Castle Kit, Fantasy Town Kit, Mini Characters and the animated Quaternius horse (4b); horse recorded CC0-1.0 with the Quaternius QAL v1.0 wording quoted beside the Poly Pizza CC0 statement — Auditable provenance; obtained as CC0 and used inside a game, not redistributed standalone
 - [Phase 01]: 01-07: Houses and castle keep are composed from kit pieces in text wrapper scenes; king is Kenney character-male-b plus a gold crown primitive on the Quaternius horse (bind pose) — Neither kit ships a complete house or keep and the pack has no crowned figure; animation and normalization deferred to Phase 8
+- [Phase 01]: 01-08: debug overlay renders immediately on show then every 0.25 s; ships in all builds (T-01-15 accepted, revisit gating before Phase 13); extended via register_section
 
 ### Pending Todos
 
@@ -119,6 +121,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-29T10:28:24.180Z
-Stopped at: Completed 01-07-PLAN.md
+Last session: 2026-09-29T10:37:40.756Z
+Stopped at: Completed 01-08-PLAN.md
 Resume file: None

@@ -56,7 +56,7 @@ Decimal phases appear between their surrounding integers in numeric order.
      - CI produces a Windows export
   5. A key toggles a debug overlay showing FPS, unit/enemy counts, and the current loop state (wave state and enemy paths join it once nights have enemies in Phase 2). Every third-party asset used so far is recorded in the repository's license/attribution log.
 
-**Plans**: 7/10 plans executed
+**Plans**: 8/10 plans executed
 **UI hint**: yes
 
 Plans:
@@ -74,7 +74,7 @@ Plans:
 **Wave 4** *(blocked on Wave 3 completion)*
 - [x] 01-06: Floating spot label, coin drip, refund on release, denied shake
 - [x] 01-07: Attribution log with coverage test; approved CC0 king, House, tower and castle models
-- [ ] 01-08: Read-only toggleable debug overlay
+- [x] 01-08: Read-only toggleable debug overlay
 
 **Wave 5** *(blocked on Wave 4 completion)*
 - [ ] 01-09: Day → night → dawn loop, hold-to-start-night, night banner and lighting, dawn income, gold carryover
@@ -275,7 +275,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Day Loop | 7/10 | In Progress|  |
+| 1. Foundation & Day Loop | 8/10 | In Progress|  |
 | 2. Night Defense & Playtest Gate | 0/TBD | Not started | - |
 | 3. King Combat & Troops | 0/TBD | Not started | - |
 | 4. Crowd-Scale Battles & Walls | 0/TBD | Not started | - |
