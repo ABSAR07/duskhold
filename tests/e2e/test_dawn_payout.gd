@@ -233,6 +233,9 @@ func test_a_crowded_payout_tightens_the_stagger_to_exactly_fill_the_dawn_window(
 func test_a_coin_starts_mid_screen_when_its_plot_is_behind_the_camera() -> void:
 	var map_root: MapRoot = await E2eSupport.spawn_map(self, _rich_map(), _tuning)
 	var vfx: DawnPayoutVfx = _vfx(map_root)
+	assert_not_null(vfx, "the HUD has a DawnPayoutVfx")
+	if vfx == null:
+		return
 	var camera: Camera3D = vfx.get_viewport().get_camera_3d()
 	assert_not_null(camera, "the map has a current camera")
 	if camera == null:
