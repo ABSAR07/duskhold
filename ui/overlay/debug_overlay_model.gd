@@ -45,6 +45,10 @@ func collect(fps: float) -> Array:
 		var rows: Variant = provider.call()
 		if rows is Array:
 			sections.append(_section(entry["title"], _clean_rows(rows)))
+		else:
+			_warn_once(
+				entry["title"], "it returned %s, not an Array of rows" % type_string(typeof(rows))
+			)
 	return sections
 
 

@@ -170,6 +170,9 @@ func test_a_provider_that_returns_a_non_array_is_skipped_instead_of_crashing() -
 	assert_eq(_section(sections, "Null"), {}, "a null return leaves its section out")
 	assert_eq(_section(sections, "Text"), {}, "a non-Array return leaves its section out")
 	assert_eq(_row_value(_section(sections, "Live"), "Answer"), "42", "valid sections still show")
+	assert_push_warning("debug overlay section 'Null' skipped: it returned Nil, not an Array")
+	assert_push_warning("debug overlay section 'Text' skipped: it returned String, not an Array")
+	assert_push_warning_count(2, "each non-Array provider is named once")
 
 
 func test_a_provider_with_malformed_rows_keeps_only_the_well_formed_ones() -> void:
