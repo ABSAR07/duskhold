@@ -1,14 +1,16 @@
 name: CI
 
-# Runs on pushes to the default branches and to GSD phase branches (gsd/**, which are pushed
-# without a pull request), on every pull request, and on demand. Other branch pushes are covered
-# by their pull request, so a feature branch is not built twice. There are no path filters: a
-# change that touches no GDScript still runs all jobs. lint and test are independent; export runs
-# only after both succeed. The token is read-only and no secrets are used anywhere. Every action
-# is pinned to a full commit SHA (the trailing comment names the release); bump SHA and comment together.
+# Runs on every push to any branch or tag, on every pull request, and on demand.
+# A same-repo pull request branch is therefore built twice, once for the push and once for the
+# pull request, as the gsd/** phase branches already were; the repository is public, so the extra
+# runs cost no Actions minutes.
+# There are no path filters: a change that touches no GDScript still runs all jobs.
+# lint and test are independent; export runs only after both succeed.
+# The token is read-only and no secrets are used anywhere.
+# Every action is pinned to a full commit SHA (the trailing comment names the release); bump SHA
+# and comment together.
 on:
   push:
-    branches: [main, master, "gsd/**"]
   pull_request:
   workflow_dispatch:
 
