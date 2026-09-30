@@ -67,11 +67,30 @@ func test_a_second_bind_run_keeps_the_sections_registered_so_far() -> void:
 	overlay.bind_run(ctx, null)
 	overlay.register_section("Kept", func() -> Array: return [["Wave", "3"]])
 
-	overlay.bind_run(_context(), null)
+	overlay.bind_run(ctx, null)
 
 	var text: String = await _shown_text(overlay)
 	assert_string_contains(text, "Kept", "a repeat bind_run does not discard the section")
 	assert_string_contains(text, "Wave: 3", "or its rows")
+	assert_push_warning_count(0, "and binding the same run again is not a mistake")
+
+
+func test_a_repeat_bind_run_with_another_context_warns_and_keeps_reading_the_first_run() -> void:
+	var overlay: DebugOverlay = _overlay()
+	var first: RunContext = _context()
+	var second: RunContext = _context()
+	first.economy.grant(7)
+	second.economy.grant(99)
+	overlay.bind_run(first, null)
+	overlay.register_section("Kept", func() -> Array: return [["Wave", "3"]])
+
+	overlay.bind_run(second, null)
+
+	assert_push_warning(DebugOverlay.REBIND_IGNORED_WARNING)
+	var text: String = await _shown_text(overlay)
+	assert_string_contains(text, "Gold: %d" % first.economy.get_gold(), "the first run is read")
+	assert_false(text.contains("Gold: %d" % second.economy.get_gold()), "and the second run is not")
+	assert_string_contains(text, "Wave: 3", "the registered section survives")
 
 
 func test_a_pending_section_whose_owner_died_before_bind_run_is_left_out_with_a_warning() -> void:

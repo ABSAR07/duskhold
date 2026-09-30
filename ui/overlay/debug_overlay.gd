@@ -7,8 +7,10 @@ extends CanvasLayer
 
 const TOGGLE_ACTION := &"toggle_debug_overlay"
 const REFRESH_INTERVAL_S: float = 0.25
+const REBIND_IGNORED_WARNING := "debug overlay bind_run ignored: already bound to another run"
 
 var _model: DebugOverlayModel
+var _ctx: RunContext
 var _since_refresh: float = 0.0
 ## Sections registered before bind_run, as {title, provider, owner: WeakRef or null}. Bind order
 ## across the run_bound group is not guaranteed, so a caller may register first; bind_run replays
@@ -19,10 +21,16 @@ var _pending: Array[Dictionary] = []
 
 
 ## Builds the model once. A repeat call is ignored (as in Hud.bind_run): a second model would
-## discard every section registered so far.
+## discard every section registered so far. The overlay belongs to one run: MapRoot binds it once
+## with its own RunContext, and it is recreated with the map, never rebound. A repeat call with a
+## different context is therefore a caller mistake; it is named, because the overlay would go on
+## reading the first run's phase, gold and counts without saying so.
 func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 	if _model != null:
+		if ctx != _ctx:
+			push_warning(REBIND_IGNORED_WARNING)
 		return
+	_ctx = ctx
 	_model = DebugOverlayModel.new(ctx)
 	for entry: Dictionary in _pending:
 		var owner_ref: WeakRef = entry["owner"]
