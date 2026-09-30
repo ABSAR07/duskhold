@@ -5,32 +5,32 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: fixed
-    title: "Mutating test can poison the cached map for every later suite when the guard it tests regresses"
-  - id: IN-01
-    severity: info
-    disposition: fixed
-    title: "Local `name` shadows `Node.name` in a GutTest"
-  - id: IN-02
-    severity: info
-    disposition: fixed
-    title: "`test_a_new_tuning_copy_shares_no_resource_with_the_cached_tuning` is vacuous today and its final assert overstates what it checks"
-  - id: IN-03
-    severity: info
-    disposition: fixed
-    title: "Pre-bind registration warns about a replaced section whose owner was freed"
+    disposition: open
+    title: "Spot-position check in the cache-isolation test passes when the copy shares the spot with the cache"
   - id: WR-02
     severity: warning
-    disposition: fixed
-    title: "Nothing enforces that every `Skip` code has a `SKIP_MESSAGES` entry"
+    disposition: open
+    title: "The replay of a pending section with a live owner is not tested"
+  - id: WR-03
+    severity: warning
+    disposition: open
+    title: "`test_a_new_tuning_copy_shares_no_resource_with_the_cached_tuning` cannot fail today"
+  - id: IN-01
+    severity: info
+    disposition: open
+    title: "The Ghost test does not pin the warning count or the \"before bind_run\" wording"
+  - id: IN-02
+    severity: info
+    disposition: open
+    title: "A bind while the overlay is visible shows stale text for up to 0.25 s"
+  - id: IN-03
+    severity: info
+    disposition: open
+    title: "Overlay processing follows the tree's pause state"
   - id: IN-04
     severity: info
     disposition: fixed
     title: "`register_section` raises a script error if the `lifetime_owner` is already freed"
-  - id: WR-03
-    severity: warning
-    disposition: fixed
-    title: "Camera test dereferences a possibly-null `vfx`"
   - id: IN-05
     severity: info
     disposition: fixed
@@ -87,22 +87,22 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 0
+open: 6
 total: 21
-recorded: 2026-09-30T13:41:37.218Z
+recorded: 2026-09-30T13:47:25.479Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
-| IN-01 | info | fixed | 01-REVIEW-FIX.md |
-| IN-02 | info | fixed | 01-REVIEW-FIX.md |
-| IN-03 | info | fixed | 01-REVIEW-FIX.md |
-| WR-02 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
+| WR-01 | warning | open | - |
+| WR-02 | warning | open | - |
+| WR-03 | warning | open | - |
+| IN-01 | info | open | - |
+| IN-02 | info | open | - |
+| IN-03 | info | open | - |
 | IN-04 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
-| WR-03 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-05 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-04 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-05 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
