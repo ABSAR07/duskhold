@@ -18,6 +18,7 @@ const REQUIRED_FIELDS: Array[String] = [
 
 
 func after_each() -> void:
+	get_tree().paused = false
 	E2eSupport.release_all_actions()
 
 
@@ -89,17 +90,30 @@ func test_shown_overlay_refreshes_the_buildings_row_after_a_build() -> void:
 	assert_true(refreshed, "the Buildings row shows 1 within %s s" % REFRESH_WINDOW_S)
 
 
-func test_overlay_keeps_processing_while_the_tree_is_paused() -> void:
+func test_overlay_toggles_and_refreshes_while_the_tree_is_paused() -> void:
 	# A later phase's pause menu pauses the tree; the F3 toggle and the refresh must still run.
+	# after_each unpauses the tree, so a failure here cannot leave every later suite paused.
 	var map_root: MapRoot = await E2eSupport.spawn_map(self)
 	var overlay: DebugOverlay = _overlay_of(map_root)
 	assert_not_null(overlay, "the HUD instances the debug overlay")
 	if overlay == null:
 		return
-	assert_eq(overlay.process_mode, Node.PROCESS_MODE_ALWAYS, "the overlay ignores the pause")
-
 	get_tree().paused = true
-	var can_process_while_paused: bool = overlay.can_process()
-	get_tree().paused = false
 
-	assert_true(can_process_while_paused, "so it still processes while the tree is paused")
+	await _press_toggle()
+	assert_true(overlay.is_overlay_visible(), "F3 shows the overlay while the tree is paused")
+	assert_string_contains(overlay.get_text(), "Buildings: 0", "and it fills at once")
+
+	# A build through the command gate needs no tree processing, so only the overlay's own refresh
+	# can bring the new count onto the screen while the tree stays paused.
+	var ctx: RunContext = map_root.get_context()
+	var spot_id: StringName = ctx.buildings.spot_ids()[0]
+	var result: StringName = ctx.commands.submit(BuildIntent.new(spot_id))
+	assert_eq(result, CommandProcessor.OK, "the House was built through the command gate")
+	var refreshed: bool = await E2eSupport.wait_until(
+		self, func() -> bool: return overlay.get_text().contains("Buildings: 1"), REFRESH_WINDOW_S
+	)
+	assert_true(refreshed, "the overlay refreshes within %s s while paused" % REFRESH_WINDOW_S)
+
+	await _press_toggle()
+	assert_false(overlay.is_overlay_visible(), "F3 hides it again while the tree is paused")
