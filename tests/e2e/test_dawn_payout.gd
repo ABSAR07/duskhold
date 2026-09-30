@@ -11,8 +11,6 @@ const FAST_NIGHT_S: float = 0.5
 const WAIT_SLACK_S: float = 3.0
 const EARLY_S: float = 0.5
 const SETTLED_S: float = 3.0
-## Real-time allowance on top of the dawn window: tween delays are frame-quantised, so a slow
-## runner lands a coin a few frames late.
 const HOUSE_ONE: StringName = &"house_1"
 const HOUSE_TWO: StringName = &"house_2"
 
@@ -216,10 +214,10 @@ func test_the_last_coin_lands_inside_the_dawn_window_however_many_spots_pay() ->
 	)
 
 
-func test_a_real_payout_lands_every_coin_inside_a_short_dawn_window() -> void:
+func test_a_real_payout_schedules_its_last_coin_to_land_inside_a_short_dawn_window() -> void:
 	# 12 coins at the default 0.08 s stagger would launch the last one at 0.88 s and land it at
-	# 1.48 s, well past a 1.0 s dawn. The tightened stagger (whose schedule is proven exactly in the
-	# test above) must still land every coin; this checks the end state, not the wall-clock time.
+	# 1.48 s, well past a 1.0 s dawn. The launch delays the payout really scheduled are compared
+	# with the window, so the check is exact and needs no wall-clock timing.
 	var short_tuning: LoopTuning = _tuning.duplicate(true)
 	short_tuning.dawn_seconds = 1.0
 	var map_root: MapRoot = await E2eSupport.spawn_map(self, _rich_map(), short_tuning)
@@ -232,15 +230,30 @@ func test_a_real_payout_lands_every_coin_inside_a_short_dawn_window() -> void:
 	var total: int = 12
 
 	ctx.events.dawn_payout.emit(total, per_spot)
+
+	var delays: Array[float] = vfx.get_launch_delays()
+	assert_eq(delays.size(), total, "one coin per gold, 12 coins scheduled")
+	var stagger: float = vfx.launch_stagger(total)
+	assert_lt(stagger, DawnPayoutVfx.STAGGER_SECONDS, "the default stagger is too slow for 1.0 s")
+	assert_almost_eq(
+		delays[delays.size() - 1],
+		float(total - 1) * stagger,
+		0.0001,
+		"the last coin's launch delay"
+	)
+	assert_lte(
+		delays[delays.size() - 1] + DawnPayoutVfx.TRIP_SECONDS,
+		short_tuning.dawn_seconds + 0.001,
+		"the last coin is scheduled to land before the dawn window ends"
+	)
 	var landed: bool = await E2eSupport.wait_until(
 		self, _total_shown.bind(map_root), short_tuning.dawn_seconds + SETTLED_S
 	)
-
 	assert_true(landed, "the last coin landed and the total appeared")
 	assert_eq(
 		vfx.get_spawned_count(HOUSE_ONE) + vfx.get_spawned_count(HOUSE_TWO), total, "12 coins"
 	)
-	assert_true(_hud_gold_settled(map_root), "every coin landed before the dawn window ended")
+	assert_true(_hud_gold_settled(map_root), "every coin landed, so the readout is on the ledger")
 	assert_eq(vfx.get_last_total(), total, "the total was shown once the last coin landed")
 	assert_eq(vfx.live_coin_count(), 0, "no coin is still in the air")
 

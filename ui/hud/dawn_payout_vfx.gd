@@ -35,6 +35,7 @@ const TOTAL_SHOWN_SECONDS: float = 2.0
 var _ctx: RunContext
 var _coin_texture: GradientTexture2D
 var _launched: Dictionary = {}
+var _launch_delays: Array[float] = []
 var _last_total: int = 0
 var _expected_coins: int = 0
 var _landed_coins: int = 0
@@ -79,6 +80,12 @@ func get_last_total() -> int:
 ## Coins that have left `spot_id` during the current payout.
 func get_spawned_count(spot_id: StringName) -> int:
 	return _launched.get(spot_id, 0)
+
+
+## Seconds after the payout began at which each coin of the current payout launches, in launch
+## order. Read-only: it lets a test check the schedule without waiting on the clock.
+func get_launch_delays() -> Array[float]:
+	return _launch_delays.duplicate()
 
 
 ## Seconds between two coin launches for a payout of `coin_total` coins: STAGGER_SECONDS, tightened
@@ -168,6 +175,7 @@ func _coin_share(amount: int, coin_count: int, coin: int) -> int:
 func _reset_for_new_payout() -> void:
 	_generation += 1
 	_launched.clear()
+	_launch_delays.clear()
 	_expected_coins = 0
 	_landed_coins = 0
 	_pending_total = 0
@@ -179,6 +187,7 @@ func _reset_for_new_payout() -> void:
 
 
 func _schedule_launch(spot_id: StringName, delay: float, share: int) -> void:
+	_launch_delays.append(delay)
 	if delay <= 0.0:
 		_launch_coin(spot_id, _generation, share)
 		return

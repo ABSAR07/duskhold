@@ -10,6 +10,7 @@ const RICH_GOLD: int = 20
 const SLOW_DRIP_S: float = 1.0
 const WAIT_SLACK_S: float = 3.0
 const HOUSE_SPOT: StringName = &"house_1"
+const PAYING_SPOT: StringName = &"house_2"
 const NEAR_OFFSET := Vector3(0.5, 0.0, 0.0)
 const NIGHT_BANNER := "Night 1 — no enemies yet"
 ## A partial hold is this share of start_night_hold_seconds, so it stays short of the full hold
@@ -245,7 +246,14 @@ func test_a_build_hold_is_cancelled_when_the_night_starts() -> void:
 	var map_root: MapRoot = await E2eSupport.spawn_map(self, map, slow)
 	var ctx: RunContext = map_root.get_context()
 	var hold: BuildHoldController = map_root.get_build_hold()
+	# A House already standing on another plot, so dawn has income to pay and the gold check below
+	# can tell a payout bug from no payout at all.
+	assert_eq(ctx.commands.submit(BuildIntent.new(PAYING_SPOT)), CommandProcessor.OK, "a House")
 	var gold_before: int = ctx.economy.get_gold()
+	var dawn_income: int = 0
+	for amount: int in ctx.buildings.dawn_income_by_spot().values():
+		dawn_income += amount
+	assert_gt(dawn_income, 0, "the standing House pays at dawn")
 	E2eSupport.teleport_king(map_root, ctx.buildings.get_spot(HOUSE_SPOT).position + NEAR_OFFSET)
 	await wait_process_frames(2)
 	watch_signals(hold)
@@ -262,9 +270,6 @@ func test_a_build_hold_is_cancelled_when_the_night_starts() -> void:
 	assert_false(hold.is_holding(), "the hold ended")
 	ctx.run_manager.tick(slow.placeholder_night_seconds + PAST_END_S)
 	assert_eq(ctx.run_manager.get_phase(), RunManager.RunPhase.DAWN, "dawn reached")
-	var dawn_income: int = 0
-	for amount: int in ctx.buildings.dawn_income_by_spot().values():
-		dawn_income += amount
 	assert_eq(ctx.economy.get_gold(), gold_before + dawn_income, "only dawn income moved gold")
 	assert_null(ctx.buildings.get_instance(HOUSE_SPOT), "nothing was built on the plot")
 	Input.action_release(&"action_build")
