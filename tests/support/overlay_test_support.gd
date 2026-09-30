@@ -14,12 +14,16 @@ static func new_tuning() -> LoopTuning:
 	return (load(TUNING) as LoopTuning).duplicate(true)
 
 
+## A private copy of the prototype map, for the same reason as new_tuning.
+static func new_map() -> MapConfig:
+	return (load(PROTOTYPE_MAP) as MapConfig).duplicate(true)
+
+
 ## A RunContext on its own copies of the prototype map and (unless given) the tuning, with a House
 ## built on the first spot through the command gate. Duplicated, like the e2e tests do, so nothing
 ## here is ever tested against a shared cached resource that another test wrote to.
 static func context_with_one_house(test: GutTest, tuning: LoopTuning = null) -> RunContext:
-	var map: MapConfig = (load(PROTOTYPE_MAP) as MapConfig).duplicate(true)
-	var ctx: RunContext = RunContext.new(map, tuning if tuning != null else new_tuning())
+	var ctx: RunContext = RunContext.new(new_map(), tuning if tuning != null else new_tuning())
 	var first_spot: StringName = ctx.buildings.spot_ids()[0]
 	var result: StringName = ctx.commands.submit(BuildIntent.new(first_spot))
 	test.assert_eq(result, CommandProcessor.OK, "the setup House is built through the command gate")

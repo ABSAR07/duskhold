@@ -4,8 +4,6 @@ extends GutTest
 ## its section before the overlay is bound, or bind the overlay twice; neither may lose a section.
 
 const OVERLAY_SCENE := "res://ui/overlay/debug_overlay.tscn"
-const PROTOTYPE_MAP := "res://data/maps/prototype_map.tres"
-const TUNING := "res://data/tuning/loop_tuning.tres"
 
 
 func after_each() -> void:
@@ -13,9 +11,7 @@ func after_each() -> void:
 
 
 func _context() -> RunContext:
-	var map: MapConfig = (load(PROTOTYPE_MAP) as MapConfig).duplicate(true)
-	var tuning: LoopTuning = (load(TUNING) as LoopTuning).duplicate(true)
-	return RunContext.new(map, tuning)
+	return RunContext.new(OverlayTestSupport.new_map(), OverlayTestSupport.new_tuning())
 
 
 func _overlay() -> DebugOverlay:
