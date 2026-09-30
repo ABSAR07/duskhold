@@ -56,6 +56,12 @@ func _init(ctx: RunContext) -> void:
 ## freed. Without an owner the provider may only capture objects that live as long as the run
 ## (RunContext and what it holds), or check is_instance_valid itself.
 ##
+## The overlay itself holds `lifetime_owner` only through a WeakRef, but the stored `provider`
+## Callable is a strong reference to everything a lambda captured. So this works for an owner that
+## is freed explicitly (a Node: free() or queue_free()). A RefCounted owner that the provider
+## captures is kept alive by that capture: it is never freed, and the section is never dropped. To
+## have a RefCounted owner end the section, capture a weakref() of it in the provider instead.
+##
 ## `lifetime_owner` must be alive when this is called: an owner that is already freed is refused
 ## with a warning, like a default title, and so is a value that is not an Object at all. It is a
 ## Variant, not an Object, because passing a freed
@@ -96,8 +102,9 @@ static func owner_problem(lifetime_owner: Variant) -> String:
 	return ""
 
 
-## A WeakRef to a usable `lifetime_owner` (see owner_problem), so the overlay never keeps a
-## RefCounted owner alive; null when there is no owner.
+## A WeakRef to a usable `lifetime_owner` (see owner_problem), so the overlay's own reference to a
+## RefCounted owner never keeps it alive; null when there is no owner. The provider Callable is
+## separate: whatever it captures stays alive (see register_section).
 static func owner_ref(lifetime_owner: Variant) -> WeakRef:
 	return weakref(lifetime_owner) if typeof(lifetime_owner) == TYPE_OBJECT else null
 

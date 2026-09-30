@@ -160,6 +160,49 @@ func test_a_lambda_that_captured_a_live_object_keeps_showing_with_or_without_an_
 	assert_push_warning_count(0, "nothing was skipped")
 
 
+func test_a_refcounted_owner_captured_by_its_provider_is_kept_alive_by_the_section() -> void:
+	# The documented limit of `lifetime_owner`: the overlay's own reference is weak, but the stored
+	# provider strongly holds what its lambda captured, so a captured RefCounted is never freed.
+	var model: DebugOverlayModel = _model()
+	var owner_obj: RefCounted = RefCounted.new()
+	var ref: WeakRef = weakref(owner_obj)
+	model.register_section(
+		"Held", func() -> Array: return [["Id", str(owner_obj.get_instance_id())]], owner_obj
+	)
+	owner_obj = null
+
+	var sections: Array = model.collect(60.0)
+
+	assert_not_null(ref.get_ref(), "the provider's capture keeps the owner alive")
+	assert_not_null(
+		OverlayTestSupport.row_value(OverlayTestSupport.section(sections, "Held"), "Id"),
+		"so the section keeps showing"
+	)
+	assert_push_warning_count(0, "and is never named as freed")
+
+
+func test_a_weakly_captured_refcounted_owner_ends_its_section_when_freed() -> void:
+	var model: DebugOverlayModel = _model()
+	var owner_obj: RefCounted = RefCounted.new()
+	var owner_weak: WeakRef = weakref(owner_obj)
+	model.register_section(
+		"Weak", func() -> Array: return [["Alive", str(owner_weak.get_ref() != null)]], owner_obj
+	)
+	var shown: Dictionary = OverlayTestSupport.section(model.collect(60.0), "Weak")
+	assert_eq(
+		OverlayTestSupport.row_value(shown, "Alive"), "true", "shown while the owner is alive"
+	)
+	owner_obj = null
+
+	var sections: Array = model.collect(60.0)
+	model.collect(60.0)
+
+	assert_null(owner_weak.get_ref(), "nothing but the caller held the owner, so it was freed")
+	assert_eq(OverlayTestSupport.section(sections, "Weak"), {}, "and its section is left out")
+	assert_push_warning("debug overlay section 'Weak' skipped: its owner was freed")
+	assert_push_warning_count(1, "named once, then dropped")
+
+
 func test_a_provider_that_needs_an_argument_is_skipped_instead_of_crashing() -> void:
 	var model: DebugOverlayModel = _model()
 	model.register_section("Needy", func(wave: int) -> Array: return [["Wave", str(wave)]])

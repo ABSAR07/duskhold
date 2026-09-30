@@ -53,7 +53,8 @@ func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 ## Safe to call before bind_run: the section is held and added when the overlay is bound.
 ## Pass `lifetime_owner` when the provider reads an object that can be freed before the overlay (see
 ## DebugOverlayModel.register_section, which also says why `lifetime_owner` is a Variant and must be
-## alive at registration).
+## alive at registration, and why it only ends the section of an owner freed explicitly, such as a
+## Node, not of a RefCounted that the provider captures).
 func register_section(title: String, provider: Callable, lifetime_owner: Variant = null) -> void:
 	if _model == null:
 		# The same checks, in the same order, as DebugOverlayModel.register_section, so a mistake is
@@ -64,7 +65,8 @@ func register_section(title: String, provider: Callable, lifetime_owner: Variant
 		if problem != "":
 			DebugOverlayModel.warn_not_registered(title, problem)
 			return
-		# A WeakRef, like the model's, so a pending section never keeps its owner alive.
+		# A WeakRef, like the model's, so the pending entry's own reference never keeps its owner
+		# alive. The stored provider still holds whatever it captured (see register_section).
 		_pending.append(
 			{
 				"title": title,
