@@ -122,22 +122,23 @@ func _on_dawn_payout(total: int, per_spot: Dictionary) -> void:
 		payout_started.emit(0)
 		return
 	_pending_total = total
+	var amounts: Dictionary = _whole_amounts(per_spot)
 	# The coin budget is spread over the gold that will actually fly, not over the claimed total.
 	var carried_gold: int = 0
-	for amount: int in per_spot.values():
+	for amount: int in amounts.values():
 		carried_gold += maxi(amount, 0)
 	var coin_counts: Dictionary = {}
 	var coin_total: int = 0
-	for spot_id: StringName in per_spot:
-		var count: int = _coins_for_amount(per_spot[spot_id], carried_gold)
+	for spot_id: StringName in amounts:
+		var count: int = _coins_for_amount(amounts[spot_id], carried_gold)
 		coin_counts[spot_id] = count
 		coin_total += count
 	var stagger: float = launch_stagger(coin_total)
 	# Plan every coin first, so the carried gold is announced before the first one can launch.
 	var launches: Array[Dictionary] = []
 	var carried: int = 0
-	for spot_id: StringName in per_spot:
-		var amount: int = per_spot[spot_id]
+	for spot_id: StringName in amounts:
+		var amount: int = amounts[spot_id]
 		var coin_count: int = coin_counts[spot_id]
 		for coin: int in range(coin_count):
 			var share: int = _coin_share(amount, coin_count, coin)
@@ -152,6 +153,25 @@ func _on_dawn_payout(total: int, per_spot: Dictionary) -> void:
 	if _expected_coins == 0:
 		# Nothing to fly (malformed per_spot): no coin will ever land, so show the total now.
 		_show_total()
+
+
+## `per_spot` arrives as an untyped Dictionary, so each amount is coerced to a whole number once
+## here (a float from a later payout source is truncated). An amount that is not a number at all is
+## dropped with a warning, so one bad entry cannot abort the whole payout.
+func _whole_amounts(per_spot: Dictionary) -> Dictionary:
+	var amounts: Dictionary = {}
+	for spot_id: Variant in per_spot:
+		var amount: Variant = per_spot[spot_id]
+		if amount is int or amount is float:
+			amounts[spot_id] = int(amount)
+		else:
+			push_warning(
+				(
+					"dawn payout for '%s' ignored: %s is not a number"
+					% [spot_id, type_string(typeof(amount))]
+				)
+			)
+	return amounts
 
 
 ## One coin per gold while the gold that flies (`carried_gold`, the sum of the positive amounts)
