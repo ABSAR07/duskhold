@@ -5,15 +5,6 @@ extends GutTest
 const PROTOTYPE_MAP := "res://data/maps/prototype_map.tres"
 const TUNING := "res://data/tuning/loop_tuning.tres"
 const COLLECT_REPEATS: int = 200
-const SIM_SIGNALS: Array[String] = [
-	"gold_changed",
-	"building_built",
-	"command_rejected",
-	"phase_changed",
-	"night_started",
-	"dawn_payout",
-	"day_started",
-]
 
 
 func _prototype_with_one_house() -> RunContext:
@@ -121,7 +112,7 @@ func test_collecting_200_times_changes_no_state_and_emits_no_events() -> void:
 	assert_eq(ctx.economy.get_gold(), gold_before, "gold unchanged")
 	assert_eq(ctx.run_manager.get_phase(), phase_before, "phase unchanged")
 	assert_eq(_tier_snapshot(ctx), tiers_before, "every spot's tier unchanged")
-	for signal_name: String in SIM_SIGNALS:
+	for signal_name: String in SimSignals.ALL:
 		assert_signal_not_emitted(ctx.events, signal_name)
 
 
@@ -301,10 +292,10 @@ func test_the_watched_signals_are_every_signal_the_simulation_declares() -> void
 	for info: Dictionary in SimEvents.new().get_script().get_script_signal_list():
 		declared.append(info["name"])
 	declared.sort()
-	var watched: Array[String] = SIM_SIGNALS.duplicate()
+	var watched: Array[String] = SimSignals.ALL.duplicate()
 	watched.sort()
 
-	assert_eq(watched, declared, "a new SimEvents signal must be added to SIM_SIGNALS")
+	assert_eq(watched, declared, "a new SimEvents signal must be added to SimSignals.ALL")
 
 
 func test_registering_a_default_section_title_is_refused_instead_of_showing_it_twice() -> void:

@@ -6,15 +6,6 @@ extends GutTest
 const PROTOTYPE_MAP := "res://data/maps/prototype_map.tres"
 const TUNING := "res://data/tuning/loop_tuning.tres"
 const COLLECT_REPEATS: int = 200
-const SIM_SIGNALS: Array[String] = [
-	"gold_changed",
-	"building_built",
-	"command_rejected",
-	"phase_changed",
-	"night_started",
-	"dawn_payout",
-	"day_started",
-]
 
 var _tuning: LoopTuning
 
@@ -83,7 +74,7 @@ func _assert_collecting_is_read_only(ctx: RunContext, model: DebugOverlayModel) 
 		agents_and_buildings_before,
 		"every spot's tier and the unit and enemy counts unchanged"
 	)
-	for signal_name: String in SIM_SIGNALS:
+	for signal_name: String in SimSignals.ALL:
 		assert_signal_not_emitted(ctx.events, signal_name)
 
 
