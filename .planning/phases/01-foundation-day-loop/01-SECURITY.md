@@ -48,7 +48,7 @@ created: "2026-09-29"
 | T-01-08 | Denial of Service | Git LFS quota in CI | low | mitigate | `.git/lfs` cache keyed on `hashFiles('.lfs-assets-id')`; lint job checks out with `lfs: false` | closed |
 | T-01-SC (01-03) | Tampering | CI Godot/templates/pip installs | high | mitigate | CI runs `python tools/bootstrap.py --godot [--templates] --yes --platform linux`, which verifies against the committed pin; lint installs `-r tools/requirements-lint.txt` (pinned) | closed |
 | T-01-09 | Tampering | `project.godot` `[input]` | low | mitigate | `test_input_map.gd` fails on any mouse binding in a project action, any missing keyboard/gamepad binding, or binding-table drift; green | closed |
-| T-01-10 | Tampering | `MapConfig` / `.tres` data | low | mitigate | `MapConfig.validate()` reports empty entries, duplicate/empty ids (building ids too since review-fix pass 2, WR-01), empty tier lists and non-positive costs (hardened by review fix IN-02); `BuildingSystem` skips null building/spot entries instead of crashing, and since pass 3 lists a duplicate spot id once (the first definition wins) and skips unknown building ids in dawn income; `test_prototype_map_data.gd` and `test_building_system_data_errors.gd` green | closed |
+| T-01-10 | Tampering | `MapConfig` / `.tres` data | low | mitigate | `MapConfig.validate()` reports empty entries, duplicate/empty ids (building ids too since review-fix pass 2, WR-01), empty tier lists and non-positive costs (hardened by review fix IN-02); `BuildingSystem` skips null building/spot entries instead of crashing, and since pass 3 lists a duplicate spot id once (the first definition wins) and skips unknown building ids in dawn income; since pass 4 a duplicate building id also keeps the first definition and `spot_ids()` returns a copy; `test_prototype_map_data.gd` and `test_building_system_data_errors.gd` green | closed |
 | T-01-11 | Tampering | `BuildHoldController` completion after leaving range, phase change or loss of affordability | medium | mitigate | Focus lock on the active spot; every frame cancels if the key is released, the spot is out of `interaction_radius` or `is_build_allowed()` is false; `submit` re-validates at completion; `test_build_hold_refund.gd`, `test_build_denied.gd` green | closed |
 | T-01-12 | Repudiation | `assets/attribution.json` licensing claims | medium | mitigate | `ALLOWED_LICENSES = ["CC0-1.0", "MIT"]` and full-coverage checks in `test_attribution_log.gd`; `License.txt` kept beside each of the 4 third-party asset folders; archive SHA256 on every model entry; source wording quoted in 01-07-SUMMARY | closed |
 | T-01-13 | Tampering | IP exposure in game content | medium | mitigate | Plan-scoped check `git grep -il thronefall -- data simulation input presentation ui assets project.godot export_presets.cfg ASSETS.md` is clean; only Kenney/Quaternius sources used | closed |
@@ -56,7 +56,7 @@ created: "2026-09-29"
 | T-01-14 | Tampering | `RunManager` transitions and dawn payout | low | mitigate | `start_night()` returns false unless `_phase == DAY`; `test_only_the_run_manager_assigns_the_loop_phase` source-scan test; `CommandProcessor` rejects StartNightIntent outside DAY; `test_run_manager.gd`, `test_build_phase_guard.gd`, `test_loop_gold_carryover.gd` green | closed |
 | T-01-15 | Elevation of Privilege | DebugOverlay in release builds | low | accept | See AR-01 (since pass 3 the read-only test watches all 7 simulation signals, and malformed provider rows are dropped) | closed |
 | T-01-16 | Information Disclosure | `duskhold-screenshots` CI artifact | low | accept | See AR-02 (`retention-days: 7` confirmed in `ci.yml`; since IN-04 the upload runs `if: always()` and also carries `build/screenshot-import.log`) | closed |
-| T-01-17 | Information Disclosure | `git push` of new history | high | mitigate | `bash tools/prepush_check.sh` before every push; re-run 2026-09-29 over all refs, including the 62 local commits not yet pushed: PASSED | closed |
+| T-01-17 | Information Disclosure | `git push` of new history | high | mitigate | `bash tools/prepush_check.sh` before every push; re-run 2026-09-30 over all refs, including the 77 local commits not yet pushed: PASSED | closed |
 | T-01-SC (01-10) | Tampering | apt packages on the CI runner | low | accept | See AR-03 | closed |
 | T-01-SC (no-install plans) | Tampering | Package installs in 01-02, 01-04, 01-05, 01-06, 01-08, 01-09 | low | accept | See AR-04 | closed |
 
@@ -68,7 +68,7 @@ The plans list T-01-SC seven times; the six identical "this plan installs no pac
 
 ### Observations (non-blocking)
 
-- **T-01-06 / T-01-17: enforcement is procedural.** `.git/hooks/pre-push` only runs Git LFS, so nothing forces `tools/prepush_check.sh` to run before a push. Run it before pushing the 62 pending local commits (it passes today). Optional hardening: call it from the pre-push hook.
+- **T-01-06 / T-01-17: enforcement is procedural.** `.git/hooks/pre-push` only runs Git LFS, so nothing forces `tools/prepush_check.sh` to run before a push. Run it before pushing the 77 pending local commits (it passes today). Optional hardening: call it from the pre-push hook.
 - **T-01-12: residual licence risk.** The allow-list test trusts each entry's declared `license` field. The Quaternius horse is logged as CC0-1.0, based on the 2021 Poly Pizza CC0 statement, while Quaternius now publishes its own Asset License. That is review finding WR-06, disposition skipped, owner decision pending. It is also listed as a human verification item.
 - **T-01-13: out-of-scope mention.** A comment on line 3 of `tools/_common.sh` names the local checkout folder, which contains the reference game's name. `tools/*` is not game content and is excluded from the export (`exclude_filter="tests/*, addons/gut/*, tools/*"`). The owner may still want to reword it before release.
 
@@ -94,6 +94,7 @@ The plans list T-01-SC seven times; the six identical "this plan installs no pac
 | 2026-09-29 | 22 | 22 | 0 | secure-phase orchestrator (ASVS L1 grep-depth; short-circuit, no auditor spawn) |
 | 2026-09-29 (re-audit) | 22 | 22 | 0 | secure-phase orchestrator (State A; re-checked mitigations touched by review-fix pass 2) |
 | 2026-09-29 (re-audit 2) | 22 | 22 | 0 | secure-phase orchestrator (State A; re-checked mitigations touched by review-fix pass 3) |
+| 2026-09-30 (re-audit 3) | 22 | 22 | 0 | secure-phase orchestrator (State A; re-checked mitigations touched by review-fix pass 4) |
 
 ## Security Audit 2026-09-29
 
@@ -137,6 +138,22 @@ Re-checked the mitigations touched by the 7 fix commits (`ecea4ff`..`9cae015`):
 - **T-01-06 / T-01-17:** `tools/prepush_check.sh` PASSED over all refs, including the 62 unpushed commits.
 - **CI:** `ci.yml` is unchanged in this pass, so T-01-07 and T-01-16 stand as last audited.
 - **Tests:** full suite 215/215.
+
+## Security Audit 2026-09-30 (re-audit after review-fix pass 4)
+
+| Metric | Count |
+|--------|-------|
+| Threats found | 22 |
+| Closed | 22 |
+| Open | 0 |
+
+Re-checked the mitigations touched by the 8 fix commits (`2d8dd35`..`2fe6dc1`):
+- **T-01-10:** strengthened. Duplicate building ids now keep the first definition, matching spots, and `spot_ids()` returns a copy.
+- **T-01-15:** the overlay model still makes no mutating calls. Providers that need an argument are skipped.
+- **T-01-13:** the scoped name check is clean.
+- **T-01-06 / T-01-17:** `tools/prepush_check.sh` PASSED over all refs, including the 77 unpushed commits.
+- **CI:** `ci.yml` is unchanged.
+- **Tests:** full suite 218/218.
 
 ---
 
