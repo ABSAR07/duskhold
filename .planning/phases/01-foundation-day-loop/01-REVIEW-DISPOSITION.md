@@ -3,22 +3,22 @@ phase: 01
 review: 01-REVIEW.md
 titles: json
 findings:
+  - id: WR-01
+    severity: warning
+    disposition: open
+    title: "`new_map()` / `new_tuning()` are documented as private copies, but building definitions stay shared with the cached resource"
   - id: IN-01
     severity: info
-    disposition: fixed
-    title: "`DebugOverlay.get_text()` dereferences an `@onready` node with no readiness guard"
+    disposition: open
+    title: "A pre-bind registration of a default title is accepted silently and only refused at `bind_run`"
   - id: IN-02
     severity: info
-    disposition: fixed
-    title: "Owner-validity handling is duplicated between the view and the model, and rejects non-Object owners with a misleading message"
+    disposition: open
+    title: "A repeat `bind_run` with a different `RunContext` is silently ignored, and a test locks that in"
   - id: IN-03
     severity: info
     disposition: fixed
     title: "Test scaffolding constants and context construction are duplicated"
-  - id: WR-01
-    severity: warning
-    disposition: fixed
-    title: "`_warn_once` swallows a different, later problem within the same streak"
   - id: WR-02
     severity: warning
     disposition: fixed
@@ -87,19 +87,19 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 0
+open: 3
 total: 21
-recorded: 2026-09-30T12:12:25.065Z
+recorded: 2026-09-30T12:18:05.369Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| IN-01 | info | fixed | 01-REVIEW-FIX.md |
-| IN-02 | info | fixed | 01-REVIEW-FIX.md |
-| IN-03 | info | fixed | 01-REVIEW-FIX.md |
-| WR-01 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
+| WR-01 | warning | open | - |
+| IN-01 | info | open | - |
+| IN-02 | info | open | - |
+| IN-03 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-02 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-04 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-03 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
