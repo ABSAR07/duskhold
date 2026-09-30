@@ -8,6 +8,7 @@ extends CanvasLayer
 const TOGGLE_ACTION := &"toggle_debug_overlay"
 const REFRESH_INTERVAL_S: float = 0.25
 const REBIND_IGNORED_WARNING := "debug overlay bind_run ignored: already bound to another run"
+const NO_CONTEXT_WARNING := "debug overlay bind_run ignored: no RunContext"
 
 var _model: DebugOverlayModel
 var _ctx: RunContext
@@ -26,6 +27,10 @@ var _pending: Array[Dictionary] = []
 ## different context is therefore a caller mistake; it is named, because the overlay would go on
 ## reading the first run's phase, gold and counts without saying so.
 func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
+	# Refused before _model is set, so the overlay stays unbound and a later valid bind still works.
+	if ctx == null:
+		push_warning(NO_CONTEXT_WARNING)
+		return
 	if _model != null:
 		if ctx != _ctx:
 			push_warning(REBIND_IGNORED_WARNING)

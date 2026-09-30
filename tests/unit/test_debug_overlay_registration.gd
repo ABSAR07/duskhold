@@ -93,6 +93,24 @@ func test_a_repeat_bind_run_with_another_context_warns_and_keeps_reading_the_fir
 	assert_string_contains(text, "Wave: 3", "the registered section survives")
 
 
+func test_bind_run_with_no_context_warns_and_leaves_the_overlay_free_to_bind_properly() -> void:
+	var overlay: DebugOverlay = _overlay()
+	overlay.register_section("Kept", func() -> Array: return [["Wave", "3"]])
+
+	overlay.bind_run(null, null)
+
+	assert_push_warning(DebugOverlay.NO_CONTEXT_WARNING)
+	var ctx: RunContext = _context()
+	ctx.economy.grant(7)
+	overlay.bind_run(ctx, null)
+	var text: String = await _shown_text(overlay)
+	assert_string_contains(
+		text, "Gold: %d" % ctx.economy.get_gold(), "the later bind reads its run"
+	)
+	assert_string_contains(text, "Wave: 3", "and the section registered before it survives")
+	assert_push_warning_count(1, "the refused bind is the only warning")
+
+
 func test_a_pending_section_whose_owner_died_before_bind_run_is_left_out_with_a_warning() -> void:
 	var overlay: DebugOverlay = _overlay()
 	var watched: Node = Node.new()
