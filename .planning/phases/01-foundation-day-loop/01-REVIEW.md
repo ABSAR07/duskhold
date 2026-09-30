@@ -1,10 +1,14 @@
 ---
 phase: 01-foundation-day-loop
-reviewed: 2026-09-30T10:04:59Z
+reviewed: 2026-09-30T10:32:57Z
 depth: standard
-files_reviewed: 4
+files_reviewed: 8
 files_reviewed_list:
-  - tests/unit/test_debug_overlay_readonly.gd
+  - tests/e2e/test_dawn_payout_hardening.gd
+  - tests/unit/test_debug_overlay_registration.gd
+  - tests/unit/test_debug_overlay_registration.gd.uid
+  - tests/unit/test_debug_overlay_timed_phases.gd
+  - tests/unit/test_debug_overlay_timed_phases.gd.uid
   - ui/hud/dawn_payout_vfx.gd
   - ui/overlay/debug_overlay.gd
   - ui/overlay/debug_overlay_model.gd
@@ -18,110 +22,76 @@ status: issues_found
 
 # Phase 1: Code Review Report
 
-**Reviewed:** 2026-09-30T10:04:59Z
+**Reviewed:** 2026-09-30T10:32:57Z
 **Depth:** standard
-**Files Reviewed:** 4
+**Files Reviewed:** 8
 **Status:** issues_found
 
 ## Summary
 
-Reviewed the debug overlay (view, model, unit tests) and the dawn payout VFX. I traced the
-payout flow through `_on_dawn_payout`, `_whole_amounts`, `_coins_for_amount`, `_coin_share`,
-`_reset_for_new_payout` and `_launch_coin`, and cross-checked the HUD hand-off (`payout_started`
-and `coin_landed` in `hud.gd`). I found no crash, data-loss or security defects.
+I reviewed the debug overlay (view and model), the dawn payout VFX, and the three test suites that cover them. I cross-checked them against `hud.gd`, `run_manager.gd`, `sim_events.gd`, `project.godot` and `debug_overlay.tscn`.
 
-- **Payout arithmetic.** Per-spot shares sum to the spot amount, and the coin budget and
-  clamping hold. Malformed `per_spot` input is handled (non-finite floats, non-name keys, huge
-  values). A superseded payout is guarded by `_generation`, and the HUD backstop releases any
-  held-back gold at the end of dawn.
-- **Model.** The provider-skip and warn-once logic is consistent, and each branch is covered by a
-  test.
+I found no crashes, security issues or data-loss bugs. The interplay between `payout_started`, `coin_landed` and the HUD's `_payout_pending` holds up. Superseded payouts are handled by the generation guard. `Hud._on_phase_changed` also resets `_payout_pending` when dawn ends. The overlay's pre-bind registration, owner-lifetime handling and default-title guard behave as documented. The `.uid` files are unique. All signal names in `SIM_SIGNALS` exist in `sim_events.gd`, and the `toggle_debug_overlay` action is defined in `project.godot`.
 
-What remains is a silent-failure hazard in the overlay's registration API that Phase 2 is about
-to use, plus a few maintainability and test-coverage points.
+What remains is one inconsistency in the model's failure reporting, one silent-drop path in the VFX, and some minor quality and test-coverage gaps.
 
 ## Warnings
 
-### WR-01: `DebugOverlay.register_section` silently drops registrations made before `bind_run`, and a second `bind_run` wipes all registered sections
+### WR-01: Malformed provider rows are dropped silently, unlike every other provider failure
 
-**File:** `ui/overlay/debug_overlay.gd:17-26`
-**Issue:** `register_section` is a no-op while `_model == null`, with no warning. The doc comment
-says "Phase 2 and later add sections through this". Any caller that registers from its own
-`_ready` or bind step before the overlay is bound (bind order across `run_bound` group members is
-not guaranteed) loses its section, and nothing says so. This is the exact "silently never shows"
-failure that `DebugOverlayModel._warn_once` exists to prevent one layer down.
-`bind_run` also has no repeat-call guard, unlike `Hud.bind_run` and `DawnPayoutVfx.bind_run`
-(`if _ctx != null: return`). A second call replaces `_model` with a fresh one, discarding every
-registered provider without a warning.
-**Fix:** Make registration independent of binding order, and guard the rebind:
+**File:** `ui/overlay/debug_overlay_model.gd:117-122`
+**Issue:** `_clean_rows` discards any row that is not an `Array` of at least 2 elements. A provider that returns `PackedStringArray` rows, a `Dictionary` row, or a 1-element row loses those rows with no message. This contradicts the model's own stated principle at lines 106-107: "A section that silently never shows is hard to notice". Every other provider fault (freed owner, invalid callable, wrong arity, non-Array return) goes through `_warn_once`. If every row is dropped, the section still renders as a bare title with no rows, which looks like a working but empty section.
+**Fix:** Warn once when a row is dropped, reusing the existing throttle.
 ```gdscript
-var _pending: Array[Array] = []  # [title, provider, owner] registered before bind_run
-
-func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
-	if _model != null:
-		return
-	_model = DebugOverlayModel.new(ctx)
-	for entry: Array in _pending:
-		_model.register_section(entry[0], entry[1], entry[2])
-	_pending.clear()
-
-func register_section(title: String, provider: Callable, owner: Object = null) -> void:
-	if _model == null:
-		_pending.append([title, provider, owner])
-		return
-	_model.register_section(title, provider, owner)
+func _clean_rows(title: String, rows: Array) -> Array:
+	var clean: Array = []
+	var dropped: int = 0
+	for row: Variant in rows:
+		if row is Array and (row as Array).size() >= 2:
+			clean.append([str(row[0]), str(row[1])])
+		else:
+			dropped += 1
+	if dropped > 0:
+		_warn_once(title, "%d malformed row(s) dropped; rows must be [label, value]" % dropped)
+	return clean
 ```
-At minimum, `push_warning` when `_model == null`.
+Note that `collect` erases `_warned[title]` on every successful call at line 75. That erase would need to move so it does not re-arm the warning on every refresh. For example, re-arm only when `dropped == 0`.
 
-### WR-02: Untested branches of the read-only model: `Timer` row and NIGHT/DAWN phases
+### WR-02: A payout with a positive `total` but only bad or negative `per_spot` entries gives no "+X gold" total and no feedback beyond a warning
 
-**File:** `tests/unit/test_debug_overlay_readonly.gd:52-131` (covers `ui/overlay/debug_overlay_model.gd:132-145`)
-**Issue:** The suite is named "read-only" and asserts that collecting does not mutate state. It
-only ever collects in the DAY phase, so the NIGHT/DAWN branch of `_loop_rows` is never exercised.
-That branch is the one that calls `run_manager.get_phase_time_remaining()` and appends the
-`Timer` row. The `Day` and `Night` rows are also never asserted in the unit tests. The
-200-collect no-mutation test likewise runs only in DAY, so a getter with a side effect in a
-timed phase would not be caught. The e2e test only checks `Day: 1` and `Night: 0`.
-**Fix:** Add a unit test that drives the run to NIGHT (and one to DAWN) and asserts three things.
-The `Timer` row is present, it is absent in DAY, and repeated `collect` in that phase leaves the
-timer, gold and phase unchanged. Assert `Day` and `Night` values after a phase change.
+**File:** `ui/hud/dawn_payout_vfx.gd:151-194`
+**Issue:** The early return for `total <= 0` (lines 151-153) skips `per_spot` entirely. It is silent even when `per_spot` holds positive amounts, whereas the mismatch case at line 183 warns. A `total <= 0` payout that still carries gold in `per_spot` is a claim/detail disagreement of the same kind, and it currently produces neither coins nor a warning. The reverse case (`total > 0`, `carried == 0`) correctly emits `payout_started(0)` and warns, but nothing is shown. In that case the Economy has already been credited and the HUD is not held back, so the counter jumps with no attribution. The comment at lines 193-194 acknowledges this as intentional. The test file does not exercise the `total > 0`, `carried == 0` path. `test_a_payout_with_no_coins_does_not_report_the_previous_payouts_total` uses `emit(0, {})`, which only covers the early return.
+**Fix:** Warn in the `total <= 0` branch when `per_spot` is non-empty. Add an e2e case for `emit(5, {})` or `emit(5, {HOUSE_ONE: -3})`. It should assert `get_last_total() == 0`, that `payout_started` is emitted with 0, and that the HUD readout matches the ledger immediately.
+```gdscript
+if total <= 0:
+	if not per_spot.is_empty():
+		push_warning("dawn payout claims %d gold but lists per-spot amounts; nothing shown" % total)
+	payout_started.emit(0)
+	return
+```
 
 ## Info
 
-### IN-01: `_reset_for_new_payout` and `live_coin_count` treat every child as a coin
+### IN-01: `_is_gone` and `_skip_reason` duplicate the owner/validity checks
 
-**File:** `ui/hud/dawn_payout_vfx.gd:255-256`, `ui/hud/dawn_payout_vfx.gd:78`
-**Issue:** `queue_free()` is called on all children, and `live_coin_count` counts all non-queued
-children. This works today because coins are the only children of `DawnPayoutVfx` (the scene
-`PayoutTotal` label is a sibling under the HUD root). Any future child added to the node in the
-scene, such as a pooled node, a debug marker or a trail effect, would be freed on the next
-payout and counted as a coin.
-**Fix:** Track coins explicitly, or put them in a dedicated container or group:
-```gdscript
-coin.add_to_group(&"payout_coin")
-# then iterate get_children().filter(func(c: Node) -> bool: return c.is_in_group(&"payout_coin"))
-```
+**File:** `ui/overlay/debug_overlay_model.gd:84-103`
+**Issue:** Both functions re-derive "owner freed" and "callable invalid". The rules can drift, for example if a third permanent-failure reason is added to one and not the other. `collect` calls both for every skipped entry.
+**Fix:** Have `_skip_reason` return a reason and let `_is_gone` be derived from it. Alternatively return a small struct or tuple `{reason, permanent}` from one function.
 
-### IN-02: `owner` parameter shadows `Node.owner` in `DebugOverlay.register_section`
+### IN-02: The read-only assertion covers only part of the simulation state
 
-**File:** `ui/overlay/debug_overlay.gd:24`
-**Issue:** `DebugOverlay` extends `CanvasLayer` (a `Node`), which has an `owner` property. The
-parameter shadows it. It is harmless at runtime, and I saw no shadow warning in the e2e test
-output, but it is confusing to read and risks engine warnings if the warning level changes.
-**Fix:** Rename the parameter to `lifetime_owner` or `watched`, in both `DebugOverlay` and
-`DebugOverlayModel` for consistency.
+**File:** `tests/unit/test_debug_overlay_timed_phases.gd:60-73`
+**Issue:** `_assert_collecting_is_read_only` checks gold, phase, timer, elapsed and the events. The model also reads `buildings.current_tier`, `spot_ids`, `get_unit_count` and `get_enemy_count`. A regression that mutated building state, for example lazily initialising a spot's tier inside a getter, would go unnoticed.
+**Fix:** Snapshot `_count_buildings()`-equivalent state before and after, such as `current_tier` for every spot id plus the unit and enemy counts, and assert them unchanged.
 
-### IN-03: `_registered.erase(entry)` removes by Dictionary content equality
+### IN-03: The registration tests bypass the toggle path, and the visible-refresh timing is wall-clock dependent
 
-**File:** `ui/overlay/debug_overlay_model.gd:70`
-**Issue:** `Array.erase` finds the element by `==`, which compares Dictionary contents, including
-a Callable and a WeakRef. It is correct here because titles are unique, but it depends on
-content-equality semantics and does needless work compared with removing by identity or index.
-**Fix:** Iterate by index over a reversed range and `remove_at(i)`, or key `_registered` by title
-in a Dictionary so removal is `erase(title)`.
+**File:** `tests/unit/test_debug_overlay_registration.gd:25-28`
+**Issue:** `_shown_text` sets `overlay.visible = true` directly and waits 0.35 s for the 0.25 s refresh interval. This never exercises `_process`'s `toggle_debug_overlay` branch (which refreshes immediately on show). The 0.10 s margin also depends on frame deltas under CI load. The tests would be tighter, and independent of the interval, if they forced a refresh through the same path the player uses, for example with `Input.action_press` and `Input.action_release`.
+**Fix:** Simulate the toggle input with `Input.parse_input_event` or `action_press` and then await one process frame. That gives an immediate `_refresh()` and no timing margin.
 
 ---
 
-_Reviewed: 2026-09-30T10:04:59Z_
+_Reviewed: 2026-09-30T10:32:57Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
