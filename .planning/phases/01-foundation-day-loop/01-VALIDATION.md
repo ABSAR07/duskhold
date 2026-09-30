@@ -27,7 +27,7 @@ validated: "2026-09-29"
 | **Full suite command** | `bash tools/test.sh` (headless import pass, then GUT over all three dirs; fails on any first-party parse/load error) |
 | **Single file** | `bash tools/test.sh -gselect=<test_file>.gd` |
 | **Lint** | `bash tools/lint.sh` (gdtoolkit 4.5.0: `gdformat --check` + `gdlint`) |
-| **Measured runtime** | Quick: ~15 s wall (20 scripts, 183 tests). Full: ~96 s wall (36 scripts, 289 tests) |
+| **Measured runtime** | Quick: ~15 s wall (20 scripts, 183 tests). Full: ~96 s wall (36 scripts, 290 tests) |
 
 The `tools/*.sh` wrappers need Git Bash on Windows; they resolve the pinned binary under `.tools/godot/4.7.2-stable/` (D-14).
 
@@ -144,6 +144,7 @@ GUT rows run as `bash tools/test.sh -gselect=<file>`. Threat refs are the plans'
 | WR-01 / IN-02 fix (pass 22) | review | — | DEV-03 | — | With the tree paused, F3 shows, refreshes and hides the overlay through the input path (the tree is unpaused in `after_each`); the refresh clock runs on real time, so `Engine.time_scale = 0` does not freeze the overlay | e2e | `test_debug_overlay_toggle.gd` (`test_overlay_toggles_and_refreshes_while_the_tree_is_paused`, `test_overlay_keeps_refreshing_while_the_engine_time_scale_is_zero`) | ✅ | ✅ green |
 | WR-02 / IN-03 fix (pass 22) | review | — | DEV-03 | — | The ~4 Hz refresh cadence is pinned with synthetic deltas: no refresh before one interval, one just after, 7–9 over two simulated seconds, none while hidden; pending sections' capture retention documented | unit | `test_debug_overlay_registration.gd` (`test_a_shown_overlay_refreshes_once_the_interval_has_passed_and_not_before`, `test_a_shown_overlay_refreshes_about_four_times_a_second_and_a_hidden_one_never`) | ✅ | ✅ green |
 | IN-02 fix (pass 23) | review | — | DEV-03 | — | The e2e overlay refresh waits use a 1.0 s window (was 0.5 s against the 0.25 s interval), so a frame hitch cannot flake them; the unit cadence tests still pin the interval exactly | e2e | `test_debug_overlay_toggle.gd` (`REFRESH_WINDOW_S`) | ✅ | ✅ green |
+| WR-01 / IN-01 / IN-02 fix (pass 24) | review | — | DEV-03 | — | The e2e overlay suite states what it proves (cadence is pinned by the unit tests) and checks that a hidden overlay stays stale until shown; rows are parsed and checked by value (Phase, Day, Night, Buildings exact; FPS, Gold, Units, Enemies integers); shared spawn/build/wait helpers | e2e | `test_debug_overlay_toggle.gd` (`test_hidden_overlay_does_not_refresh_until_it_is_shown_again`) | ✅ | ✅ green |
 
 Owner gates with no automated verify by design: 01-01-T2 (toolchain download approval), 01-03-T2 (public repo name), 01-07-T2 (CC0 model download approval). No run of three consecutive tasks lacks automated verification.
 
@@ -691,6 +692,29 @@ Re-audited after the twenty-third review-fix pass (1 commit, `625a89d`). The rev
 Evidence:
 - Full suite 289/289 (36 scripts); lint clean (72 files).
 - Unit quick run 183/183 (20 scripts, ~15 s).
+- `tools/screenshot.sh`: 6/6 non-blank captures.
+- Headless guard exits 2.
+- `ci.yml` unchanged.
+
+## Validation Audit 2026-09-30 (re-audit after review-fix pass 24)
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Re-audited after the twenty-fourth review-fix pass (3 commits, `e720f2c`..`da45f5c`, all in `tests/e2e/test_debug_overlay_toggle.gd`). No production file changed. 15/15 requirements are still COVERED.
+
+- **Tests:** +1 new, a hidden overlay stays stale until shown.
+  - The e2e overlay rows are now checked by value rather than substring, and the suite's header points at the unit cadence tests.
+  - The wall-clock window stays at 1.0 s, as pass 23 set it against flakes.
+- **Mutation probes:** each change carries one in `01-REVIEW-FIX.md`. The new hidden-overlay check catches a mutation no e2e test caught before.
+- **CR-01 guard:** re-probed by the orchestrator; it fails 17/18 with the old spacing.
+
+Evidence:
+- Full suite 290/290 (36 scripts); lint clean (72 files).
+- Unit quick run 183/183 (20 scripts, ~14 s).
 - `tools/screenshot.sh`: 6/6 non-blank captures.
 - Headless guard exits 2.
 - `ci.yml` unchanged.
