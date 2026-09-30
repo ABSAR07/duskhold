@@ -3,7 +3,7 @@ status: testing
 phase: 01-foundation-day-loop
 source: [01-VERIFICATION.md]
 started: 2026-09-29T12:10:00Z
-updated: 2026-09-30T06:53:21Z
+updated: 2026-09-30T07:22:20Z
 ---
 
 ## Current Test
@@ -36,7 +36,7 @@ result: [pending]
 expected: Overlay appears with FPS, units, enemies, phase, day, night, gold, buildings and is readable
 result: [pending]
 
-### 6. Hold N (and gamepad Y) for 1.5 s, then watch night banner, lighting, dawn payout and return to Day as 'Night 2'
+### 6. Hold N (and gamepad Y) for 1.5 s, then watch night banner, lighting, dawn payout and return to Day as 'Night 2'. Pass-5 change to watch specifically: the gold counter must stay lagged while coins fly, tick up as each coin lands, and be exactly the ledger gold once dawn ends (never stuck low, never ahead of the coins)
 expected: Prompt fills, banner and night lighting show, dawn coins fly from each paying House to the gold counter, '+X gold' appears, day returns with carried-over gold (known: the dawn capture looks mostly night-coloured because the 1.0 s lighting ease outlasts the 0.6 s coin flight)
 result: [pending]
 
