@@ -33,6 +33,10 @@ const AXIS_NAMES: Dictionary = {
 	JOY_AXIS_TRIGGER_RIGHT: "RT",
 }
 
+## Maps a physical keycode to the keycode the current keyboard layout prints on that key. A
+## Callable so a test can stand in for a non-QWERTY layout, which headless Godot cannot switch to.
+var physical_label_resolver: Callable = _layout_label
+
 var _ctx: RunContext
 var _pending: int = 0
 var _payout_pending: int = 0
@@ -179,9 +183,26 @@ func _start_night_hint() -> String:
 	return " / ".join(parts)
 
 
-## A key event's text, with modifiers; empty when it names no key at all.
+## The default resolver. The headless display server has no keyboard layout (its call errors), so
+## a physical key stays as it is there.
+func _layout_label(physical: int) -> int:
+	if DisplayServer.get_name() == "headless":
+		return physical
+	return DisplayServer.keyboard_get_label_from_physical(physical as Key)
+
+
+## A key event's text, with modifiers; empty when it names no key at all. A physical key is named
+## by the label the player's layout prints on that keycap, not by its US-QWERTY position, so the
+## hint stays right on Dvorak or AZERTY.
 func _key_text(key_event: InputEventKey) -> String:
 	if key_event.physical_keycode != KEY_NONE:
+		var label_key: int = physical_label_resolver.call(key_event.physical_keycode)
+		if label_key != KEY_NONE:
+			var labelled: String = OS.get_keycode_string(
+				(label_key | key_event.get_modifiers_mask()) as Key
+			)
+			if not labelled.is_empty():
+				return labelled
 		return key_event.as_text_physical_keycode()
 	if key_event.keycode != KEY_NONE:
 		return key_event.as_text_keycode()

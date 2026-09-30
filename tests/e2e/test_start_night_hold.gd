@@ -337,6 +337,21 @@ func test_the_prompt_names_the_default_start_night_bindings() -> void:
 	)
 
 
+func test_the_prompt_names_the_key_by_the_layout_label_not_the_qwerty_position() -> void:
+	var map_root: MapRoot = await E2eSupport.spawn_map(self, null, _tuning)
+	var key: InputEventKey = InputEventKey.new()
+	key.physical_keycode = KEY_N
+	key.ctrl_pressed = true
+	# A layout that prints B where QWERTY has N (headless Godot cannot switch layouts).
+	var hud: Hud = _hud(map_root) as Hud
+	hud.physical_label_resolver = func(physical: int) -> int:
+		return KEY_B if physical == KEY_N else physical
+
+	var text: String = await _prompt_after_rebind(map_root, key)
+
+	assert_eq(text, "Hold Ctrl+B to start Night 1", "the cap's label, modifier kept")
+
+
 func test_the_prompt_follows_a_runtime_rebind_of_start_night() -> void:
 	var map_root: MapRoot = await E2eSupport.spawn_map(self, null, _tuning)
 	var rebound: InputEventKey = InputEventKey.new()
