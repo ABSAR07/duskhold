@@ -5,24 +5,24 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: fixed
-    title: "`DebugOverlay.register_section` silently drops registrations made before `bind_run`, and a second `bind_run` wipes all registered sections"
+    disposition: open
+    title: "Malformed provider rows are dropped silently, unlike every other provider failure"
   - id: WR-02
     severity: warning
-    disposition: fixed
-    title: "Untested branches of the read-only model: `Timer` row and NIGHT/DAWN phases"
+    disposition: open
+    title: "A payout with a positive `total` but only bad or negative `per_spot` entries gives no \"+X gold\" total and no feedback beyond a warning"
   - id: IN-01
     severity: info
-    disposition: fixed
-    title: "`_reset_for_new_payout` and `live_coin_count` treat every child as a coin"
+    disposition: open
+    title: "`_is_gone` and `_skip_reason` duplicate the owner/validity checks"
   - id: IN-02
     severity: info
-    disposition: fixed
-    title: "`owner` parameter shadows `Node.owner` in `DebugOverlay.register_section`"
+    disposition: open
+    title: "The read-only assertion covers only part of the simulation state"
   - id: IN-03
     severity: info
-    disposition: fixed
-    title: "`_registered.erase(entry)` removes by Dictionary content equality"
+    disposition: open
+    title: "The registration tests bypass the toggle path, and the visible-refresh timing is wall-clock dependent"
   - id: WR-03
     severity: warning
     disposition: fixed
@@ -87,20 +87,20 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 0
+open: 5
 total: 21
-recorded: 2026-09-30T10:25:19.061Z
+recorded: 2026-09-30T10:33:38.847Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-02 | warning | fixed | 01-REVIEW-FIX.md |
-| IN-01 | info | fixed | 01-REVIEW-FIX.md |
-| IN-02 | info | fixed | 01-REVIEW-FIX.md |
-| IN-03 | info | fixed | 01-REVIEW-FIX.md |
+| WR-01 | warning | open | - |
+| WR-02 | warning | open | - |
+| IN-01 | info | open | - |
+| IN-02 | info | open | - |
+| IN-03 | info | open | - |
 | WR-03 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-04 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-05 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
