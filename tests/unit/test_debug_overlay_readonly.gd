@@ -183,3 +183,18 @@ func test_the_watched_signals_are_every_signal_the_simulation_declares() -> void
 	watched.sort()
 
 	assert_eq(watched, declared, "a new SimEvents signal must be added to SIM_SIGNALS")
+
+
+func test_registering_a_title_twice_replaces_the_section_instead_of_duplicating_it() -> void:
+	var model: DebugOverlayModel = DebugOverlayModel.new(_prototype_with_one_house())
+	model.register_section("Wave", func() -> Array: return [["Wave", "1"]])
+	model.register_section("Other", func() -> Array: return [["Answer", "42"]])
+
+	model.register_section("Wave", func() -> Array: return [["Wave", "2"]])
+
+	var titles: Array[String] = []
+	for section: Dictionary in model.collect(60.0):
+		titles.append(section["title"])
+	assert_eq(titles.count("Wave"), 1, "the section is listed once")
+	assert_eq(titles.slice(-2), ["Wave", "Other"] as Array[String], "in its original position")
+	assert_eq(_row_value(_section(model.collect(60.0), "Wave"), "Wave"), "2", "the newer provider")

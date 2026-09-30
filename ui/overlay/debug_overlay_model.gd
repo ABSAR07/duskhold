@@ -15,9 +15,14 @@ func _init(ctx: RunContext) -> void:
 	_ctx = ctx
 
 
-## Appends a section after the defaults. `provider` takes no arguments and returns rows as an
-## Array of [String, String]. It must only read simulation state.
+## Appends a section after the defaults; registering a title that is already registered replaces
+## that section's provider in place, so a section never shows twice. `provider` takes no arguments
+## and returns rows as an Array of [String, String]. It must only read simulation state.
 func register_section(title: String, provider: Callable) -> void:
+	for entry: Dictionary in _registered:
+		if entry["title"] == title:
+			entry["provider"] = provider
+			return
 	_registered.append({"title": title, "provider": provider})
 
 
