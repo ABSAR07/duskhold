@@ -1,78 +1,117 @@
 ---
 phase: 01-foundation-day-loop
-reviewed: 2026-09-30T11:55:47Z
+reviewed: 2026-09-30T12:17:18Z
 depth: standard
-files_reviewed: 10
+files_reviewed: 5
 files_reviewed_list:
-  - tests/e2e/test_dawn_payout_hardening.gd
   - tests/support/overlay_test_support.gd
-  - tests/support/overlay_test_support.gd.uid
   - tests/unit/test_debug_overlay_providers.gd
-  - tests/unit/test_debug_overlay_providers.gd.uid
-  - tests/unit/test_debug_overlay_readonly.gd
   - tests/unit/test_debug_overlay_registration.gd
-  - tests/unit/test_debug_overlay_timed_phases.gd
   - ui/overlay/debug_overlay.gd
   - ui/overlay/debug_overlay_model.gd
 findings:
   critical: 0
-  warning: 0
-  info: 3
+  warning: 1
+  info: 2
   total: 3
 status: issues_found
 ---
 
-# Phase 01: Code Review Report
+# Phase 1: Code Review Report
 
-**Reviewed:** 2026-09-30T11:55:47Z
+**Reviewed:** 2026-09-30T12:17:18Z
 **Depth:** standard
-**Files Reviewed:** 10
+**Files Reviewed:** 5
 **Status:** issues_found
 
 ## Summary
 
-I reviewed the debug overlay view (`debug_overlay.gd`), its model (`debug_overlay_model.gd`), the shared test support, and the four overlay suites plus the dawn-payout hardening e2e suite. I also read `debug_overlay.tscn`, the `toggle_debug_overlay` input action, `hud.tscn` (the overlay is in the `run_bound` group) and `MapRoot._ready` to check the bind path.
+Reviewed the debug overlay view (`DebugOverlay`), its view model (`DebugOverlayModel`), the shared
+test helper (`OverlayTestSupport`) and the two suites for provider and registration handling.
 
-I traced the following paths and found no defects:
+I traced every test against the model and view code:
+- `collect()`: the skip, warn-once and drop paths.
+- `register_section()`: the owner and default-title refusals.
+- The pre-bind replay in `bind_run`.
+- The warn-once "kind" keys, including the streak-change and count-change cases.
 
-- Pending-section replay in `bind_run`: order is kept, and a freed owner is warned about and skipped.
-- The `WeakRef` owner handling in both the view and the model.
-- `Skip` code handling: control flow branches on codes, and `GONE_FOR_GOOD` sections are erased along with their warning state.
-- Warning re-arm: `_warned` is erased when a provider returns only well-formed rows, and on replacement of a provider.
-- `_clean_rows` and the dropped-row count.
-- The `Timer` row being limited to NIGHT and DAWN.
-- The read-only assertions: every signal in `SimSignals.ALL` is watched, and `SimEvents` is a `RefCounted`, so the drift-guard test does not leak an orphan node.
-- The `.uid` files: both are well-formed and distinct.
-- The payout e2e tests: the int and float clamping inputs are valid (9e18 is below int64 max), and the warning assertions match the emitted text.
+The logic holds. I found no crash path, no read-only violation, and no incorrect warn-once state
+transition. The remaining issues are a test-isolation claim that is only partly true (verified by a
+probe) and two low-impact consistency points.
 
-The remaining findings are minor robustness and duplication points.
+## Warnings
+
+### WR-01: `new_map()` / `new_tuning()` are documented as private copies, but building definitions stay shared with the cached resource
+
+**File:** `tests/support/overlay_test_support.gd:12-19` (also the same pattern in `tests/e2e/*`)
+**Issue:** The doc comments say a test that edits the copy "never writes to the cached resource",
+and `context_with_one_house` says nothing is "ever tested against a shared cached resource".
+`Resource.duplicate(true)` only deep-copies sub-resources that are embedded in the `.tres`. It does
+not copy external resources.
+- I probed this against `res://data/maps/prototype_map.tres`. `spots[0]` is a distinct copy, but
+  `buildings[0]` and `buildings[0].tiers[0]` are the same objects as in the cached resource
+  (`SHARED_BUILDING=true`, `SHARED_TIER=true`).
+- `house.tres` and `tower.tres` are external resources.
+- Any test built on these helpers that edits a `BuildingDef` or `BuildingTierDef` (cost, dawn_income)
+  would write to the process-wide cached resource and leak into every later suite in the same
+  GUT run. The pass/fail result would then depend on script order.
+- Nothing in the five reviewed files does that today, so the suite is green. The guarantee the
+  helper advertises is nonetheless false, and the next test author will rely on it.
+
+**Fix:** Either narrow the comment to what is true (spots and tuning are private; building
+definitions are shared and must not be edited), or make the promise real by deep-copying the
+building set in `new_map()`:
+```gdscript
+static func new_map() -> MapConfig:
+	var map: MapConfig = (load(PROTOTYPE_MAP) as MapConfig).duplicate(true)
+	var own_buildings: Array[BuildingDef] = []
+	for def: BuildingDef in map.buildings:
+		var copy: BuildingDef = def.duplicate(true)
+		var tiers: Array[BuildingTierDef] = []
+		for tier: BuildingTierDef in def.tiers:
+			tiers.append(tier.duplicate(true))
+		copy.tiers = tiers
+		own_buildings.append(copy)
+	map.buildings = own_buildings
+	return map
+```
+The spots reference building ids, not objects, so replacing the array is safe. Alternatively use
+`duplicate_deep(Resource.DEEP_DUPLICATE_ALL)` if it is available in 4.7.2.
 
 ## Info
 
-### IN-01: `DebugOverlay.get_text()` dereferences an `@onready` node with no readiness guard
+### IN-01: A pre-bind registration of a default title is accepted silently and only refused at `bind_run`
 
-**File:** `ui/overlay/debug_overlay.gd:64-65`
-**Issue:** `get_text()` is public API and reads `_text.text`, but `_text` is `@onready`. Calling it before the node is in the tree (for example, right after `instantiate()` and before `add_child`) raises a null-instance script error instead of returning "". The current tests only call it after adding the overlay to the tree, so nothing exercises this. The same window exists for `_refresh`, which is only reachable from `_process`, so that one is safe.
-**Fix:**
+**File:** `ui/overlay/debug_overlay.gd:44-58`
+**Issue:** After bind, `register_section("Perf", ...)` warns immediately. Before bind, the same call
+is buffered without any title check and is refused only when `bind_run` replays it. That happens
+later, possibly never, if the overlay is never bound. The two paths therefore refuse the same
+mistake at different times. Owner problems were unified through `owner_problem`, but the
+default-title refusal was not.
+**Fix:** Check the title in the pre-bind branch too, for example by moving the default-title test
+into a static `DebugOverlayModel.title_problem(title)` used by both paths:
 ```gdscript
-func get_text() -> String:
-	return _text.text if _text != null else ""
+if title in DebugOverlayModel.DEFAULT_TITLES:
+	DebugOverlayModel.warn_not_registered(title, "the title is a default section")
+	return
 ```
 
-### IN-02: Owner-validity handling is duplicated between the view and the model, and rejects non-Object owners with a misleading message
+### IN-02: A repeat `bind_run` with a different `RunContext` is silently ignored, and a test locks that in
 
-**File:** `ui/overlay/debug_overlay.gd:47-57`, `ui/overlay/debug_overlay_model.gd:57-73`
-**Issue:** `DebugOverlay.register_section` re-implements the model's `has_owner` / `is_instance_valid` / `weakref` logic for the pre-bind path. The two copies use slightly different warning text ("its owner was freed", "its owner was freed before bind_run"), so a later change to one can drift from the other. Because `lifetime_owner` is a `Variant`, a caller who passes a non-Object by mistake (an int or a String) gets `is_instance_valid(5) == false` and is told "its owner was freed", which points at the wrong cause. The pending path in `bind_run` (lines 27-38) has a third copy of the freed-owner check.
-**Fix:** Extract one helper, for example a static `DebugOverlayModel.owner_ref(title, lifetime_owner) -> WeakRef` (with a sentinel for "refused"), and use it from both paths. Distinguish `typeof(lifetime_owner) != TYPE_OBJECT` and warn "its owner is not an Object" separately from the freed case.
-
-### IN-03: Test scaffolding constants and context construction are duplicated
-
-**File:** `tests/unit/test_debug_overlay_registration.gd:6-18`, `tests/e2e/test_dawn_payout_hardening.gd:5-6,15-16`
-**Issue:** `PROTOTYPE_MAP` and `TUNING` are declared again in the registration suite and in the e2e suite, although `OverlayTestSupport` already owns them, along with `new_tuning()`. The registration suite's `_context()` repeats the duplicate-the-resources recipe from `OverlayTestSupport.context_with_one_house`, minus the House. If the resource paths move, several files break instead of one. The e2e suite is outside the overlay support's remit, but the registration suite could reuse it.
-**Fix:** In the registration suite, build the context from `OverlayTestSupport.new_tuning()` and a shared duplicated-map helper (add `new_map()` next to `new_tuning()`), and drop the two local constants.
+**File:** `ui/overlay/debug_overlay.gd:23-25`, `tests/unit/test_debug_overlay_registration.gd:64-74`
+**Issue:** The early return keeps the sections, as intended (the doc comment says it mirrors
+`Hud.bind_run`). It also means an overlay that is bound a second time to a fresh run (restart or new
+map) keeps reading the first run's `RunContext`. The overlay then shows stale phase, gold and
+counts with no warning. `test_a_second_bind_run_keeps_the_sections_registered_so_far` passes a new
+context but only asserts that the section survives. It never checks which context the overlay
+reads, so the stale-context behaviour is untested.
+**Fix:** If the overlay outlives a run, rebuild the model against the new context while carrying
+over the registered sections. That needs a `DebugOverlayModel` method to move them, or a
+`_ctx` rebind. If the overlay is always recreated per run, add a one-line comment saying so, and
+either warn on a repeat bind with a different context or assert that behaviour in the test.
 
 ---
 
-_Reviewed: 2026-09-30T11:55:47Z_
+_Reviewed: 2026-09-30T12:17:18Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
