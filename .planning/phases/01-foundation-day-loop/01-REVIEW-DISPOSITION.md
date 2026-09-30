@@ -5,32 +5,32 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: fixed
-    title: "Malformed provider rows are dropped silently, unlike every other provider failure"
+    disposition: open
+    title: "`SIM_SIGNALS` is duplicated, and only one copy has a drift guard"
+  - id: IN-01
+    severity: info
+    disposition: open
+    title: "Control flow in `DebugOverlayModel` depends on free-text reason strings"
+  - id: IN-02
+    severity: info
+    disposition: open
+    title: "Dead tuning setup in the hardening e2e test"
+  - id: IN-03
+    severity: info
+    disposition: open
+    title: "Test name and message use \"owner freed\" for a case with no owner"
+  - id: IN-04
+    severity: info
+    disposition: open
+    title: "The clamp e2e test does not check what it claims about the amounts"
   - id: WR-02
     severity: warning
     disposition: fixed
     title: "A payout with a positive `total` but only bad or negative `per_spot` entries gives no \"+X gold\" total and no feedback beyond a warning"
-  - id: IN-01
-    severity: info
-    disposition: fixed
-    title: "`_is_gone` and `_skip_reason` duplicate the owner/validity checks"
-  - id: IN-02
-    severity: info
-    disposition: fixed
-    title: "The read-only assertion covers only part of the simulation state"
-  - id: IN-03
-    severity: info
-    disposition: fixed
-    title: "The registration tests bypass the toggle path, and the visible-refresh timing is wall-clock dependent"
   - id: WR-03
     severity: warning
     disposition: fixed
     title: "Camera test dereferences a possibly-null `vfx`"
-  - id: IN-04
-    severity: info
-    disposition: fixed
-    title: "Double-bind test does not cover most HUD connections"
   - id: IN-05
     severity: info
     disposition: fixed
@@ -87,22 +87,22 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 0
+open: 5
 total: 21
-recorded: 2026-09-30T10:54:07.354Z
+recorded: 2026-09-30T11:02:00.444Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-02 | warning | fixed | 01-REVIEW-FIX.md |
-| IN-01 | info | fixed | 01-REVIEW-FIX.md |
-| IN-02 | info | fixed | 01-REVIEW-FIX.md |
-| IN-03 | info | fixed | 01-REVIEW-FIX.md |
+| WR-01 | warning | open | - |
+| IN-01 | info | open | - |
+| IN-02 | info | open | - |
+| IN-03 | info | open | - |
+| IN-04 | info | open | - |
+| WR-02 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-03 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
-| IN-04 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-05 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-04 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-05 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
