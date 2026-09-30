@@ -5,20 +5,20 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: fixed
-    title: "`bind_run(null, ...)` is accepted and then raises a script error on every refresh"
+    disposition: open
+    title: "`lifetime_owner` is a no-op for the RefCounted owners the docs say it protects, and no test covers that case"
   - id: IN-01
     severity: info
-    disposition: fixed
-    title: "`context_with_one_house` indexes `spot_ids()[0]` unguarded and carries on after a failed assert"
+    disposition: open
+    title: "Several warning assertions match only the substring \"skipped\", so a wrong skip reason still passes"
   - id: IN-02
     severity: info
-    disposition: fixed
-    title: "`new_tuning()` deep-copies differently from `new_map()`"
+    disposition: open
+    title: "Local variable `owner_ref` reuses the name of the static function `owner_ref`"
   - id: IN-03
     severity: info
-    disposition: fixed
-    title: "Rows longer than two entries are accepted silently, and the first test in `test_overlay_test_support.gd` can pass vacuously"
+    disposition: open
+    title: "`test_overlay_test_support.gd` does not cover the tuning \"copied all the way down\" claim"
   - id: WR-02
     severity: warning
     disposition: fixed
@@ -87,19 +87,19 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 0
+open: 4
 total: 21
-recorded: 2026-09-30T12:55:46.608Z
+recorded: 2026-09-30T13:02:20.659Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
-| IN-01 | info | fixed | 01-REVIEW-FIX.md |
-| IN-02 | info | fixed | 01-REVIEW-FIX.md |
-| IN-03 | info | fixed | 01-REVIEW-FIX.md |
+| WR-01 | warning | open | - |
+| IN-01 | info | open | - |
+| IN-02 | info | open | - |
+| IN-03 | info | open | - |
 | WR-02 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-04 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-03 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
