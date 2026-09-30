@@ -93,23 +93,6 @@ func get_spawned_count(spot_id: StringName) -> int:
 	return _launched.get(spot_id, 0)
 
 
-## Seconds after the payout began at which each coin of the current payout launches, in launch
-## order. Test hook, read-only: it lets a test check the schedule without waiting on the clock.
-func get_launch_delays() -> Array[float]:
-	return _launch_delays.duplicate()
-
-
-## The delay tweens of the current payout's coins that have not launched yet. Test hook,
-## read-only: it lets a test check that a superseding payout stopped them.
-func get_launch_tweens() -> Array[Tween]:
-	var waiting: Array[Tween] = []
-	for tween: Tween in _launch_tweens:
-		# A tween that has fired is finished, and so no longer valid: its coin has launched.
-		if tween.is_valid():
-			waiting.append(tween)
-	return waiting
-
-
 ## Seconds between two coin launches for a payout of `coin_total` coins: STAGGER_SECONDS, tightened
 ## when needed so the last coin lands DAWN_MARGIN_SECONDS before the dawn window ends. Before
 ## bind_run there is no dawn window to fit, so the default applies. A dawn no longer than
@@ -120,6 +103,27 @@ func launch_stagger(coin_total: int) -> float:
 		return STAGGER_SECONDS
 	var window: float = _ctx.tuning.dawn_seconds - TRIP_SECONDS - DAWN_MARGIN_SECONDS
 	return clampf(window / float(maxi(coin_total - 1, 1)), 0.0, STAGGER_SECONDS)
+
+
+# --- Test hooks: read-only views of internals, kept out of the HUD-facing API above ---
+
+
+## Seconds after the payout began at which each coin of the current payout launches, in launch
+## order. Test hook, read-only: it lets a test check the schedule without waiting on the clock.
+func get_launch_delays() -> Array[float]:
+	return _launch_delays.duplicate()
+
+
+## The delay tweens of the current payout's coins that have not launched yet. Test hook: the array
+## is a copy, but the Tweens in it are live. A test may read them (is_valid); nothing else should
+## kill or extend them.
+func get_launch_tweens() -> Array[Tween]:
+	var waiting: Array[Tween] = []
+	for tween: Tween in _launch_tweens:
+		# A tween that has fired is finished, and so no longer valid: its coin has launched.
+		if tween.is_valid():
+			waiting.append(tween)
+	return waiting
 
 
 func _make_coin_texture() -> GradientTexture2D:
