@@ -17,7 +17,11 @@ const SIM_SIGNALS: Array[String] = [
 
 
 func _prototype_with_one_house() -> RunContext:
-	var ctx: RunContext = RunContext.new(load(PROTOTYPE_MAP), load(TUNING))
+	# Duplicated like the e2e tests do, so the read-only guarantee is never tested against a shared
+	# cached resource that some other test or RunContext wrote to.
+	var map: MapConfig = (load(PROTOTYPE_MAP) as MapConfig).duplicate(true)
+	var tuning: LoopTuning = (load(TUNING) as LoopTuning).duplicate(true)
+	var ctx: RunContext = RunContext.new(map, tuning)
 	var first_spot: StringName = ctx.buildings.spot_ids()[0]
 	var result: StringName = ctx.commands.submit(BuildIntent.new(first_spot))
 	assert_eq(result, CommandProcessor.OK, "the setup House is built through the command gate")
