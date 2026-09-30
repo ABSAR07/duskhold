@@ -22,4 +22,15 @@ Licence evidence (checked 2026-09-29)
   (Poly Pizza page and the 2021 pack page above), so it is recorded here as CC0-1.0. It is
   used inside a game and is not redistributed as a standalone asset.
 
+Licence re-check (2026-10-01)
+  The 2021 pack page https://quaternius.com/packs/ultimateanimatedanimals.html still
+  states "License: CC0" and links https://creativecommons.org/publicdomain/zero/1.0/
+  The Poly Pizza page https://poly.pizza/m/qvTrSG9pZF still states "Public Domain (CC0)".
+  The QAL v1.0 page (last updated 8/28/2026) says nothing about assets earlier released
+  under CC0, and the CC0 1.0 waiver is irrevocable.
+
+Decision (2026-10-01)
+  The owner keeps this model. It stays recorded as CC0-1.0 in assets/attribution.json
+  and ASSETS.md.
+
 Licence: Creative Commons Zero 1.0 (CC0-1.0), https://creativecommons.org/publicdomain/zero/1.0/
