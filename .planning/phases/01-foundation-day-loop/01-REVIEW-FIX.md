@@ -1,6 +1,6 @@
 ---
 phase: 01-foundation-day-loop
-fixed_at: 2026-09-30T12:52:34Z
+fixed_at: 2026-09-30T13:15:04Z
 review_path: .planning/phases/01-foundation-day-loop/01-REVIEW.md
 iteration: 1
 findings_in_scope: 4
@@ -11,7 +11,7 @@ status: all_fixed
 
 # Phase 1: Code Review Fix Report
 
-**Fixed at:** 2026-09-30T12:52:34Z
+**Fixed at:** 2026-09-30T13:15:04Z
 **Source review:** .planning/phases/01-foundation-day-loop/01-REVIEW.md
 **Iteration:** 1
 
@@ -20,42 +20,44 @@ status: all_fixed
 - Fixed: 4
 - Skipped: 0
 
-**Verification ran in the main checkout** (no worktree was created: the gates need the warmed `.godot/` cache, and `.planning/config.json` carries an unrelated uncommitted change that stays uncommitted). Final gates: `bash tools/test.sh` 276/276 in 36 scripts (was 275/275; +1 new test); `bash tools/lint.sh` clean (gdformat and gdlint). No Godot process is left running.
+**Verification environment:** all fixes were edited, tested and committed in the main checkout (no isolated worktree), as the orchestrator's instructions required, so the numbers below are reproducible from the tree. After the last commit, `bash tools/test.sh` ran 279/279 in 36 scripts (276 before, plus the 3 new tests) and `bash tools/lint.sh` was clean. No Godot process was left running.
 
 ## Fixed Issues
 
-### WR-01: `bind_run(null, ...)` is accepted and then raises a script error on every refresh
+### WR-01: `lifetime_owner` is a no-op for the RefCounted owners the docs say it protects, and no test covers that case
 
-**Files modified:** `ui/overlay/debug_overlay.gd`, `tests/unit/test_debug_overlay_registration.gd`
-**Commit:** 546c3dc
-**Applied fix:** `bind_run` now returns with a `push_warning(NO_CONTEXT_WARNING)` ("debug overlay bind_run ignored: no RunContext") before `_model` is set, so the overlay stays unbound and a later valid `bind_run` still succeeds. New test `test_bind_run_with_no_context_warns_and_leaves_the_overlay_free_to_bind_properly` registers a section, binds null, then binds a real context and checks gold, the section and the single warning.
-**Mutation probe:** with the guard removed the new test fails ("Expected push_warning error containing 'debug overlay bind_run ignored: no RunContext'", plus script errors "Invalid access to property or key 'run_manager' on a base object of type 'Nil'"). Source restored from a backup copy; the suite passes again.
-**Note:** requires human verification: logic change to a bind guard (tested, but semantic).
+**Files modified:** `ui/overlay/debug_overlay_model.gd`, `ui/overlay/debug_overlay.gd`, `tests/unit/test_debug_overlay_providers.gd`
+**Commit:** a7d732d
+**Applied fix:** Took the reviewer's first option (narrow the contract) and the second (document it with a test). The doc comments on `DebugOverlayModel.register_section`, `DebugOverlayModel.owner_ref`, `DebugOverlay.register_section` and the pending-entry comment now say the overlay's own reference is a WeakRef, but the stored provider Callable strongly holds whatever a lambda captured. So `lifetime_owner` ends a section only for an owner freed explicitly (a Node: `free()` or `queue_free()`); a RefCounted captured by its provider is kept alive by that capture, and the way to let a RefCounted end its section is to capture a `weakref()` of it. Two tests pin both sides: `test_a_refcounted_owner_captured_by_its_provider_is_kept_alive_by_the_section` and `test_a_weakly_captured_refcounted_owner_ends_its_section_when_freed`. Runtime behaviour is unchanged.
+**Mutation probes:**
+- Made `owner_ref()` return `null` (the owner is never tracked): 2 tests failed (the new weak-capture test and the existing freed-lambda-owner test). Source restored from a backup copy.
+- Changed the keep-alive test's provider so it no longer captures the owner: the keep-alive test failed. Test restored from a backup copy.
+- The keep-alive test asserts a GDScript language rule (a lambda's capture holds a strong reference), so it guards the documented limit rather than a line of overlay code.
 
-### IN-01: `context_with_one_house` indexes `spot_ids()[0]` unguarded and carries on after a failed assert
+### IN-01: Several warning assertions match only the substring "skipped", so a wrong skip reason still passes
 
-**Files modified:** `tests/support/overlay_test_support.gd`
-**Commit:** bd1c318
-**Applied fix:** The helper asserts the spot list is non-empty and returns the context early when it is empty, instead of indexing `[0]`; the first spot is read from a typed `Array[StringName]`.
-**Mutation probe:** with the prototype map temporarily pointed at an empty MapConfig, `test_debug_overlay_readonly.gd` under the old helper raised "Out of bounds get index '0' (on base: 'Array[StringName]')" (7 times) plus cascading Nil errors; under the new helper each failure is the readable "the map has a spot to build the setup House on". The temporary map file and the constant change were removed afterwards.
+**Files modified:** `tests/unit/test_debug_overlay_providers.gd`
+**Commit:** 7c562d9
+**Applied fix:** The `Ghost`, `Needy` and `Defaulted` assertions now pin the full reason: `its callable is no longer valid` for `Ghost`, `it declares parameters` for `Needy` and `Defaulted`.
+**Mutation probes:**
+- Changed the `DECLARES_PARAMETERS` message to the callable text: `Needy` and `Defaulted` now fail (they passed before the fix; `Wave` failed already). Source restored from a backup copy.
+- Changed the `CALLABLE_INVALID` message to the owner-freed text: the `Ghost` assertion at line 75 now fails (line 86 already pinned it). Source restored from a backup copy.
 
-### IN-02: `new_tuning()` deep-copies differently from `new_map()`
+### IN-02: Local variable `owner_ref` reuses the name of the static function `owner_ref`
 
-**Files modified:** `tests/support/overlay_test_support.gd`, `tests/unit/test_overlay_test_support.gd`
-**Commit:** 5738a3f
-**Applied fix:** `new_tuning()` uses `duplicate_deep(Resource.DEEP_DUPLICATE_ALL)` like `new_map()`. The tuning test now also asserts the result is a distinct copy.
-**Mutation probe:** none possible. `LoopTuning` holds only scalar exports today, so `duplicate(true)` and `duplicate_deep` behave identically; this is a latent-risk fix and no test can distinguish them until a subresource is added.
+**Files modified:** `ui/overlay/debug_overlay_model.gd`, `ui/overlay/debug_overlay.gd`
+**Commit:** 1aa833d
+**Applied fix:** Renamed the WeakRef local to `owner_weak` in `DebugOverlayModel._skip_code`, and in `DebugOverlay.bind_run` for consistency. Pure rename, no behaviour change, so no mutation probe; the five `test_debug_overlay*` scripts pass and lint is clean.
 
-### IN-03: Rows longer than two entries are accepted silently, and the first test in `test_overlay_test_support.gd` can pass vacuously
+### IN-03: `test_overlay_test_support.gd` does not cover the tuning "copied all the way down" claim
 
-**Files modified:** `ui/overlay/debug_overlay_model.gd`, `tests/unit/test_debug_overlay_providers.gd`, `tests/unit/test_overlay_test_support.gd`
-**Commit:** c886c04
-**Applied fix:** `_clean_rows` now requires exactly two entries (`size() == 2`), so an over-long row is dropped and counted in the existing "dropped N malformed row(s); rows are [label, value]" warning instead of being silently truncated; its doc comment says so. `test_a_provider_with_malformed_rows_keeps_only_the_well_formed_ones` previously asserted the truncation (`Wide` row kept as "1"); it now expects the row to be dropped (1 row left, "dropped 3"). In `test_new_map_shares_no_building_definition_or_tier_with_the_cached_map` added `assert_gt(... buildings.size(), 0)` and `assert_gt(... tiers.size(), 0)` so empty loops cannot pass vacuously.
-**Mutation probes:** (1) with `>= 2` restored, the providers suite fails on the three changed assertions (row count 2 vs 1, "Wide" still "1", warning count 2 vs 3); source restored from a backup copy. (2) With the prototype map temporarily pointed at an empty MapConfig, the old map-copy test passed vacuously while the new one fails on "the map has buildings, so the loops below check something"; temporary file removed.
-**Note:** requires human verification: this is a deliberate behaviour change (the review offered "require size() == 2" or "document the truncation"; the stricter option was chosen, reversing what the previous test asserted).
+**Files modified:** `tests/unit/test_overlay_test_support.gd`
+**Commit:** 79b4513
+**Applied fix:** Took the reviewer's second option and added `test_a_new_tuning_copy_shares_no_resource_with_the_cached_tuning`. It walks `LoopTuning`'s stored script properties and asserts that no Resource (directly, or inside an Array or Dictionary) is shared between the cached tuning and `OverlayTestSupport.new_tuning()`. It also asserts it visited at least one property. It passes trivially today because `LoopTuning` has no subresources.
+**Mutation probe:** temporarily added `@export var probe_sub: Resource = Resource.new()` to `LoopTuning`. With the current deep copy the test passes (5/5). With `new_tuning()` switched to a shallow `duplicate()` it fails with `'probe_sub' shares a subresource with the cache`. Both `loop_tuning.gd` and `overlay_test_support.gd` were restored from backup copies and confirmed clean in `git status`.
 
 ---
 
-_Fixed: 2026-09-30T12:52:34Z_
+_Fixed: 2026-09-30T13:15:04Z_
 _Fixer: Claude (gsd-code-fixer)_
 _Iteration: 1_
