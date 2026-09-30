@@ -5,23 +5,23 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`_whole_amounts` validates amounts but not spot keys, so a bad key still aborts the payout"
   - id: WR-02
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "The \"+X gold\" label shows the claimed total while the coins and the HUD readout use the carried gold"
   - id: IN-01
     severity: info
-    disposition: open
+    disposition: fixed
     title: "`_launch` tweens from an earlier payout are never killed on reset"
   - id: IN-02
     severity: info
-    disposition: open
+    disposition: fixed
     title: "`_count_buildings` allocates a snapshot per spot on every overlay refresh just to test for emptiness"
   - id: IN-03
     severity: info
-    disposition: open
+    disposition: fixed
     title: "A registered section named like a default (\"Perf\", \"Loop\", \"Agents\") shows twice"
   - id: WR-03
     severity: warning
@@ -87,20 +87,20 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 5
+open: 0
 total: 21
-recorded: 2026-09-30T08:18:09.509Z
+recorded: 2026-09-30T08:41:28.361Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
-| WR-02 | warning | open | - |
-| IN-01 | info | open | - |
-| IN-02 | info | open | - |
-| IN-03 | info | open | - |
+| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
+| WR-02 | warning | fixed | 01-REVIEW-FIX.md |
+| IN-01 | info | fixed | 01-REVIEW-FIX.md |
+| IN-02 | info | fixed | 01-REVIEW-FIX.md |
+| IN-03 | info | fixed | 01-REVIEW-FIX.md |
 | WR-03 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-04 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-05 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
