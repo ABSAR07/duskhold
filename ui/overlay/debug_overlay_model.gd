@@ -29,7 +29,8 @@ var _ctx: RunContext
 ## Registered sections by title: {title: {provider: Callable, owner: WeakRef or null}}. A Dictionary
 ## keeps insertion order, so sections show in registration order, and removing one is erase(title).
 var _registered: Dictionary = {}
-## Titles already warned about, so a skipped provider is reported once, not on every refresh.
+## The kind of problem last warned about for each title ({title: kind String}), so a skipped
+## provider is reported once per problem, not on every refresh. A different problem warns afresh.
 var _warned: Dictionary = {}
 
 
@@ -77,7 +78,7 @@ func collect(fps: float) -> Array:
 		# on every refresh.
 		var skip: Skip = _skip_code(entry)
 		if skip != Skip.NONE:
-			_warn_once(title, "skipped: %s" % SKIP_MESSAGES[skip])
+			_warn_once(title, "skip %d" % skip, "skipped: %s" % SKIP_MESSAGES[skip])
 			if skip in GONE_FOR_GOOD:
 				# A freed owner or an invalid Callable never recovers (register_section is the way to
 				# replace it), so it is named once and then forgotten, not re-checked each refresh.
@@ -89,14 +90,22 @@ func collect(fps: float) -> Array:
 			var clean: Array = _clean_rows(rows)
 			var dropped: int = (rows as Array).size() - clean.size()
 			if dropped > 0:
-				_warn_once(title, "dropped %d malformed row(s); rows are [label, value]" % dropped)
+				# Keyed without the count, so a changing number of bad rows is still one problem.
+				_warn_once(
+					title,
+					"malformed rows",
+					"dropped %d malformed row(s); rows are [label, value]" % dropped
+				)
 			else:
 				# A provider that works again may fail again later, and that failure is news.
 				_warned.erase(title)
 			sections.append(_section(title, clean))
 		else:
+			var returned: String = type_string(typeof(rows))
 			_warn_once(
-				title, "skipped: it returned %s, not an Array of rows" % type_string(typeof(rows))
+				title,
+				"returned %s" % returned,
+				"skipped: it returned %s, not an Array of rows" % returned
 			)
 	return sections
 
@@ -116,12 +125,14 @@ func _skip_code(entry: Dictionary) -> Skip:
 
 
 ## A section that silently never shows, or shows without some of its rows, is hard to notice, so
-## name it once per failure streak: the warning re-arms when the provider returns only well-formed
-## rows again (see collect). `problem` completes "debug overlay section '<title>' ...".
-func _warn_once(title: String, problem: String) -> void:
-	if _warned.has(title):
+## name each problem once per failure streak. `kind` identifies the problem (a stable key, without
+## counts), so a streak that changes from one problem to another names the new one too. The warning
+## re-arms when the provider returns only well-formed rows again (see collect). `problem` completes
+## "debug overlay section '<title>' ...".
+func _warn_once(title: String, kind: String, problem: String) -> void:
+	if _warned.get(title, "") == kind:
 		return
-	_warned[title] = true
+	_warned[title] = kind
 	push_warning("debug overlay section '%s' %s" % [title, problem])
 
 
