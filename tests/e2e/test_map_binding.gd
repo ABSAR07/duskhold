@@ -75,17 +75,36 @@ func test_binding_the_hud_and_payout_view_again_connects_nothing_twice() -> void
 	var ctx: RunContext = map_root.get_context()
 	var hud: Hud = map_root.get_node("HUD") as Hud
 	var payout_vfx: DawnPayoutVfx = hud.get_node("%DawnPayoutVfx") as DawnPayoutVfx
-	var gold_links_before: int = ctx.events.gold_changed.get_connections().size()
-	var payout_links_before: int = ctx.events.dawn_payout.get_connections().size()
-	var landed_links_before: int = payout_vfx.coin_landed.get_connections().size()
-	var started_links_before: int = payout_vfx.payout_started.get_connections().size()
+	var hold: BuildHoldController = map_root.get_build_hold()
+	var night_hold: StartNightHoldController = (
+		map_root.find_child("StartNightHold", true, false) as StartNightHoldController
+	)
+	assert_not_null(night_hold, "the map has a StartNightHold node")
+	if night_hold == null:
+		return
+	# Every signal Hud.bind_run and DawnPayoutVfx.bind_run connect a handler to.
+	var bound: Dictionary = {
+		"gold_changed": ctx.events.gold_changed,
+		"dawn_payout": ctx.events.dawn_payout,
+		"phase_changed": ctx.events.phase_changed,
+		"night_started": ctx.events.night_started,
+		"day_started": ctx.events.day_started,
+		"coin_landed": payout_vfx.coin_landed,
+		"payout_started": payout_vfx.payout_started,
+		"hold_progress": hold.hold_progress,
+		"hold_cancelled": hold.hold_cancelled,
+		"hold_completed": hold.hold_completed,
+		"start_night_progress": night_hold.progress_changed,
+	}
+	var links_before: Dictionary = {}
+	for signal_name: String in bound:
+		var linked: Signal = bound[signal_name]
+		links_before[signal_name] = linked.get_connections().size()
+		assert_gt(links_before[signal_name], 0, "%s is bound to begin with" % signal_name)
 
 	hud.bind_run(ctx, map_root)
 	payout_vfx.bind_run(ctx, map_root)
 
-	assert_eq(ctx.events.gold_changed.get_connections().size(), gold_links_before, "gold_changed")
-	assert_eq(ctx.events.dawn_payout.get_connections().size(), payout_links_before, "dawn_payout")
-	assert_eq(payout_vfx.coin_landed.get_connections().size(), landed_links_before, "coin_landed")
-	assert_eq(
-		payout_vfx.payout_started.get_connections().size(), started_links_before, "payout_started"
-	)
+	for signal_name: String in bound:
+		var linked: Signal = bound[signal_name]
+		assert_eq(linked.get_connections().size(), links_before[signal_name], signal_name)
