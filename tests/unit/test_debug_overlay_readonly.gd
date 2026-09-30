@@ -212,6 +212,25 @@ func test_a_provider_that_returns_a_non_array_is_skipped_instead_of_crashing() -
 	assert_push_warning_count(2, "each non-Array provider is named once")
 
 
+func test_a_flapping_provider_warns_again_after_it_recovers() -> void:
+	var model: DebugOverlayModel = DebugOverlayModel.new(_prototype_with_one_house())
+	var healthy: Array = [false]
+	model.register_section(
+		"Flap", func() -> Variant: return [["Wave", "3"]] if healthy[0] else null
+	)
+
+	model.collect(60.0)
+	model.collect(60.0)
+	healthy[0] = true
+	model.collect(60.0)
+	healthy[0] = false
+	model.collect(60.0)
+	model.collect(60.0)
+
+	assert_push_warning("debug overlay section 'Flap' skipped: it returned Nil")
+	assert_push_warning_count(2, "once per failure streak, not once per refresh or once ever")
+
+
 func test_a_provider_with_malformed_rows_keeps_only_the_well_formed_ones() -> void:
 	var model: DebugOverlayModel = DebugOverlayModel.new(_prototype_with_one_house())
 	model.register_section("Flat", func() -> Array: return ["Wave", "3"])

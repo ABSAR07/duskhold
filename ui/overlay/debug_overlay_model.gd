@@ -62,6 +62,8 @@ func collect(fps: float) -> Array:
 			continue
 		var rows: Variant = provider.call()
 		if rows is Array:
+			# A provider that works again may fail again later, and that failure is news.
+			_warned.erase(entry["title"])
 			sections.append(_section(entry["title"], _clean_rows(rows)))
 		else:
 			_warn_once(
@@ -80,7 +82,8 @@ func _skip_reason(provider: Callable) -> String:
 	return ""
 
 
-## A section that silently never shows is hard to notice, so name it once.
+## A section that silently never shows is hard to notice, so name it once per failure streak: the
+## warning re-arms when the provider returns rows again (see collect).
 func _warn_once(title: String, reason: String) -> void:
 	if _warned.has(title):
 		return
