@@ -8,16 +8,15 @@ extends GutTest
 const TOGGLE_ACTION := &"toggle_debug_overlay"
 const RIDE_TIMEOUT_S: float = 5.0
 const REFRESH_WINDOW_S: float = 1.0
-const REQUIRED_FIELDS: Array[String] = [
-	"FPS",
-	"Phase: DAY",
-	"Day: 1",
-	"Night: 0",
-	"Gold",
-	"Buildings",
-	"Units",
-	"Enemies",
-]
+## Rows whose value is known on a fresh map, checked exactly.
+const EXPECTED_VALUES: Dictionary = {
+	"Phase": "DAY",
+	"Day": "1",
+	"Night": "0",
+	"Buildings": "0",
+}
+## Rows that must carry an integer whose value depends on tuning or on the frame rate.
+const INTEGER_ROWS: Array[String] = ["FPS", "Gold", "Units", "Enemies"]
 
 
 func after_each() -> void:
@@ -28,6 +27,19 @@ func after_each() -> void:
 
 func _overlay_of(map_root: MapRoot) -> DebugOverlay:
 	return map_root.get_node_or_null("HUD/DebugOverlay") as DebugOverlay
+
+
+## The overlay's rows as {label: value}, parsed from its "  label: value" lines (section titles have
+## no indent and are skipped), so a check sees a row's value and not just a substring of the text.
+func _rows_of(overlay: DebugOverlay) -> Dictionary:
+	var rows: Dictionary = {}
+	for line: String in overlay.get_text().split("\n"):
+		if not line.begins_with("  "):
+			continue
+		var parts: PackedStringArray = line.strip_edges().split(": ", true, 1)
+		if parts.size() == 2:
+			rows[parts[0]] = parts[1]
+	return rows
 
 
 func _press_toggle() -> void:
@@ -65,9 +77,14 @@ func test_shown_overlay_lists_the_required_fields() -> void:
 	if overlay == null:
 		return
 	await _press_toggle()
-	var text: String = overlay.get_text()
-	for field: String in REQUIRED_FIELDS:
-		assert_string_contains(text, field, "overlay text has %s" % field)
+	var rows: Dictionary = _rows_of(overlay)
+	for label: String in EXPECTED_VALUES:
+		assert_eq(rows.get(label), EXPECTED_VALUES[label], "the %s row has its value" % label)
+	for label: String in INTEGER_ROWS:
+		var value: String = rows.get(label, "")
+		assert_true(
+			value.is_valid_int(), "the %s row has an integer value, not '%s'" % [label, value]
+		)
 
 
 func test_shown_overlay_refreshes_the_buildings_row_after_a_build() -> void:
