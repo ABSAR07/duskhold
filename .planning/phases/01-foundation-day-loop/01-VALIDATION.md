@@ -27,7 +27,7 @@ validated: "2026-09-29"
 | **Full suite command** | `bash tools/test.sh` (headless import pass, then GUT over all three dirs; fails on any first-party parse/load error) |
 | **Single file** | `bash tools/test.sh -gselect=<test_file>.gd` |
 | **Lint** | `bash tools/lint.sh` (gdtoolkit 4.5.0: `gdformat --check` + `gdlint`) |
-| **Measured runtime** | Quick: ~13 s wall (19 scripts, 161 tests). Full: ~96 s wall (35 scripts, 265 tests) |
+| **Measured runtime** | Quick: ~14 s wall (19 scripts, 164 tests). Full: ~96 s wall (35 scripts, 268 tests) |
 
 The `tools/*.sh` wrappers need Git Bash on Windows; they resolve the pinned binary under `.tools/godot/4.7.2-stable/` (D-14).
 
@@ -128,6 +128,8 @@ GUT rows run as `bash tools/test.sh -gselect=<file>`. Threat refs are the plans'
 | WR-01 / WR-02 fix (pass 15) | review | — | DEV-03 | T-01-15 | A provider whose problem changes within one failure streak is named again (a changing count of malformed rows is not a new problem); every `Skip` code except NONE has a message | unit | `test_debug_overlay_providers.gd` (`test_a_provider_whose_problem_changes_within_one_streak_is_named_again`, `test_the_count_of_malformed_rows_changing_is_not_a_new_problem`, `test_every_skip_code_except_none_has_a_message`) | ✅ | ✅ green |
 | IN-04 fix (pass 15) | review | — | DEV-03 | T-01-15 | A section registered with an already-freed `lifetime_owner` is refused with a warning (model and overlay, before and after `bind_run`) instead of a script error at the call site | unit | `test_debug_overlay_providers.gd` (`test_a_section_whose_owner_was_already_freed_is_refused_with_a_warning`), `test_debug_overlay_registration.gd` (`test_a_section_registered_with_an_already_freed_owner_is_refused_before_and_after_bind_run`) | ✅ | ✅ green |
 | IN-01 / IN-02 / IN-03 fix (pass 15) | review | — | DEV-03, ECON-02 | T-01-15 | Overlay suites share setup, lookup and the 200-collect read-only assertion (`tests/support/overlay_test_support.gd`); 12 provider tests moved unchanged into their own suite; a payout-test comment corrected | unit + e2e | `test_debug_overlay_readonly.gd`, `test_debug_overlay_providers.gd`, `test_debug_overlay_timed_phases.gd`, `test_dawn_payout_hardening.gd` | ✅ | ✅ green |
+| IN-01 fix (pass 16) | review | — | DEV-03 | — | `DebugOverlay.get_text()` before the overlay is in the tree returns "" instead of a null-instance script error | unit | `test_debug_overlay_registration.gd` (`test_get_text_before_the_overlay_is_in_the_tree_is_empty_instead_of_a_script_error`) | ✅ | ✅ green |
+| IN-02 / IN-03 fix (pass 16) | review | — | DEV-03 | T-01-15 | One shared owner check (`DebugOverlayModel.owner_problem`) for the model, the view's pre-bind path and the bind replay; a non-Object owner is refused as "not an Object", not as freed; the registration suite builds its context from `OverlayTestSupport.new_map()`/`new_tuning()` | unit | `test_debug_overlay_providers.gd` (`test_a_section_whose_owner_is_not_an_object_is_refused_as_such_not_as_freed`), `test_debug_overlay_registration.gd` (`test_an_owner_that_is_not_an_object_is_refused_before_and_after_bind_run_as_such`) | ✅ | ✅ green |
 
 Owner gates with no automated verify by design: 01-01-T2 (toolchain download approval), 01-03-T2 (public repo name), 01-07-T2 (CC0 model download approval). No run of three consecutive tasks lacks automated verification.
 
@@ -487,6 +489,27 @@ Re-audited after the fifteenth review-fix pass (6 commits, `639f5fd`..`4fac944`)
 Evidence:
 - Full suite 265/265 (35 scripts, ~96 s); lint clean (71 files).
 - Unit quick run 161/161 (19 scripts, ~13 s).
+- `tools/screenshot.sh`: 6/6 non-blank captures.
+- Headless guard exits 2.
+- `ci.yml` unchanged.
+
+## Validation Audit 2026-09-30 (re-audit after review-fix pass 16)
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Re-audited after the sixteenth review-fix pass (3 commits, `187f47a`..`49f4ae9`), the first pass fixing an info-only review. 15/15 requirements are still COVERED.
+
+- **Tests:** +3 new. One covers the `get_text()` readiness guard; two cover refusing a non-Object owner, in the model and before and after `bind_run`. IN-03 is a test-scaffolding refactor with no behaviour change.
+- **Mutation probes:** every behaviour change carries one in `01-REVIEW-FIX.md`.
+- **CR-01 guard:** re-probed by the orchestrator; it fails 17/18 with the old spacing. `dawn_payout_vfx.gd` was not touched this pass.
+
+Evidence:
+- Full suite 268/268 (35 scripts); lint clean (71 files).
+- Unit quick run 164/164 (19 scripts, ~14 s).
 - `tools/screenshot.sh`: 6/6 non-blank captures.
 - Headless guard exits 2.
 - `ci.yml` unchanged.
