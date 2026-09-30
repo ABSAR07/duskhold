@@ -13,10 +13,14 @@ enum Skip { NONE, OWNER_FREED, CALLABLE_INVALID, DECLARES_PARAMETERS }
 
 ## Titles of the sections collect() always builds itself; registered sections cannot reuse them.
 const DEFAULT_TITLES: Array[String] = ["Perf", "Loop", "Agents"]
+## Reasons a `lifetime_owner` is refused at registration (see owner_problem). OWNER_FREED_REASON
+## is also the wording for a section dropped once its owner is freed later.
+const OWNER_FREED_REASON := "its owner was freed"
+const OWNER_NOT_OBJECT_REASON := "its owner is not an Object"
 ## The words that complete "debug overlay section '<title>' skipped: ..." for each Skip code. Every
 ## code except NONE needs a message.
 const SKIP_MESSAGES: Dictionary = {
-	Skip.OWNER_FREED: "its owner was freed",
+	Skip.OWNER_FREED: OWNER_FREED_REASON,
 	Skip.CALLABLE_INVALID: "its callable is no longer valid",
 	Skip.DECLARES_PARAMETERS:
 	"it declares parameters (default values count); a provider takes none",
@@ -51,26 +55,49 @@ func _init(ctx: RunContext) -> void:
 ## (RunContext and what it holds), or check is_instance_valid itself.
 ##
 ## `lifetime_owner` must be alive when this is called: an owner that is already freed is refused
-## with a warning, like a default title. It is a Variant, not an Object, because passing a freed
+## with a warning, like a default title, and so is a value that is not an Object at all. It is a
+## Variant, not an Object, because passing a freed
 ## instance to an Object parameter raises a script error in the caller's frame, before this body
 ## could guard.
 func register_section(title: String, provider: Callable, lifetime_owner: Variant = null) -> void:
 	if title in DEFAULT_TITLES:
-		push_warning(
-			"debug overlay section '%s' not registered: the title is a default section" % title
-		)
+		warn_not_registered(title, "the title is a default section")
 		return
-	# typeof, not `!= null`: a freed instance compares equal to null, so it must be told apart here.
-	var has_owner: bool = typeof(lifetime_owner) != TYPE_NIL
-	if has_owner and not is_instance_valid(lifetime_owner):
-		push_warning("debug overlay section '%s' not registered: its owner was freed" % title)
+	var problem: String = owner_problem(lifetime_owner)
+	if problem != "":
+		warn_not_registered(title, problem)
 		return
-	# A WeakRef, so the overlay never keeps a RefCounted owner alive; null when there is no owner.
-	var owner_ref: WeakRef = weakref(lifetime_owner) if has_owner else null
 	# Assigning to an existing title keeps its position; a new title goes last.
-	_registered[title] = {"provider": provider, "owner": owner_ref}
+	_registered[title] = {"provider": provider, "owner": owner_ref(lifetime_owner)}
 	# The one-shot warning belongs to the provider, so a replacement may warn afresh.
 	_warned.erase(title)
+
+
+## Why a `lifetime_owner` cannot be used, or "" when it can (no owner at all is fine). The overlay
+## view checks a pre-bind registration with this too, so both paths refuse an owner for the same
+## reasons in the same words. typeof, not `!= null`: a freed instance compares equal to null, so it
+## must be told apart from "no owner" here, and a non-Object (an int, a String) is a caller mistake
+## that must not be reported as a freed owner.
+static func owner_problem(lifetime_owner: Variant) -> String:
+	if typeof(lifetime_owner) == TYPE_NIL:
+		return ""
+	if typeof(lifetime_owner) != TYPE_OBJECT:
+		return OWNER_NOT_OBJECT_REASON
+	if not is_instance_valid(lifetime_owner):
+		return OWNER_FREED_REASON
+	return ""
+
+
+## A WeakRef to a usable `lifetime_owner` (see owner_problem), so the overlay never keeps a
+## RefCounted owner alive; null when there is no owner.
+static func owner_ref(lifetime_owner: Variant) -> WeakRef:
+	return weakref(lifetime_owner) if typeof(lifetime_owner) == TYPE_OBJECT else null
+
+
+## The one warning for a refused registration, so every refusal reads the same. `reason` completes
+## "debug overlay section '<title>' not registered: ...".
+static func warn_not_registered(title: String, reason: String) -> void:
+	push_warning("debug overlay section '%s' not registered: %s" % [title, reason])
 
 
 func collect(fps: float) -> Array:

@@ -112,6 +112,20 @@ func test_a_section_registered_with_an_already_freed_owner_is_refused_before_and
 	assert_push_warning_count(2, "each refusal is named once")
 
 
+func test_an_owner_that_is_not_an_object_is_refused_before_and_after_bind_run_as_such() -> void:
+	var overlay: DebugOverlay = _overlay()
+
+	overlay.register_section("Early", func() -> Array: return [["Wave", "3"]], 5)
+	overlay.bind_run(_context(), null)
+	overlay.register_section("Late", func() -> Array: return [["Wave", "4"]], "owner")
+
+	var text: String = await _shown_text(overlay)
+	assert_false(text.contains("Early") or text.contains("Late"), "neither section is listed")
+	assert_push_warning("debug overlay section 'Early' not registered: its owner is not an Object")
+	assert_push_warning("debug overlay section 'Late' not registered: its owner is not an Object")
+	assert_push_warning_count(2, "each refusal is named once, and none says the owner was freed")
+
+
 func test_get_text_before_the_overlay_is_in_the_tree_is_empty_instead_of_a_script_error() -> void:
 	# instantiate() without add_child: the @onready label does not exist yet.
 	var overlay: DebugOverlay = autofree((load(OVERLAY_SCENE) as PackedScene).instantiate())

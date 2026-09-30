@@ -342,3 +342,17 @@ func test_a_section_whose_owner_was_already_freed_is_refused_with_a_warning() ->
 	)
 	assert_push_warning("debug overlay section 'Late' not registered: its owner was freed")
 	assert_push_warning_count(1, "named once at registration, not on every refresh")
+
+
+func test_a_section_whose_owner_is_not_an_object_is_refused_as_such_not_as_freed() -> void:
+	var model: DebugOverlayModel = _model()
+
+	model.register_section("Number", func() -> Array: return [["Answer", "42"]], 5)
+	model.register_section("Text", func() -> Array: return [["Answer", "42"]], "owner")
+
+	var sections: Array = model.collect(60.0)
+	assert_eq(OverlayTestSupport.section(sections, "Number"), {}, "an int owner is refused")
+	assert_eq(OverlayTestSupport.section(sections, "Text"), {}, "and so is a String owner")
+	assert_push_warning("debug overlay section 'Number' not registered: its owner is not an Object")
+	assert_push_warning("debug overlay section 'Text' not registered: its owner is not an Object")
+	assert_push_warning_count(2, "each refusal is named once, and none says the owner was freed")

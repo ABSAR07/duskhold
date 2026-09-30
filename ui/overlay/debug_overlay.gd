@@ -28,11 +28,8 @@ func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 		var owner_ref: WeakRef = entry["owner"]
 		var lifetime_owner: Object = owner_ref.get_ref() if owner_ref != null else null
 		if owner_ref != null and lifetime_owner == null:
-			push_warning(
-				(
-					"debug overlay section '%s' not registered: its owner was freed before bind_run"
-					% entry["title"]
-				)
+			DebugOverlayModel.warn_not_registered(
+				entry["title"], DebugOverlayModel.OWNER_FREED_REASON + " before bind_run"
 			)
 			continue
 		_model.register_section(entry["title"], entry["provider"], lifetime_owner)
@@ -46,13 +43,18 @@ func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 ## alive at registration).
 func register_section(title: String, provider: Callable, lifetime_owner: Variant = null) -> void:
 	if _model == null:
-		var has_owner: bool = typeof(lifetime_owner) != TYPE_NIL
-		if has_owner and not is_instance_valid(lifetime_owner):
-			push_warning("debug overlay section '%s' not registered: its owner was freed" % title)
+		var problem: String = DebugOverlayModel.owner_problem(lifetime_owner)
+		if problem != "":
+			DebugOverlayModel.warn_not_registered(title, problem)
 			return
 		# A WeakRef, like the model's, so a pending section never keeps its owner alive.
-		var owner_ref: WeakRef = weakref(lifetime_owner) if has_owner else null
-		_pending.append({"title": title, "provider": provider, "owner": owner_ref})
+		_pending.append(
+			{
+				"title": title,
+				"provider": provider,
+				"owner": DebugOverlayModel.owner_ref(lifetime_owner)
+			}
+		)
 		return
 	_model.register_section(title, provider, lifetime_owner)
 
