@@ -110,3 +110,24 @@ func test_start_point_before_the_run_is_bound_falls_back_to_mid_screen() -> void
 	var point: Vector2 = vfx.start_point(HOUSE_ONE)
 
 	assert_eq(point, vfx.get_viewport_rect().size * 0.5, "no run yet, so the middle of the screen")
+
+
+func test_a_child_that_is_not_a_coin_is_neither_counted_nor_freed_by_a_payout() -> void:
+	var map_root: MapRoot = await _spawn()
+	var ctx: RunContext = map_root.get_context()
+	var vfx: DawnPayoutVfx = _vfx(map_root)
+	assert_not_null(vfx, "the HUD has a DawnPayoutVfx")
+	if vfx == null:
+		return
+	var marker: Control = Control.new()
+	vfx.add_child(marker)
+	assert_eq(vfx.live_coin_count(), 0, "a non-coin child is not a coin in the air")
+
+	ctx.events.dawn_payout.emit(6, {HOUSE_ONE: 3, HOUSE_TWO: 3})
+	ctx.events.dawn_payout.emit(3, {HOUSE_ONE: 3})
+
+	assert_false(marker.is_queued_for_deletion(), "a new payout does not free a non-coin child")
+	var landed: bool = await E2eSupport.wait_until(self, _total_shown.bind(map_root), SETTLED_S)
+	assert_true(landed, "the last payout landed")
+	assert_true(is_instance_valid(marker), "and the child is still there")
+	assert_eq(vfx.live_coin_count(), 0, "with every coin gone, none is counted")

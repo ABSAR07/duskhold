@@ -38,6 +38,9 @@ const TRIP_SECONDS: float = 0.6
 ## coin after it.
 const DAWN_MARGIN_SECONDS: float = 0.15
 const TOTAL_SHOWN_SECONDS: float = 2.0
+## Group of every coin this node launches. Only coins are counted and freed as coins, so any other
+## child this node ever gets (a pooled node, a marker, a trail) is left alone.
+const COIN_GROUP := &"payout_coin"
 
 var _ctx: RunContext
 var _coin_texture: GradientTexture2D
@@ -75,8 +78,8 @@ func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 ## Coins in the air (freed coins are not counted).
 func live_coin_count() -> int:
 	var count: int = 0
-	for child: Node in get_children():
-		if not child.is_queued_for_deletion():
+	for coin: Node in _coins():
+		if not coin.is_queued_for_deletion():
 			count += 1
 	return count
 
@@ -252,8 +255,13 @@ func _reset_for_new_payout() -> void:
 		tween.kill()
 	_launch_tweens.clear()
 	_payout_total.visible = false
-	for child: Node in get_children():
-		child.queue_free()
+	for coin: Node in _coins():
+		coin.queue_free()
+
+
+## The coins among this node's children (see COIN_GROUP), freed or not.
+func _coins() -> Array[Node]:
+	return get_children().filter(func(child: Node) -> bool: return child.is_in_group(COIN_GROUP))
 
 
 func _schedule_launch(spot_id: StringName, delay: float, share: int) -> void:
@@ -276,6 +284,7 @@ func _launch_coin(spot_id: StringName, generation: int, share: int) -> void:
 	coin.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	coin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	coin.size = COIN_SIZE
+	coin.add_to_group(COIN_GROUP)
 	add_child(coin)
 	var start: Vector2 = start_point(spot_id) - COIN_SIZE * 0.5
 	var target: Vector2 = _gold_label.get_global_rect().get_center() - COIN_SIZE * 0.5
