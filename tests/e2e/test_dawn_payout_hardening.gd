@@ -80,6 +80,7 @@ func test_absurdly_large_amounts_are_clamped_so_the_coin_cap_still_holds() -> vo
 	var clamped_total: int = 2 * DawnPayoutVfx.MAX_AMOUNT
 
 	# A float far past int range and an int near its top: unclamped, neither is a usable amount.
+	# The ledger is not credited in this synthetic emit; only the announced payout is clamped.
 	ctx.events.dawn_payout.emit(
 		clamped_total, {HOUSE_ONE: 1e30, HOUSE_TWO: 9_000_000_000_000_000_000}
 	)
@@ -154,7 +155,8 @@ func test_a_payout_of_only_negative_amounts_shows_nothing_and_leaves_the_hud_on_
 		return
 	watch_signals(vfx)
 
-	# The Economy was credited the claimed 5, but no per-spot amount can carry a coin.
+	# The payout claims 5 gold, but no per-spot amount can carry a coin (the ledger is not credited
+	# in this synthetic emit).
 	ctx.events.dawn_payout.emit(5, {HOUSE_ONE: -3})
 	await wait_process_frames(2)
 
