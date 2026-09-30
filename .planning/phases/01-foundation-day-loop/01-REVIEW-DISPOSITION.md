@@ -89,16 +89,16 @@ findings:
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
 open: 0
 total: 21
-recorded: 2026-09-30T15:05:34.027Z
+recorded: 2026-09-30T15:11:26.676Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
-| IN-01 | info | fixed | 01-REVIEW-FIX.md |
-| IN-02 | info | fixed | 01-REVIEW-FIX.md |
+| WR-01 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
+| IN-01 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
+| IN-02 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-02 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-03 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-03 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
