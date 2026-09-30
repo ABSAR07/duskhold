@@ -6,6 +6,7 @@
 font_names = PackedStringArray("Consolas", "Courier New", "monospace")
 
 [node name="DebugOverlay" type="CanvasLayer"]
+process_mode = 3
 layer = 100
 visible = false
 script = ExtResource("1_overlay")

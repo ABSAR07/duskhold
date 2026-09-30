@@ -87,3 +87,19 @@ func test_shown_overlay_refreshes_the_buildings_row_after_a_build() -> void:
 		self, func() -> bool: return overlay.get_text().contains("Buildings: 1"), REFRESH_WINDOW_S
 	)
 	assert_true(refreshed, "the Buildings row shows 1 within %s s" % REFRESH_WINDOW_S)
+
+
+func test_overlay_keeps_processing_while_the_tree_is_paused() -> void:
+	# A later phase's pause menu pauses the tree; the F3 toggle and the refresh must still run.
+	var map_root: MapRoot = await E2eSupport.spawn_map(self)
+	var overlay: DebugOverlay = _overlay_of(map_root)
+	assert_not_null(overlay, "the HUD instances the debug overlay")
+	if overlay == null:
+		return
+	assert_eq(overlay.process_mode, Node.PROCESS_MODE_ALWAYS, "the overlay ignores the pause")
+
+	get_tree().paused = true
+	var can_process_while_paused: bool = overlay.can_process()
+	get_tree().paused = false
+
+	assert_true(can_process_while_paused, "so it still processes while the tree is paused")
