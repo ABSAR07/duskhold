@@ -5,23 +5,23 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "Malformed provider rows are dropped silently, unlike every other provider failure"
   - id: WR-02
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "A payout with a positive `total` but only bad or negative `per_spot` entries gives no \"+X gold\" total and no feedback beyond a warning"
   - id: IN-01
     severity: info
-    disposition: open
+    disposition: fixed
     title: "`_is_gone` and `_skip_reason` duplicate the owner/validity checks"
   - id: IN-02
     severity: info
-    disposition: open
+    disposition: fixed
     title: "The read-only assertion covers only part of the simulation state"
   - id: IN-03
     severity: info
-    disposition: open
+    disposition: fixed
     title: "The registration tests bypass the toggle path, and the visible-refresh timing is wall-clock dependent"
   - id: WR-03
     severity: warning
@@ -87,20 +87,20 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 5
+open: 0
 total: 21
-recorded: 2026-09-30T10:33:38.847Z
+recorded: 2026-09-30T10:54:07.354Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
-| WR-02 | warning | open | - |
-| IN-01 | info | open | - |
-| IN-02 | info | open | - |
-| IN-03 | info | open | - |
+| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
+| WR-02 | warning | fixed | 01-REVIEW-FIX.md |
+| IN-01 | info | fixed | 01-REVIEW-FIX.md |
+| IN-02 | info | fixed | 01-REVIEW-FIX.md |
+| IN-03 | info | fixed | 01-REVIEW-FIX.md |
 | WR-03 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-04 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-05 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
