@@ -27,7 +27,7 @@ validated: "2026-09-29"
 | **Full suite command** | `bash tools/test.sh` (headless import pass, then GUT over all three dirs; fails on any first-party parse/load error) |
 | **Single file** | `bash tools/test.sh -gselect=<test_file>.gd` |
 | **Lint** | `bash tools/lint.sh` (gdtoolkit 4.5.0: `gdformat --check` + `gdlint`) |
-| **Measured runtime** | Quick: ~12 s wall (16 scripts, 129 tests). Full: ~85 s wall (31 scripts, 215 tests) |
+| **Measured runtime** | Quick: ~12 s wall (16 scripts, 132 tests). Full: ~85 s wall (31 scripts, 218 tests) |
 
 The `tools/*.sh` wrappers need Git Bash on Windows; they resolve the pinned binary under `.tools/godot/4.7.2-stable/` (D-14).
 
@@ -84,6 +84,12 @@ GUT rows run as `bash tools/test.sh -gselect=<file>`. Threat refs are the plans'
 | IN-01 fix (pass 3) | review | — | ECON-01 | — | Binding the HUD twice connects nothing twice | e2e | `test_map_binding.gd` (`test_binding_the_hud_again_connects_nothing_twice`) | ✅ | ✅ green |
 | IN-02 fix (pass 3) | review | — | BLDG-06 (start-night input) | — | The start-night prompt names the live bindings and follows a runtime rebind | e2e | `test_start_night_hold.gd` (2 tests) | ✅ | ✅ green |
 | IN-04 fix (pass 3) | review | — | ECON-02 | — | `launch_stagger` falls back to the default before `bind_run`; payout timing tests poll instead of racing | e2e | `test_dawn_payout.gd` (`test_launch_stagger_before_the_run_is_bound_falls_back_to_the_default`) | ✅ | ✅ green |
+| WR-01 fix (pass 4) | review | — | ECON-01, ECON-02 | — | Binding the HUD and the payout VFX again connects nothing twice (fails on "already connected" with the guard removed) | e2e | `test_map_binding.gd` (`test_binding_the_hud_and_payout_view_again_connects_nothing_twice`) | ✅ | ✅ green |
+| WR-02 / IN-02 / IN-03 fix (pass 4) | review | — | BLDG-06 (start-night input) | — | The prompt follows a runtime rebind on its own; start-night test null-guarded, timings tied to tuning | e2e | `test_start_night_hold.gd` | ✅ | ✅ green |
+| WR-03 fix (pass 4) | review | — | ECON-02, ECON-07 | — | Payout and dawn hand-back tests assert game state, not wall-clock time | e2e | `test_dawn_payout.gd` | ✅ | ✅ green |
+| WR-04 / IN-04 fix (pass 4) | review | — | BLDG-01 | T-01-10 | A duplicate building id keeps the first definition, like spots; duplicate-spot test asserts identity | unit | `test_building_system_data_errors.gd` (`test_a_duplicate_building_id_keeps_the_first_definition`) | ✅ | ✅ green |
+| WR-05 fix (pass 4) | review | — | BLDG-01 | — | Changing the returned spot ids does not change the system | unit | `test_build_spot.gd` (`test_changing_the_returned_spot_ids_does_not_change_the_system`) | ✅ | ✅ green |
+| IN-01 fix (pass 4) | review | — | DEV-03 | T-01-15 | A provider that needs an argument is skipped instead of crashing; phase name via `find_key` | unit | `test_debug_overlay_readonly.gd` (`test_a_provider_that_needs_an_argument_is_skipped_instead_of_crashing`) | ✅ | ✅ green |
 
 Owner gates with no automated verify by design: 01-01-T2 (toolchain download approval), 01-03-T2 (public repo name), 01-07-T2 (CC0 model download approval). No run of three consecutive tasks lacks automated verification.
 
@@ -186,3 +192,18 @@ Re-audited after the third review-fix pass (7 fix commits, `ecea4ff`..`9cae015`)
 - `tools/screenshot.sh`: 6/6 non-blank captures. `day_overview` still reads "Hold N / (Y) to start Night 1" now that the hint is built from the InputMap.
 - Headless guard exits 2.
 - `ci.yml` unchanged in this pass.
+
+## Validation Audit 2026-09-30 (re-audit after review-fix pass 4)
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Re-audited after the fourth review-fix pass (8 fix commits, `2d8dd35`..`2fe6dc1`). 15/15 requirements are still COVERED. The pass added 3 tests and extended the rebind test to cover the payout VFX (rows above). Evidence:
+- Full suite 218/218 (31 scripts) on the post-fix code; lint clean.
+- Unit quick run 132/132 (~12 s).
+- `tools/screenshot.sh`: 6/6 non-blank captures.
+- Headless guard exits 2.
+- `ci.yml` unchanged.
