@@ -2,13 +2,12 @@
 phase: 01-foundation-day-loop
 reviewed: 2026-09-30T00:00:00Z
 depth: standard
-files_reviewed: 10
+files_reviewed: 9
 files_reviewed_list:
   - simulation/buildings/building_system.gd
   - tests/e2e/test_dawn_payout.gd
   - tests/e2e/test_map_binding.gd
   - tests/e2e/test_start_night_hold.gd
-  - tests/unit/test_build_spot.gd
   - tests/unit/test_building_system_data_errors.gd
   - tests/unit/test_debug_overlay_readonly.gd
   - ui/hud/dawn_payout_vfx.gd
@@ -16,9 +15,9 @@ files_reviewed_list:
   - ui/overlay/debug_overlay_model.gd
 findings:
   critical: 0
-  warning: 5
+  warning: 3
   info: 5
-  total: 10
+  total: 8
 status: issues_found
 ---
 
@@ -26,99 +25,76 @@ status: issues_found
 
 **Reviewed:** 2026-09-30
 **Depth:** standard
-**Files Reviewed:** 10
+**Files Reviewed:** 9
 **Status:** issues_found
 
 ## Summary
 
-Reviewed the building system, HUD, dawn payout VFX, debug overlay model, and the six test files that cover them. Cross-checked against `run_manager.gd`, `economy.gd`, `command_processor.gd`, `map_config.gd`, `map_root.gd`, `hud.tscn`, `prototype_map.tscn` and `e2e_support.gd`.
-
-No crash, security, or data-loss defects were found. The signal wiring is sound: the HUD sits in `run_bound` ahead of its child `DawnPayoutVfx`, so the HUD's `_payout_pending` is set before any coin can land. `bind_run` is idempotent. Coin shares always sum to the per-spot amount. The HUD lag clamps prevent a permanently short readout for the malformed payouts the tests cover.
-
-The remaining issues are robustness gaps in the hardening added this phase, an implicit HUD/VFX invariant, and several tests that claim more than they prove.
+Reviewed the building system, the HUD and dawn-payout VFX, the debug overlay model, and the tests that cover them. I traced the dawn payout flow through `RunManager._apply_dawn_payout`, `DawnPayoutVfx` and `Hud`, and checked the `MapConfig.validate()` error strings the data-error tests depend on. The payout accounting holds up. Coin shares sum to each spot's amount, the announced `carried_total` equals the sum of landed shares, and the `_generation` guard stops a stale payout from touching the counters. The HUD's `_payout_pending = carried_total` assignment resets the lag on every payout. I found no crashes, security issues or data-loss paths. The findings below are robustness and correctness edges, mostly in how the code handles data errors and non-default input setups.
 
 ## Warnings
 
-### WR-01: Start-night hint reports "(unbound)" for bindings that work
+### WR-01: Start-night hint names the wrong key on non-QWERTY keyboard layouts
 
-**File:** `ui/hud/hud.gd:154-167`
-**Issue:** `_start_night_hint` only recognises `InputEventKey` and `InputEventJoypadButton`. If a runtime rebind maps `start_night` to a trigger (`InputEventJoypadMotion`) or a mouse button, the action fires but the prompt reads "Hold (unbound) to start Night N". A key event with both `physical_keycode` and `keycode` equal to `KEY_NONE` (for example a `key_label`-only event) appends an empty string, which yields a stray " / " or a blank hint. Modifiers on a key event (Ctrl+N) are silently dropped, so the prompt names a key that will not trigger the action.
-**Fix:** Handle the other event types, and use `event.as_text()` as the fallback for anything not specially named. Skip empty strings.
+**File:** `ui/hud/hud.gd:183-185`
+**Issue:** `_key_text` prefers `as_text_physical_keycode()`. Godot's physical-keycode text names the key by its US-QWERTY position, not by the label printed on the user's keycap. Default bindings are stored as `physical_keycode` (the tests use `KEY_N`). For a player on Dvorak, AZERTY or similar, the prompt "Hold N to start Night 2" can point at a key whose cap reads something else. The prompt is the only place the player learns this binding, so a wrong hint means they cannot start the night.
+**Fix:** Resolve the layout-specific label for physical keys before falling back to the QWERTY name.
 ```gdscript
-for event: InputEvent in InputMap.action_get_events(&"start_night"):
-	if event is InputEventJoypadButton:
-		pad.append("(%s)" % PAD_BUTTON_NAMES.get((event as InputEventJoypadButton).button_index, event.as_text()))
-	elif event is InputEventKey or event is InputEventMouseButton or event is InputEventJoypadMotion:
-		var text: String = event.as_text()
-		if not text.is_empty():
-			(pad if event is InputEventJoypadMotion else keys).append(text)
+if key_event.physical_keycode != KEY_NONE:
+	var label_key: Key = DisplayServer.keyboard_get_label_from_physical(key_event.physical_keycode)
+	var text: String = OS.get_keycode_string(label_key | key_event.get_modifiers_mask())
+	return text if not text.is_empty() else key_event.as_text_physical_keycode()
 ```
+Verify the API name and modifier handling against 4.7 before adopting.
 
-### WR-02: HUD readout lag is derived independently of the VFX, so it holds only by an unenforced invariant
+### WR-02: Debug-overlay providers with default arguments are silently dropped
 
-**File:** `ui/hud/hud.gd:94-101`, `ui/hud/dawn_payout_vfx.gd:99-121`
-**Issue:** `Hud._on_dawn_payout` assumes the VFX will land coins carrying exactly `sum(max(amount, 0))` of the payout, and it re-derives that sum on its own. Nothing ties the two together. If a later change makes the VFX skip a spot (an unknown spot, an off-screen spot, a per-frame launch budget), or the VFX is not bound or is freed mid-flight, the HUD holds gold back and never releases it. The `min(total, carried)` clamp only bounds the over-hold, it does not remove it. `coin_landed` is also the only release path: if a coin tween is killed, for example by a node `process_mode` change or a reparent, the readout stays short until the next payout.
-**Fix:** Let the VFX be the single source of truth. Have it emit `payout_started(carried_total)` once, after it has computed its coin shares, and have the HUD set `_payout_pending` from that signal rather than from `dawn_payout`. Also clear `_payout_pending` when the phase leaves DAWN or on `day_started`, as a backstop.
+**File:** `ui/overlay/debug_overlay_model.gd:39-40`
+**Issue:** `provider.get_argument_count() > 0` also counts parameters that have defaults. A provider such as `func _wave_rows(verbose := false) -> Array` can be called with no arguments, yet it is skipped on every refresh without any message. This is the extension point Phase 2 will use for wave and path sections, and the failure mode is a section that quietly never appears. The invalid-Callable and needs-an-argument paths are equally silent.
+**Fix:** Warn once per skipped provider so a misregistered section is discoverable, for example by keeping a `_warned: Dictionary` of titles and calling `push_warning("debug overlay section '%s' skipped: ..." % entry["title"])` on first skip. Alternatively, validate in `register_section` where the caller is on the stack.
 
-### WR-03: The coin cap and the "fits the dawn window" guarantee are not actually enforced
+### WR-03: BuildingSystem does not skip an empty building id, unlike spots
 
-**File:** `ui/hud/dawn_payout_vfx.gd:19-23, 75-79, 126-131`
-**Issue:**
-- `MAX_COINS` is described as the coin budget of one payout, but `_coins_for_amount` clamps each spot up to at least one coin. With more than 12 paying spots the payout exceeds the budget.
-- `_coins_for_amount` scales by the `total` argument, not by the sum of `per_spot`. If the two disagree, the budget check (`total <= MAX_COINS`) is evaluated against the wrong number.
-- `launch_stagger` clamps to 0 when `dawn_seconds <= TRIP_SECONDS`. Every coin then launches at once and lands after the dawn window closes, contradicting the method's doc comment.
-With the shipped tuning (`dawn_seconds = 2.0`, 12 coins) it works, but a rebalance breaks it silently.
-**Fix:** Compute the scale from `carried = sum(per_spot)`. If the coin count would exceed `MAX_COINS`, merge the smallest spots into shared coins, or document that the cap is soft. Say in the `launch_stagger` doc that a window shorter than `TRIP_SECONDS` cannot be met, and log a `push_warning` once at bind time when `dawn_seconds <= TRIP_SECONDS`.
-
-### WR-04: BuildingSystem hardening is inconsistent: empty-id spots are kept and `apply_next_tier` is unguarded
-
-**File:** `simulation/buildings/building_system.gd:21-26, 94-104, 109-123`
-**Issue:**
-- The constructor skips null and duplicate spots but keeps a spot with `id == &""` (which `MapConfig.validate` reports). `nearest_spot_in_range` can then return `&""`, which every caller treats as "no spot in range". That spot can never be focused. `get_spot(&"")` is also non-null, so `CommandProcessor.validate_build(&"")` would not return `UNKNOWN_SPOT` on such a map. That contradicts the assumption in `test_build_spot.gd:95`.
-- `apply_next_tier` will raise the tier past the building's last tier, or create an instance for a building id that has no definition. `test_dawn_income_skips_a_building_whose_id_no_map_building_defines` does exactly this directly. It emits `building_built` with a tier no `tier_def` can resolve. The doc says only `CommandProcessor` calls it, but the rest of this class is defensive against bad data and this method is not.
-**Fix:** Skip `spot.id == &""` in `_init` alongside the null and duplicate checks. In `apply_next_tier`, add `if next_tier_def(spot_id) == null: return null` before mutating.
-
-### WR-05: Two e2e tests claim more than they assert
-
-**File:** `tests/e2e/test_dawn_payout.gd:219-245`, `tests/e2e/test_start_night_hold.gd:240-270`
-**Issue:**
-- `test_a_real_payout_lands_every_coin_inside_a_short_dawn_window` emits `dawn_payout` synthetically while the run is still in DAY, and waits up to `dawn_seconds + SETTLED_S` (4 s). It never measures that the coins land within 1.0 s, and there is no dawn window in play. The final message "every coin landed before the dawn window ended" is unverified. The test would pass with the stagger fix reverted.
-- In `test_a_build_hold_is_cancelled_when_the_night_starts`, the "only dawn income moved gold" assertion is vacuous. The test asserts nothing was built, so `dawn_income_by_spot()` is empty and the expectation reduces to `gold == gold_before`. It cannot catch a payout bug.
+**File:** `simulation/buildings/building_system.gd:16-20`
+**Issue:** The constructor skips spots with an empty id because it "could not be told apart from 'no spot in range'". A `BuildingDef` with `id == &""` is not skipped. It is stored as `_defs[&""]`, and any spot whose `building_id` is `&""` (the unset default) then resolves to that def. `MapConfig.validate()` reports both cases as errors, but `RunContext` only pushes the error and carries on, so the game builds it anyway. The two data-error paths are inconsistent, and the "data error is reported and skipped" contract is only half implemented. There is also no test for it in `test_building_system_data_errors.gd`.
 **Fix:**
-- Measure elapsed real time from the emit to `_total_shown`, and assert it is at most `dawn_seconds + slack`. Or drive a real dawn with two houses and a 1.0 s `dawn_seconds`.
-- Drop the dawn-income arithmetic from the second test, or build a house on another spot first so the income is non-zero.
+```gdscript
+if building_def == null or building_def.id == &"" or _defs.has(building_def.id):
+	continue
+```
+Add a test alongside the empty-spot-id one.
 
 ## Info
 
-### IN-01: Orphaned comment above the house constants
+### IN-01: Rebind detection relies on event object identity
 
-**File:** `tests/e2e/test_dawn_payout.gd:14-17`
-**Issue:** "Real-time allowance on top of the dawn window: tween delays are frame-quantised..." describes a constant that no longer exists. It now sits directly above `HOUSE_ONE`.
-**Fix:** Delete the comment, or restore the constant it describes.
+**File:** `ui/hud/hud.gd:79`
+**Issue:** `InputMap.action_get_events(...) != _hint_events` compares the arrays element by element, so it detects only added, removed or replaced event objects. A rebind UI that edits an existing event in place (for example setting `physical_keycode` on the stored `InputEventKey`) leaves the prompt stale. Nothing in Phase 1 rebinds this way, but a later remapping screen might.
+**Fix:** Compare a derived signature instead, such as the resulting hint string, or document that rebinding must replace events.
 
-### IN-02: PAD_BUTTON_NAMES is Xbox-only
+### IN-02: Joypad axis hint hides the direction
 
-**File:** `ui/hud/hud.gd:17-26`
-**Issue:** The A/B/X/Y and LB/RB labels are wrong for PlayStation and Switch pads. The default `start_night` binding (`button_index` 3) reads "(Y)", which is "Triangle" or "X" on other pads.
-**Fix:** Fine for Phase 1. Note it as a known limitation, or key the names off `Input.get_joy_name` later.
+**File:** `ui/hud/hud.gd:173-175`
+**Issue:** Every `InputEventJoypadMotion` shows as `(Axis N)` or `(LT)`/`(RT)` regardless of `axis_value` sign. A stick bound to "left" and one bound to "right" read identically. This is cosmetic, and the Xbox-only naming is already documented as a known limitation.
+**Fix:** Append the direction for non-trigger axes, or accept and document.
 
-### IN-03: `_coin_share` does integer division through floats
+### IN-03: Tautological test of the stagger formula
 
-**File:** `ui/hud/dawn_payout_vfx.gd:135-138`
-**Issue:** `floori(float(amount - remainder) / float(coin_count))` is `@warning_ignore("integer_division") amount / coin_count` written the long way. It is correct but obscures intent.
-**Fix:** `var base: int = (amount - remainder) / coin_count`, with the warning ignore annotation.
+**File:** `tests/e2e/test_dawn_payout.gd:197-214`
+**Issue:** `test_the_last_coin_lands_inside_the_dawn_window_however_many_spots_pay` recomputes `(n-1) * stagger + TRIP_SECONDS` from `launch_stagger`'s own output. It checks the formula against itself, not real scheduling. It also spawns a full map it does not use. The next test (`test_a_real_payout_schedules_its_last_coin...`) is the meaningful one. Consider dropping the first test or reducing it to the `launch_stagger` clamp assertions.
+**Fix:** Delete the redundant last-lands assertion, or construct the vfx directly instead of spawning a map.
 
-### IN-04: Default-binding test depends on suite order
+### IN-04: Double-bind test does not cover most HUD connections
 
-**File:** `tests/e2e/test_start_night_hold.gd:319-324`
-**Issue:** `test_the_prompt_names_the_default_start_night_bindings` hardcodes "N / (Y)". It only passes if no earlier test in any file left `start_night` rebound. This file restores its own bindings, but other files are not covered.
-**Fix:** In the test, set the events explicitly from `project.godot` defaults, or compare against text built from `InputMap.action_get_events` in `before_each`.
+**File:** `tests/e2e/test_map_binding.gd:73-91`
+**Issue:** `test_binding_the_hud_and_payout_view_again_connects_nothing_twice` counts only `gold_changed`, `dawn_payout`, `coin_landed` and `payout_started`. `Hud.bind_run` also connects `phase_changed`, `night_started`, `day_started`, the three `BuildHoldController` signals and the start-night `progress_changed`. A regression in the repeat-call guard that only affected those would go unnoticed.
+**Fix:** Add connection-count assertions for `phase_changed`, `night_started`, `day_started` and the hold signals.
 
-### IN-05: Debug overlay accepts duplicate titles and cannot detect impure providers
+### IN-05: Coin start point is not guarded against a position behind the camera
 
-**File:** `ui/overlay/debug_overlay_model.gd:20-22`
-**Issue:** `register_section` appends without checking for a duplicate title, so registering twice shows the section twice. The "must only read simulation state" contract is unenforced beyond the 200-collect test, which only covers the default sections.
-**Fix:** Either replace an existing entry with the same title, or note in the doc that duplicates are allowed.
+**File:** `ui/hud/dawn_payout_vfx.gd:230-235`
+**Issue:** `Camera3D.unproject_position` returns a mirrored screen point for a world position behind the camera. The fallback only covers a missing camera or spot. With the current fixed top-down camera this cannot happen, so it is a latent issue for later camera work.
+**Fix:** `if camera.is_position_behind(world_pos): return get_viewport_rect().size * 0.5`.
 
 ---
 
