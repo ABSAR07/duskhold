@@ -1,6 +1,6 @@
 ---
 phase: 01-foundation-day-loop
-reviewed: 2026-09-29T00:00:00Z
+reviewed: 2026-09-30T00:00:00Z
 depth: standard
 files_reviewed: 10
 files_reviewed_list:
@@ -8,8 +8,8 @@ files_reviewed_list:
   - tests/e2e/test_dawn_payout.gd
   - tests/e2e/test_map_binding.gd
   - tests/e2e/test_start_night_hold.gd
+  - tests/unit/test_build_spot.gd
   - tests/unit/test_building_system_data_errors.gd
-  - tests/unit/test_building_system_data_errors.gd.uid
   - tests/unit/test_debug_overlay_readonly.gd
   - ui/hud/dawn_payout_vfx.gd
   - ui/hud/hud.gd
@@ -17,154 +17,111 @@ files_reviewed_list:
 findings:
   critical: 0
   warning: 5
-  info: 4
-  total: 9
+  info: 5
+  total: 10
 status: issues_found
 ---
 
 # Phase 1: Code Review Report
 
-**Reviewed:** 2026-09-29
+**Reviewed:** 2026-09-30
 **Depth:** standard
 **Files Reviewed:** 10
 **Status:** issues_found
 
 ## Summary
 
-Reviewed the building system, the dawn payout VFX, the HUD, the debug overlay model and their unit and e2e tests. I cross-checked `RunContext`, `MapRoot`, `MapConfig.validate`, `BuildingDef.tier_def`, `E2eSupport` and `loop_tuning.tres`.
+Reviewed the building system, HUD, dawn payout VFX, debug overlay model, and the six test files that cover them. Cross-checked against `run_manager.gd`, `economy.gd`, `command_processor.gd`, `map_config.gd`, `map_root.gd`, `hud.tscn`, `prototype_map.tscn` and `e2e_support.gd`.
 
-No crashes, data-loss or security defects were found. The coin/lag accounting holds up:
-- Coin shares sum to each spot's amount.
-- The HUD lag is capped by what coins can carry.
-- Stale generations are ignored.
+No crash, security, or data-loss defects were found. The signal wiring is sound: the HUD sits in `run_bound` ahead of its child `DawnPayoutVfx`, so the HUD's `_payout_pending` is set before any coin can land. `bind_run` is idempotent. Coin shares always sum to the per-spot amount. The HUD lag clamps prevent a permanently short readout for the malformed payouts the tests cover.
 
-The remaining problems are latent bugs and test reliability:
-- An unguarded second bind on the VFX node.
-- A prompt hint that does not follow rebinds.
-- A wall-clock assertion, which is the same class of timing race the IN-04 fix set out to remove.
-- Some inconsistent duplicate-handling in `BuildingSystem`.
+The remaining issues are robustness gaps in the hardening added this phase, an implicit HUD/VFX invariant, and several tests that claim more than they prove.
 
 ## Warnings
 
-### WR-01: DawnPayoutVfx.bind_run is not idempotent, and the "bind again" test does not cover it
+### WR-01: Start-night hint reports "(unbound)" for bindings that work
 
-**File:** `ui/hud/dawn_payout_vfx.gd:44-47`, `tests/e2e/test_map_binding.gd:73-86`
-**Issue:**
-- `Hud.bind_run` returns early on a repeat call ("so no signal is ever connected twice").
-- `DawnPayoutVfx.bind_run` has no such guard. A second call runs `ctx.events.dawn_payout.connect(_on_dawn_payout)` again, which raises Godot's "already connected" error. It also rebuilds the coin texture.
-- `test_binding_the_hud_again_connects_nothing_twice` only calls `hud.bind_run(...)`. That returns on its first line and never reaches the VFX node. The test asserts unchanged connection counts, but it exercises only the HUD guard.
-- `payout_vfx.coin_landed.get_connections()` is unaffected by any `bind_run` call, so that assertion can never fail.
-- `MapRoot._ready` binds every `run_bound` node in its subtree, and `DawnPayoutVfx` is such a node. Any re-bind path (a future scene reload or a second `_ready`) breaks it.
-
-**Fix:**
+**File:** `ui/hud/hud.gd:154-167`
+**Issue:** `_start_night_hint` only recognises `InputEventKey` and `InputEventJoypadButton`. If a runtime rebind maps `start_night` to a trigger (`InputEventJoypadMotion`) or a mouse button, the action fires but the prompt reads "Hold (unbound) to start Night N". A key event with both `physical_keycode` and `keycode` equal to `KEY_NONE` (for example a `key_label`-only event) appends an empty string, which yields a stray " / " or a blank hint. Modifiers on a key event (Ctrl+N) are silently dropped, so the prompt names a key that will not trigger the action.
+**Fix:** Handle the other event types, and use `event.as_text()` as the fallback for anything not specially named. Skip empty strings.
 ```gdscript
-func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
-	if _ctx != null:
-		return
-	_ctx = ctx
-	_coin_texture = _make_coin_texture()
-	ctx.events.dawn_payout.connect(_on_dawn_payout)
+for event: InputEvent in InputMap.action_get_events(&"start_night"):
+	if event is InputEventJoypadButton:
+		pad.append("(%s)" % PAD_BUTTON_NAMES.get((event as InputEventJoypadButton).button_index, event.as_text()))
+	elif event is InputEventKey or event is InputEventMouseButton or event is InputEventJoypadMotion:
+		var text: String = event.as_text()
+		if not text.is_empty():
+			(pad if event is InputEventJoypadMotion else keys).append(text)
 ```
-Have the test also call `payout_vfx.bind_run(ctx, map_root)` and assert the `dawn_payout` connection count is unchanged. Consider guarding the other `bind_run` implementations the same way.
 
-### WR-02: Start-night prompt hint goes stale after a runtime rebind
+### WR-02: HUD readout lag is derived independently of the VFX, so it holds only by an unenforced invariant
 
-**File:** `ui/hud/hud.gd:114-151`, `tests/e2e/test_start_night_hold.gd:303-312`
+**File:** `ui/hud/hud.gd:94-101`, `ui/hud/dawn_payout_vfx.gd:99-121`
+**Issue:** `Hud._on_dawn_payout` assumes the VFX will land coins carrying exactly `sum(max(amount, 0))` of the payout, and it re-derives that sum on its own. Nothing ties the two together. If a later change makes the VFX skip a spot (an unknown spot, an off-screen spot, a per-frame launch budget), or the VFX is not bound or is freed mid-flight, the HUD holds gold back and never releases it. The `min(total, carried)` clamp only bounds the over-hold, it does not remove it. `coin_landed` is also the only release path: if a coin tween is killed, for example by a node `process_mode` change or a reparent, the readout stays short until the next payout.
+**Fix:** Let the VFX be the single source of truth. Have it emit `payout_started(carried_total)` once, after it has computed its coin shares, and have the HUD set `_payout_pending` from that signal rather than from `dawn_payout`. Also clear `_payout_pending` when the phase leaves DAWN or on `day_started`, as a backstop.
+
+### WR-03: The coin cap and the "fits the dawn window" guarantee are not actually enforced
+
+**File:** `ui/hud/dawn_payout_vfx.gd:19-23, 75-79, 126-131`
 **Issue:**
-- `_start_night_hint` reads the InputMap "so a runtime rebind shows up in the prompt". The text is only rebuilt in `_refresh_loop`, which runs on phase, night and day signals.
-- A rebind during the day therefore leaves the old key on screen until the next phase change.
-- The test hides this by manually emitting `day_started` after the rebind. It never checks that a rebind alone updates the prompt.
-- No rebind UI exists yet, but the CLAUDE.md constraints require runtime rebinding, so this will surface as soon as it does.
+- `MAX_COINS` is described as the coin budget of one payout, but `_coins_for_amount` clamps each spot up to at least one coin. With more than 12 paying spots the payout exceeds the budget.
+- `_coins_for_amount` scales by the `total` argument, not by the sum of `per_spot`. If the two disagree, the budget check (`total <= MAX_COINS`) is evaluated against the wrong number.
+- `launch_stagger` clamps to 0 when `dawn_seconds <= TRIP_SECONDS`. Every coin then launches at once and lands after the dawn window closes, contradicting the method's doc comment.
+With the shipped tuning (`dawn_seconds = 2.0`, 12 coins) it works, but a rebalance breaks it silently.
+**Fix:** Compute the scale from `carried = sum(per_spot)`. If the coin count would exceed `MAX_COINS`, merge the smallest spots into shared coins, or document that the cap is soft. Say in the `launch_stagger` doc that a window shorter than `TRIP_SECONDS` cannot be met, and log a `push_warning` once at bind time when `dawn_seconds <= TRIP_SECONDS`.
 
-**Fix:** Refresh the prompt when the map changes. Either:
-- Connect to a rebind signal or hook (for example a `Settings`/`InputRebinder` signal) and call `_refresh_loop()`.
-- Or rebuild the hint every time the day prompt is shown or the pause menu closes.
+### WR-04: BuildingSystem hardening is inconsistent: empty-id spots are kept and `apply_next_tier` is unguarded
 
-Change the test to rebind without emitting `day_started` and assert the new text.
-
-### WR-03: Wall-clock timing assertion in the short-dawn payout test
-
-**File:** `tests/e2e/test_dawn_payout.gd:220-250`
+**File:** `simulation/buildings/building_system.gd:21-26, 94-104, 109-123`
 **Issue:**
-- `test_a_real_payout_lands_every_coin_inside_a_short_dawn_window` asserts `elapsed_s <= dawn_seconds + LAND_SLACK_S`. That is 1.0 s + 0.5 s, measured with `Time.get_ticks_msec()`.
-- The nominal landing time is about 1.0 s, so a frame hitch or a slow CI runner can exceed the 0.5 s slack and fail the test. It has no relation to product correctness.
-- The commit history says IN-04 "removed timing races from payout e2e tests", so this is the same class of defect.
-- The payout is emitted while the run is still in DAY (`dawn_payout.emit` directly). No real dawn window exists, so the test measures tween speed, not a dawn boundary.
-- `test_the_night_hands_back_to_a_new_day_through_dawn` has a similar structure. It uses fixed `wait_seconds(night + 0.5)` and `wait_seconds(dawn + 0.3)` while `MapRoot` clamps the sim step to 0.25 s per frame. At low frame rates the sim clock runs slower than wall time.
+- The constructor skips null and duplicate spots but keeps a spot with `id == &""` (which `MapConfig.validate` reports). `nearest_spot_in_range` can then return `&""`, which every caller treats as "no spot in range". That spot can never be focused. `get_spot(&"")` is also non-null, so `CommandProcessor.validate_build(&"")` would not return `UNKNOWN_SPOT` on such a map. That contradicts the assumption in `test_build_spot.gd:95`.
+- `apply_next_tier` will raise the tier past the building's last tier, or create an instance for a building id that has no definition. `test_dawn_income_skips_a_building_whose_id_no_map_building_defines` does exactly this directly. It emits `building_built` with a tier no `tier_def` can resolve. The doc says only `CommandProcessor` calls it, but the rest of this class is defensive against bad data and this method is not.
+**Fix:** Skip `spot.id == &""` in `_init` alongside the null and duplicate checks. In `apply_next_tier`, add `if next_tier_def(spot_id) == null: return null` before mutating.
 
+### WR-05: Two e2e tests claim more than they assert
+
+**File:** `tests/e2e/test_dawn_payout.gd:219-245`, `tests/e2e/test_start_night_hold.gd:240-270`
+**Issue:**
+- `test_a_real_payout_lands_every_coin_inside_a_short_dawn_window` emits `dawn_payout` synthetically while the run is still in DAY, and waits up to `dawn_seconds + SETTLED_S` (4 s). It never measures that the coins land within 1.0 s, and there is no dawn window in play. The final message "every coin landed before the dawn window ended" is unverified. The test would pass with the stagger fix reverted.
+- In `test_a_build_hold_is_cancelled_when_the_night_starts`, the "only dawn income moved gold" assertion is vacuous. The test asserts nothing was built, so `dawn_income_by_spot()` is empty and the expectation reduces to `gold == gold_before`. It cannot catch a payout bug.
 **Fix:**
-- For the payout test, drop the wall-clock bound. The schedule is already proven by `test_the_last_coin_lands_inside_the_dawn_window_however_many_spots_pay` through `launch_stagger`.
-- Assert only the observable end state after `wait_until`.
-- Replace fixed waits in the hand-back test with `E2eSupport.wait_until(... phase == DAWN / DAY ...)`.
-
-### WR-04: BuildingSystem duplicate handling is inconsistent (spots keep first, buildings keep last)
-
-**File:** `simulation/buildings/building_system.gd:16-25`
-**Issue:**
-- Duplicate spot ids are skipped, and the comment says "keep the first def".
-- Duplicate building ids are silently overwritten by the last definition: `_defs[building_def.id] = building_def` runs with no `has` check.
-- `MapConfig.validate()` reports both as data errors. The two collections then behave oppositely, which is surprising.
-- A tier table can quietly change under a running map depending on list order.
-- The new data-error test covers only the spot case.
-
-**Fix:**
-```gdscript
-if building_def == null or _defs.has(building_def.id):
-	continue
-_defs[building_def.id] = building_def
-```
-Add a matching test for a duplicate building id.
-
-### WR-05: spot_ids() exposes the internal order array
-
-**File:** `simulation/buildings/building_system.gd:29-30`
-**Issue:**
-- `spot_ids()` returns `_order` itself, not a copy.
-- The class promises "Reads never mutate", but any caller can `append`, `sort` or `clear` the result and corrupt `nearest_spot_in_range`, `dawn_income_by_spot` and the payout ordering. `nearest_spot_in_range` would then hit a missing key in `_spots[spot_id]` and raise a script error.
-- Presentation code and the debug overlay hold this array.
-
-**Fix:** `return _order.duplicate()`. The arrays are small and read per frame at most. Alternatively document it as read-only and accept the risk.
+- Measure elapsed real time from the emit to `_total_shown`, and assert it is at most `dawn_seconds + slack`. Or drive a real dawn with two houses and a 1.0 s `dawn_seconds`.
+- Drop the dawn-income arithmetic from the second test, or build a house on another spot first so the income is non-zero.
 
 ## Info
 
-### IN-01: DebugOverlayModel robustness gaps
+### IN-01: Orphaned comment above the house constants
 
-**File:** `ui/overlay/debug_overlay_model.gd:35, 56, 64-66`
-**Issue:**
-- `provider.call()` is guarded only by `is_valid()`. A provider with a required argument, or one that errors, still raises a script error every refresh.
-- `RunManager.RunPhase.keys()[phase]` indexes by enum value and only works while the enum stays contiguous from 0. `NIGHT_TRANSITION` is also the only non-DAY phase that shows no Timer row.
+**File:** `tests/e2e/test_dawn_payout.gd:14-17`
+**Issue:** "Real-time allowance on top of the dawn window: tween delays are frame-quantised..." describes a constant that no longer exists. It now sits directly above `HOUSE_ONE`.
+**Fix:** Delete the comment, or restore the constant it describes.
 
-**Fix:** Look the name up with `RunManager.RunPhase.find_key(phase)`, and decide deliberately whether NIGHT_TRANSITION should show a timer.
+### IN-02: PAD_BUTTON_NAMES is Xbox-only
 
-### IN-02: Missing null guards in test_start_night_hold
+**File:** `ui/hud/hud.gd:17-26`
+**Issue:** The A/B/X/Y and LB/RB labels are wrong for PlayStation and Switch pads. The default `start_night` binding (`button_index` 3) reads "(Y)", which is "Triangle" or "X" on other pads.
+**Fix:** Fine for Phase 1. Note it as a known limitation, or key the names off `Input.get_joy_name` later.
 
-**File:** `tests/e2e/test_start_night_hold.gd:117-121, 137-139`
-**Issue:**
-- Other nodes use the `assert_not_null` plus early-return pattern.
-- `spot_label` is dereferenced (`spot_label.visible`) with no null check, and `_fill(map_root).visible` is called on a possibly-null Control. A scene change turns these into a script error instead of a clear assertion.
+### IN-03: `_coin_share` does integer division through floats
 
-**Fix:** Add `assert_not_null(spot_label)` and include it in the early-return guard.
+**File:** `ui/hud/dawn_payout_vfx.gd:135-138`
+**Issue:** `floori(float(amount - remainder) / float(coin_count))` is `@warning_ignore("integer_division") amount / coin_count` written the long way. It is correct but obscures intent.
+**Fix:** `var base: int = (amount - remainder) / coin_count`, with the warning ignore annotation.
 
-### IN-03: Magic literals and a hidden coupling to tuning in test_start_night_hold
+### IN-04: Default-binding test depends on suite order
 
-**File:** `tests/e2e/test_start_night_hold.gd:157, 239, 283`
-**Issue:**
-- `+ 0.2` and `+ 0.1` are inline literals next to named `SETTLE_SLACK_S` and `OVERSHOOT_S`.
-- `test_a_tap_fills_the_prompt_but_releasing_early_keeps_the_day` relies on `PARTIAL_HOLD_S` (0.5) being below `start_night_hold_seconds` (1.5 in `loop_tuning.tres`). If tuning drops below 0.5, the night starts and the test fails with a confusing message.
+**File:** `tests/e2e/test_start_night_hold.gd:319-324`
+**Issue:** `test_the_prompt_names_the_default_start_night_bindings` hardcodes "N / (Y)". It only passes if no earlier test in any file left `start_night` rebound. This file restores its own bindings, but other files are not covered.
+**Fix:** In the test, set the events explicitly from `project.godot` defaults, or compare against text built from `InputMap.action_get_events` in `before_each`.
 
-**Fix:** Name the constants. Derive the partial hold as `_tuning.start_night_hold_seconds * 0.3` instead of hard-coding it.
+### IN-05: Debug overlay accepts duplicate titles and cannot detect impure providers
 
-### IN-04: Weak identity assertion in the duplicate-spot test
-
-**File:** `tests/unit/test_building_system_data_errors.gd:34`
-**Issue:**
-- `assert_eq(ctx.buildings.get_spot(&"a"), map.spots[0], ...)` is meant to prove the first definition was kept. The twin is field-identical, so a value comparison cannot tell them apart.
-- The test would still pass if the twin replaced the original.
-
-**Fix:** Use `assert_same(...)` (reference identity), or give the twin a distinct `position` and assert on that.
+**File:** `ui/overlay/debug_overlay_model.gd:20-22`
+**Issue:** `register_section` appends without checking for a duplicate title, so registering twice shows the section twice. The "must only read simulation state" contract is unenforced beyond the 200-collect test, which only covers the default sections.
+**Fix:** Either replace an existing entry with the same title, or note in the doc that duplicates are allowed.
 
 ---
 
-_Reviewed: 2026-09-29_
+_Reviewed: 2026-09-30_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
