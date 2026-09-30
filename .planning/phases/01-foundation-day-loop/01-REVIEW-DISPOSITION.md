@@ -5,23 +5,23 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`DebugOverlay.register_section` silently drops registrations made before `bind_run`, and a second `bind_run` wipes all registered sections"
   - id: WR-02
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "Untested branches of the read-only model: `Timer` row and NIGHT/DAWN phases"
   - id: IN-01
     severity: info
-    disposition: open
+    disposition: fixed
     title: "`_reset_for_new_payout` and `live_coin_count` treat every child as a coin"
   - id: IN-02
     severity: info
-    disposition: open
+    disposition: fixed
     title: "`owner` parameter shadows `Node.owner` in `DebugOverlay.register_section`"
   - id: IN-03
     severity: info
-    disposition: open
+    disposition: fixed
     title: "`_registered.erase(entry)` removes by Dictionary content equality"
   - id: WR-03
     severity: warning
@@ -87,20 +87,20 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 5
+open: 0
 total: 21
-recorded: 2026-09-30T10:05:44.593Z
+recorded: 2026-09-30T10:25:19.061Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
-| WR-02 | warning | open | - |
-| IN-01 | info | open | - |
-| IN-02 | info | open | - |
-| IN-03 | info | open | - |
+| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
+| WR-02 | warning | fixed | 01-REVIEW-FIX.md |
+| IN-01 | info | fixed | 01-REVIEW-FIX.md |
+| IN-02 | info | fixed | 01-REVIEW-FIX.md |
+| IN-03 | info | fixed | 01-REVIEW-FIX.md |
 | WR-03 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-04 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-05 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
