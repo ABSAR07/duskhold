@@ -5,19 +5,19 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`bind_run(null, ...)` is accepted and then raises a script error on every refresh"
   - id: IN-01
     severity: info
-    disposition: open
+    disposition: fixed
     title: "`context_with_one_house` indexes `spot_ids()[0]` unguarded and carries on after a failed assert"
   - id: IN-02
     severity: info
-    disposition: open
+    disposition: fixed
     title: "`new_tuning()` deep-copies differently from `new_map()`"
   - id: IN-03
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Rows longer than two entries are accepted silently, and the first test in `test_overlay_test_support.gd` can pass vacuously"
   - id: WR-02
     severity: warning
@@ -87,19 +87,19 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 4
+open: 0
 total: 21
-recorded: 2026-09-30T12:38:40.020Z
+recorded: 2026-09-30T12:55:46.608Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
-| IN-01 | info | open | - |
-| IN-02 | info | open | - |
-| IN-03 | info | open | - |
+| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
+| IN-01 | info | fixed | 01-REVIEW-FIX.md |
+| IN-02 | info | fixed | 01-REVIEW-FIX.md |
+| IN-03 | info | fixed | 01-REVIEW-FIX.md |
 | WR-02 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-04 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-03 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
