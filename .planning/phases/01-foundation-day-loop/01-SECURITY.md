@@ -41,7 +41,7 @@ created: "2026-09-29"
 | T-01-02 | Elevation of Privilege | `tools/bootstrap.py` consent | medium | mitigate | Downloads require both a component flag and `--yes`; otherwise `return 2` ("Downloads require --yes (owner approval)"); owner approved the file list at the 01-01 Task 2 blocking checkpoint | closed |
 | T-01-03 | Information Disclosure | `.gitignore` / staging | high | mitigate | `git check-ignore` confirms `.claude/settings.local.json`, `.claude/gsd-core/*`, `.tools/`, `.godot/` ignored and `.claude/CLAUDE.md` trackable; 0 tracked files under `.tools/` or `.godot/` | closed |
 | T-01-SC (01-01) | Tampering | pip `gdtoolkit`, GUT source zip | high | mitigate | `tools/requirements-lint.txt` pins `gdtoolkit==4.5.0`; `GUT_TAG = "v9.7.1"`, `addons/gut/plugin.cfg` version 9.7.1; GUT zip SHA256 recorded and tied to the manifest by `test_bootstrap_gut_sha256_matches_the_manifest` | closed |
-| T-01-04 | Tampering | `CommandProcessor.submit` / `Economy.try_spend` | medium | mitigate | `_submit_build` re-runs `validate_build` at apply time; `try_spend` refuses unaffordable or negative costs and changes nothing; since review-fix pass 5 `BuildingSystem.apply_next_tier` itself refuses an unknown building or a tier past the last; `test_build_flow.gd`, `test_economy_gold.gd`, `test_building_system_data_errors.gd` green | closed |
+| T-01-04 | Tampering | `CommandProcessor.submit` / `Economy.try_spend` | medium | mitigate | `_submit_build` re-runs `validate_build` at apply time; `try_spend` refuses unaffordable or negative costs and changes nothing; since review-fix pass 5 `BuildingSystem.apply_next_tier` itself refuses an unknown building or a tier past the last; since pass 7 `get_instance`/`apply_next_tier` hand out snapshots, so no reader can mutate building state; `test_build_flow.gd`, `test_economy_gold.gd`, `test_building_system_data_errors.gd` green | closed |
 | T-01-05 | Tampering | `BuildHoldController` partial-payment state | low | mitigate | Nothing is deducted while coins drip; completion goes through `commands.submit(BuildIntent)`; refund is a pure reset (D-06); `test_build_hold_refund.gd` green | closed |
 | T-01-06 | Information Disclosure | First push / `tools/prepush_check.sh` | high | mitigate | Pre-push check scans current tree and `git log --all` for local tooling, generated output, credential-shaped values (plus gitleaks when installed) and >5 MB blobs, and prints identities for owner review; re-run 2026-09-29: PASSED | closed |
 | T-01-07 | Elevation of Privilege | `.github/workflows/ci.yml` | medium | mitigate | `permissions: contents: read`; `pull_request` trigger only (no `pull_request_target`); no `secrets.` references; every action from the `actions/` org, pinned to a full commit SHA (stronger than the planned major tags; 17/17 `uses:` lines re-checked after the IN-04 change) | closed |
@@ -56,7 +56,7 @@ created: "2026-09-29"
 | T-01-14 | Tampering | `RunManager` transitions and dawn payout | low | mitigate | `start_night()` returns false unless `_phase == DAY`; `test_only_the_run_manager_assigns_the_loop_phase` source-scan test; `CommandProcessor` rejects StartNightIntent outside DAY; `test_run_manager.gd`, `test_build_phase_guard.gd`, `test_loop_gold_carryover.gd` green | closed |
 | T-01-15 | Elevation of Privilege | DebugOverlay in release builds | low | accept | See AR-01 (since pass 3 the read-only test watches all 7 simulation signals, and malformed provider rows are dropped) | closed |
 | T-01-16 | Information Disclosure | `duskhold-screenshots` CI artifact | low | accept | See AR-02 (`retention-days: 7` confirmed in `ci.yml`; since IN-04 the upload runs `if: always()` and also carries `build/screenshot-import.log`) | closed |
-| T-01-17 | Information Disclosure | `git push` of new history | high | mitigate | `bash tools/prepush_check.sh` before every push; re-run 2026-09-30 over all refs, including the 108 local commits not yet pushed: PASSED | closed |
+| T-01-17 | Information Disclosure | `git push` of new history | high | mitigate | `bash tools/prepush_check.sh` before every push; re-run 2026-09-30 over all refs, including the 121 local commits not yet pushed: PASSED | closed |
 | T-01-SC (01-10) | Tampering | apt packages on the CI runner | low | accept | See AR-03 | closed |
 | T-01-SC (no-install plans) | Tampering | Package installs in 01-02, 01-04, 01-05, 01-06, 01-08, 01-09 | low | accept | See AR-04 | closed |
 
@@ -68,7 +68,7 @@ The plans list T-01-SC seven times; the six identical "this plan installs no pac
 
 ### Observations (non-blocking)
 
-- **T-01-06 / T-01-17: enforcement is procedural.** `.git/hooks/pre-push` only runs Git LFS, so nothing forces `tools/prepush_check.sh` to run before a push. Run it before pushing the 108 pending local commits (it passes today). Optional hardening: call it from the pre-push hook.
+- **T-01-06 / T-01-17: enforcement is procedural.** `.git/hooks/pre-push` only runs Git LFS, so nothing forces `tools/prepush_check.sh` to run before a push. Run it before pushing the 121 pending local commits (it passes today). Optional hardening: call it from the pre-push hook.
 - **T-01-12: residual licence risk.** The allow-list test trusts each entry's declared `license` field. The Quaternius horse is logged as CC0-1.0, based on the 2021 Poly Pizza CC0 statement, while Quaternius now publishes its own Asset License. That is review finding WR-06, disposition skipped, owner decision pending. It is also listed as a human verification item.
 - **T-01-13: out-of-scope mention.** A comment on line 3 of `tools/_common.sh` names the local checkout folder, which contains the reference game's name. `tools/*` is not game content and is excluded from the export (`exclude_filter="tests/*, addons/gut/*, tools/*"`). The owner may still want to reword it before release.
 
@@ -97,6 +97,7 @@ The plans list T-01-SC seven times; the six identical "this plan installs no pac
 | 2026-09-30 (re-audit 3) | 22 | 22 | 0 | secure-phase orchestrator (State A; re-checked mitigations touched by review-fix pass 4) |
 | 2026-09-30 (re-audit 4) | 22 | 22 | 0 | secure-phase orchestrator (State A; re-checked mitigations touched by review-fix pass 5) |
 | 2026-09-30 (re-audit 5) | 22 | 22 | 0 | secure-phase orchestrator (State A; re-checked mitigations touched by review-fix pass 6) |
+| 2026-09-30 (re-audit 6) | 22 | 22 | 0 | secure-phase orchestrator (State A; re-checked mitigations touched by review-fix pass 7) |
 
 ## Security Audit 2026-09-29
 
@@ -191,6 +192,23 @@ Re-checked the mitigations touched by the 8 fix commits (`723080f`..`1c3e320`):
 - **T-01-06 / T-01-17:** `tools/prepush_check.sh` PASSED over all refs, including the 108 unpushed commits.
 - **CI:** `ci.yml` is unchanged.
 - **Tests:** full suite 232/232.
+
+## Security Audit 2026-09-30 (re-audit after review-fix pass 7)
+
+| Metric | Count |
+|--------|-------|
+| Threats found | 22 |
+| Closed | 22 |
+| Open | 0 |
+
+Re-checked the mitigations touched by the 6 fix commits (`b789dde`..`d4ef4f5`):
+- **T-01-04:** strengthened. External reads get `BuildingInstance` snapshots via `_snapshot`, and only `apply_next_tier` mutates.
+- **T-01-15:** the overlay model still makes no mutating calls. It now also warns once for a non-Array provider.
+- **Payout VFX:** it coerces untyped amounts and still makes no simulation writes.
+- **T-01-13:** the scoped name check is clean.
+- **T-01-06 / T-01-17:** `tools/prepush_check.sh` PASSED over all refs, including the 121 unpushed commits.
+- **CI:** `ci.yml` is unchanged.
+- **Tests:** full suite 235/235.
 
 ---
 
