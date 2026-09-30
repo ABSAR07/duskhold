@@ -3,6 +3,11 @@ extends GutTest
 ## a building definition or tier with the cached resource would let one suite's edit change the next
 ## suite's data, so the result of a run would depend on script order.
 
+## The spot position the editing test writes to its copy. The cached spot is compared with this, not
+## with the copy's property: were the two the same object, restoring the cache would also reset the
+## copy, and the comparison would then pass exactly when it should fail.
+const EDITED_SPOT := Vector3(123.0, 0.0, 456.0)
+
 
 func test_new_map_shares_no_building_definition_or_tier_with_the_cached_map() -> void:
 	var cached: MapConfig = load(OverlayTestSupport.PROTOTYPE_MAP)
@@ -37,7 +42,7 @@ func test_editing_a_new_map_copy_leaves_the_cached_map_and_later_copies_alone() 
 	var copy: MapConfig = OverlayTestSupport.new_map()
 	copy.buildings[0].tiers[0].cost = cost_before + 100
 	copy.buildings[0].tiers[0].dawn_income = income_before + 100
-	copy.spots[0].position = Vector3(123.0, 0.0, 456.0)
+	copy.spots[0].position = EDITED_SPOT
 	var cost_seen: int = cached_tier.cost
 	var income_seen: int = cached_tier.dawn_income
 	var spot_seen: Vector3 = cached.spots[0].position
@@ -53,7 +58,7 @@ func test_editing_a_new_map_copy_leaves_the_cached_map_and_later_copies_alone() 
 
 	assert_eq(cost_seen, cost_before, "the cached cost is unchanged")
 	assert_eq(income_seen, income_before, "and its dawn income")
-	assert_ne(spot_seen, copy.spots[0].position, "and its spot position")
+	assert_ne(spot_seen, EDITED_SPOT, "and its spot position is not the one written to the copy")
 	assert_eq(later_cost, cost_before, "a later copy starts clean")
 
 
