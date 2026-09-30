@@ -343,3 +343,29 @@ func test_the_hud_releases_a_held_back_readout_when_dawn_ends() -> void:
 	ctx.events.phase_changed.emit(RunManager.RunPhase.DAWN, RunManager.RunPhase.DAY)
 
 	assert_true(_hud_gold_settled(map_root), "dawn ending puts the readout back on the ledger")
+
+
+func test_the_coin_cap_follows_the_gold_that_flies_not_the_claimed_total() -> void:
+	var map_root: MapRoot = await E2eSupport.spawn_map(self, _rich_map(), _tuning)
+	var ctx: RunContext = map_root.get_context()
+	var vfx: DawnPayoutVfx = _vfx(map_root)
+	assert_not_null(vfx, "the HUD has a DawnPayoutVfx")
+	if vfx == null:
+		return
+	# The claimed total (5) is under the cap but the parts (120 gold) are far over it.
+	ctx.events.dawn_payout.emit(5, {HOUSE_ONE: 60, HOUSE_TWO: 60})
+
+	var shown: bool = await E2eSupport.wait_until(self, _total_shown.bind(map_root), SETTLED_S)
+
+	assert_true(shown, "every coin landed")
+	var launched: int = vfx.get_spawned_count(HOUSE_ONE) + vfx.get_spawned_count(HOUSE_TWO)
+	assert_lte(launched, DawnPayoutVfx.MAX_COINS, "the cap holds for the gold that actually flies")
+
+
+func test_a_dawn_no_longer_than_one_coin_trip_warns_when_the_payout_view_binds() -> void:
+	var too_short: LoopTuning = _tuning.duplicate(true)
+	too_short.dawn_seconds = DawnPayoutVfx.TRIP_SECONDS
+
+	await E2eSupport.spawn_map(self, _rich_map(), too_short)
+
+	assert_push_warning("dawn_seconds")

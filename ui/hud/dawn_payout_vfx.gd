@@ -22,8 +22,9 @@ const COIN_RIM_END: float = 0.9
 const SPOT_ANCHOR := Vector3(0.0, 2.5, 0.0)
 const STAGGER_SECONDS: float = 0.08
 ## Coin budget of one payout. A bigger payout puts several gold on each coin.
-## Every paying spot still sends at least one coin, so the launch stagger (see launch_stagger) is
-## what keeps the whole flight inside the dawn window.
+## A soft cap: every paying spot still sends at least one coin (attribution matters more than the
+## budget), so a payout from more than MAX_COINS spots sends one coin per spot. The launch stagger
+## (see launch_stagger) is what keeps the whole flight inside the dawn window either way.
 const MAX_COINS: int = 12
 const POP_SECONDS: float = 0.15
 const POP_HEIGHT_PX: float = 40.0
@@ -51,6 +52,13 @@ func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 		return
 	_ctx = ctx
 	_coin_texture = _make_coin_texture()
+	if ctx.tuning.dawn_seconds <= TRIP_SECONDS:
+		push_warning(
+			(
+				"dawn_seconds (%s) is not longer than one coin trip (%s): coins cannot land inside dawn"
+				% [ctx.tuning.dawn_seconds, TRIP_SECONDS]
+			)
+		)
 	ctx.events.dawn_payout.connect(_on_dawn_payout)
 
 
@@ -75,7 +83,8 @@ func get_spawned_count(spot_id: StringName) -> int:
 
 ## Seconds between two coin launches for a payout of `coin_total` coins: STAGGER_SECONDS, tightened
 ## when needed so the last coin lands before the dawn window ends. Before bind_run there is no dawn
-## window to fit, so the default applies.
+## window to fit, so the default applies. A dawn no longer than TRIP_SECONDS cannot be met: the
+## stagger is then 0, every coin launches at once and lands after dawn (bind_run warns about it).
 func launch_stagger(coin_total: int) -> float:
 	if _ctx == null:
 		return STAGGER_SECONDS
@@ -106,10 +115,14 @@ func _on_dawn_payout(total: int, per_spot: Dictionary) -> void:
 		payout_started.emit(0)
 		return
 	_pending_total = total
+	# The coin budget is spread over the gold that will actually fly, not over the claimed total.
+	var carried_gold: int = 0
+	for amount: int in per_spot.values():
+		carried_gold += maxi(amount, 0)
 	var coin_counts: Dictionary = {}
 	var coin_total: int = 0
 	for spot_id: StringName in per_spot:
-		var count: int = _coins_for_amount(per_spot[spot_id], total)
+		var count: int = _coins_for_amount(per_spot[spot_id], carried_gold)
 		coin_counts[spot_id] = count
 		coin_total += count
 	var stagger: float = launch_stagger(coin_total)
@@ -134,14 +147,15 @@ func _on_dawn_payout(total: int, per_spot: Dictionary) -> void:
 		_show_total()
 
 
-## One coin per gold while the payout fits under MAX_COINS; otherwise the spot's share of
-## MAX_COINS, at least one coin for any spot that pays.
-func _coins_for_amount(amount: int, total: int) -> int:
+## One coin per gold while the gold that flies (`carried_gold`, the sum of the positive amounts)
+## fits under MAX_COINS; otherwise the spot's share of MAX_COINS, at least one coin for any spot
+## that pays.
+func _coins_for_amount(amount: int, carried_gold: int) -> int:
 	if amount <= 0:
 		return 0
-	if total <= MAX_COINS:
+	if carried_gold <= MAX_COINS:
 		return amount
-	return clampi(floori(float(amount) * float(MAX_COINS) / float(total)), 1, amount)
+	return clampi(floori(float(amount) * float(MAX_COINS) / float(carried_gold)), 1, amount)
 
 
 ## The gold coin `coin` (0-based) of `coin_count` carries; a spot's coins sum to its amount.
