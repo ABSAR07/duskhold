@@ -1,115 +1,98 @@
 ---
 phase: 01-foundation-day-loop
-reviewed: 2026-09-30T13:46:36Z
+reviewed: 2026-09-30T14:10:24Z
 depth: standard
-files_reviewed: 3
+files_reviewed: 5
 files_reviewed_list:
+  - tests/e2e/test_debug_overlay_toggle.gd
   - tests/unit/test_debug_overlay_registration.gd
   - tests/unit/test_overlay_test_support.gd
   - ui/overlay/debug_overlay.gd
+  - ui/overlay/debug_overlay.tscn
 findings:
   critical: 0
-  warning: 3
+  warning: 2
   info: 3
-  total: 6
+  total: 5
 status: issues_found
 ---
 
 # Phase 1: Code Review Report
 
-**Reviewed:** 2026-09-30T13:46:36Z
+**Reviewed:** 2026-09-30T14:10:24Z
 **Depth:** standard
-**Files Reviewed:** 3
-**Status:** issues_found
+**Files Reviewed:** 5
 
 ## Summary
 
-I reviewed `ui/overlay/debug_overlay.gd` and its two test suites. I also read `debug_overlay_model.gd`, `debug_overlay.tscn`, `overlay_test_support.gd`, `map_root.gd` and `map_config.gd` to check the call chains.
+I reviewed the debug overlay view (`debug_overlay.gd`, `.tscn`) and its three test suites. I also read `DebugOverlayModel`, `OverlayTestSupport`, `hud.tscn`, `map_root.gd` and the `toggle_debug_overlay` entry in `project.godot`, to check the cross-file contracts.
 
-The production code is sound. The pending-section buffer, the replace-in-place rule, the refusal checks and the `bind_run` idempotency all agree with `DebugOverlayModel`. I found no crash, security or data-loss defect.
+The overlay logic itself holds up:
+- bind_run is idempotent and refuses a null context before it sets any state.
+- Pending sections replay in order, and a section replaced before bind keeps its place.
+- A section whose owner was freed before bind is dropped with a warning.
+- The pre-bind checks (`title_problem`, `owner_problem`) match the model's own, so a mistake is refused at the same moment on both paths.
+- F3 (physical keycode 4194334) and gamepad Back (button 4) are bound correctly.
+- The scene's `load_steps` and `process_mode = 3` (ALWAYS) are correct.
 
-The findings are in test reliability: one assertion can pass when it should fail, one branch has no coverage, and one test cannot fail today.
+I found no crashes, security problems or data-loss risks. The remaining findings are one test that asserts a property rather than the behaviour its comment claims, one gap in the refresh-rate coverage, and a few robustness notes.
 
 ## Warnings
 
-### WR-01: Spot-position check in the cache-isolation test passes when the copy shares the spot with the cache
+### WR-01: The pause test checks the flag, not the behaviour it claims to protect
 
-**File:** `tests/unit/test_overlay_test_support.gd:56`
-**Issue:** The test writes `Vector3(123, 0, 456)` to `copy.spots[0].position`, captures `spot_seen` from the cached map, then restores the cached position at line 52. Only then does it assert `assert_ne(spot_seen, copy.spots[0].position)`.
-
-If `new_map()` regressed and `copy.spots[0]` were the same `BuildSpotDef` as `cached.spots[0]`:
-- `spot_seen` would be `(123, 0, 456)`, because the write reached the cache.
-- The restore at line 52 would reset the shared object, so `copy.spots[0].position` would read back `spot_before`.
-- The two values would differ and the assertion would pass.
-
-The cost and income checks are safe because they compare values captured before the restore. The spot check is the one that hides the failure it was written to catch. The first test, `test_new_map_shares_no_building_definition_or_tier_with_the_cached_map`, does not look at spots either, so nothing else covers this.
-
-**Fix:** Compare against the value that was written, not the copy's current property:
+**File:** `tests/e2e/test_debug_overlay_toggle.gd:92-105`
+**Issue:** The test comment says "the F3 toggle and the refresh must still run" while the tree is paused. The test only asserts `process_mode == PROCESS_MODE_ALWAYS` and `can_process()`. Both are derived from the same `process_mode` property, so the second assertion adds almost nothing. Nothing checks that `_process` actually toggles or refreshes during a pause. A later change could break this and the test would stay green. Examples are moving the toggle to `_physics_process`, or gating `_process` on a paused-aware check. The test also writes `get_tree().paused` directly and restores it inline, so an error between the two writes would leave the tree paused for every following test in the run.
+**Fix:** Pause the tree, press the toggle through the real input path, assert the overlay became visible, and restore the pause state in `after_each` (or with a `finally`-style guard). For example:
 ```gdscript
-const EDITED_SPOT := Vector3(123.0, 0.0, 456.0)
-...
-copy.spots[0].position = EDITED_SPOT
-...
-assert_ne(spot_seen, EDITED_SPOT, "and its spot position")
+func after_each() -> void:
+	get_tree().paused = false
+	E2eSupport.release_all_actions()
+
+func test_overlay_toggles_while_the_tree_is_paused() -> void:
+	# ...spawn map, get overlay...
+	get_tree().paused = true
+	await _press_toggle()
+	assert_true(overlay.is_overlay_visible(), "F3 still toggles while the tree is paused")
 ```
-Better still, reuse the generic helper that already exists in this file:
+`_press_toggle` uses `wait_process_frames`, which keeps ticking under GUT while paused, so it can be reused.
+
+### WR-02: The "refreshes about 4 times/s" contract has no upper-bound or cadence test
+
+**File:** `tests/e2e/test_debug_overlay_toggle.gd:86-89` and `tests/unit/test_debug_overlay_registration.gd:146`
+**Issue:** The file header claims the overlay "refreshes about 4 times/s" (DEV-03). The only checks are that the Buildings row updates within 0.5 s, and a `wait_seconds(REFRESH_INTERVAL_S * 2.0)` sleep in the unit suite. A regression that refreshes every frame, or one that never accumulates `_since_refresh` correctly, would pass every test. The wall-clock sleep-and-hope pattern also depends on frame pacing on a loaded CI machine. It is safe at 2x the interval, but the margin exists only because of the constant.
+**Fix:** Add a unit test with a counting provider and drive `_process(delta)` directly with synthetic deltas. Assert that 10 calls of `delta = 0.1` yield 4 provider calls (this needs the overlay visible, which `_process` alone cannot do, so set `overlay.visible = true` first). That tests the cadence deterministically with no real-time waits. For example:
 ```gdscript
-assert_eq(_shared_resources(load(OverlayTestSupport.PROTOTYPE_MAP), OverlayTestSupport.new_map()),
-	[] as Array[Resource], "the map copy shares no subresource with the cache")
+var calls: Array[int] = [0]
+overlay.register_section("Count", func() -> Array: calls[0] += 1; return [["n", str(calls[0])]])
+overlay.bind_run(_context(), null)
+overlay.visible = true
+for i in 10: overlay._process(0.1)
+assert_between(calls[0], 3, 5)
 ```
-This covers spots, buildings and tiers at any depth, and it is what `_shared_resources` is for. It is currently applied only to `LoopTuning`.
-
-### WR-02: The replay of a pending section with a live owner is not tested
-
-**File:** `tests/unit/test_debug_overlay_registration.gd` (gap), `ui/overlay/debug_overlay.gd:42-49`
-**Issue:** The suite covers a pending owner that is already freed at `bind_run` (line 114) and one that was replaced (line 131). Nothing covers a pending owner that is alive at `bind_run` and freed afterwards. That path is line 49, `_model.register_section(entry["title"], entry["provider"], lifetime_owner)`, and it is the only place the pending owner is handed on to the model. If `lifetime_owner` were dropped there (for example, the call changed to pass `null`), every test in this file would still pass. The section would then never end when its owner is freed, and the provider would call a freed node.
-
-`test_debug_overlay_providers.gd` tests the model's owner handling, but not the overlay's replay.
-
-**Fix:** Add a test along these lines:
-```gdscript
-func test_a_pending_section_whose_owner_is_freed_after_bind_run_is_dropped() -> void:
-	var overlay: DebugOverlay = _overlay()
-	var watched: Node = Node.new()
-	overlay.register_section("Watched", func() -> Array: return [["Kids", str(watched.get_child_count())]], watched)
-	overlay.bind_run(_context(), null)
-	var before: String = await _shown_text(overlay)
-	assert_string_contains(before, "Kids: 0")
-	watched.free()
-	await wait_seconds(DebugOverlay.REFRESH_INTERVAL_S * 2.0)
-	assert_false(overlay.get_text().contains("Watched"))
-	assert_push_warning("debug overlay section 'Watched' skipped: its owner was freed")
-```
-
-### WR-03: `test_a_new_tuning_copy_shares_no_resource_with_the_cached_tuning` cannot fail today
-
-**File:** `tests/unit/test_overlay_test_support.gd:79-91`
-**Issue:** The test's own comment says it "passes without checking anything yet", because `LoopTuning` has no subresource. It is a green check that guards nothing until someone adds a subresource. The companion test at line 94 proves the helper works on stand-in resources, which is the useful part. This one adds only a false sense of coverage.
-
-**Fix:** Replace it with the `MapConfig` sharing check from WR-01, which is meaningful today. The stand-in test at line 94 already proves the helper works, and a `LoopTuning` check can be added back when it gains a subresource.
 
 ## Info
 
-### IN-01: The Ghost test does not pin the warning count or the "before bind_run" wording
+### IN-01: The toggle is read by polling `Input`, so it also fires for input a UI has consumed
 
-**File:** `tests/unit/test_debug_overlay_registration.gd:128`
-**Issue:** `assert_push_warning("debug overlay section 'Ghost' not registered: its owner was freed")` is a substring match. The overlay emits `... its owner was freed before bind_run` (`debug_overlay.gd:46`). A regression that dropped the "before bind_run" suffix, or emitted the warning twice, would still pass. Most neighbouring tests do assert `assert_push_warning_count(...)`.
-**Fix:** Add `assert_push_warning_count(1, "the freed owner is named once")` and match the full text including `before bind_run`.
+**File:** `ui/overlay/debug_overlay.gd:101`
+**Issue:** `Input.is_action_just_pressed(TOGGLE_ACTION)` in `_process` ignores whether a focused Control or a pause menu consumed the event. Runtime rebinding is a stated requirement. If the player rebinds another action to F3, or presses F3 in a rebind capture screen, the overlay toggles too. The overlay is read-only, so this is cosmetic. Handling the action in `_unhandled_input` (with `set_input_as_handled`) would honour UI consumption, but it would need the `process_mode` ALWAYS setting kept. This is a design note, not a defect.
+**Fix:** Optional. Move the toggle to `_unhandled_input(event)` using `event.is_action_pressed(TOGGLE_ACTION)`, and keep `_process` for the refresh only.
 
-### IN-02: A bind while the overlay is visible shows stale text for up to 0.25 s
+### IN-02: `_refresh` advances on scaled delta, so a paused or slowed simulation freezes the overlay
 
-**File:** `ui/overlay/debug_overlay.gd:39-50`
-**Issue:** If the player has toggled the overlay on before `bind_run` runs, `_refresh()` returned early because `_model == null`. The label stays empty until the next 0.25 s refresh tick. In practice `MapRoot._ready` binds before the first input, so this is cosmetic.
-**Fix:** Optionally end `bind_run` with `if visible: _refresh()`.
+**File:** `ui/overlay/debug_overlay.gd:100-108`
+**Issue:** `_process` delta is scaled by `Engine.time_scale`. If a later phase adds a fast-forward or slow-mo debug control, `time_scale = 0` would stop the overlay from refreshing (F3 still works). The FPS row would then look frozen. There is no current caller, so the risk is latent.
+**Fix:** Optional. Accumulate `delta / maxf(Engine.time_scale, 0.001)`, or use `Time.get_ticks_msec()` for the refresh clock.
 
-### IN-03: Overlay processing follows the tree's pause state
+### IN-03: Pending sections are held forever if the overlay is never bound
 
-**File:** `ui/overlay/debug_overlay.gd:96`, `ui/overlay/debug_overlay.tscn`
-**Issue:** The scene sets no `process_mode`, so it inherits the parent's mode. If a later phase pauses the tree (a pause menu, for example), the F3 toggle and the refresh stop working while paused. The overlay is a dev tool, so this is low priority. It is worth deciding on before Phase 2 adds paused states.
-**Fix:** Set `process_mode = Node.PROCESS_MODE_ALWAYS` on the DebugOverlay node if it should stay usable while paused.
+**File:** `ui/overlay/debug_overlay.gd:20, 75-86`
+**Issue:** `_pending` keeps each provider Callable (a strong reference to everything the lambda captured) until `bind_run` runs. The comment explains the WeakRef for the owner, but the provider capture still keeps a captured RefCounted alive for the overlay's lifetime if the bind never happens. This only matters if `MapRoot` fails to bind the overlay, which would already be a visible fault. The docs in `register_section` mention the caveat for the model; the same sentence applies here.
+**Fix:** No code change needed. Optionally note in the `_pending` doc comment that unbound entries keep their captures alive.
 
 ---
 
-_Reviewed: 2026-09-30T13:46:36Z_
+_Reviewed: 2026-09-30T14:10:24Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
