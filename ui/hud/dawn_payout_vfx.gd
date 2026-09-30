@@ -155,22 +155,25 @@ func _on_dawn_payout(total: int, per_spot: Dictionary) -> void:
 		_show_total()
 
 
-## `per_spot` arrives as an untyped Dictionary, so each amount is coerced to a whole number once
-## here (a float from a later payout source is truncated). An amount that is not a number at all is
-## dropped with a warning, so one bad entry cannot abort the whole payout.
+## `per_spot` arrives as an untyped Dictionary, so each entry is checked and coerced once here: the
+## spot id must be a name (it is stored as a StringName, which the loops in _on_dawn_payout rely on)
+## and the amount a finite number, truncated to a whole one if it is a float. An entry that fails
+## either check is dropped with a warning, so one bad entry cannot abort the whole payout.
 func _whole_amounts(per_spot: Dictionary) -> Dictionary:
 	var amounts: Dictionary = {}
 	for spot_id: Variant in per_spot:
 		var amount: Variant = per_spot[spot_id]
-		if amount is int or amount is float:
-			amounts[spot_id] = int(amount)
+		var problem: String = ""
+		if not (spot_id is StringName or spot_id is String):
+			problem = "its spot id is a %s, not a name" % type_string(typeof(spot_id))
+		elif amount is float and not is_finite(float(amount)):
+			problem = "%s is not a finite number" % amount
+		elif not (amount is int or amount is float):
+			problem = "%s is not a number" % type_string(typeof(amount))
+		if problem.is_empty():
+			amounts[StringName(spot_id)] = int(amount)
 		else:
-			push_warning(
-				(
-					"dawn payout for '%s' ignored: %s is not a number"
-					% [spot_id, type_string(typeof(amount))]
-				)
-			)
+			push_warning("dawn payout for '%s' ignored: %s" % [spot_id, problem])
 	return amounts
 
 

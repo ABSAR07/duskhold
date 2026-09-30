@@ -381,7 +381,7 @@ func test_the_vfx_announces_the_gold_its_coins_carry_and_the_hud_lags_by_exactly
 	assert_true(settled, "those coins landed and released exactly what was held")
 
 
-func test_a_payout_amount_that_is_a_float_or_not_a_number_does_not_abort_the_payout() -> void:
+func test_a_malformed_payout_entry_does_not_abort_the_payout() -> void:
 	var map_root: MapRoot = await E2eSupport.spawn_map(self, _rich_map(), _tuning)
 	var ctx: RunContext = map_root.get_context()
 	var vfx: DawnPayoutVfx = _vfx(map_root)
@@ -390,15 +390,19 @@ func test_a_payout_amount_that_is_a_float_or_not_a_number_does_not_abort_the_pay
 		return
 	watch_signals(vfx)
 
-	# house_1's 4.0 is a whole float, and house_2's null is no amount at all.
-	ctx.events.dawn_payout.emit(4, {HOUSE_ONE: 4.0, HOUSE_TWO: null})
+	# house_1's 4.0 is a whole float, house_2's null is no amount at all, house_3's NAN is not a
+	# finite one, and the int key 7 is no spot name.
+	ctx.events.dawn_payout.emit(4, {HOUSE_ONE: 4.0, HOUSE_TWO: null, &"house_3": NAN, 7: 3})
 
 	assert_signal_emitted_with_parameters(vfx, "payout_started", [4])
 	assert_push_warning("dawn payout for 'house_2' ignored")
+	assert_push_warning("dawn payout for 'house_3' ignored")
+	assert_push_warning("dawn payout for '7' ignored: its spot id is a int")
 	var launched: bool = await E2eSupport.wait_until(self, _coins_launched.bind(vfx, 4), SETTLED_S)
 	assert_true(launched, "the float amount still sends its 4 coins")
 	assert_eq(vfx.get_spawned_count(HOUSE_ONE), 4, "all of them from house_1")
 	assert_eq(vfx.get_spawned_count(HOUSE_TWO), 0, "the null amount sends none")
+	assert_eq(vfx.get_spawned_count(&"house_3"), 0, "the NAN amount sends none")
 	var settled: bool = await E2eSupport.wait_until(
 		self, _hud_gold_settled.bind(map_root), SETTLED_S
 	)
