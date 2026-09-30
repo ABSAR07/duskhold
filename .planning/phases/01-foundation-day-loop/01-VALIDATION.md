@@ -27,7 +27,7 @@ validated: "2026-09-29"
 | **Full suite command** | `bash tools/test.sh` (headless import pass, then GUT over all three dirs; fails on any first-party parse/load error) |
 | **Single file** | `bash tools/test.sh -gselect=<test_file>.gd` |
 | **Lint** | `bash tools/lint.sh` (gdtoolkit 4.5.0: `gdformat --check` + `gdlint`) |
-| **Measured runtime** | Quick: ~14 s wall (18 scripts, 156 tests). Full: ~96 s wall (34 scripts, 258 tests) |
+| **Measured runtime** | Quick: ~14 s wall (18 scripts, 156 tests). Full: ~96 s wall (34 scripts, 260 tests) |
 
 The `tools/*.sh` wrappers need Git Bash on Windows; they resolve the pinned binary under `.tools/godot/4.7.2-stable/` (D-14).
 
@@ -119,6 +119,9 @@ GUT rows run as `bash tools/test.sh -gselect=<file>`. Threat refs are the plans'
 | WR-01 / IN-02 fix (pass 12) | review | — | DEV-03 | T-01-15 | Sections registered before `bind_run` are held and replayed in order (a pending one whose owner died is left out with a warning); a repeat `bind_run` keeps them; the owner parameter is `lifetime_owner`, not `owner` | unit | `test_debug_overlay_registration.gd` (5 tests, new file) | ✅ | ✅ green |
 | WR-02 fix (pass 12) | review | — | DEV-03, BLDG-06 | T-01-15 | The overlay's Loop section shows the Timer row by night and dawn only, follows the clock, counts days and nights, and 200 collects by night and by dawn change no state and emit no events | unit | `test_debug_overlay_timed_phases.gd` (7 tests, new file) | ✅ | ✅ green |
 | IN-01 / IN-03 fix (pass 12) | review | — | ECON-02, DEV-03 | — | The payout view counts and frees only its coins (group `payout_coin`); overlay sections keyed by title keep replace-in-place order | e2e + unit | `test_dawn_payout_hardening.gd` (`test_a_child_that_is_not_a_coin_is_neither_counted_nor_freed_by_a_payout`), `test_debug_overlay_readonly.gd` | ✅ | ✅ green |
+| WR-01 / IN-01 fix (pass 13) | review | — | DEV-03 | T-01-15 | A provider whose rows are dropped as malformed is warned about once per failure streak (re-armed only by a fully well-formed answer); the permanent-failure check is derived from the skip reason | unit | `test_debug_overlay_readonly.gd` (malformed-rows test extended) | ✅ | ✅ green |
+| WR-02 fix (pass 13) | review | — | ECON-01, ECON-02 | — | A payout claiming no gold but listing per-spot amounts warns and shows nothing; a payout of only negative amounts shows nothing and leaves the HUD on the ledger | e2e | `test_dawn_payout_hardening.gd` (`test_a_payout_claiming_no_gold_but_listing_amounts_is_reported_and_shows_nothing`, `test_a_payout_of_only_negative_amounts_shows_nothing_and_leaves_the_hud_on_the_ledger`) | ✅ | ✅ green |
+| IN-02 / IN-03 fix (pass 13) | review | — | DEV-03 | T-01-15 | The night/dawn read-only check also snapshots every spot's tier and the unit/enemy counts; registration tests show the overlay through the real toggle action and wait frames, not wall-clock time | unit | `test_debug_overlay_timed_phases.gd`, `test_debug_overlay_registration.gd` | ✅ | ✅ green |
 
 Owner gates with no automated verify by design: 01-01-T2 (toolchain download approval), 01-03-T2 (public repo name), 01-07-T2 (CC0 model download approval). No run of three consecutive tasks lacks automated verification.
 
@@ -406,6 +409,30 @@ Re-audited after the twelfth review-fix pass (5 commits, `8ee2508`..`7e7a1f2`). 
 Evidence:
 - Full suite 258/258 (34 scripts, ~96 s); lint clean.
 - Unit quick run 156/156 (18 scripts, ~14 s).
+- `tools/screenshot.sh`: 6/6 non-blank captures.
+- Headless guard exits 2.
+- `ci.yml` unchanged.
+
+## Validation Audit 2026-09-30 (re-audit after review-fix pass 13)
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Re-audited after the thirteenth review-fix pass (5 commits, `b223b55`..`6c38829`). 15/15 requirements are still COVERED.
+
+- **Tests:** +2 new e2e payout tests in `test_dawn_payout_hardening.gd` (now 7 methods). Three existing tests were tightened:
+  - The malformed-rows overlay test now asserts its one warning.
+  - The night/dawn read-only check now also snapshots building tiers and unit/enemy counts.
+  - The registration tests now go through the real toggle action and no longer race a wall-clock wait.
+- **Mutation probes:** every behaviour change carries one in `01-REVIEW-FIX.md`. IN-01 is a behaviour-preserving refactor, guarded by the existing freed-owner, invalid-callable and argument-count tests.
+- **CR-01 guard:** re-probed by the orchestrator, since `dawn_payout_vfx.gd` was touched; it fails 17/18 with the old spacing.
+
+Evidence:
+- Full suite 260/260 (34 scripts); lint clean.
+- Unit quick run 156/156 (18 scripts, ~13 s).
 - `tools/screenshot.sh`: 6/6 non-blank captures.
 - Headless guard exits 2.
 - `ci.yml` unchanged.
