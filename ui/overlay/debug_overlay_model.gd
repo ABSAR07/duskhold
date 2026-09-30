@@ -181,13 +181,14 @@ func _warn_once(title: String, kind: String, problem: String) -> void:
 	push_warning("debug overlay section '%s' %s" % [title, problem])
 
 
-## Keeps only rows shaped like [label, value] (as strings), so a malformed provider row is dropped
+## Keeps only rows shaped like [label, value] (exactly two entries, as strings; a longer row is a
+## provider mistake and is dropped, not truncated), so a malformed provider row is dropped
 ## here rather than raising a script error in the overlay on every refresh. collect reports the
 ## number dropped, so a provider that returns malformed rows is not mistaken for an empty one.
 func _clean_rows(rows: Array) -> Array:
 	var clean: Array = []
 	for row: Variant in rows:
-		if row is Array and (row as Array).size() >= 2:
+		if row is Array and (row as Array).size() == 2:
 			clean.append([str(row[0]), str(row[1])])
 	return clean
 

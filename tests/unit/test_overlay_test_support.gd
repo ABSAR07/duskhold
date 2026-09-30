@@ -9,11 +9,15 @@ func test_new_map_shares_no_building_definition_or_tier_with_the_cached_map() ->
 	var copy: MapConfig = OverlayTestSupport.new_map()
 
 	assert_ne(copy, cached, "the map is a copy")
+	assert_gt(
+		cached.buildings.size(), 0, "the map has buildings, so the loops below check something"
+	)
 	assert_eq(copy.buildings.size(), cached.buildings.size(), "with the same building set")
 	for index: int in copy.buildings.size():
 		var copy_def: BuildingDef = copy.buildings[index]
 		var cached_def: BuildingDef = cached.buildings[index]
 		assert_ne(copy_def, cached_def, "building '%s' is a copy" % cached_def.id)
+		assert_gt(cached_def.tiers.size(), 0, "'%s' has tiers to compare" % cached_def.id)
 		assert_eq(copy_def.tiers.size(), cached_def.tiers.size(), "with the same tiers")
 		for tier_index: int in copy_def.tiers.size():
 			assert_ne(

@@ -270,19 +270,18 @@ func test_a_provider_with_malformed_rows_keeps_only_the_well_formed_ones() -> vo
 		"a flat pair has no [label, value] rows"
 	)
 	var mixed: Dictionary = OverlayTestSupport.section(sections, "Mixed")
-	assert_eq(mixed["rows"].size(), 2, "the short row and the non-Array row are dropped")
+	assert_eq(mixed["rows"].size(), 1, "the short, non-Array and over-long rows are dropped")
 	assert_eq(
 		OverlayTestSupport.row_value(mixed, "Answer"),
 		"42",
 		"a non-String value is turned into text"
 	)
-	assert_eq(
+	assert_null(
 		OverlayTestSupport.row_value(mixed, "Wide"),
-		"1",
-		"extra entries beyond label and value are ignored"
+		"a row with entries beyond label and value is dropped, not truncated"
 	)
 	assert_push_warning("debug overlay section 'Flat' dropped 2 malformed row(s)")
-	assert_push_warning("debug overlay section 'Mixed' dropped 2 malformed row(s)")
+	assert_push_warning("debug overlay section 'Mixed' dropped 3 malformed row(s)")
 	assert_push_warning_count(2, "each provider is named once, not on every refresh")
 
 
