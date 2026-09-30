@@ -5,28 +5,28 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: fixed
-    title: "Start-night hint names the wrong key on non-QWERTY keyboard layouts"
+    disposition: open
+    title: "A provider that returns a non-Array is skipped silently, contradicting the \"warn once\" design"
   - id: WR-02
     severity: warning
-    disposition: fixed
-    title: "Debug-overlay providers with default arguments are silently dropped"
+    disposition: open
+    title: "`_warned` is never cleared when a provider is re-registered"
   - id: WR-03
     severity: warning
-    disposition: fixed
-    title: "BuildingSystem does not skip an empty building id, unlike spots"
+    disposition: open
+    title: "Wall-clock-dependent e2e assertions can flake on a slow or loaded runner"
   - id: IN-01
     severity: info
-    disposition: fixed
-    title: "Rebind detection relies on event object identity"
+    disposition: open
+    title: "`BuildingSystem.get_instance` hands out the live mutable instance, contradicting the \"reads never mutate\" contract"
   - id: IN-02
     severity: info
-    disposition: fixed
-    title: "Joypad axis hint hides the direction"
+    disposition: open
+    title: "`DawnPayoutVfx._on_dawn_payout` trusts untyped Dictionary values as `int`"
   - id: IN-03
     severity: info
-    disposition: fixed
-    title: "Tautological test of the stagger formula"
+    disposition: open
+    title: "Redundant HUD refresh triggers and a test that emits synthetic phase transitions"
   - id: IN-04
     severity: info
     disposition: fixed
@@ -87,23 +87,23 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 0
+open: 6
 total: 21
-recorded: 2026-09-30T07:42:07.483Z
+recorded: 2026-09-30T07:48:33.332Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-02 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-03 | warning | fixed | 01-REVIEW-FIX.md |
-| IN-01 | info | fixed | 01-REVIEW-FIX.md |
-| IN-02 | info | fixed | 01-REVIEW-FIX.md |
-| IN-03 | info | fixed | 01-REVIEW-FIX.md |
-| IN-04 | info | fixed | 01-REVIEW-FIX.md |
-| IN-05 | info | fixed | 01-REVIEW-FIX.md |
+| WR-01 | warning | open | - |
+| WR-02 | warning | open | - |
+| WR-03 | warning | open | - |
+| IN-01 | info | open | - |
+| IN-02 | info | open | - |
+| IN-03 | info | open | - |
+| IN-04 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
+| IN-05 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-04 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-05 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | CR-01 | critical | fixed | 01-REVIEW-FIX.md (not in the current review) |
