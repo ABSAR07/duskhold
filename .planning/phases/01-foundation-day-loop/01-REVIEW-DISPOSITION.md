@@ -5,16 +5,36 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: fixed
-    title: "Start-night hint reports \"(unbound)\" for bindings that work"
+    disposition: open
+    title: "Start-night hint names the wrong key on non-QWERTY keyboard layouts"
   - id: WR-02
     severity: warning
-    disposition: fixed
-    title: "HUD readout lag is derived independently of the VFX, so it holds only by an unenforced invariant"
+    disposition: open
+    title: "Debug-overlay providers with default arguments are silently dropped"
   - id: WR-03
     severity: warning
-    disposition: fixed
-    title: "The coin cap and the \"fits the dawn window\" guarantee are not actually enforced"
+    disposition: open
+    title: "BuildingSystem does not skip an empty building id, unlike spots"
+  - id: IN-01
+    severity: info
+    disposition: open
+    title: "Rebind detection relies on event object identity"
+  - id: IN-02
+    severity: info
+    disposition: open
+    title: "Joypad axis hint hides the direction"
+  - id: IN-03
+    severity: info
+    disposition: open
+    title: "Tautological test of the stagger formula"
+  - id: IN-04
+    severity: info
+    disposition: open
+    title: "Double-bind test does not cover most HUD connections"
+  - id: IN-05
+    severity: info
+    disposition: open
+    title: "Coin start point is not guarded against a position behind the camera"
   - id: WR-04
     severity: warning
     disposition: fixed
@@ -23,26 +43,6 @@ findings:
     severity: warning
     disposition: fixed
     title: "Two e2e tests claim more than they assert"
-  - id: IN-01
-    severity: info
-    disposition: fixed
-    title: "Orphaned comment above the house constants"
-  - id: IN-02
-    severity: info
-    disposition: fixed
-    title: "PAD_BUTTON_NAMES is Xbox-only"
-  - id: IN-03
-    severity: info
-    disposition: fixed
-    title: "`_coin_share` does integer division through floats"
-  - id: IN-04
-    severity: info
-    disposition: fixed
-    title: "Default-binding test depends on suite order"
-  - id: IN-05
-    severity: info
-    disposition: fixed
-    title: "Debug overlay accepts duplicate titles and cannot detect impure providers"
   - id: CR-01
     severity: critical
     disposition: fixed
@@ -87,25 +87,25 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 0
+open: 8
 total: 21
-recorded: 2026-09-30T07:11:08.325Z
+recorded: 2026-09-30T07:17:23.510Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-02 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-03 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-04 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-05 | warning | fixed | 01-REVIEW-FIX.md |
-| IN-01 | info | fixed | 01-REVIEW-FIX.md |
-| IN-02 | info | fixed | 01-REVIEW-FIX.md |
-| IN-03 | info | fixed | 01-REVIEW-FIX.md |
-| IN-04 | info | fixed | 01-REVIEW-FIX.md |
-| IN-05 | info | fixed | 01-REVIEW-FIX.md |
+| WR-01 | warning | open | - |
+| WR-02 | warning | open | - |
+| WR-03 | warning | open | - |
+| IN-01 | info | open | - |
+| IN-02 | info | open | - |
+| IN-03 | info | open | - |
+| IN-04 | info | open | - |
+| IN-05 | info | open | - |
+| WR-04 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
+| WR-05 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | CR-01 | critical | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-06 | warning | skipped | 01-REVIEW-FIX.md (not in the current review) |
 | WR-10 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
