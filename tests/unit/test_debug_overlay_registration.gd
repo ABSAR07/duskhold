@@ -4,6 +4,9 @@ extends GutTest
 ## its section before the overlay is bound, or bind the overlay twice; neither may lose a section.
 
 const OVERLAY_SCENE := "res://ui/overlay/debug_overlay.tscn"
+## Synthetic frames for the cadence test: two seconds at 60 fps, driven without waiting.
+const SIMULATED_FPS: int = 60
+const SIMULATED_FRAMES: int = 120
 
 
 func after_each() -> void:
@@ -18,6 +21,13 @@ func _overlay() -> DebugOverlay:
 	var overlay: DebugOverlay = (load(OVERLAY_SCENE) as PackedScene).instantiate()
 	add_child_autofree(overlay)
 	return overlay
+
+
+## A provider that counts its calls in `calls[0]` (an Array, so the lambda can write it).
+func _counting_provider(calls: Array[int]) -> Callable:
+	return func() -> Array:
+		calls[0] += 1
+		return [["n", str(calls[0])]]
 
 
 ## Shows the overlay the way the player does, by pressing the toggle action. Showing it refreshes it
@@ -143,7 +153,8 @@ func test_a_pending_section_whose_owner_is_freed_after_bind_run_is_dropped_with_
 	assert_string_contains(before, "Kids: 0", "the section shows while its owner is alive")
 
 	watched.free()
-	await wait_seconds(DebugOverlay.REFRESH_INTERVAL_S * 2.0)
+	# One refresh interval of synthetic time, so the refresh runs without a real-time wait.
+	overlay._process(DebugOverlay.REFRESH_INTERVAL_S)
 
 	var after: String = overlay.get_text()
 	assert_false(after.contains("Watched"), "the section ends once its owner is freed")
@@ -170,6 +181,38 @@ func test_binding_an_overlay_that_is_already_shown_fills_it_at_once() -> void:
 	assert_string_contains(
 		overlay.get_text(), "Wave: 3", "and so does the section registered early"
 	)
+
+
+func test_a_shown_overlay_refreshes_once_the_interval_has_passed_and_not_before() -> void:
+	var overlay: DebugOverlay = _overlay()
+	var calls: Array[int] = [0]
+	overlay.register_section("Count", _counting_provider(calls))
+	overlay.bind_run(_context(), null)
+	overlay.visible = true
+
+	overlay._process(DebugOverlay.REFRESH_INTERVAL_S * 0.8)
+	assert_eq(calls[0], 0, "less than one interval has passed: no refresh yet")
+	overlay._process(DebugOverlay.REFRESH_INTERVAL_S * 0.4)
+	assert_eq(calls[0], 1, "the interval has now passed: one refresh")
+	overlay._process(DebugOverlay.REFRESH_INTERVAL_S * 0.8)
+	assert_eq(calls[0], 1, "the timer restarted at the refresh: no second one yet")
+
+
+func test_a_shown_overlay_refreshes_about_four_times_a_second_and_a_hidden_one_never() -> void:
+	var overlay: DebugOverlay = _overlay()
+	var calls: Array[int] = [0]
+	overlay.register_section("Count", _counting_provider(calls))
+	overlay.bind_run(_context(), null)
+
+	for frame: int in SIMULATED_FRAMES:
+		overlay._process(1.0 / float(SIMULATED_FPS))
+	assert_eq(calls[0], 0, "a hidden overlay does not refresh")
+
+	overlay.visible = true
+	for frame: int in SIMULATED_FRAMES:
+		overlay._process(1.0 / float(SIMULATED_FPS))
+	# Two simulated seconds at 60 fps: 8 refreshes at a 0.25 s interval, 1 either way for rounding.
+	assert_between(calls[0], 7, 9, "about 4 refreshes per second, not one per frame")
 
 
 func test_a_pending_section_replaced_before_bind_run_does_not_warn_about_the_old_owner() -> void:
