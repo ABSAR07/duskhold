@@ -81,18 +81,20 @@ func test_editing_a_new_tuning_copy_leaves_the_cached_tuning_alone() -> void:
 	assert_eq(cached.dawn_seconds, dawn_before, "the cached tuning is unchanged")
 
 
-func test_a_new_tuning_copy_shares_no_resource_with_the_cached_tuning() -> void:
-	# LoopTuning has no subresource today, so nothing can be shared and this passes without checking
-	# anything yet. It fails the day one is added and new_tuning() copies it shallowly, which is what
-	# new_tuning's "copied all the way down" promise (DEEP_DUPLICATE_ALL) is there to prevent. That
-	# the check would notice is shown by the test below, on stand-in resources.
-	var cached: LoopTuning = load(OverlayTestSupport.TUNING)
-	var copy: LoopTuning = OverlayTestSupport.new_tuning()
+func test_a_new_map_copy_shares_no_resource_with_the_cached_map_at_any_depth() -> void:
+	# The building and tier checks above look at two levels of the map. This one covers every
+	# Resource the map reaches (spots, buildings, tiers and anything added under them later).
+	# LoopTuning has no subresource today, so it has no such check; add one when it gains one.
+	var cached: MapConfig = load(OverlayTestSupport.PROTOTYPE_MAP)
+	var copy: MapConfig = OverlayTestSupport.new_map()
 
+	assert_gt(
+		_reachable(cached, []).size(), 1, "the map reaches subresources, so the check has a subject"
+	)
 	assert_eq(
 		_shared_resources(cached, copy),
 		[] as Array[Resource],
-		"no subresource is shared with the cache (LoopTuning has none yet, so this guards a later one)"
+		"the map copy shares no subresource with the cache"
 	)
 
 
