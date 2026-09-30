@@ -85,13 +85,26 @@ func test_absurdly_large_amounts_are_clamped_so_the_coin_cap_still_holds() -> vo
 	)
 
 	assert_signal_emitted_with_parameters(vfx, "payout_started", [clamped_total])
-	assert_lte(vfx.get_launch_delays().size(), DawnPayoutVfx.MAX_COINS, "the coin cap holds")
+	assert_eq(
+		vfx.get_launch_delays().size(),
+		DawnPayoutVfx.MAX_COINS,
+		"two spots at the clamped amount plan exactly the coin budget"
+	)
 	var settled: bool = await E2eSupport.wait_until(
 		self, _hud_gold_settled.bind(map_root), SETTLED_S
 	)
 	assert_true(settled, "every coin landed and the HUD shows exactly the ledger gold")
-	assert_gte(vfx.get_spawned_count(HOUSE_ONE), 1, "each paying spot still sends a coin")
-	assert_gte(vfx.get_spawned_count(HOUSE_TWO), 1, "each paying spot still sends a coin")
+	assert_eq(vfx.get_last_total(), clamped_total, "the '+X gold' total is the clamped sum")
+	assert_eq(
+		vfx.get_spawned_count(HOUSE_ONE) + vfx.get_spawned_count(HOUSE_TWO),
+		DawnPayoutVfx.MAX_COINS,
+		"exactly the budget of coins flew"
+	)
+	assert_eq(
+		vfx.get_spawned_count(HOUSE_ONE),
+		vfx.get_spawned_count(HOUSE_TWO),
+		"equal amounts split the budget in equal halves"
+	)
 
 
 func test_start_point_before_the_run_is_bound_falls_back_to_mid_screen() -> void:
