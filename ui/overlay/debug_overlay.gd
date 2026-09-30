@@ -18,7 +18,9 @@ var _last_frame_usec: int = 0
 ## Sections registered before bind_run, as {title, provider, owner: WeakRef or null}, one per title
 ## (a repeat registration replaces the earlier one in place, as in the model). Bind order across the
 ## run_bound group is not guaranteed, so a caller may register first; bind_run replays these in
-## order, so registration never depends on who is bound first.
+## order, so registration never depends on who is bound first. An entry's provider Callable keeps
+## whatever the lambda captured alive until bind_run runs; if the overlay is never bound, that is
+## for the overlay's lifetime (MapRoot always binds it, so this only follows a bind fault).
 var _pending: Array[Dictionary] = []
 
 @onready var _text: Label = %OverlayText
