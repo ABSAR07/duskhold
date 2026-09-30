@@ -130,7 +130,7 @@ func test_a_freed_section_provider_is_skipped_instead_of_crashing() -> void:
 	assert_push_warning("debug overlay section 'Ghost' skipped")
 
 
-func test_a_provider_whose_owner_was_freed_is_dropped_after_its_one_warning() -> void:
+func test_a_provider_with_an_invalid_callable_is_dropped_after_its_one_warning() -> void:
 	var model: DebugOverlayModel = DebugOverlayModel.new(_prototype_with_one_house())
 	var owner_node: Node = Node.new()
 	model.register_section("Ghost", owner_node.get_children)
