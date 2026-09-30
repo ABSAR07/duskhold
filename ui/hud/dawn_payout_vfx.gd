@@ -72,7 +72,8 @@ func live_coin_count() -> int:
 	return count
 
 
-## The total of the most recent non-empty payout; 0 until a dawn has paid something.
+## The gold carried by the coins of the most recent payout whose "+X gold" total was shown; 0 until
+## then. It equals the payout's claimed total whenever per_spot adds up to it.
 func get_last_total() -> int:
 	return _last_total
 
@@ -121,7 +122,6 @@ func _on_dawn_payout(total: int, per_spot: Dictionary) -> void:
 	if total <= 0:
 		payout_started.emit(0)
 		return
-	_pending_total = total
 	var amounts: Dictionary = _whole_amounts(per_spot)
 	# The coin budget is spread over the gold that will actually fly, not over the claimed total.
 	var carried_gold: int = 0
@@ -147,12 +147,22 @@ func _on_dawn_payout(total: int, per_spot: Dictionary) -> void:
 				{"spot": spot_id, "delay": float(launches.size()) * stagger, "share": share}
 			)
 	_expected_coins = launches.size()
+	# The "+X gold" label shows the gold the coins carry, the same figure the HUD readout is held
+	# back by, so what the player watches fly, the counter and the label always agree. They differ
+	# from the claimed total only if per_spot does not add up to it, which is worth knowing about.
+	_pending_total = carried
+	if carried != total:
+		push_warning(
+			(
+				"dawn payout claims %d gold but its per-spot amounts carry %d; showing %d"
+				% [total, carried, carried]
+			)
+		)
 	payout_started.emit(carried)
 	for launch: Dictionary in launches:
 		_schedule_launch(launch["spot"], launch["delay"], launch["share"])
-	if _expected_coins == 0:
-		# Nothing to fly (malformed per_spot): no coin will ever land, so show the total now.
-		_show_total()
+	# With no coin to fly (malformed per_spot) nothing lands and no total is shown: there is no gold
+	# in the air to attribute, and the readout is not held back (payout_started carried 0).
 
 
 ## `per_spot` arrives as an untyped Dictionary, so each entry is checked and coerced once here: the

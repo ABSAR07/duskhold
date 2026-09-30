@@ -297,7 +297,7 @@ func test_a_real_payout_schedules_its_last_coin_to_land_inside_a_short_dawn_wind
 	assert_eq(vfx.live_coin_count(), 0, "no coin is still in the air")
 
 
-func test_a_payout_with_no_coin_to_fly_does_not_leave_the_hud_short() -> void:
+func test_a_payout_with_no_coin_to_fly_shows_no_total_and_does_not_leave_the_hud_short() -> void:
 	var map_root: MapRoot = await E2eSupport.spawn_map(self, _rich_map(), _tuning)
 	var ctx: RunContext = map_root.get_context()
 	var vfx: DawnPayoutVfx = _vfx(map_root)
@@ -311,7 +311,9 @@ func test_a_payout_with_no_coin_to_fly_does_not_leave_the_hud_short() -> void:
 
 	assert_eq(vfx.live_coin_count(), 0, "no coin flew")
 	assert_true(_hud_gold_settled(map_root), "the readout is not held back by gold no coin carries")
-	assert_eq(vfx.get_last_total(), total, "the total is still shown")
+	assert_true(_total_hidden(map_root), "no '+0 gold' total for gold that never flew")
+	assert_eq(vfx.get_last_total(), 0, "no total was shown")
+	assert_push_warning("dawn payout claims 5 gold but its per-spot amounts carry 0")
 
 
 func test_a_dawn_that_pays_nothing_shows_no_coins_and_no_total() -> void:
@@ -361,7 +363,7 @@ func test_launch_stagger_before_the_run_is_bound_falls_back_to_the_default() -> 
 	unbound.free()
 
 
-func test_the_vfx_announces_the_gold_its_coins_carry_and_the_hud_lags_by_exactly_that() -> void:
+func test_the_label_the_coins_and_the_hud_readout_all_use_the_gold_that_flies() -> void:
 	var map_root: MapRoot = await E2eSupport.spawn_map(self, _rich_map(), _tuning)
 	var ctx: RunContext = map_root.get_context()
 	var vfx: DawnPayoutVfx = _vfx(map_root)
@@ -374,11 +376,15 @@ func test_the_vfx_announces_the_gold_its_coins_carry_and_the_hud_lags_by_exactly
 	ctx.events.dawn_payout.emit(9, {HOUSE_ONE: 4, HOUSE_TWO: -2})
 
 	assert_signal_emitted_with_parameters(vfx, "payout_started", [4])
+	assert_push_warning("dawn payout claims 9 gold but its per-spot amounts carry 4")
 	assert_eq(_gold_text(map_root), "Gold: %d" % (RICH_GOLD - 4), "held back by the coins' 4 gold")
-	var settled: bool = await E2eSupport.wait_until(
-		self, _hud_gold_settled.bind(map_root), SETTLED_S
+	var shown: bool = await E2eSupport.wait_until(self, _total_shown.bind(map_root), SETTLED_S)
+	assert_true(shown, "the coins landed and the total appeared")
+	assert_eq(
+		_payout_total(map_root).text, "+4 gold", "the label shows the 4 gold that flew, not 9"
 	)
-	assert_true(settled, "those coins landed and released exactly what was held")
+	assert_eq(vfx.get_last_total(), 4, "and so does the vfx")
+	assert_true(_hud_gold_settled(map_root), "those coins released exactly what was held")
 
 
 func test_a_malformed_payout_entry_does_not_abort_the_payout() -> void:
@@ -443,6 +449,8 @@ func test_the_coin_cap_follows_the_gold_that_flies_not_the_claimed_total() -> vo
 	var shown: bool = await E2eSupport.wait_until(self, _total_shown.bind(map_root), SETTLED_S)
 
 	assert_true(shown, "every coin landed")
+	assert_push_warning("dawn payout claims 5 gold but its per-spot amounts carry 120")
+	assert_eq(_payout_total(map_root).text, "+120 gold", "the label shows the gold that flew")
 	var launched: int = vfx.get_spawned_count(HOUSE_ONE) + vfx.get_spawned_count(HOUSE_TWO)
 	assert_lte(launched, DawnPayoutVfx.MAX_COINS, "the cap holds for the gold that actually flies")
 
