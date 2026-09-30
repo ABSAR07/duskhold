@@ -415,6 +415,26 @@ func test_a_malformed_payout_entry_does_not_abort_the_payout() -> void:
 	assert_true(settled, "the coins that did fly landed and released what was held")
 
 
+func test_a_new_payout_stops_the_pending_launches_of_the_one_it_supersedes() -> void:
+	var map_root: MapRoot = await E2eSupport.spawn_map(self, _rich_map(), _tuning)
+	var ctx: RunContext = map_root.get_context()
+	var vfx: DawnPayoutVfx = _vfx(map_root)
+	assert_not_null(vfx, "the HUD has a DawnPayoutVfx")
+	if vfx == null:
+		return
+	ctx.events.dawn_payout.emit(12, {HOUSE_ONE: 6, HOUSE_TWO: 6})
+	var waiting: Array[Tween] = vfx.get_launch_tweens()
+	assert_gt(waiting.size(), 0, "the staggered coins wait on their launch delays")
+	for tween: Tween in waiting:
+		assert_true(tween.is_valid(), "and each delay is still running")
+
+	ctx.events.dawn_payout.emit(0, {})
+
+	for tween: Tween in waiting:
+		assert_false(tween.is_valid(), "the superseded payout's launch delay was killed")
+	assert_eq(vfx.get_launch_tweens().size(), 0, "and none is left on the books")
+
+
 func test_the_hud_releases_a_held_back_readout_when_dawn_ends() -> void:
 	var map_root: MapRoot = await E2eSupport.spawn_map(self, _rich_map(), _tuning)
 	var ctx: RunContext = map_root.get_context()

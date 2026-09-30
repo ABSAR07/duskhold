@@ -36,6 +36,8 @@ var _ctx: RunContext
 var _coin_texture: GradientTexture2D
 var _launched: Dictionary = {}
 var _launch_delays: Array[float] = []
+## The delay tweens of the current payout's coins that have not launched yet.
+var _launch_tweens: Array[Tween] = []
 var _last_total: int = 0
 var _expected_coins: int = 0
 var _landed_coins: int = 0
@@ -87,6 +89,12 @@ func get_spawned_count(spot_id: StringName) -> int:
 ## order. Read-only: it lets a test check the schedule without waiting on the clock.
 func get_launch_delays() -> Array[float]:
 	return _launch_delays.duplicate()
+
+
+## The delay tweens of the current payout's coins that have not launched yet. Read-only: it lets
+## a test check that a superseding payout stopped them.
+func get_launch_tweens() -> Array[Tween]:
+	return _launch_tweens.duplicate()
 
 
 ## Seconds between two coin launches for a payout of `coin_total` coins: STAGGER_SECONDS, tightened
@@ -215,6 +223,11 @@ func _reset_for_new_payout() -> void:
 	_pending_total = 0
 	if _total_tween != null:
 		_total_tween.kill()
+	# The generation guard would make a superseded launch a no-op anyway; killing the delay tweens
+	# also stops them lingering until they fire.
+	for tween: Tween in _launch_tweens:
+		tween.kill()
+	_launch_tweens.clear()
 	_payout_total.visible = false
 	for child: Node in get_children():
 		child.queue_free()
@@ -228,6 +241,7 @@ func _schedule_launch(spot_id: StringName, delay: float, share: int) -> void:
 	var tween: Tween = create_tween()
 	tween.tween_interval(delay)
 	tween.tween_callback(_launch_coin.bind(spot_id, _generation, share))
+	_launch_tweens.append(tween)
 
 
 func _launch_coin(spot_id: StringName, generation: int, share: int) -> void:
