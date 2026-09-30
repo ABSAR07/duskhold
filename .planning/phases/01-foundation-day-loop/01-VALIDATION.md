@@ -27,7 +27,7 @@ validated: "2026-09-29"
 | **Full suite command** | `bash tools/test.sh` (headless import pass, then GUT over all three dirs; fails on any first-party parse/load error) |
 | **Single file** | `bash tools/test.sh -gselect=<test_file>.gd` |
 | **Lint** | `bash tools/lint.sh` (gdtoolkit 4.5.0: `gdformat --check` + `gdlint`) |
-| **Measured runtime** | Quick: ~12 s wall (16 scripts, 144 tests). Full: ~85 s wall (32 scripts, 245 tests) |
+| **Measured runtime** | Quick: ~14 s wall (18 scripts, 156 tests). Full: ~96 s wall (34 scripts, 258 tests) |
 
 The `tools/*.sh` wrappers need Git Bash on Windows; they resolve the pinned binary under `.tools/godot/4.7.2-stable/` (D-14).
 
@@ -37,10 +37,10 @@ Screenshots (DEV-04) use a different mode: a real rendering driver (a normal win
 
 ## Sampling Rate
 
-- **After every task commit:** Run the quick run command (unit tests, ~12 s)
+- **After every task commit:** Run the quick run command (unit tests, ~14 s)
 - **After every plan wave:** Run the full suite command plus `bash tools/lint.sh`
 - **Before `/gsd-verify-work`:** Full suite green, lint clean, and the six DEV-04 screenshots captured and non-blank
-- **Max feedback latency:** 60 seconds per commit (quick run ~12 s). The full suite (~85 s) runs per wave, not per commit.
+- **Max feedback latency:** 60 seconds per commit (quick run ~14 s). The full suite (~96 s) runs per wave, not per commit.
 
 ---
 
@@ -116,6 +116,9 @@ GUT rows run as `bash tools/test.sh -gselect=<file>`. Threat refs are the plans'
 | IN-02 / IN-03 fix (pass 10) | review | — | DEV-03 | T-01-15 | The provider warning re-arms once the provider returns rows again; the freed-owner and needs-an-argument tests assert their warnings | unit | `test_debug_overlay_readonly.gd` (`test_a_flapping_provider_warns_again_after_it_recovers` + 2 tests extended) | ✅ | ✅ green |
 | WR-01 fix (pass 11) | review | — | DEV-03 | T-01-15 | A provider can name the object its lambda captured as `owner`; once that owner is freed the section is warned about once and dropped, while live captures keep showing | unit | `test_debug_overlay_readonly.gd` (`test_a_lambda_that_captured_a_freed_object_is_skipped_when_it_names_that_owner`, `test_a_lambda_that_captured_a_live_object_keeps_showing_with_or_without_an_owner`) | ✅ | ✅ green |
 | IN-01 / IN-02 fix (pass 11) | review | — | ECON-02, DEV-03 | T-01-15 | Payout test hooks grouped and documented (no behaviour change); the overlay read-only test builds its context from duplicated resources | e2e + unit | `test_dawn_payout.gd`, `test_debug_overlay_readonly.gd` | ✅ | ✅ green |
+| WR-01 / IN-02 fix (pass 12) | review | — | DEV-03 | T-01-15 | Sections registered before `bind_run` are held and replayed in order (a pending one whose owner died is left out with a warning); a repeat `bind_run` keeps them; the owner parameter is `lifetime_owner`, not `owner` | unit | `test_debug_overlay_registration.gd` (5 tests, new file) | ✅ | ✅ green |
+| WR-02 fix (pass 12) | review | — | DEV-03, BLDG-06 | T-01-15 | The overlay's Loop section shows the Timer row by night and dawn only, follows the clock, counts days and nights, and 200 collects by night and by dawn change no state and emit no events | unit | `test_debug_overlay_timed_phases.gd` (7 tests, new file) | ✅ | ✅ green |
+| IN-01 / IN-03 fix (pass 12) | review | — | ECON-02, DEV-03 | — | The payout view counts and frees only its coins (group `payout_coin`); overlay sections keyed by title keep replace-in-place order | e2e + unit | `test_dawn_payout_hardening.gd` (`test_a_child_that_is_not_a_coin_is_neither_counted_nor_freed_by_a_payout`), `test_debug_overlay_readonly.gd` | ✅ | ✅ green |
 
 Owner gates with no automated verify by design: 01-01-T2 (toolchain download approval), 01-03-T2 (public repo name), 01-07-T2 (CC0 model download approval). No run of three consecutive tasks lacks automated verification.
 
@@ -138,7 +141,7 @@ Owner gates with no automated verify by design: 01-01-T2 (toolchain download app
 | ART-02 | `test_attribution_log` (every third-party file covered by exactly one entry, allow-listed licences, ASSETS.md in sync) | COVERED |
 | DEV-01 | Whole suite runs headless from the command line (`tools/test.sh`); `test_build_flow` runs without a scene tree; `test_toolchain_smoke` | COVERED |
 | DEV-02 | `ci.yml` lint/test/export/screenshots jobs on push; export + launch + pre-push checks re-run locally | COVERED |
-| DEV-03 | `test_debug_overlay_readonly`, `test_debug_overlay_toggle` (FPS, phase, gold, buildings, units, enemies; wave-state and pathing rows are Phase 2 scope per ROADMAP SC5) | COVERED (Phase 1 scope) |
+| DEV-03 | `test_debug_overlay_readonly`, `test_debug_overlay_timed_phases`, `test_debug_overlay_registration`, `test_debug_overlay_toggle` (FPS, phase, gold, buildings, units, enemies; wave-state and pathing rows are Phase 2 scope per ROADMAP SC5) | COVERED (Phase 1 scope) |
 | DEV-04 | `tools/screenshot.sh` six scenes, `test_shot_blank_check`, headless guard, CI `screenshots` job | COVERED |
 
 ---
@@ -173,7 +176,7 @@ Owner gates with no automated verify by design: 01-01-T2 (toolchain download app
 - [x] Sampling continuity: no 3 consecutive tasks without automated verify
 - [x] Wave 0 covers all MISSING references
 - [x] No watch-mode flags
-- [x] Feedback latency < 60s (per-commit quick run ~12 s)
+- [x] Feedback latency < 60s (per-commit quick run ~14 s)
 - [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** approved 2026-09-29
@@ -379,6 +382,30 @@ Re-audited after the eleventh review-fix pass (3 fix commits, `a273e88`..`f66045
 Evidence:
 - Full suite 245/245 (32 scripts); lint clean.
 - Unit quick run 144/144 (~12 s).
+- `tools/screenshot.sh`: 6/6 non-blank captures.
+- Headless guard exits 2.
+- `ci.yml` unchanged.
+
+## Validation Audit 2026-09-30 (re-audit after review-fix pass 12)
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Re-audited after the twelfth review-fix pass (5 commits, `8ee2508`..`7e7a1f2`). 15/15 requirements are still COVERED.
+
+- **Tests:** +13 new, in two new unit files split out because `test_debug_overlay_readonly.gd` is at gdlint's 20-method cap, plus one in `test_dawn_payout_hardening.gd`.
+  - `test_debug_overlay_registration.gd` (5): registration before `bind_run`, order, repeat bind, dead pending owner, parameter name.
+  - `test_debug_overlay_timed_phases.gd` (7): Timer row and day/night counters by day, night and dawn, plus the 200-collect read-only check by night and by dawn. This closes the DAY-only gap the review found in the DEV-03 read-only proof.
+- **Mutation probes:** every behaviour change carries one in `01-REVIEW-FIX.md`.
+- **CR-01 guard:** re-probed by the orchestrator, since `dawn_payout_vfx.gd` was touched; it fails 17/18 with the old spacing.
+- **Runtime:** re-measured. The quick run is now ~14 s and the full suite ~96 s, both within the sampling budget.
+
+Evidence:
+- Full suite 258/258 (34 scripts, ~96 s); lint clean.
+- Unit quick run 156/156 (18 scripts, ~14 s).
 - `tools/screenshot.sh`: 6/6 non-blank captures.
 - Headless guard exits 2.
 - `ci.yml` unchanged.
