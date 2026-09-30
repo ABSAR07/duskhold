@@ -77,8 +77,9 @@ func live_coin_count() -> int:
 	return count
 
 
-## The gold carried by the coins of the most recent payout whose "+X gold" total was shown; 0 until
-## then. It equals the payout's claimed total whenever per_spot adds up to it.
+## The gold carried by the coins of the current payout once its "+X gold" total has been shown; 0
+## until then, and again 0 as soon as a new payout begins. It equals the payout's claimed total
+## whenever per_spot adds up to it.
 func get_last_total() -> int:
 	return _last_total
 
@@ -233,6 +234,7 @@ func _reset_for_new_payout() -> void:
 	_expected_coins = 0
 	_landed_coins = 0
 	_pending_total = 0
+	_last_total = 0
 	if _total_tween != null:
 		_total_tween.kill()
 	# The generation guard would make a superseded launch a no-op anyway; killing the delay tweens

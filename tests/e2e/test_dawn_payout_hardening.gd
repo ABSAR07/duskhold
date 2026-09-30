@@ -54,6 +54,23 @@ func test_launch_tweens_that_have_fired_are_no_longer_reported_as_waiting() -> v
 	assert_eq(vfx.get_launch_tweens().size(), 0, "no launch is waiting once every coin left")
 
 
+func test_a_payout_with_no_coins_does_not_report_the_previous_payouts_total() -> void:
+	var map_root: MapRoot = await _spawn()
+	var ctx: RunContext = map_root.get_context()
+	var vfx: DawnPayoutVfx = _vfx(map_root)
+	assert_not_null(vfx, "the HUD has a DawnPayoutVfx")
+	if vfx == null:
+		return
+	ctx.events.dawn_payout.emit(3, {HOUSE_ONE: 3})
+	var landed: bool = await E2eSupport.wait_until(self, _total_shown.bind(map_root), SETTLED_S)
+	assert_true(landed, "the first payout landed")
+	assert_eq(vfx.get_last_total(), 3, "and its total was shown")
+
+	ctx.events.dawn_payout.emit(0, {})
+
+	assert_eq(vfx.get_last_total(), 0, "the next payout, with nothing to show, starts from 0")
+
+
 func test_absurdly_large_amounts_are_clamped_so_the_coin_cap_still_holds() -> void:
 	var map_root: MapRoot = await _spawn()
 	var ctx: RunContext = map_root.get_context()
