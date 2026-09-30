@@ -27,7 +27,7 @@ validated: "2026-09-29"
 | **Full suite command** | `bash tools/test.sh` (headless import pass, then GUT over all three dirs; fails on any first-party parse/load error) |
 | **Single file** | `bash tools/test.sh -gselect=<test_file>.gd` |
 | **Lint** | `bash tools/lint.sh` (gdtoolkit 4.5.0: `gdformat --check` + `gdlint`) |
-| **Measured runtime** | Quick: ~11 s wall (16 scripts, 137 tests). Full: ~85 s wall (31 scripts, 232 tests) |
+| **Measured runtime** | Quick: ~11 s wall (16 scripts, 139 tests). Full: ~85 s wall (31 scripts, 235 tests) |
 
 The `tools/*.sh` wrappers need Git Bash on Windows; they resolve the pinned binary under `.tools/godot/4.7.2-stable/` (D-14).
 
@@ -100,6 +100,10 @@ GUT rows run as `bash tools/test.sh -gselect=<file>`. Threat refs are the plans'
 | WR-03 fix (pass 6) | review | — | BLDG-01 | T-01-10 | A building with an empty id is skipped and never matches an unset building id | unit | `test_building_system_data_errors.gd` | ✅ | ✅ green |
 | IN-03 / IN-05 fix (pass 6) | review | — | ECON-02 | — | A crowded payout tightens the stagger to exactly fill the dawn window (asserted against tuning, not itself); a coin whose plot is behind the camera starts mid-screen | e2e | `test_dawn_payout.gd` (2 tests) | ✅ | ✅ green |
 | IN-04 fix (pass 6) | review | — | ECON-01 | — | The double-bind test covers all 11 HUD connections and asserts each is bound first | e2e | `test_map_binding.gd` | ✅ | ✅ green |
+| WR-01 / WR-02 fix (pass 7) | review | — | DEV-03 | T-01-15 | A non-Array provider return warns once; replacing a warned provider lets the new one warn again | unit | `test_debug_overlay_readonly.gd` (`test_replacing_a_warned_provider_lets_the_new_one_warn_again` + extended non-Array test) | ✅ | ✅ green |
+| WR-03 / IN-03 fix (pass 7) | review | — | ECON-01, ECON-02, BLDG-06 | — | In-flight-coin and early-release tests drive the run manager by hand with no wall-clock race; the dawn-end release is tested through a real night→dawn→day | e2e | `test_dawn_payout.gd`, `test_start_night_hold.gd` | ✅ | ✅ green |
+| IN-01 fix (pass 7) | review | — | BLDG-01, BLDG-04 | T-01-04 | Readers get a `BuildingInstance` snapshot; changing it does not change the building | unit | `test_build_spot.gd` (`test_a_reader_changing_the_instance_it_was_given_does_not_change_the_building`) | ✅ | ✅ green |
+| IN-02 fix (pass 7) | review | — | ECON-02 | — | A float or non-number payout amount does not abort the payout | e2e | `test_dawn_payout.gd` (`test_a_payout_amount_that_is_a_float_or_not_a_number_does_not_abort_the_payout`) | ✅ | ✅ green |
 
 Owner gates with no automated verify by design: 01-01-T2 (toolchain download approval), 01-03-T2 (public repo name), 01-07-T2 (CC0 model download approval). No run of three consecutive tasks lacks automated verification.
 
@@ -257,5 +261,26 @@ Evidence:
 - Full suite 232/232 (31 scripts); lint clean.
 - Unit quick run 137/137 (~11 s).
 - `tools/screenshot.sh`: 6/6 non-blank captures. The real-window prompt still reads "Hold N / (Y) to start Night 1".
+- Headless guard exits 2.
+- `ci.yml` unchanged.
+
+## Validation Audit 2026-09-30 (re-audit after review-fix pass 7)
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Re-audited after the seventh review-fix pass (6 fix commits, `b789dde`..`d4ef4f5`). 15/15 requirements are still COVERED.
+
+- **Tests:** +3 new. Two e2e tests no longer race wall-clock time.
+- **Mutation probes:** every change carries one in `01-REVIEW-FIX.md`.
+- **CR-01 guard:** re-probed by the orchestrator; it fails 16/17 with the old spacing.
+
+Evidence:
+- Full suite 235/235 (31 scripts); lint clean.
+- Unit quick run 139/139 (~11 s).
+- `tools/screenshot.sh`: 6/6 non-blank captures.
 - Headless guard exits 2.
 - `ci.yml` unchanged.
