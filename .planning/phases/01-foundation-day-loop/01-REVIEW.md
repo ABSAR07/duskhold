@@ -1,93 +1,78 @@
 ---
 phase: 01-foundation-day-loop
-reviewed: 2026-09-30T11:30:00Z
+reviewed: 2026-09-30T11:55:47Z
 depth: standard
-files_reviewed: 6
+files_reviewed: 10
 files_reviewed_list:
   - tests/e2e/test_dawn_payout_hardening.gd
-  - tests/support/sim_signals.gd
-  - tests/support/sim_signals.gd.uid
+  - tests/support/overlay_test_support.gd
+  - tests/support/overlay_test_support.gd.uid
+  - tests/unit/test_debug_overlay_providers.gd
+  - tests/unit/test_debug_overlay_providers.gd.uid
   - tests/unit/test_debug_overlay_readonly.gd
+  - tests/unit/test_debug_overlay_registration.gd
   - tests/unit/test_debug_overlay_timed_phases.gd
+  - ui/overlay/debug_overlay.gd
   - ui/overlay/debug_overlay_model.gd
 findings:
   critical: 0
-  warning: 2
-  info: 4
-  total: 6
+  warning: 0
+  info: 3
+  total: 3
 status: issues_found
 ---
 
-# Phase 1: Code Review Report
+# Phase 01: Code Review Report
 
-**Reviewed:** 2026-09-30T11:30:00Z
+**Reviewed:** 2026-09-30T11:55:47Z
 **Depth:** standard
-**Files Reviewed:** 6
+**Files Reviewed:** 10
 **Status:** issues_found
 
 ## Summary
 
-Reviewed the Skip-enum refactor of `DebugOverlayModel`, the new shared `SimSignals` list with its drift guard, and the two overlay test suites plus the dawn-payout hardening e2e suite. I cross-checked the payout tests against `ui/hud/dawn_payout_vfx.gd` (clamping, warning texts, coin budget and stagger arithmetic, tween validity) and found the assertions consistent with the implementation. The `SimSignals.ALL` list matches SimEvents' own signals, and the `.uid` file is well-formed. No crashes, security issues or wrong-behaviour bugs were found. The remaining findings are robustness and test-completeness gaps: one warning-suppression hole in the model and one unenforced invariant behind the new `SKIP_MESSAGES` table.
+I reviewed the debug overlay view (`debug_overlay.gd`), its model (`debug_overlay_model.gd`), the shared test support, and the four overlay suites plus the dawn-payout hardening e2e suite. I also read `debug_overlay.tscn`, the `toggle_debug_overlay` input action, `hud.tscn` (the overlay is in the `run_bound` group) and `MapRoot._ready` to check the bind path.
 
-## Warnings
+I traced the following paths and found no defects:
 
-### WR-01: `_warn_once` swallows a different, later problem within the same streak
+- Pending-section replay in `bind_run`: order is kept, and a freed owner is warned about and skipped.
+- The `WeakRef` owner handling in both the view and the model.
+- `Skip` code handling: control flow branches on codes, and `GONE_FOR_GOOD` sections are erased along with their warning state.
+- Warning re-arm: `_warned` is erased when a provider returns only well-formed rows, and on replacement of a provider.
+- `_clean_rows` and the dropped-row count.
+- The `Timer` row being limited to NIGHT and DAWN.
+- The read-only assertions: every signal in `SimSignals.ALL` is watched, and `SimEvents` is a `RefCounted`, so the drift-guard test does not leak an orphan node.
+- The `.uid` files: both are well-formed and distinct.
+- The payout e2e tests: the int and float clamping inputs are valid (9e18 is below int64 max), and the warning assertions match the emitted text.
 
-**File:** `ui/overlay/debug_overlay_model.gd:72-101`
-**Issue:** `_warned` is keyed by title only, and it is cleared only when the provider returns an all-well-formed Array (line 95) or is replaced or dropped. A provider that first returns malformed rows (warning "dropped N malformed row(s)") and then starts returning Nil or a String keeps the `_warned[title]` flag set. The new, different failure ("returned Nil, not an Array") is never reported, and the section silently disappears. The docstring on `_warn_once` promises "name it once per failure streak", but the flag treats two distinct problems as one streak. The tests only cover streaks of a single problem kind (`test_a_flapping_provider_warns_again_after_it_recovers`, `test_a_provider_with_malformed_rows_...`).
-**Fix:** Key the one-shot on the problem as well as the title, so a changed problem warns again:
-```gdscript
-func _warn_once(title: String, problem: String) -> void:
-	if _warned.get(title, "") == problem:
-		return
-	_warned[title] = problem
-	push_warning("debug overlay section '%s' %s" % [title, problem])
-```
-The `_warned.erase(title)` calls stay as they are. The dropped-rows message embeds the count, so use a count-free key for it, or store a separate `kind` string. Add a test for malformed-then-Nil.
-
-### WR-02: Nothing enforces that every `Skip` code has a `SKIP_MESSAGES` entry
-
-**File:** `ui/overlay/debug_overlay_model.gd:12-23, 80`
-**Issue:** The comment says "Every code except NONE needs a message", but this is unenforced. Adding a new `Skip` value without a `SKIP_MESSAGES` entry makes `SKIP_MESSAGES[skip]` at line 80 fail with an invalid-key error inside `collect()`, which runs on every overlay refresh. That is the failure mode the refactor set out to prevent (comments at lines 75-77 describe avoiding a script error on every refresh). The drift-guard pattern used for `SimSignals` is not applied here.
-**Fix:** Add a unit test alongside the model tests:
-```gdscript
-func test_every_skip_code_except_none_has_a_message() -> void:
-	for code_name: String in DebugOverlayModel.Skip.keys():
-		var code: int = DebugOverlayModel.Skip[code_name]
-		if code == DebugOverlayModel.Skip.NONE:
-			continue
-		assert_true(DebugOverlayModel.SKIP_MESSAGES.has(code), "%s has a message" % code_name)
-```
-Alternatively, make the call site defensive with `SKIP_MESSAGES.get(skip, "it cannot be called")`.
+The remaining findings are minor robustness and duplication points.
 
 ## Info
 
-### IN-01: Test-helper duplication across the two overlay suites
+### IN-01: `DebugOverlay.get_text()` dereferences an `@onready` node with no readiness guard
 
-**File:** `tests/unit/test_debug_overlay_timed_phases.gd:17-48` (and `tests/unit/test_debug_overlay_readonly.gd:10-33`)
-**Issue:** `_context_with_one_house` and `_prototype_with_one_house` are the same setup, `_loop` and `_section` are variants of one lookup, and `_row` and `_row_value` are variants of another. `COLLECT_REPEATS` and the 200-collect read-only assertion body are also duplicated. This commit already extracted `SimSignals` into `tests/support`, so the natural next step is a shared `OverlayTestSupport` helper. Fixes to one copy will otherwise drift from the other.
-**Fix:** Move the setup and lookup helpers into a `tests/support/` class (no `test_` prefix, so GUT does not collect it) and call them from both suites.
+**File:** `ui/overlay/debug_overlay.gd:64-65`
+**Issue:** `get_text()` is public API and reads `_text.text`, but `_text` is `@onready`. Calling it before the node is in the tree (for example, right after `instantiate()` and before `add_child`) raises a null-instance script error instead of returning "". The current tests only call it after adding the overlay to the tree, so nothing exercises this. The same window exists for `_refresh`, which is only reachable from `_process`, so that one is safe.
+**Fix:**
+```gdscript
+func get_text() -> String:
+	return _text.text if _text != null else ""
+```
 
-### IN-02: `test_debug_overlay_readonly.gd` sits exactly at the 20 public-method cap
+### IN-02: Owner-validity handling is duplicated between the view and the model, and rejects non-Object owners with a misleading message
 
-**File:** `tests/unit/test_debug_overlay_readonly.gd:43-327`
-**Issue:** The file declares 20 `test_*` methods. The sibling e2e file's header notes that gdlint's public-method cap of 20 forced a split, so the next test added here will fail lint. Its content also now spans two concerns: read-only behaviour (DEV-03) and provider-registration robustness (about 12 tests).
-**Fix:** Split the provider-registration and robustness tests (from `test_a_freed_section_provider_is_skipped...` onward) into `test_debug_overlay_providers.gd`.
+**File:** `ui/overlay/debug_overlay.gd:47-57`, `ui/overlay/debug_overlay_model.gd:57-73`
+**Issue:** `DebugOverlay.register_section` re-implements the model's `has_owner` / `is_instance_valid` / `weakref` logic for the pre-bind path. The two copies use slightly different warning text ("its owner was freed", "its owner was freed before bind_run"), so a later change to one can drift from the other. Because `lifetime_owner` is a `Variant`, a caller who passes a non-Object by mistake (an int or a String) gets `is_instance_valid(5) == false` and is told "its owner was freed", which points at the wrong cause. The pending path in `bind_run` (lines 27-38) has a third copy of the freed-owner check.
+**Fix:** Extract one helper, for example a static `DebugOverlayModel.owner_ref(title, lifetime_owner) -> WeakRef` (with a sentinel for "refused"), and use it from both paths. Distinguish `typeof(lifetime_owner) != TYPE_OBJECT` and warn "its owner is not an Object" separately from the freed case.
 
-### IN-03: Misleading comment in the negative-amounts payout test
+### IN-03: Test scaffolding constants and context construction are duplicated
 
-**File:** `tests/e2e/test_dawn_payout_hardening.gd:157`
-**Issue:** The comment "The Economy was credited the claimed 5" is not what the test does. It emits the `dawn_payout` signal directly and never credits the Economy, so the ledger stays at `RICH_GOLD`. The final assertion (`_hud_gold_settled`) therefore compares the HUD against an un-credited ledger. The same holds for the clamped test at line 83, where a synthetic 2,000,000 payout is announced without a matching credit. The tests still verify what they claim (the HUD readout is not left held back), but the comment misdescribes the setup.
-**Fix:** Reword to "The payout claims 5 gold, but no per-spot amount can carry a coin (the ledger is not credited in this synthetic emit)."
-
-### IN-04: `register_section` raises a script error if the `lifetime_owner` is already freed
-
-**File:** `ui/overlay/debug_overlay_model.gd:51`
-**Issue:** Verified with a headless probe on Godot 4.7.2: passing a previously freed instance to an `Object`-typed parameter raises "Invalid type in function ... (previously freed)" at the call site, before the function body runs. A caller that registers a section with an owner that has already been freed therefore errors instead of getting the graceful skip that the rest of the API provides. The failure is in the caller's frame, so the body cannot guard it.
-**Fix:** Document that `lifetime_owner` must be alive at registration, or take it as `Variant` and check `is_instance_valid` before `weakref`.
+**File:** `tests/unit/test_debug_overlay_registration.gd:6-18`, `tests/e2e/test_dawn_payout_hardening.gd:5-6,15-16`
+**Issue:** `PROTOTYPE_MAP` and `TUNING` are declared again in the registration suite and in the e2e suite, although `OverlayTestSupport` already owns them, along with `new_tuning()`. The registration suite's `_context()` repeats the duplicate-the-resources recipe from `OverlayTestSupport.context_with_one_house`, minus the House. If the resource paths move, several files break instead of one. The e2e suite is outside the overlay support's remit, but the registration suite could reuse it.
+**Fix:** In the registration suite, build the context from `OverlayTestSupport.new_tuning()` and a shared duplicated-map helper (add `new_map()` next to `new_tuning()`), and drop the two local constants.
 
 ---
 
-_Reviewed: 2026-09-30T11:30:00Z_
+_Reviewed: 2026-09-30T11:55:47Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
