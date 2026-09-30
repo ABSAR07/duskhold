@@ -1,7 +1,7 @@
 class_name BuildingSystem
 extends RefCounted
 ## Fixed build spots and the building standing on each. Reads never mutate; the only mutation
-## is apply_next_tier, which performs no validation because CommandProcessor is its only caller.
+## is apply_next_tier, which leaves affordability and range to CommandProcessor, its only caller.
 
 var _events: SimEvents
 var _order: Array[StringName] = []
@@ -19,8 +19,9 @@ func _init(map: MapConfig, events: SimEvents) -> void:
 			continue
 		_defs[building_def.id] = building_def
 	for spot: BuildSpotDef in map.spots:
-		# A duplicate id is also a reported data error; keep the first def so spot_ids() stays unique.
-		if spot == null or _spots.has(spot.id):
+		# An empty or duplicate id is also a reported data error. Skip an empty id (it could not be
+		# told apart from "no spot in range"); keep the first def of a duplicate so spot_ids() is unique.
+		if spot == null or spot.id == &"" or _spots.has(spot.id):
 			continue
 		_order.append(spot.id)
 		_spots[spot.id] = spot
@@ -105,10 +106,11 @@ func nearest_spot_in_range(pos: Vector3, radius: float) -> StringName:
 
 
 ## Builds tier I on an empty spot or raises the tier by one, then emits building_built.
-## NO validation: only CommandProcessor calls this. Null for an unknown spot.
+## Affordability and range are not checked: only CommandProcessor calls this. Null, and nothing
+## changes, for an unknown spot, a spot whose building has no definition, or a spot at max tier.
 func apply_next_tier(spot_id: StringName) -> BuildingInstance:
 	var spot: BuildSpotDef = get_spot(spot_id)
-	if spot == null:
+	if spot == null or next_tier_def(spot_id) == null:
 		return null
 	var instance: BuildingInstance = get_instance(spot_id)
 	if instance == null:
