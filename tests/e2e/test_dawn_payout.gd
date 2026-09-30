@@ -207,7 +207,7 @@ func test_a_huge_payout_is_capped_in_coins_and_the_readout_never_goes_negative()
 	assert_eq(vfx.get_last_total(), total, "the total shown is the full payout")
 
 
-func test_a_crowded_payout_tightens_the_stagger_to_exactly_fill_the_dawn_window() -> void:
+func test_a_crowded_payout_tightens_the_stagger_to_fill_the_dawn_window_less_its_margin() -> void:
 	var short_tuning: LoopTuning = _tuning.duplicate(true)
 	short_tuning.dawn_seconds = 1.0
 	var map_root: MapRoot = await E2eSupport.spawn_map(self, _rich_map(), short_tuning)
@@ -221,9 +221,12 @@ func test_a_crowded_payout_tightens_the_stagger_to_exactly_fill_the_dawn_window(
 
 	# The expected value comes from the tuning and the gaps between launches, not from stagger.
 	var expected: float = (
-		(short_tuning.dawn_seconds - DawnPayoutVfx.TRIP_SECONDS) / float(many_spots_coins - 1)
+		(short_tuning.dawn_seconds - DawnPayoutVfx.TRIP_SECONDS - DawnPayoutVfx.DAWN_MARGIN_SECONDS)
+		/ float(many_spots_coins - 1)
 	)
-	assert_almost_eq(stagger, expected, 0.0001, "tightened so the last coin lands as dawn ends")
+	assert_almost_eq(
+		stagger, expected, 0.0001, "tightened so the last coin lands a margin before dawn ends"
+	)
 	assert_lt(stagger, DawnPayoutVfx.STAGGER_SECONDS, "and never as slow as the default here")
 	assert_eq(
 		vfx.launch_stagger(2), DawnPayoutVfx.STAGGER_SECONDS, "a small payout keeps the default"
@@ -285,8 +288,8 @@ func test_a_real_payout_schedules_its_last_coin_to_land_inside_a_short_dawn_wind
 	)
 	assert_lte(
 		delays[delays.size() - 1] + DawnPayoutVfx.TRIP_SECONDS,
-		short_tuning.dawn_seconds + 0.001,
-		"the last coin is scheduled to land before the dawn window ends"
+		short_tuning.dawn_seconds - DawnPayoutVfx.DAWN_MARGIN_SECONDS + 0.001,
+		"the last coin is scheduled to land a margin before the dawn window ends"
 	)
 	var landed: bool = await E2eSupport.wait_until(
 		self, _total_shown.bind(map_root), short_tuning.dawn_seconds + SETTLED_S

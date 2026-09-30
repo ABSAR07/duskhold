@@ -33,6 +33,10 @@ const POP_SECONDS: float = 0.15
 const POP_HEIGHT_PX: float = 40.0
 ## Whole trip per coin: the pop plus the flight to the counter.
 const TRIP_SECONDS: float = 0.6
+## Slack kept between the last coin landing and the end of dawn. Dawn ends on the simulation clock
+## and the coins fly on the process clock, so landing exactly at the boundary could put the last
+## coin after it.
+const DAWN_MARGIN_SECONDS: float = 0.15
 const TOTAL_SHOWN_SECONDS: float = 2.0
 
 var _ctx: RunContext
@@ -107,13 +111,14 @@ func get_launch_tweens() -> Array[Tween]:
 
 
 ## Seconds between two coin launches for a payout of `coin_total` coins: STAGGER_SECONDS, tightened
-## when needed so the last coin lands before the dawn window ends. Before bind_run there is no dawn
-## window to fit, so the default applies. A dawn no longer than TRIP_SECONDS cannot be met: the
-## stagger is then 0, every coin launches at once and lands after dawn (bind_run warns about it).
+## when needed so the last coin lands DAWN_MARGIN_SECONDS before the dawn window ends. Before
+## bind_run there is no dawn window to fit, so the default applies. A dawn no longer than
+## TRIP_SECONDS cannot be met: the stagger is then 0, every coin launches at once and lands after
+## dawn (bind_run warns about it).
 func launch_stagger(coin_total: int) -> float:
 	if _ctx == null:
 		return STAGGER_SECONDS
-	var window: float = _ctx.tuning.dawn_seconds - TRIP_SECONDS
+	var window: float = _ctx.tuning.dawn_seconds - TRIP_SECONDS - DAWN_MARGIN_SECONDS
 	return clampf(window / float(maxi(coin_total - 1, 1)), 0.0, STAGGER_SECONDS)
 
 
