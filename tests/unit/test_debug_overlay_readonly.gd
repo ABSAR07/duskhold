@@ -134,6 +134,29 @@ func test_a_freed_section_provider_is_skipped_instead_of_crashing() -> void:
 	assert_eq(_row_value(_section(sections, "Live"), "Answer"), "42", "valid sections still show")
 
 
+func test_a_provider_whose_owner_was_freed_is_dropped_after_its_one_warning() -> void:
+	var model: DebugOverlayModel = DebugOverlayModel.new(_prototype_with_one_house())
+	var owner_node: Node = Node.new()
+	model.register_section("Ghost", owner_node.get_children)
+	model.register_section("Live", func() -> Array: return [["Answer", "42"]])
+	owner_node.free()
+	model.collect(60.0)
+	model.collect(60.0)
+	assert_push_warning("debug overlay section 'Ghost' skipped: its callable is no longer valid")
+	assert_push_warning_count(1, "named once, however often the overlay refreshes")
+
+	# A dropped section is gone, so its title registers as a new section (appended after Live)
+	# instead of replacing the dead one in place (which would keep it ahead of Live).
+	model.register_section("Ghost", func() -> Array: return [["Back", "yes"]])
+	var sections: Array = model.collect(60.0)
+
+	var titles: Array[String] = []
+	for section: Dictionary in sections:
+		titles.append(section["title"])
+	assert_eq(titles, ["Perf", "Loop", "Agents", "Live", "Ghost"], "Ghost re-registered last")
+	assert_eq(_row_value(_section(sections, "Ghost"), "Back"), "yes", "and it works again")
+
+
 func test_a_provider_that_needs_an_argument_is_skipped_instead_of_crashing() -> void:
 	var model: DebugOverlayModel = DebugOverlayModel.new(_prototype_with_one_house())
 	model.register_section("Needy", func(wave: int) -> Array: return [["Wave", str(wave)]])

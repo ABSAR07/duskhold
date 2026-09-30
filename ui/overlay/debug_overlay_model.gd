@@ -46,13 +46,19 @@ func collect(fps: float) -> Array:
 		_section("Loop", _loop_rows()),
 		_section("Agents", _agent_rows()),
 	]
-	for entry: Dictionary in _registered:
+	# Iterates a copy: an entry whose callable is gone for good is dropped from _registered below.
+	for entry: Dictionary in _registered.duplicate():
 		var provider: Callable = entry["provider"]
 		# A freed owner leaves an invalid Callable, and a provider that needs an argument cannot be
 		# called with none; skip either instead of raising a script error on every refresh.
 		var skip_reason: String = _skip_reason(provider)
 		if not skip_reason.is_empty():
 			_warn_once(entry["title"], skip_reason)
+			if not provider.is_valid():
+				# An invalid Callable never recovers (register_section is the way to replace it), so
+				# it is named once and then forgotten rather than re-checked on every refresh.
+				_registered.erase(entry)
+				_warned.erase(entry["title"])
 			continue
 		var rows: Variant = provider.call()
 		if rows is Array:
