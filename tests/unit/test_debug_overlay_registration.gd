@@ -128,6 +128,27 @@ func test_a_pending_section_whose_owner_died_before_bind_run_is_left_out_with_a_
 	assert_push_warning("debug overlay section 'Ghost' not registered: its owner was freed")
 
 
+func test_a_pending_section_whose_owner_is_freed_after_bind_run_is_dropped_with_a_warning() -> void:
+	var overlay: DebugOverlay = _overlay()
+	var watched: Node = Node.new()
+	overlay.register_section(
+		"Watched", func() -> Array: return [["Kids", str(watched.get_child_count())]], watched
+	)
+	overlay.register_section("Live", func() -> Array: return [["Answer", "42"]])
+	overlay.bind_run(_context(), null)
+	var before: String = await _shown_text(overlay)
+	assert_string_contains(before, "Kids: 0", "the section shows while its owner is alive")
+
+	watched.free()
+	await wait_seconds(DebugOverlay.REFRESH_INTERVAL_S * 2.0)
+
+	var after: String = overlay.get_text()
+	assert_false(after.contains("Watched"), "the section ends once its owner is freed")
+	assert_string_contains(after, "Answer: 42", "and the other pending section still shows")
+	assert_push_warning("debug overlay section 'Watched' skipped: its owner was freed")
+	assert_push_warning_count(1, "the freed owner is named once, not on every refresh")
+
+
 func test_a_pending_section_replaced_before_bind_run_does_not_warn_about_the_old_owner() -> void:
 	var overlay: DebugOverlay = _overlay()
 	var old_owner: Node = Node.new()
