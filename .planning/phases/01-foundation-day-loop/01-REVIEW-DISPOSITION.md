@@ -3,6 +3,14 @@ phase: 01
 review: 01-REVIEW.md
 titles: json
 findings:
+  - id: IN-01
+    severity: info
+    disposition: open
+    title: "Toggle reads `Input` directly, so it fires for input a UI has already consumed"
+  - id: IN-02
+    severity: info
+    disposition: open
+    title: "The e2e refresh assertions have a tight real-time window"
   - id: WR-01
     severity: warning
     disposition: fixed
@@ -11,14 +19,6 @@ findings:
     severity: warning
     disposition: fixed
     title: "The \"refreshes about 4 times/s\" contract has no upper-bound or cadence test"
-  - id: IN-01
-    severity: info
-    disposition: skipped
-    title: "The toggle is read by polling `Input`, so it also fires for input a UI has consumed"
-  - id: IN-02
-    severity: info
-    disposition: fixed
-    title: "`_refresh` advances on scaled delta, so a paused or slowed simulation freezes the overlay"
   - id: IN-03
     severity: info
     disposition: fixed
@@ -87,20 +87,20 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 0
+open: 2
 total: 21
-recorded: 2026-09-30T14:27:29.422Z
+recorded: 2026-09-30T14:32:53.452Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-02 | warning | fixed | 01-REVIEW-FIX.md |
-| IN-01 | info | skipped | 01-REVIEW-FIX.md |
-| IN-02 | info | fixed | 01-REVIEW-FIX.md |
-| IN-03 | info | fixed | 01-REVIEW-FIX.md |
+| IN-01 | info | open | - |
+| IN-02 | info | open | - |
+| WR-01 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
+| WR-02 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
+| IN-03 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-03 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-04 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-05 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
