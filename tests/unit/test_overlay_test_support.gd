@@ -61,3 +61,35 @@ func test_editing_a_new_tuning_copy_leaves_the_cached_tuning_alone() -> void:
 
 	assert_ne(copy, cached, "the tuning is a copy")
 	assert_eq(cached.dawn_seconds, dawn_before, "the cached tuning is unchanged")
+
+
+func test_a_new_tuning_copy_shares_no_resource_with_the_cached_tuning() -> void:
+	# LoopTuning has no subresource today, so this passes trivially now. It fails the day one is
+	# added and new_tuning() copies it shallowly, which is what new_tuning's "copied all the way
+	# down" promise (DEEP_DUPLICATE_ALL) is there to prevent.
+	var cached: LoopTuning = load(OverlayTestSupport.TUNING)
+	var copy: LoopTuning = OverlayTestSupport.new_tuning()
+	var checked: int = 0
+	for property: Dictionary in cached.get_script().get_script_property_list():
+		if (property["usage"] as int) & PROPERTY_USAGE_STORAGE == 0:
+			continue
+		checked += 1
+		var name: String = property["name"]
+		var copied: Array[Resource] = _resources_in(copy.get(name))
+		for resource: Resource in _resources_in(cached.get(name)):
+			assert_false(copied.has(resource), "'%s' shares a subresource with the cache" % name)
+	assert_gt(checked, 0, "the tuning has stored properties, so the loop above checked something")
+
+
+## Every Resource held directly by `value` or, for an Array or Dictionary, by its entries.
+func _resources_in(value: Variant) -> Array[Resource]:
+	var found: Array[Resource] = []
+	if value is Resource:
+		found.append(value)
+	elif value is Array:
+		for item: Variant in value:
+			found.append_array(_resources_in(item))
+	elif value is Dictionary:
+		for item: Variant in (value as Dictionary).values():
+			found.append_array(_resources_in(item))
+	return found
