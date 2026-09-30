@@ -94,3 +94,19 @@ func test_absurdly_large_amounts_are_clamped_so_the_coin_cap_still_holds() -> vo
 	assert_true(settled, "every coin landed and the HUD shows exactly the ledger gold")
 	assert_gte(vfx.get_spawned_count(HOUSE_ONE), 1, "each paying spot still sends a coin")
 	assert_gte(vfx.get_spawned_count(HOUSE_TWO), 1, "each paying spot still sends a coin")
+
+
+func test_start_point_before_the_run_is_bound_falls_back_to_mid_screen() -> void:
+	# Only the two labels the payout view looks up by unique name; no run is ever bound.
+	var vfx: DawnPayoutVfx = DawnPayoutVfx.new()
+	for label_name: String in ["GoldLabel", "PayoutTotal"]:
+		var label: Label = Label.new()
+		label.name = label_name
+		vfx.add_child(label)
+		label.owner = vfx
+		label.unique_name_in_owner = true
+	add_child_autofree(vfx)
+
+	var point: Vector2 = vfx.start_point(HOUSE_ONE)
+
+	assert_eq(point, vfx.get_viewport_rect().size * 0.5, "no run yet, so the middle of the screen")

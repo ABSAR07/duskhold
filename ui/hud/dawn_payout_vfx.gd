@@ -293,8 +293,11 @@ func _launch_coin(spot_id: StringName, generation: int, share: int) -> void:
 
 
 ## Where the plot appears on screen; the middle of the screen if there is no camera or the plot is
-## behind it. Public so a test can call it without reaching for a private member.
+## behind it, or the run is not bound yet. Public so a test can call it without reaching for a
+## private member.
 func start_point(spot_id: StringName) -> Vector2:
+	if _ctx == null:
+		return get_viewport_rect().size * 0.5
 	var camera: Camera3D = get_viewport().get_camera_3d()
 	var spot: BuildSpotDef = _ctx.buildings.get_spot(spot_id)
 	if camera == null or spot == null:
