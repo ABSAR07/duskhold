@@ -5,8 +5,20 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: fixed
-    title: "Integer overflow in `carried_gold` defeats the coin cap and can spawn a huge number of coins"
+    disposition: open
+    title: "A tightened stagger leaves zero slack, so the last coin can land after dawn ends"
+  - id: IN-01
+    severity: info
+    disposition: open
+    title: "`start_point` dereferences `_ctx` without the null guard `launch_stagger` has"
+  - id: IN-02
+    severity: info
+    disposition: open
+    title: "`_warn_once` is keyed by title only, so a second, different failure of the same provider is silent"
+  - id: IN-03
+    severity: info
+    disposition: open
+    title: "Tests for skipped providers are inconsistent about asserting the warning"
   - id: WR-02
     severity: warning
     disposition: fixed
@@ -15,18 +27,6 @@ findings:
     severity: warning
     disposition: fixed
     title: "Camera test dereferences a possibly-null `vfx`"
-  - id: IN-01
-    severity: info
-    disposition: fixed
-    title: "`_last_total` is not reset between payouts"
-  - id: IN-02
-    severity: info
-    disposition: fixed
-    title: "Test-only accessors and private access widen the production surface"
-  - id: IN-03
-    severity: info
-    disposition: fixed
-    title: "Unreachable providers stay registered for the model's lifetime"
   - id: IN-04
     severity: info
     disposition: fixed
@@ -87,21 +87,21 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 0
+open: 4
 total: 21
-recorded: 2026-09-30T09:07:25.028Z
+recorded: 2026-09-30T09:13:29.768Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-02 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-03 | warning | fixed | 01-REVIEW-FIX.md |
-| IN-01 | info | fixed | 01-REVIEW-FIX.md |
-| IN-02 | info | fixed | 01-REVIEW-FIX.md |
-| IN-03 | info | fixed | 01-REVIEW-FIX.md |
+| WR-01 | warning | open | - |
+| IN-01 | info | open | - |
+| IN-02 | info | open | - |
+| IN-03 | info | open | - |
+| WR-02 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
+| WR-03 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-04 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-05 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-04 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
