@@ -27,7 +27,7 @@ validated: "2026-09-29"
 | **Full suite command** | `bash tools/test.sh` (headless import pass, then GUT over all three dirs; fails on any first-party parse/load error) |
 | **Single file** | `bash tools/test.sh -gselect=<test_file>.gd` |
 | **Lint** | `bash tools/lint.sh` (gdtoolkit 4.5.0: `gdformat --check` + `gdlint`) |
-| **Measured runtime** | Quick: ~11 s wall (16 scripts, 135 tests). Full: ~85 s wall (31 scripts, 227 tests) |
+| **Measured runtime** | Quick: ~11 s wall (16 scripts, 137 tests). Full: ~85 s wall (31 scripts, 232 tests) |
 
 The `tools/*.sh` wrappers need Git Bash on Windows; they resolve the pinned binary under `.tools/godot/4.7.2-stable/` (D-14).
 
@@ -95,6 +95,11 @@ GUT rows run as `bash tools/test.sh -gselect=<file>`. Threat refs are the plans'
 | WR-01 fix (pass 5) | review | — | BLDG-06 (start-night input) | — | The prompt names trigger/mouse bindings, keeps key modifiers, skips an event that names no key | e2e | `test_start_night_hold.gd` (2 tests) | ✅ | ✅ green |
 | WR-04 fix (pass 5) | review | — | BLDG-01, BLDG-04 | T-01-10 | Empty-id spots skipped and never focusable; `apply_next_tier` refuses unknown buildings and never passes the last tier | unit | `test_building_system_data_errors.gd` (3 tests) | ✅ | ✅ green |
 | IN-05 fix (pass 5) | review | — | DEV-03 | T-01-15 | Registering a title twice replaces the section instead of duplicating it | unit | `test_debug_overlay_readonly.gd` | ✅ | ✅ green |
+| WR-01 / IN-01 / IN-02 fix (pass 6) | review | — | BLDG-06 (start-night input) | — | The prompt names a key by its layout label (fake-layout seam; real layouts need a human check), follows an in-place rebind, and shows a stick axis's direction | e2e | `test_start_night_hold.gd` (2 tests + extended assertions) | ✅ | ✅ green |
+| WR-02 fix (pass 6) | review | — | DEV-03 | T-01-15 | A skipped overlay provider is warned about once per title | unit | `test_debug_overlay_readonly.gd` (`test_a_skipped_provider_is_warned_about_once_however_often_the_overlay_refreshes`) | ✅ | ✅ green |
+| WR-03 fix (pass 6) | review | — | BLDG-01 | T-01-10 | A building with an empty id is skipped and never matches an unset building id | unit | `test_building_system_data_errors.gd` | ✅ | ✅ green |
+| IN-03 / IN-05 fix (pass 6) | review | — | ECON-02 | — | A crowded payout tightens the stagger to exactly fill the dawn window (asserted against tuning, not itself); a coin whose plot is behind the camera starts mid-screen | e2e | `test_dawn_payout.gd` (2 tests) | ✅ | ✅ green |
+| IN-04 fix (pass 6) | review | — | ECON-01 | — | The double-bind test covers all 11 HUD connections and asserts each is bound first | e2e | `test_map_binding.gd` | ✅ | ✅ green |
 
 Owner gates with no automated verify by design: 01-01-T2 (toolchain download approval), 01-03-T2 (public repo name), 01-07-T2 (CC0 model download approval). No run of three consecutive tasks lacks automated verification.
 
@@ -141,6 +146,7 @@ Owner gates with no automated verify by design: 01-01-T2 (toolchain download app
 | Floating spot label, coin drip, denied shake | BLDG-02, BLDG-03, D-07, D-08 | Visual and feel checks | Ride to each spot type; hold to build with enough gold and without; release early to confirm the refund |
 | Dawn payout animation and banners | ECON-02, D-12 | Visual check | End the day with the start-night hold; confirm the night banner, then the coins flying to the HUD and the "+X gold" total |
 | Screenshot contents | DEV-04 | Needs someone to look at the images | Open the six captured PNGs (day overview, spot label, build in progress, night banner, dawn payout, overlay on) and confirm each shows its scene |
+| Start-night key label on a non-QWERTY layout | BLDG-06 (start-night input) | Headless Godot cannot switch keyboard layouts; only a fake-layout seam is tested | On a Dvorak or AZERTY desktop, confirm the start-night prompt names the key printed on the keycap |
 | Licence judgment for logged assets | ART-02 | The test proves every file is logged under an allow-listed licence, not that a self-declared licence is right | Owner decision on the Quaternius horse licence (review finding WR-06) before the itch.io release |
 
 ---
@@ -230,5 +236,26 @@ Evidence:
 - Full suite 227/227 (31 scripts); lint clean.
 - Unit quick run 135/135 (~11 s).
 - `tools/screenshot.sh`: 6/6 non-blank captures.
+- Headless guard exits 2.
+- `ci.yml` unchanged.
+
+## Validation Audit 2026-09-30 (re-audit after review-fix pass 6)
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Re-audited after the sixth review-fix pass (8 fix commits, `723080f`..`1c3e320`). 15/15 requirements are still COVERED.
+
+- **Tests:** net +5. Every change carries a mutation probe in `01-REVIEW-FIX.md`.
+- **CR-01 guard:** re-probed by the orchestrator; it still fails with the old spacing.
+- **Manual-only addition:** the start-night key label on a non-QWERTY layout, because a headless run cannot switch layouts.
+
+Evidence:
+- Full suite 232/232 (31 scripts); lint clean.
+- Unit quick run 137/137 (~11 s).
+- `tools/screenshot.sh`: 6/6 non-blank captures. The real-window prompt still reads "Hold N / (Y) to start Night 1".
 - Headless guard exits 2.
 - `ci.yml` unchanged.
