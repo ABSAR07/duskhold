@@ -7,6 +7,9 @@ extends RefCounted
 ##
 ## collect() returns Array of {title: String, rows: Array of [label: String, value: String]}.
 
+## Titles of the sections collect() always builds itself; registered sections cannot reuse them.
+const DEFAULT_TITLES: Array[String] = ["Perf", "Loop", "Agents"]
+
 var _ctx: RunContext
 var _registered: Array[Dictionary] = []
 ## Titles already warned about, so a skipped provider is reported once, not on every refresh.
@@ -18,9 +21,16 @@ func _init(ctx: RunContext) -> void:
 
 
 ## Appends a section after the defaults; registering a title that is already registered replaces
-## that section's provider in place, so a section never shows twice. `provider` takes no arguments
-## and returns rows as an Array of [String, String]. It must only read simulation state.
+## that section's provider in place, so a section never shows twice. A title that names a default
+## section ("Perf", "Loop", "Agents") is refused with a warning for the same reason. `provider`
+## takes no arguments and returns rows as an Array of [String, String]. It must only read
+## simulation state.
 func register_section(title: String, provider: Callable) -> void:
+	if title in DEFAULT_TITLES:
+		push_warning(
+			"debug overlay section '%s' not registered: the title is a default section" % title
+		)
+		return
 	for entry: Dictionary in _registered:
 		if entry["title"] == title:
 			entry["provider"] = provider

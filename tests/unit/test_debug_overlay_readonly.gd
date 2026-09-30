@@ -216,6 +216,20 @@ func test_the_watched_signals_are_every_signal_the_simulation_declares() -> void
 	assert_eq(watched, declared, "a new SimEvents signal must be added to SIM_SIGNALS")
 
 
+func test_registering_a_default_section_title_is_refused_instead_of_showing_it_twice() -> void:
+	var model: DebugOverlayModel = DebugOverlayModel.new(_prototype_with_one_house())
+
+	for title: String in DebugOverlayModel.DEFAULT_TITLES:
+		model.register_section(title, func() -> Array: return [["Rogue", "1"]])
+		assert_push_warning("debug overlay section '%s' not registered" % title)
+
+	var titles: Array[String] = []
+	for section: Dictionary in model.collect(60.0):
+		titles.append(section["title"])
+	assert_eq(titles, ["Perf", "Loop", "Agents"] as Array[String], "each default shows once")
+	assert_eq(_row_value(_section(model.collect(60.0), "Loop"), "Rogue"), "", "the built-in rows")
+
+
 func test_registering_a_title_twice_replaces_the_section_instead_of_duplicating_it() -> void:
 	var model: DebugOverlayModel = DebugOverlayModel.new(_prototype_with_one_house())
 	model.register_section("Wave", func() -> Array: return [["Wave", "1"]])
