@@ -5,15 +5,15 @@ titles: json
 findings:
   - id: IN-01
     severity: info
-    disposition: open
+    disposition: fixed
     title: "`DebugOverlay.get_text()` dereferences an `@onready` node with no readiness guard"
   - id: IN-02
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Owner-validity handling is duplicated between the view and the model, and rejects non-Object owners with a misleading message"
   - id: IN-03
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Test scaffolding constants and context construction are duplicated"
   - id: WR-01
     severity: warning
@@ -87,18 +87,18 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 3
+open: 0
 total: 21
-recorded: 2026-09-30T11:56:30.856Z
+recorded: 2026-09-30T12:12:25.065Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| IN-01 | info | open | - |
-| IN-02 | info | open | - |
-| IN-03 | info | open | - |
+| IN-01 | info | fixed | 01-REVIEW-FIX.md |
+| IN-02 | info | fixed | 01-REVIEW-FIX.md |
+| IN-03 | info | fixed | 01-REVIEW-FIX.md |
 | WR-01 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-02 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-04 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
