@@ -110,7 +110,7 @@ GUT rows run as `bash tools/test.sh -gselect=<file>`. Threat refs are the plans'
 | IN-02 / IN-03 fix (pass 8) | review | — | DEV-03 | T-01-15 | Buildings counted by tier (no snapshot allocation); a section titled like a default one is refused | unit | `test_debug_overlay_readonly.gd` (`test_registering_a_default_section_title_is_refused_instead_of_showing_it_twice`) | ✅ | ✅ green |
 | WR-01 / WR-02 / IN-01 fix (pass 9) | review | — | ECON-02 | — | Absurdly large amounts are clamped so the coin cap holds; fired launch tweens are no longer reported as waiting; a coinless payout does not report the previous total | e2e | `test_dawn_payout_hardening.gd` (3 tests, new file) | ✅ | ✅ green |
 | WR-03 / IN-02 fix (pass 9) | review | — | ECON-02 | — | Camera test null-guarded; test hooks documented, `start_point` public | e2e | `test_dawn_payout.gd` | ✅ | ✅ green |
-| IN-03 fix (pass 9) | review | — | DEV-03 | T-01-15 | A provider whose owner was freed is dropped after its one warning | unit | `test_debug_overlay_readonly.gd` (`test_a_provider_whose_owner_was_freed_is_dropped_after_its_one_warning`) | ✅ | ✅ green |
+| IN-03 fix (pass 9) | review | — | DEV-03 | T-01-15 | A provider whose Callable became invalid (its object was freed) is dropped after its one warning | unit | `test_debug_overlay_readonly.gd` (`test_a_provider_with_an_invalid_callable_is_dropped_after_its_one_warning`, renamed in pass 14) | ✅ | ✅ green |
 | WR-01 fix (pass 10) | review | — | ECON-02 | — | A tightened stagger keeps a `DAWN_MARGIN_SECONDS` (0.15 s) landing margin before dawn ends; the default tuning keeps the full stagger | e2e | `test_dawn_payout.gd` (`test_a_crowded_payout_tightens_the_stagger_to_fill_the_dawn_window_less_its_margin` + a margin assertion in the CR-01 guard) | ✅ | ✅ green |
 | IN-01 fix (pass 10) | review | — | ECON-02 | — | `start_point` before `bind_run` falls back to mid-screen instead of dereferencing a null run | e2e | `test_dawn_payout_hardening.gd` (`test_start_point_before_the_run_is_bound_falls_back_to_mid_screen`) | ✅ | ✅ green |
 | IN-02 / IN-03 fix (pass 10) | review | — | DEV-03 | T-01-15 | The provider warning re-arms once the provider returns rows again; the freed-owner and needs-an-argument tests assert their warnings | unit | `test_debug_overlay_readonly.gd` (`test_a_flapping_provider_warns_again_after_it_recovers` + 2 tests extended) | ✅ | ✅ green |
@@ -122,6 +122,9 @@ GUT rows run as `bash tools/test.sh -gselect=<file>`. Threat refs are the plans'
 | WR-01 / IN-01 fix (pass 13) | review | — | DEV-03 | T-01-15 | A provider whose rows are dropped as malformed is warned about once per failure streak (re-armed only by a fully well-formed answer); the permanent-failure check is derived from the skip reason | unit | `test_debug_overlay_readonly.gd` (malformed-rows test extended) | ✅ | ✅ green |
 | WR-02 fix (pass 13) | review | — | ECON-01, ECON-02 | — | A payout claiming no gold but listing per-spot amounts warns and shows nothing; a payout of only negative amounts shows nothing and leaves the HUD on the ledger | e2e | `test_dawn_payout_hardening.gd` (`test_a_payout_claiming_no_gold_but_listing_amounts_is_reported_and_shows_nothing`, `test_a_payout_of_only_negative_amounts_shows_nothing_and_leaves_the_hud_on_the_ledger`) | ✅ | ✅ green |
 | IN-02 / IN-03 fix (pass 13) | review | — | DEV-03 | T-01-15 | The night/dawn read-only check also snapshots every spot's tier and the unit/enemy counts; registration tests show the overlay through the real toggle action and wait frames, not wall-clock time | unit | `test_debug_overlay_timed_phases.gd`, `test_debug_overlay_registration.gd` | ✅ | ✅ green |
+| WR-01 fix (pass 14) | review | — | DEV-03 | T-01-15 | Every read-only overlay suite watches one shared `SimSignals.ALL` list, and the drift guard checks that list against `SimEvents`, so no suite silently under-watches a new signal | unit | `test_debug_overlay_readonly.gd` (drift guard), `test_debug_overlay_timed_phases.gd`; shared list `tests/support/sim_signals.gd` | ✅ | ✅ green |
+| IN-01 / IN-03 fix (pass 14) | review | — | DEV-03 | T-01-15 | Overlay skip handling branches on `Skip` codes (messages in one table, `GONE_FOR_GOOD` names the permanent ones), not message text; the invalid-callable test is named for what it pins | unit | `test_debug_overlay_readonly.gd` | ✅ | ✅ green |
+| IN-02 / IN-04 fix (pass 14) | review | — | ECON-02 | — | The clamp test pins the exact plan (`MAX_COINS` coins split evenly between the two spots) and the shown total; dead night-length setup removed | e2e | `test_dawn_payout_hardening.gd` | ✅ | ✅ green |
 
 Owner gates with no automated verify by design: 01-01-T2 (toolchain download approval), 01-03-T2 (public repo name), 01-07-T2 (CC0 model download approval). No run of three consecutive tasks lacks automated verification.
 
@@ -433,6 +436,30 @@ Re-audited after the thirteenth review-fix pass (5 commits, `b223b55`..`6c38829`
 Evidence:
 - Full suite 260/260 (34 scripts); lint clean.
 - Unit quick run 156/156 (18 scripts, ~13 s).
+- `tools/screenshot.sh`: 6/6 non-blank captures.
+- Headless guard exits 2.
+- `ci.yml` unchanged.
+
+## Validation Audit 2026-09-30 (re-audit after review-fix pass 14)
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Re-audited after the fourteenth review-fix pass (5 commits, `24f0e1e`..`3f3ee45`). 15/15 requirements are still COVERED.
+
+- **Tests:** no new test methods.
+  - The two read-only overlay suites now share `SimSignals.ALL` (`tests/support/sim_signals.gd`, not collected by GUT, linted with `tests/`) behind one drift guard.
+  - The clamp test pins the exact coin plan and the shown total.
+  - One overlay test was renamed; the pass-9 row above now uses the new name.
+- **Mutation probes:** every change carries one in `01-REVIEW-FIX.md`. IN-02 (dead setup removed) and IN-03 (rename) need none.
+- **CR-01 guard:** re-probed by the orchestrator; it fails 17/18 with the old spacing. `dawn_payout_vfx.gd` was not touched this pass.
+
+Evidence:
+- Full suite 260/260 (34 scripts); lint clean (69 files).
+- Unit quick run 156/156 (18 scripts, ~12 s).
 - `tools/screenshot.sh`: 6/6 non-blank captures.
 - Headless guard exits 2.
 - `ci.yml` unchanged.
