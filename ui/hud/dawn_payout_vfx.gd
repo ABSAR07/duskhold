@@ -168,7 +168,8 @@ func _coins_for_amount(amount: int, carried_gold: int) -> int:
 ## The gold coin `coin` (0-based) of `coin_count` carries; a spot's coins sum to its amount.
 func _coin_share(amount: int, coin_count: int, coin: int) -> int:
 	var remainder: int = amount % coin_count
-	var base: int = floori(float(amount - remainder) / float(coin_count))
+	@warning_ignore("integer_division")
+	var base: int = (amount - remainder) / coin_count
 	return base + (1 if coin < remainder else 0)
 
 
