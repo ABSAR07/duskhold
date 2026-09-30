@@ -1,100 +1,65 @@
 ---
 phase: 01-foundation-day-loop
-fixed_at: 2026-09-30T14:24:10Z
+fixed_at: 2026-09-30T14:39:48Z
 review_path: .planning/phases/01-foundation-day-loop/01-REVIEW.md
 iteration: 1
-findings_in_scope: 5
-fixed: 4
+findings_in_scope: 2
+fixed: 1
 skipped: 1
 status: partial
 ---
 
 # Phase 1: Code Review Fix Report
 
-**Fixed at:** 2026-09-30T14:24:10Z
+**Fixed at:** 2026-09-30T14:39:48Z
 **Source review:** .planning/phases/01-foundation-day-loop/01-REVIEW.md
 **Iteration:** 1
 
 **Summary:**
-- Findings in scope: 5
-- Fixed: 4
+- Findings in scope: 2
+- Fixed: 1
 - Skipped: 1
 
-**Verification environment:** all gates ran in the main checkout (no worktree was created, because the
-orchestrator's probe-and-restore workflow and the Godot import cache need the real tree). Final full run
-`bash tools/test.sh`: 289/289 passing in 36 scripts (was 286/286; net +3 tests). `bash tools/lint.sh`: clean.
-`.planning/config.json` was left uncommitted, and `.github/workflows/ci.yml`, the start-night prompt and
-`ui/hud/dawn_payout_vfx.gd` were not touched (so the CR-01 guard needed no re-probe).
+**Verification environment:** all gates ran in the main checkout (no worktree was created, as in the previous
+pass: the orchestrator's probe-and-restore workflow and the gitignored Godot import cache need the real tree).
+Final full run `bash tools/test.sh`: 289/289 passing in 36 scripts (unchanged count; the fix is a test constant).
+`bash tools/lint.sh`: clean. `.planning/config.json` was left uncommitted, and `.github/workflows/ci.yml`,
+`ui/hud/dawn_payout_vfx.gd` and the start-night prompt were not touched.
 
 ## Fixed Issues
 
-### WR-01: The pause test checks the flag, not the behaviour it claims to protect
+### IN-02: The e2e refresh assertions have a tight real-time window
 
 **Files modified:** `tests/e2e/test_debug_overlay_toggle.gd`
-**Commit:** e91aa07
-**Applied fix:** Replaced the flag-only test with `test_overlay_toggles_and_refreshes_while_the_tree_is_paused`.
-It pauses the tree, presses F3 through `Input.action_press`, and asserts the overlay shows and fills. It then
-builds a House through the command gate (no tree processing needed) and asserts the Buildings row refreshes to
-1 within 0.5 s while still paused, and that a second F3 hides the overlay. `after_each` now sets
-`get_tree().paused = false`, so a failure cannot leak a paused tree.
-**Mutation probe:** added `if get_tree().paused: return` at the top of `DebugOverlay._process` (the kind of
-change the old test would have passed). The new test failed ("Expected text and search strings to be
-non-empty. You passed "" and "Buildings: 0""). Source restored from a backup copy.
-
-### WR-02: The "refreshes about 4 times/s" contract has no upper-bound or cadence test
-
-**Files modified:** `tests/unit/test_debug_overlay_registration.gd`
-**Commit:** d07791d
-**Applied fix:** Added two unit tests with a counting provider, driven with synthetic deltas and no real-time
-waits. One checks no refresh before one interval, exactly one just after it, and that the timer restarts. The
-other checks that a hidden overlay never refreshes and a shown one refreshes 7 to 9 times over 2 simulated
-seconds at 60 fps (not one per frame). The freed-owner test's `wait_seconds(REFRESH_INTERVAL_S * 2.0)` sleep was
-replaced by one synthetic interval. (Deviation from the suggested "10 calls of 0.1 give 4": discrete 0.1 steps
-give 3 refreshes, so the tests use an unambiguous below/above-interval check and a tolerance band.) File is at
-20 public methods, the gdlint cap. In this commit the tests drove `_process`; IN-02 later moved them to
-`_advance_refresh`.
-**Mutation probes:** (a) refreshing on every call (`if true:`) failed 4 assertions in the new tests; (b) never
-accumulating the timer (`_since_refresh = 0.0`) failed the new cadence test and the freed-owner test. Source
-restored from a backup copy each time.
-
-### IN-02: `_refresh` advances on scaled delta, so a paused or slowed simulation freezes the overlay
-
-**Files modified:** `ui/overlay/debug_overlay.gd`, `tests/e2e/test_debug_overlay_toggle.gd`, `tests/unit/test_debug_overlay_registration.gd`
-**Commit:** bce38c1
-**Applied fix:** The refresh clock now uses real elapsed time from `Time.get_ticks_usec()` (set in `_ready`,
-updated every frame so showing the overlay after a long hidden spell cannot cause a burst), passed to a new
-`_advance_refresh(seconds)`, which also holds the hidden-overlay guard. The reviewer's suggested
-`delta / maxf(Engine.time_scale, 0.001)` was not used because at `time_scale = 0` delta is 0 and the quotient
-stays 0, so it would not un-freeze the overlay. The unit cadence tests now call `_advance_refresh`. New e2e test
-`test_overlay_keeps_refreshing_while_the_engine_time_scale_is_zero` sets `Engine.time_scale = 0.0` and asserts the
-Buildings row still refreshes; `after_each` restores `Engine.time_scale = 1.0`.
-**Mutation probe:** reverted `_advance_refresh(real_delta)` to `_advance_refresh(_delta)`; the new e2e test failed
-("the overlay refreshes within 0.5 s of real time"). Source restored from a backup copy.
-
-### IN-03: Pending sections are held forever if the overlay is never bound
-
-**Files modified:** `ui/overlay/debug_overlay.gd`
-**Commit:** e7a605d
-**Applied fix:** Documentation only, as the review suggested. The `_pending` doc comment now says an entry's
-provider Callable keeps its captures alive until `bind_run` runs, and for the overlay's lifetime if it is never
-bound. No behaviour change, so no probe.
+**Commit:** 625a89d
+**Applied fix:** `REFRESH_WINDOW_S` changed from 0.5 to 1.0 (one constant, used by all three refresh waits and
+their failure messages). The 0.25 s cadence is still asserted deterministically by the unit tests, so nothing
+that the window proved is lost.
+**Probe (the widened window still discriminates):** with the fix in place, replaced `_advance_refresh(real_delta)`
+with `_advance_refresh(0.0)` in `ui/overlay/debug_overlay.gd`, so the tick never refreshes. Three e2e tests failed
+("the Buildings row shows 1 within 1.0 s", "the overlay refreshes within 1.0 s while paused", "the overlay
+refreshes within 1.0 s of real time"). Source restored from a backup copy and confirmed unchanged by `git diff`.
+This is a test-reliability change with no source behaviour change, so there is no "fails on unfixed code" probe.
 
 ## Skipped Issues
 
-### IN-01: The toggle is read by polling `Input`, so it also fires for input a UI has consumed
+### IN-01: Toggle reads `Input` directly, so it fires for input a UI has already consumed
 
-**File:** `ui/overlay/debug_overlay.gd:101`
-**Reason:** skipped: optional design note that the reviewer itself calls "not a defect". Moving the toggle to
-`_unhandled_input` means every overlay test that drives it with `Input.action_press` (which does not dispatch an
-`InputEvent`) would need rewriting to `Input.parse_input_event`, across three suites, for a purely cosmetic
-benefit in a read-only overlay. The situation it guards against (a rebind-capture screen, a UI consuming F3) does
-not exist in Phase 1. Revisit when the runtime-rebinding UI lands.
-**Original issue:** `Input.is_action_just_pressed(TOGGLE_ACTION)` in `_process` ignores whether a focused Control or
-a pause menu consumed the event, so rebinding another action to F3 or pressing F3 in a rebind capture screen also
-toggles the overlay.
+**File:** `ui/overlay/debug_overlay.gd:114`
+**Reason:** skipped: the reviewer rates it harmless today and its own fix says to act "when a rebind or menu UI
+arrives". No such UI exists in Phase 1, so nothing can consume F3 or Back before the overlay sees it. Polling
+`Input` also matches `build_hold_controller.gd` and `start_night_hold_controller.gd`; moving only the overlay to
+`_unhandled_input` would make one controller inconsistent, and the right design (a shared suppress flag or
+consistent event-based handling, chosen against the real rebind/pause UI) cannot be picked without that UI. The
+change would also rewrite every overlay e2e test that drives the toggle with `Input.action_press` (which
+dispatches no `InputEvent`) to `Input.parse_input_event`, for no observable benefit yet. Revisit when the Phase 2+
+pause or rebind screen lands.
+**Original issue:** `Input.is_action_just_pressed(TOGGLE_ACTION)` ignores GUI focus and `set_input_as_handled()`.
+The gamepad binding is Back, which menus and rebind screens commonly use, so once such a UI exists a press there
+would toggle the overlay as well.
 
 ---
 
-_Fixed: 2026-09-30T14:24:10Z_
+_Fixed: 2026-09-30T14:39:48Z_
 _Fixer: Claude (gsd-code-fixer)_
 _Iteration: 1_
