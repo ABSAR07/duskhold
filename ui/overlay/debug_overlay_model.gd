@@ -28,17 +28,17 @@ func _init(ctx: RunContext) -> void:
 ##
 ## Callable.is_valid() only notices a freed `self` or method target, not an object that a lambda
 ## captured. A provider that reads an object which can be freed before the overlay (a wave manager,
-## a node) must pass it as `owner`: the section is skipped and dropped once the owner is freed.
-## Without an owner the provider may only capture objects that live as long as the run (RunContext
-## and what it holds), or check is_instance_valid itself.
-func register_section(title: String, provider: Callable, owner: Object = null) -> void:
+## a node) must pass it as `lifetime_owner`: the section is skipped and dropped once that owner is
+## freed. Without an owner the provider may only capture objects that live as long as the run
+## (RunContext and what it holds), or check is_instance_valid itself.
+func register_section(title: String, provider: Callable, lifetime_owner: Object = null) -> void:
 	if title in DEFAULT_TITLES:
 		push_warning(
 			"debug overlay section '%s' not registered: the title is a default section" % title
 		)
 		return
 	# A WeakRef, so the overlay never keeps a RefCounted owner alive; null when there is no owner.
-	var owner_ref: WeakRef = weakref(owner) if owner != null else null
+	var owner_ref: WeakRef = weakref(lifetime_owner) if lifetime_owner != null else null
 	for entry: Dictionary in _registered:
 		if entry["title"] == title:
 			entry["provider"] = provider

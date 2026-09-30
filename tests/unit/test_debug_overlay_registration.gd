@@ -84,3 +84,18 @@ func test_a_pending_section_whose_owner_died_before_bind_run_is_left_out_with_a_
 	assert_false(text.contains("Ghost"), "the freed owner's section is left out")
 	assert_string_contains(text, "Answer: 42", "the other pending section still shows")
 	assert_push_warning("debug overlay section 'Ghost' not registered: its owner was freed")
+
+
+func test_register_section_does_not_name_a_parameter_after_the_node_owner_property() -> void:
+	# `owner` would shadow Node.owner on the CanvasLayer; the model keeps the same name as the view.
+	for script: GDScript in [DebugOverlay, DebugOverlayModel]:
+		var arg_names: Array[String] = []
+		for method: Dictionary in script.get_script_method_list():
+			if method["name"] == "register_section":
+				for arg: Dictionary in method["args"]:
+					arg_names.append(arg["name"])
+		assert_eq(
+			arg_names,
+			["title", "provider", "lifetime_owner"] as Array[String],
+			"%s.register_section parameters" % script.get_global_name()
+		)
