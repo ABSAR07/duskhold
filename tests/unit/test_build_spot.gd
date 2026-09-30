@@ -32,6 +32,25 @@ func test_each_spot_builds_only_its_own_building_type() -> void:
 			assert_eq(instance.building_id, expected, "%s holds its own type" % spot_id)
 
 
+func test_a_reader_changing_the_instance_it_was_given_does_not_change_the_building() -> void:
+	var ctx: RunContext = _rich_prototype()
+	var spot_id: StringName = ctx.buildings.spot_ids()[0]
+	var built: BuildingInstance = ctx.buildings.get_instance(spot_id)
+	assert_null(built, "the spot starts empty")
+	var returned: BuildingInstance = ctx.buildings.apply_next_tier(spot_id)
+	assert_eq(ctx.buildings.current_tier(spot_id), 1, "tier I stands")
+
+	returned.tier = 99
+	var read: BuildingInstance = ctx.buildings.get_instance(spot_id)
+	read.tier = 42
+	read.building_id = &"tampered"
+
+	assert_eq(ctx.buildings.current_tier(spot_id), 1, "the standing tier is untouched")
+	var again: BuildingInstance = ctx.buildings.get_instance(spot_id)
+	assert_eq(again.tier, 1, "a later read still sees tier I")
+	assert_eq(again.building_id, ctx.buildings.get_spot(spot_id).building_id, "and its own type")
+
+
 func test_unknown_and_empty_spot_ids_are_rejected_and_change_nothing() -> void:
 	var ctx: RunContext = _rich_prototype()
 	var start_gold: int = ctx.economy.get_gold()

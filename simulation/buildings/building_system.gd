@@ -2,6 +2,9 @@ class_name BuildingSystem
 extends RefCounted
 ## Fixed build spots and the building standing on each. Reads never mutate; the only mutation
 ## is apply_next_tier, which leaves affordability and range to CommandProcessor, its only caller.
+## The BuildingInstance objects handed out are snapshots, so a reader cannot change what stands on
+## a spot. The BuildSpotDef and BuildingDef resources are shared with the MapConfig and returned
+## by reference: treat them as read-only.
 
 var _events: SimEvents
 var _order: Array[StringName] = []
@@ -46,14 +49,15 @@ func get_building_def_for_spot(spot_id: StringName) -> BuildingDef:
 	return _defs.get(spot.building_id) as BuildingDef
 
 
-## Null if the spot is empty or unknown.
+## A snapshot of the building on the spot: changing it does not change the building. Null if the
+## spot is empty or unknown.
 func get_instance(spot_id: StringName) -> BuildingInstance:
-	return _instances.get(spot_id) as BuildingInstance
+	return _snapshot(_instances.get(spot_id) as BuildingInstance)
 
 
 ## 0 if the spot is empty.
 func current_tier(spot_id: StringName) -> int:
-	var instance: BuildingInstance = get_instance(spot_id)
+	var instance: BuildingInstance = _instances.get(spot_id) as BuildingInstance
 	if instance == null:
 		return 0
 	return instance.tier
@@ -80,7 +84,7 @@ func next_action_cost(spot_id: StringName) -> int:
 func dawn_income_by_spot() -> Dictionary:
 	var income: Dictionary = {}
 	for spot_id: StringName in _order:
-		var instance: BuildingInstance = get_instance(spot_id)
+		var instance: BuildingInstance = _instances.get(spot_id) as BuildingInstance
 		if instance == null:
 			continue
 		var building_def: BuildingDef = _defs.get(instance.building_id) as BuildingDef
@@ -107,14 +111,15 @@ func nearest_spot_in_range(pos: Vector3, radius: float) -> StringName:
 	return best_id
 
 
-## Builds tier I on an empty spot or raises the tier by one, then emits building_built.
+## Builds tier I on an empty spot or raises the tier by one, then emits building_built, and returns
+## a snapshot of the building as it now stands.
 ## Affordability and range are not checked: only CommandProcessor calls this. Null, and nothing
 ## changes, for an unknown spot, a spot whose building has no definition, or a spot at max tier.
 func apply_next_tier(spot_id: StringName) -> BuildingInstance:
 	var spot: BuildSpotDef = get_spot(spot_id)
 	if spot == null or next_tier_def(spot_id) == null:
 		return null
-	var instance: BuildingInstance = get_instance(spot_id)
+	var instance: BuildingInstance = _instances.get(spot_id) as BuildingInstance
 	if instance == null:
 		instance = BuildingInstance.new()
 		instance.spot_id = spot_id
@@ -124,4 +129,15 @@ func apply_next_tier(spot_id: StringName) -> BuildingInstance:
 	else:
 		instance.tier += 1
 	_events.building_built.emit(spot_id, instance.building_id, instance.tier)
-	return instance
+	return _snapshot(instance)
+
+
+## A copy of `instance` that nothing else holds; null for null.
+func _snapshot(instance: BuildingInstance) -> BuildingInstance:
+	if instance == null:
+		return null
+	var copy: BuildingInstance = BuildingInstance.new()
+	copy.spot_id = instance.spot_id
+	copy.building_id = instance.building_id
+	copy.tier = instance.tier
+	return copy
