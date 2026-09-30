@@ -322,6 +322,14 @@ func test_a_key_still_held_when_the_day_returns_needs_a_fresh_press() -> void:
 
 
 func test_the_prompt_names_the_default_start_night_bindings() -> void:
+	# The project.godot defaults, set here so no rebind left by another test can change the text.
+	var key: InputEventKey = InputEventKey.new()
+	key.physical_keycode = KEY_N
+	var button: InputEventJoypadButton = InputEventJoypadButton.new()
+	button.button_index = JOY_BUTTON_Y
+	InputMap.action_erase_events(ACTION)
+	InputMap.action_add_event(ACTION, key)
+	InputMap.action_add_event(ACTION, button)
 	var map_root: MapRoot = await E2eSupport.spawn_map(self, null, _tuning)
 
 	assert_eq(
