@@ -27,7 +27,7 @@ validated: "2026-09-29"
 | **Full suite command** | `bash tools/test.sh` (headless import pass, then GUT over all three dirs; fails on any first-party parse/load error) |
 | **Single file** | `bash tools/test.sh -gselect=<test_file>.gd` |
 | **Lint** | `bash tools/lint.sh` (gdtoolkit 4.5.0: `gdformat --check` + `gdlint`) |
-| **Measured runtime** | Quick: ~11 s wall (16 scripts, 139 tests). Full: ~85 s wall (31 scripts, 235 tests) |
+| **Measured runtime** | Quick: ~11 s wall (16 scripts, 140 tests). Full: ~85 s wall (31 scripts, 237 tests) |
 
 The `tools/*.sh` wrappers need Git Bash on Windows; they resolve the pinned binary under `.tools/godot/4.7.2-stable/` (D-14).
 
@@ -103,7 +103,11 @@ GUT rows run as `bash tools/test.sh -gselect=<file>`. Threat refs are the plans'
 | WR-01 / WR-02 fix (pass 7) | review | — | DEV-03 | T-01-15 | A non-Array provider return warns once; replacing a warned provider lets the new one warn again | unit | `test_debug_overlay_readonly.gd` (`test_replacing_a_warned_provider_lets_the_new_one_warn_again` + extended non-Array test) | ✅ | ✅ green |
 | WR-03 / IN-03 fix (pass 7) | review | — | ECON-01, ECON-02, BLDG-06 | — | In-flight-coin and early-release tests drive the run manager by hand with no wall-clock race; the dawn-end release is tested through a real night→dawn→day | e2e | `test_dawn_payout.gd`, `test_start_night_hold.gd` | ✅ | ✅ green |
 | IN-01 fix (pass 7) | review | — | BLDG-01, BLDG-04 | T-01-04 | Readers get a `BuildingInstance` snapshot; changing it does not change the building | unit | `test_build_spot.gd` (`test_a_reader_changing_the_instance_it_was_given_does_not_change_the_building`) | ✅ | ✅ green |
-| IN-02 fix (pass 7) | review | — | ECON-02 | — | A float or non-number payout amount does not abort the payout | e2e | `test_dawn_payout.gd` (`test_a_payout_amount_that_is_a_float_or_not_a_number_does_not_abort_the_payout`) | ✅ | ✅ green |
+| IN-02 fix (pass 7) | review | — | ECON-02 | — | A float or non-number payout amount does not abort the payout | e2e | `test_dawn_payout.gd` (superseded in pass 8 by `test_a_malformed_payout_entry_does_not_abort_the_payout`) | ✅ | ✅ green |
+| WR-01 fix (pass 8) | review | — | ECON-02 | — | A malformed payout entry (bad spot key, non-number or non-finite amount) is dropped with a warning and does not abort the payout | e2e | `test_dawn_payout.gd` (`test_a_malformed_payout_entry_does_not_abort_the_payout`) | ✅ | ✅ green |
+| WR-02 fix (pass 8) | review | — | ECON-01, ECON-02 | — | The "+X gold" label, the coins and the HUD readout all use the gold that flies; no coin, no total | e2e | `test_dawn_payout.gd` (2 renamed tests + coin-cap expectation) | ✅ | ✅ green |
+| IN-01 fix (pass 8) | review | — | ECON-02 | — | A new payout stops the pending launches of the one it supersedes | e2e | `test_dawn_payout.gd` (`test_a_new_payout_stops_the_pending_launches_of_the_one_it_supersedes`) | ✅ | ✅ green |
+| IN-02 / IN-03 fix (pass 8) | review | — | DEV-03 | T-01-15 | Buildings counted by tier (no snapshot allocation); a section titled like a default one is refused | unit | `test_debug_overlay_readonly.gd` (`test_registering_a_default_section_title_is_refused_instead_of_showing_it_twice`) | ✅ | ✅ green |
 
 Owner gates with no automated verify by design: 01-01-T2 (toolchain download approval), 01-03-T2 (public repo name), 01-07-T2 (CC0 model download approval). No run of three consecutive tasks lacks automated verification.
 
@@ -281,6 +285,27 @@ Re-audited after the seventh review-fix pass (6 fix commits, `b789dde`..`d4ef4f5
 Evidence:
 - Full suite 235/235 (31 scripts); lint clean.
 - Unit quick run 139/139 (~11 s).
+- `tools/screenshot.sh`: 6/6 non-blank captures.
+- Headless guard exits 2.
+- `ci.yml` unchanged.
+
+## Validation Audit 2026-09-30 (re-audit after review-fix pass 8)
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Re-audited after the eighth review-fix pass (5 fix commits, `60d4881`..`30d0dd4`). 15/15 requirements are still COVERED.
+
+- **Tests:** +2 new. Three payout tests were renamed or rewritten for the "carried gold" label semantics.
+- **Mutation probes:** every change carries one in `01-REVIEW-FIX.md`.
+- **CR-01 guard:** re-probed by the orchestrator; it fails 17/18 with the old spacing.
+
+Evidence:
+- Full suite 237/237 (31 scripts); lint clean.
+- Unit quick run 140/140 (~11 s).
 - `tools/screenshot.sh`: 6/6 non-blank captures.
 - Headless guard exits 2.
 - `ci.yml` unchanged.
