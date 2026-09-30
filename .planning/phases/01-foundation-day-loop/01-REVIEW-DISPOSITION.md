@@ -5,27 +5,27 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`_warn_once` swallows a different, later problem within the same streak"
   - id: WR-02
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "Nothing enforces that every `Skip` code has a `SKIP_MESSAGES` entry"
   - id: IN-01
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Test-helper duplication across the two overlay suites"
   - id: IN-02
     severity: info
-    disposition: open
+    disposition: fixed
     title: "`test_debug_overlay_readonly.gd` sits exactly at the 20 public-method cap"
   - id: IN-03
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Misleading comment in the negative-amounts payout test"
   - id: IN-04
     severity: info
-    disposition: open
+    disposition: fixed
     title: "`register_section` raises a script error if the `lifetime_owner` is already freed"
   - id: WR-03
     severity: warning
@@ -87,21 +87,21 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 6
+open: 0
 total: 21
-recorded: 2026-09-30T11:29:46.702Z
+recorded: 2026-09-30T11:50:18.249Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
-| WR-02 | warning | open | - |
-| IN-01 | info | open | - |
-| IN-02 | info | open | - |
-| IN-03 | info | open | - |
-| IN-04 | info | open | - |
+| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
+| WR-02 | warning | fixed | 01-REVIEW-FIX.md |
+| IN-01 | info | fixed | 01-REVIEW-FIX.md |
+| IN-02 | info | fixed | 01-REVIEW-FIX.md |
+| IN-03 | info | fixed | 01-REVIEW-FIX.md |
+| IN-04 | info | fixed | 01-REVIEW-FIX.md |
 | WR-03 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-05 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-04 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
