@@ -97,7 +97,12 @@ func get_launch_delays() -> Array[float]:
 ## The delay tweens of the current payout's coins that have not launched yet. Read-only: it lets
 ## a test check that a superseding payout stopped them.
 func get_launch_tweens() -> Array[Tween]:
-	return _launch_tweens.duplicate()
+	var waiting: Array[Tween] = []
+	for tween: Tween in _launch_tweens:
+		# A tween that has fired is finished, and so no longer valid: its coin has launched.
+		if tween.is_valid():
+			waiting.append(tween)
+	return waiting
 
 
 ## Seconds between two coin launches for a payout of `coin_total` coins: STAGGER_SECONDS, tightened

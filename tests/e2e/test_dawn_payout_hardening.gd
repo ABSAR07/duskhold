@@ -33,6 +33,27 @@ func _hud_gold_settled(map_root: MapRoot) -> bool:
 	return label.text == "Gold: %d" % map_root.get_context().economy.get_gold()
 
 
+func _total_shown(map_root: MapRoot) -> bool:
+	var label: Label = map_root.get_node("HUD").get_node_or_null("%PayoutTotal") as Label
+	return label != null and label.visible
+
+
+func test_launch_tweens_that_have_fired_are_no_longer_reported_as_waiting() -> void:
+	var map_root: MapRoot = await _spawn()
+	var ctx: RunContext = map_root.get_context()
+	var vfx: DawnPayoutVfx = _vfx(map_root)
+	assert_not_null(vfx, "the HUD has a DawnPayoutVfx")
+	if vfx == null:
+		return
+	ctx.events.dawn_payout.emit(12, {HOUSE_ONE: 6, HOUSE_TWO: 6})
+	assert_gt(vfx.get_launch_tweens().size(), 0, "the staggered coins wait on their delays")
+
+	var landed: bool = await E2eSupport.wait_until(self, _total_shown.bind(map_root), SETTLED_S)
+
+	assert_true(landed, "every coin launched and landed")
+	assert_eq(vfx.get_launch_tweens().size(), 0, "no launch is waiting once every coin left")
+
+
 func test_absurdly_large_amounts_are_clamped_so_the_coin_cap_still_holds() -> void:
 	var map_root: MapRoot = await _spawn()
 	var ctx: RunContext = map_root.get_context()
