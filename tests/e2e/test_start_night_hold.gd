@@ -13,6 +13,9 @@ const HOUSE_SPOT: StringName = &"house_1"
 const PAYING_SPOT: StringName = &"house_2"
 const NEAR_OFFSET := Vector3(0.5, 0.0, 0.0)
 const NIGHT_BANNER := "Night 1 — no enemies yet"
+## The tuned hold and the tap length of the early-release test: the tap is under 10% of the hold.
+const SLOW_HOLD_S: float = 6.0
+const TAP_S: float = 0.4
 ## A partial hold is this share of start_night_hold_seconds, so it stays short of the full hold
 ## whatever the tuning says.
 const PARTIAL_HOLD_FRACTION: float = 0.3
@@ -88,7 +91,11 @@ func _start_night_now(ctx: RunContext) -> void:
 
 
 func test_a_tap_fills_the_prompt_but_releasing_early_keeps_the_day() -> void:
-	var map_root: MapRoot = await E2eSupport.spawn_map(self)
+	# A hold far longer than the tap, so a stall on a loaded runner cannot fill it: the ratio stays
+	# below 1.0 unless the run hitches for nearly the whole SLOW_HOLD_S.
+	var slow: LoopTuning = _tuning.duplicate(true)
+	slow.start_night_hold_seconds = SLOW_HOLD_S
+	var map_root: MapRoot = await E2eSupport.spawn_map(self, null, slow)
 	var ctx: RunContext = map_root.get_context()
 	var night_hold: StartNightHoldController = _night_hold(map_root)
 	var fill: ProgressBar = _fill(map_root)
@@ -98,7 +105,7 @@ func test_a_tap_fills_the_prompt_but_releasing_early_keeps_the_day() -> void:
 		return
 
 	Input.action_press(ACTION)
-	await wait_seconds(_tuning.start_night_hold_seconds * PARTIAL_HOLD_FRACTION)
+	await wait_seconds(TAP_S)
 	assert_gt(night_hold.get_ratio(), 0.0, "the ratio fills while held")
 	assert_lt(night_hold.get_ratio(), 1.0, "but a short hold is not enough")
 	assert_gt(fill.value, 0.0, "the bar fills while held")

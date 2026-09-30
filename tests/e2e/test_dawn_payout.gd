@@ -9,6 +9,8 @@ const HOUSE := "res://data/buildings/house.tres"
 const RICH_GOLD: int = 20
 const FAST_NIGHT_S: float = 0.5
 const WAIT_SLACK_S: float = 3.0
+## Ticks the sim this far past the end of the night to be sure it has ended.
+const PAST_END_S: float = 0.1
 const EARLY_S: float = 0.5
 const SETTLED_S: float = 3.0
 const HOUSE_ONE: StringName = &"house_1"
@@ -70,15 +72,21 @@ func _total_hidden(map_root: MapRoot) -> bool:
 	return not _total_shown(map_root)
 
 
-## house_1 at tier I and house_2 at tier II, the night started, the scene waiting at the first
-## frames of dawn.
-func _dawn_with_two_houses() -> MapRoot:
+## house_1 at tier I and house_2 at tier II, the night just started (no frame has run since).
+func _night_with_two_houses() -> MapRoot:
 	var map_root: MapRoot = await E2eSupport.spawn_map(self, _rich_map(), _tuning)
 	var ctx: RunContext = map_root.get_context()
 	assert_eq(ctx.commands.submit(BuildIntent.new(HOUSE_ONE)), CommandProcessor.OK, "house_1 I")
 	assert_eq(ctx.commands.submit(BuildIntent.new(HOUSE_TWO)), CommandProcessor.OK, "house_2 I")
 	assert_eq(ctx.commands.submit(BuildIntent.new(HOUSE_TWO)), CommandProcessor.OK, "house_2 II")
 	assert_eq(ctx.commands.submit(StartNightIntent.new()), CommandProcessor.OK, "night started")
+	return map_root
+
+
+## The same, with the scene waiting at the first frames of dawn.
+func _dawn_with_two_houses() -> MapRoot:
+	var map_root: MapRoot = await _night_with_two_houses()
+	var ctx: RunContext = map_root.get_context()
 	var reached: bool = await E2eSupport.wait_until(
 		self, _is_dawn.bind(ctx), FAST_NIGHT_S + WAIT_SLACK_S
 	)
@@ -94,20 +102,25 @@ func _expected_amounts() -> Array[int]:
 
 
 func test_coins_are_in_flight_and_the_counter_lags_early_in_dawn() -> void:
-	var map_root: MapRoot = await _dawn_with_two_houses()
+	var map_root: MapRoot = await _night_with_two_houses()
 	var ctx: RunContext = map_root.get_context()
 	var vfx: DawnPayoutVfx = _vfx(map_root)
 	assert_not_null(vfx, "the HUD has a DawnPayoutVfx")
 	if vfx == null:
 		return
 
-	# The first coin launches the moment dawn pays and needs TRIP_SECONDS to land, so one frame
-	# after dawn began it is in the air and the readout lags. No real-time wait, so no race.
-	await wait_process_frames(1)
+	# The sim is ticked by hand past the night, and nothing awaits afterwards: the first coin
+	# launches the instant dawn pays, and no frame or real time passes before the checks below, so
+	# a slow runner cannot land it early.
+	ctx.run_manager.tick(FAST_NIGHT_S + PAST_END_S)
 
+	assert_eq(ctx.run_manager.get_phase(), RunManager.RunPhase.DAWN, "dawn began")
 	assert_gte(vfx.live_coin_count(), 1, "at least one coin is in the air")
 	var shown: int = _gold_text(map_root).trim_prefix("Gold: ").to_int()
 	assert_lt(shown, ctx.economy.get_gold(), "the payout is still landing, HUD lags the ledger")
+	# After the checks: lets the House view that the tier II upgrade replaced finish freeing, so it
+	# is not reported as an orphan.
+	await wait_process_frames(1)
 
 
 func test_after_landing_the_hud_settles_on_the_ledger_and_the_total_is_shown() -> void:
