@@ -5,15 +5,15 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`new_map()` / `new_tuning()` are documented as private copies, but building definitions stay shared with the cached resource"
   - id: IN-01
     severity: info
-    disposition: open
+    disposition: fixed
     title: "A pre-bind registration of a default title is accepted silently and only refused at `bind_run`"
   - id: IN-02
     severity: info
-    disposition: open
+    disposition: fixed
     title: "A repeat `bind_run` with a different `RunContext` is silently ignored, and a test locks that in"
   - id: IN-03
     severity: info
@@ -87,18 +87,18 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 3
+open: 0
 total: 21
-recorded: 2026-09-30T12:18:05.369Z
+recorded: 2026-09-30T12:33:03.146Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
-| IN-01 | info | open | - |
-| IN-02 | info | open | - |
+| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
+| IN-01 | info | fixed | 01-REVIEW-FIX.md |
+| IN-02 | info | fixed | 01-REVIEW-FIX.md |
 | IN-03 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-02 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-04 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
