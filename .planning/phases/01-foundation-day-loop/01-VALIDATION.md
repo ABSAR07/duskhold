@@ -27,7 +27,7 @@ validated: "2026-09-29"
 | **Full suite command** | `bash tools/test.sh` (headless import pass, then GUT over all three dirs; fails on any first-party parse/load error) |
 | **Single file** | `bash tools/test.sh -gselect=<test_file>.gd` |
 | **Lint** | `bash tools/lint.sh` (gdtoolkit 4.5.0: `gdformat --check` + `gdlint`) |
-| **Measured runtime** | Quick: ~15 s wall (20 scripts, 181 tests). Full: ~96 s wall (36 scripts, 286 tests) |
+| **Measured runtime** | Quick: ~15 s wall (20 scripts, 183 tests). Full: ~96 s wall (36 scripts, 289 tests) |
 
 The `tools/*.sh` wrappers need Git Bash on Windows; they resolve the pinned binary under `.tools/godot/4.7.2-stable/` (D-14).
 
@@ -140,7 +140,9 @@ GUT rows run as `bash tools/test.sh -gselect=<file>`. Threat refs are the plans'
 | IN-03 fix (pass 20) | review | — | DEV-03 | T-01-15 | A section registered twice before `bind_run` replaces the pending entry in place (keeping its order), so bind never warns about the replaced section's freed owner; a refused replacement leaves the registered section alone | unit | `test_debug_overlay_registration.gd` (`test_a_pending_section_replaced_before_bind_run_does_not_warn_about_the_old_owner`, `test_a_pending_section_replaced_before_bind_run_keeps_its_place_in_the_order`, `test_a_refused_pending_replacement_leaves_the_registered_section_alone`) | ✅ | ✅ green |
 | WR-01 / WR-03 fix (pass 21) | review | — | DEV-03 | — | The cache-isolation test compares the cached spot with the value written (not the copy's property), and a whole-map sharing check replaces the tuning test that could not fail | unit | `test_overlay_test_support.gd` (`test_a_new_map_copy_shares_no_resource_with_the_cached_map_at_any_depth`) | ✅ | ✅ green |
 | WR-02 / IN-01 / IN-02 fix (pass 21) | review | — | DEV-03 | T-01-15 | A pending section whose live owner is freed after `bind_run` is dropped with one warning; the Ghost test pins the full "before bind_run" wording and the warning count; binding an overlay that is already shown fills it at once | unit | `test_debug_overlay_registration.gd` (`test_a_pending_section_whose_owner_is_freed_after_bind_run_is_dropped_with_a_warning`, `test_binding_an_overlay_that_is_already_shown_fills_it_at_once`), `test_debug_overlay_providers.gd` | ✅ | ✅ green |
-| IN-03 fix (pass 21) | review | — | DEV-03 | — | The debug overlay keeps processing (F3 toggle and refresh) while the scene tree is paused (`process_mode = PROCESS_MODE_ALWAYS` in the scene) | e2e | `test_debug_overlay_toggle.gd` (`test_overlay_keeps_processing_while_the_tree_is_paused`) | ✅ | ✅ green |
+| IN-03 fix (pass 21) | review | — | DEV-03 | — | The debug overlay keeps processing (F3 toggle and refresh) while the scene tree is paused (`process_mode = PROCESS_MODE_ALWAYS` in the scene) | e2e | `test_debug_overlay_toggle.gd` (replaced in pass 22 by `test_overlay_toggles_and_refreshes_while_the_tree_is_paused`, which checks the behaviour, not the flag) | ✅ | ✅ green |
+| WR-01 / IN-02 fix (pass 22) | review | — | DEV-03 | — | With the tree paused, F3 shows, refreshes and hides the overlay through the input path (the tree is unpaused in `after_each`); the refresh clock runs on real time, so `Engine.time_scale = 0` does not freeze the overlay | e2e | `test_debug_overlay_toggle.gd` (`test_overlay_toggles_and_refreshes_while_the_tree_is_paused`, `test_overlay_keeps_refreshing_while_the_engine_time_scale_is_zero`) | ✅ | ✅ green |
+| WR-02 / IN-03 fix (pass 22) | review | — | DEV-03 | — | The ~4 Hz refresh cadence is pinned with synthetic deltas: no refresh before one interval, one just after, 7–9 over two simulated seconds, none while hidden; pending sections' capture retention documented | unit | `test_debug_overlay_registration.gd` (`test_a_shown_overlay_refreshes_once_the_interval_has_passed_and_not_before`, `test_a_shown_overlay_refreshes_about_four_times_a_second_and_a_hidden_one_never`) | ✅ | ✅ green |
 
 Owner gates with no automated verify by design: 01-01-T2 (toolchain download approval), 01-03-T2 (public repo name), 01-07-T2 (CC0 model download approval). No run of three consecutive tasks lacks automated verification.
 
@@ -641,6 +643,32 @@ Re-audited after the twenty-first review-fix pass (6 commits, `8c56d50`..`6b073d
 Evidence:
 - Full suite 286/286 (36 scripts); lint clean (72 files).
 - Unit quick run 181/181 (20 scripts, ~16 s).
+- `tools/screenshot.sh`: 6/6 non-blank captures.
+- Headless guard exits 2.
+- `ci.yml` unchanged.
+
+## Validation Audit 2026-09-30 (re-audit after review-fix pass 22)
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Re-audited after the twenty-second review-fix pass (4 commits, `e91aa07`..`e7a605d`; IN-01 skipped as a design note). 15/15 requirements are still COVERED.
+
+- **Tests:** net +3.
+  - The pause test was replaced by a behaviour test that toggles and refreshes while paused.
+  - Two unit cadence tests pin the ~4 Hz refresh.
+  - An e2e test keeps the overlay refreshing at `time_scale = 0`.
+  - The freed-owner test no longer sleeps.
+  - `test_debug_overlay_registration.gd` is now at gdlint's 20-method cap.
+- **Mutation probes:** every behaviour change carries one in `01-REVIEW-FIX.md`. IN-03 is a doc comment.
+- **CR-01 guard:** re-probed by the orchestrator; it fails 17/18 with the old spacing. `dawn_payout_vfx.gd` was not touched this pass.
+
+Evidence:
+- Full suite 289/289 (36 scripts); lint clean (72 files).
+- Unit quick run 183/183 (20 scripts, ~15 s).
 - `tools/screenshot.sh`: 6/6 non-blank captures.
 - Headless guard exits 2.
 - `ci.yml` unchanged.
