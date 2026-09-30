@@ -143,6 +143,7 @@ GUT rows run as `bash tools/test.sh -gselect=<file>`. Threat refs are the plans'
 | IN-03 fix (pass 21) | review | — | DEV-03 | — | The debug overlay keeps processing (F3 toggle and refresh) while the scene tree is paused (`process_mode = PROCESS_MODE_ALWAYS` in the scene) | e2e | `test_debug_overlay_toggle.gd` (replaced in pass 22 by `test_overlay_toggles_and_refreshes_while_the_tree_is_paused`, which checks the behaviour, not the flag) | ✅ | ✅ green |
 | WR-01 / IN-02 fix (pass 22) | review | — | DEV-03 | — | With the tree paused, F3 shows, refreshes and hides the overlay through the input path (the tree is unpaused in `after_each`); the refresh clock runs on real time, so `Engine.time_scale = 0` does not freeze the overlay | e2e | `test_debug_overlay_toggle.gd` (`test_overlay_toggles_and_refreshes_while_the_tree_is_paused`, `test_overlay_keeps_refreshing_while_the_engine_time_scale_is_zero`) | ✅ | ✅ green |
 | WR-02 / IN-03 fix (pass 22) | review | — | DEV-03 | — | The ~4 Hz refresh cadence is pinned with synthetic deltas: no refresh before one interval, one just after, 7–9 over two simulated seconds, none while hidden; pending sections' capture retention documented | unit | `test_debug_overlay_registration.gd` (`test_a_shown_overlay_refreshes_once_the_interval_has_passed_and_not_before`, `test_a_shown_overlay_refreshes_about_four_times_a_second_and_a_hidden_one_never`) | ✅ | ✅ green |
+| IN-02 fix (pass 23) | review | — | DEV-03 | — | The e2e overlay refresh waits use a 1.0 s window (was 0.5 s against the 0.25 s interval), so a frame hitch cannot flake them; the unit cadence tests still pin the interval exactly | e2e | `test_debug_overlay_toggle.gd` (`REFRESH_WINDOW_S`) | ✅ | ✅ green |
 
 Owner gates with no automated verify by design: 01-01-T2 (toolchain download approval), 01-03-T2 (public repo name), 01-07-T2 (CC0 model download approval). No run of three consecutive tasks lacks automated verification.
 
@@ -664,6 +665,27 @@ Re-audited after the twenty-second review-fix pass (4 commits, `e91aa07`..`e7a60
   - The freed-owner test no longer sleeps.
   - `test_debug_overlay_registration.gd` is now at gdlint's 20-method cap.
 - **Mutation probes:** every behaviour change carries one in `01-REVIEW-FIX.md`. IN-03 is a doc comment.
+- **CR-01 guard:** re-probed by the orchestrator; it fails 17/18 with the old spacing. `dawn_payout_vfx.gd` was not touched this pass.
+
+Evidence:
+- Full suite 289/289 (36 scripts); lint clean (72 files).
+- Unit quick run 183/183 (20 scripts, ~15 s).
+- `tools/screenshot.sh`: 6/6 non-blank captures.
+- Headless guard exits 2.
+- `ci.yml` unchanged.
+
+## Validation Audit 2026-09-30 (re-audit after review-fix pass 23)
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Re-audited after the twenty-third review-fix pass (1 commit, `625a89d`). The review was info-only, and IN-01 (the F3 toggle polls `Input`) was skipped again as a design note until a pause or rebind UI exists. 15/15 requirements are still COVERED.
+
+- **Tests:** no new tests. The e2e overlay refresh window widened from 0.5 s to 1.0 s against flakes.
+- **Mutation probe:** a stopped refresh clock still fails 3 e2e tests at the wider window (recorded in `01-REVIEW-FIX.md`).
 - **CR-01 guard:** re-probed by the orchestrator; it fails 17/18 with the old spacing. `dawn_payout_vfx.gd` was not touched this pass.
 
 Evidence:
