@@ -25,19 +25,28 @@ func _init(ctx: RunContext) -> void:
 ## section ("Perf", "Loop", "Agents") is refused with a warning for the same reason. `provider`
 ## takes no arguments and returns rows as an Array of [String, String]. It must only read
 ## simulation state.
-func register_section(title: String, provider: Callable) -> void:
+##
+## Callable.is_valid() only notices a freed `self` or method target, not an object that a lambda
+## captured. A provider that reads an object which can be freed before the overlay (a wave manager,
+## a node) must pass it as `owner`: the section is skipped and dropped once the owner is freed.
+## Without an owner the provider may only capture objects that live as long as the run (RunContext
+## and what it holds), or check is_instance_valid itself.
+func register_section(title: String, provider: Callable, owner: Object = null) -> void:
 	if title in DEFAULT_TITLES:
 		push_warning(
 			"debug overlay section '%s' not registered: the title is a default section" % title
 		)
 		return
+	# A WeakRef, so the overlay never keeps a RefCounted owner alive; null when there is no owner.
+	var owner_ref: WeakRef = weakref(owner) if owner != null else null
 	for entry: Dictionary in _registered:
 		if entry["title"] == title:
 			entry["provider"] = provider
+			entry["owner"] = owner_ref
 			# The one-shot warning belongs to the provider, so a replacement may warn afresh.
 			_warned.erase(title)
 			return
-	_registered.append({"title": title, "provider": provider})
+	_registered.append({"title": title, "provider": provider, "owner": owner_ref})
 
 
 func collect(fps: float) -> Array:
@@ -46,17 +55,18 @@ func collect(fps: float) -> Array:
 		_section("Loop", _loop_rows()),
 		_section("Agents", _agent_rows()),
 	]
-	# Iterates a copy: an entry whose callable is gone for good is dropped from _registered below.
+	# Iterates a copy: an entry that is gone for good is dropped from _registered below.
 	for entry: Dictionary in _registered.duplicate():
 		var provider: Callable = entry["provider"]
-		# A freed owner leaves an invalid Callable, and a provider that needs an argument cannot be
-		# called with none; skip either instead of raising a script error on every refresh.
-		var skip_reason: String = _skip_reason(provider)
+		# A freed owner or an invalid Callable cannot be called, and a provider that needs an
+		# argument cannot be called with none; skip any of them instead of raising a script error
+		# on every refresh.
+		var skip_reason: String = _skip_reason(entry)
 		if not skip_reason.is_empty():
 			_warn_once(entry["title"], skip_reason)
-			if not provider.is_valid():
-				# An invalid Callable never recovers (register_section is the way to replace it), so
-				# it is named once and then forgotten rather than re-checked on every refresh.
+			if _is_gone(entry):
+				# A freed owner or an invalid Callable never recovers (register_section is the way to
+				# replace it), so it is named once and then forgotten, not re-checked each refresh.
 				_registered.erase(entry)
 				_warned.erase(entry["title"])
 			continue
@@ -72,9 +82,23 @@ func collect(fps: float) -> Array:
 	return sections
 
 
-## Why a provider cannot be called with no arguments, or "" when it can. Parameters with default
-## values count as arguments here, so a provider must declare none at all.
-func _skip_reason(provider: Callable) -> String:
+## Whether the entry's provider can never be called again: its owner was freed or its Callable is
+## invalid. Unlike a provider that merely fails to answer, that does not recover.
+func _is_gone(entry: Dictionary) -> bool:
+	var owner_ref: WeakRef = entry["owner"]
+	if owner_ref != null and owner_ref.get_ref() == null:
+		return true
+	var provider: Callable = entry["provider"]
+	return not provider.is_valid()
+
+
+## Why an entry's provider cannot be called with no arguments, or "" when it can. Parameters with
+## default values count as arguments here, so a provider must declare none at all.
+func _skip_reason(entry: Dictionary) -> String:
+	var owner_ref: WeakRef = entry["owner"]
+	if owner_ref != null and owner_ref.get_ref() == null:
+		return "its owner was freed"
+	var provider: Callable = entry["provider"]
 	if not provider.is_valid():
 		return "its callable is no longer valid"
 	if provider.get_argument_count() > 0:

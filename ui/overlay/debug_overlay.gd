@@ -19,9 +19,11 @@ func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 
 
 ## Phase 2 and later add sections (wave state, enemy paths) through this, not by editing the model.
-func register_section(title: String, provider: Callable) -> void:
+## Pass `owner` when the provider reads an object that can be freed before the overlay (see
+## DebugOverlayModel.register_section).
+func register_section(title: String, provider: Callable, owner: Object = null) -> void:
 	if _model != null:
-		_model.register_section(title, provider)
+		_model.register_section(title, provider, owner)
 
 
 func is_overlay_visible() -> bool:

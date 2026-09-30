@@ -158,6 +158,44 @@ func test_a_provider_whose_owner_was_freed_is_dropped_after_its_one_warning() ->
 	assert_eq(_row_value(_section(sections, "Ghost"), "Back"), "yes", "and it works again")
 
 
+func test_a_lambda_that_captured_a_freed_object_is_skipped_when_it_names_that_owner() -> void:
+	var model: DebugOverlayModel = DebugOverlayModel.new(_prototype_with_one_house())
+	var watched: Node = Node.new()
+	# Callable.is_valid() stays true for this lambda after `watched` is freed; only the owner tells.
+	var provider: Callable = func() -> Array: return [["Kids", str(watched.get_child_count())]]
+	model.register_section("Watched", provider, watched)
+	model.register_section("Live", func() -> Array: return [["Answer", "42"]])
+	assert_eq(
+		_row_value(_section(model.collect(60.0), "Watched"), "Kids"), "0", "shown while alive"
+	)
+	watched.free()
+
+	var sections: Array = model.collect(60.0)
+	model.collect(60.0)
+
+	assert_eq(_section(sections, "Watched"), {}, "the section of a freed owner is left out")
+	assert_eq(_row_value(_section(sections, "Live"), "Answer"), "42", "valid sections still show")
+	assert_push_warning("debug overlay section 'Watched' skipped: its owner was freed")
+	assert_push_warning_count(1, "named once, then dropped")
+
+
+func test_a_lambda_that_captured_a_live_object_keeps_showing_with_or_without_an_owner() -> void:
+	var model: DebugOverlayModel = DebugOverlayModel.new(_prototype_with_one_house())
+	var watched: Node = autofree(Node.new())
+	var counter: RefCounted = RefCounted.new()
+	model.register_section(
+		"Owned", func() -> Array: return [["Kids", str(watched.get_child_count())]], watched
+	)
+	model.register_section("Unowned", func() -> Array: return [["Type", counter.get_class()]])
+
+	var sections: Array = model.collect(60.0)
+	sections = model.collect(60.0)
+
+	assert_eq(_row_value(_section(sections, "Owned"), "Kids"), "0", "a live owner is not skipped")
+	assert_eq(_row_value(_section(sections, "Unowned"), "Type"), "RefCounted", "no owner, no check")
+	assert_push_warning_count(0, "nothing was skipped")
+
+
 func test_a_provider_that_needs_an_argument_is_skipped_instead_of_crashing() -> void:
 	var model: DebugOverlayModel = DebugOverlayModel.new(_prototype_with_one_house())
 	model.register_section("Needy", func(wave: int) -> Array: return [["Wave", str(wave)]])
