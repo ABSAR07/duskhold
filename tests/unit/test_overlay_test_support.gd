@@ -29,19 +29,32 @@ func test_new_map_shares_no_building_definition_or_tier_with_the_cached_map() ->
 
 func test_editing_a_new_map_copy_leaves_the_cached_map_and_later_copies_alone() -> void:
 	var cached: MapConfig = load(OverlayTestSupport.PROTOTYPE_MAP)
-	var cost_before: int = cached.buildings[0].tiers[0].cost
-	var income_before: int = cached.buildings[0].tiers[0].dawn_income
+	var cached_tier: BuildingTierDef = cached.buildings[0].tiers[0]
+	var cost_before: int = cached_tier.cost
+	var income_before: int = cached_tier.dawn_income
+	var spot_before: Vector3 = cached.spots[0].position
 
 	var copy: MapConfig = OverlayTestSupport.new_map()
 	copy.buildings[0].tiers[0].cost = cost_before + 100
 	copy.buildings[0].tiers[0].dawn_income = income_before + 100
 	copy.spots[0].position = Vector3(123.0, 0.0, 456.0)
-
-	assert_eq(cached.buildings[0].tiers[0].cost, cost_before, "the cached cost is unchanged")
-	assert_eq(cached.buildings[0].tiers[0].dawn_income, income_before, "and its dawn income")
-	assert_ne(cached.spots[0].position, copy.spots[0].position, "and its spot position")
+	var cost_seen: int = cached_tier.cost
+	var income_seen: int = cached_tier.dawn_income
+	var spot_seen: Vector3 = cached.spots[0].position
 	var later: MapConfig = OverlayTestSupport.new_map()
-	assert_eq(later.buildings[0].tiers[0].cost, cost_before, "a later copy starts clean")
+	var later_cost: int = later.buildings[0].tiers[0].cost
+
+	# Put the cached values back before asserting. If the copy shared a resource with the cache, the
+	# writes above landed on it; restoring here keeps that failure in this test instead of leaving
+	# a dirtied cache for every suite that runs after it.
+	cached_tier.cost = cost_before
+	cached_tier.dawn_income = income_before
+	cached.spots[0].position = spot_before
+
+	assert_eq(cost_seen, cost_before, "the cached cost is unchanged")
+	assert_eq(income_seen, income_before, "and its dawn income")
+	assert_ne(spot_seen, copy.spots[0].position, "and its spot position")
+	assert_eq(later_cost, cost_before, "a later copy starts clean")
 
 
 func test_a_new_map_copy_is_still_a_valid_map_whose_spots_resolve_to_its_own_buildings() -> void:
