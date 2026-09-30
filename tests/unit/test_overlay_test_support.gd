@@ -77,23 +77,66 @@ func test_editing_a_new_tuning_copy_leaves_the_cached_tuning_alone() -> void:
 
 
 func test_a_new_tuning_copy_shares_no_resource_with_the_cached_tuning() -> void:
-	# LoopTuning has no subresource today, so this passes trivially now. It fails the day one is
-	# added and new_tuning() copies it shallowly, which is what new_tuning's "copied all the way
-	# down" promise (DEEP_DUPLICATE_ALL) is there to prevent.
+	# LoopTuning has no subresource today, so nothing can be shared and this passes without checking
+	# anything yet. It fails the day one is added and new_tuning() copies it shallowly, which is what
+	# new_tuning's "copied all the way down" promise (DEEP_DUPLICATE_ALL) is there to prevent. That
+	# the check would notice is shown by the test below, on stand-in resources.
 	var cached: LoopTuning = load(OverlayTestSupport.TUNING)
 	var copy: LoopTuning = OverlayTestSupport.new_tuning()
-	var checked: int = 0
-	for property: Dictionary in cached.get_script().get_script_property_list():
-		if (property["usage"] as int) & PROPERTY_USAGE_STORAGE == 0:
-			continue
-		checked += 1
+
+	assert_eq(
+		_shared_resources(cached, copy),
+		[] as Array[Resource],
+		"no subresource is shared with the cache (LoopTuning has none yet, so this guards a later one)"
+	)
+
+
+func test_the_sharing_check_finds_a_nested_resource_under_a_base_script_property() -> void:
+	# The subresource sits two levels down, behind a property declared on a base script, so a check
+	# that looked only at the top level's own properties would miss it.
+	var inner: Resource = Resource.new()
+	var first: _Holder = _holder_around(_holder_around(inner))
+	var second: _Holder = _holder_around(_holder_around(inner))
+	var unrelated: _Holder = _holder_around(_holder_around(Resource.new()))
+
+	assert_eq(
+		_shared_resources(first, second), [inner] as Array[Resource], "the shared one is found"
+	)
+	assert_eq(
+		_shared_resources(first, unrelated),
+		[] as Array[Resource],
+		"and a private copy is not flagged"
+	)
+
+
+func _holder_around(child: Resource) -> _Holder:
+	var holder: _Holder = _Holder.new()
+	holder.child = child
+	return holder
+
+
+## The Resources both `first` and `second` reach through their stored properties (see _reachable).
+func _shared_resources(first: Resource, second: Resource) -> Array[Resource]:
+	var in_second: Array[Resource] = _reachable(second, [])
+	var shared: Array[Resource] = []
+	for resource: Resource in _reachable(first, []):
+		if in_second.has(resource):
+			shared.append(resource)
+	return shared
+
+
+## Every Resource below `root`, at any depth, through every stored property, base scripts included.
+## `script` is skipped: it is the script resource every instance of a class shares, not data.
+func _reachable(root: Resource, found: Array[Resource]) -> Array[Resource]:
+	for property: Dictionary in root.get_property_list():
 		var prop_name: String = property["name"]
-		var copied: Array[Resource] = _resources_in(copy.get(prop_name))
-		for resource: Resource in _resources_in(cached.get(prop_name)):
-			assert_false(
-				copied.has(resource), "'%s' shares a subresource with the cache" % prop_name
-			)
-	assert_gt(checked, 0, "the tuning has stored properties, so the loop above checked something")
+		if (property["usage"] as int) & PROPERTY_USAGE_STORAGE == 0 or prop_name == "script":
+			continue
+		for resource: Resource in _resources_in(root.get(prop_name)):
+			if not found.has(resource):
+				found.append(resource)
+				_reachable(resource, found)
+	return found
 
 
 ## Every Resource held directly by `value` or, for an Array or Dictionary, by its entries.
@@ -108,3 +151,14 @@ func _resources_in(value: Variant) -> Array[Resource]:
 		for item: Variant in (value as Dictionary).values():
 			found.append_array(_resources_in(item))
 	return found
+
+
+## Stand-ins for a Resource with a subresource: one property on a base script, one on its subclass.
+class _HolderBase:
+	extends Resource
+	@export_storage var child: Resource
+
+
+class _Holder:
+	extends _HolderBase
+	@export_storage var label: String = ""
