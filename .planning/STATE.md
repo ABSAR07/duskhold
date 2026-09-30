@@ -4,10 +4,10 @@ current_phase: 01
 current_phase_name: Foundation & Day Loop
 status: verifying
 stopped_at: Completed 01-10-PLAN.md
-last_updated: "2026-09-29T11:24:51.915Z"
-last_activity: 2026-09-29
+last_updated: "2026-09-30T19:33:01.792Z"
+last_activity: 2026-10-01
 last_activity_desc: Phase 01 execution started
-state_head: 72d9f18b8c563394d5ce9993e3aa689ba05a528c
+state_head: bfe3c972059e5fdf8ae9fd9d0d7bda4147066c55
 progress:
   total_phases: 13
   completed_phases: 0
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-28)
 Phase: 01 (Foundation & Day Loop) — EXECUTING
 Plan: 10 of 10
 Status: Phase complete — ready for verification
-Last activity: 2026-09-29 — Phase 01 execution started
+Last activity: 2026-10-01 - Completed quick task 261001-0dd: Resolve Phase 1 owner decisions: widen CI to every push (DEV-02) and record the horse licence keep decision (ART-02)
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -117,6 +117,12 @@ None yet.
 - [Phase 6/8]: Night readability under hundreds of units needs automated screenshot review throughout the content phases
 - [Phase 11]: Boss-night difficulty cliffs; tune with seeded simulated playthroughs plus owner playtest
 - [Phase 13]: SmartScreen/AV behavior of unsigned export only known after clean-machine test
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 261001-0dd | Resolve Phase 1 owner decisions: widen CI to every push (DEV-02) and record the horse licence keep decision (ART-02) | 2026-09-30 | bfe3c97 | [261001-0dd-resolve-phase-1-owner-decisions-widen-ci](./quick/261001-0dd-resolve-phase-1-owner-decisions-widen-ci/) |
 
 ## Deferred Items
 
