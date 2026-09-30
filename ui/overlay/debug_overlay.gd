@@ -10,20 +10,46 @@ const REFRESH_INTERVAL_S: float = 0.25
 
 var _model: DebugOverlayModel
 var _since_refresh: float = 0.0
+## Sections registered before bind_run, as {title, provider, owner: WeakRef or null}. Bind order
+## across the run_bound group is not guaranteed, so a caller may register first; bind_run replays
+## these in order, so registration never depends on who is bound first.
+var _pending: Array[Dictionary] = []
 
 @onready var _text: Label = %OverlayText
 
 
+## Builds the model once. A repeat call is ignored (as in Hud.bind_run): a second model would
+## discard every section registered so far.
 func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
+	if _model != null:
+		return
 	_model = DebugOverlayModel.new(ctx)
+	for entry: Dictionary in _pending:
+		var owner_ref: WeakRef = entry["owner"]
+		var lifetime_owner: Object = owner_ref.get_ref() if owner_ref != null else null
+		if owner_ref != null and lifetime_owner == null:
+			push_warning(
+				(
+					"debug overlay section '%s' not registered: its owner was freed before bind_run"
+					% entry["title"]
+				)
+			)
+			continue
+		_model.register_section(entry["title"], entry["provider"], lifetime_owner)
+	_pending.clear()
 
 
 ## Phase 2 and later add sections (wave state, enemy paths) through this, not by editing the model.
+## Safe to call before bind_run: the section is held and added when the overlay is bound.
 ## Pass `owner` when the provider reads an object that can be freed before the overlay (see
 ## DebugOverlayModel.register_section).
 func register_section(title: String, provider: Callable, owner: Object = null) -> void:
-	if _model != null:
-		_model.register_section(title, provider, owner)
+	if _model == null:
+		# A WeakRef, like the model's, so a pending section never keeps its owner alive.
+		var owner_ref: WeakRef = weakref(owner) if owner != null else null
+		_pending.append({"title": title, "provider": provider, "owner": owner_ref})
+		return
+	_model.register_section(title, provider, owner)
 
 
 func is_overlay_visible() -> bool:
