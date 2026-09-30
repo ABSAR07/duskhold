@@ -1,6 +1,6 @@
 ---
 phase: 01-foundation-day-loop
-fixed_at: 2026-09-30T10:50:43Z
+fixed_at: 2026-09-30T11:17:28Z
 review_path: .planning/phases/01-foundation-day-loop/01-REVIEW.md
 iteration: 1
 findings_in_scope: 5
@@ -11,7 +11,7 @@ status: all_fixed
 
 # Phase 1: Code Review Fix Report
 
-**Fixed at:** 2026-09-30T10:50:43Z
+**Fixed at:** 2026-09-30T11:17:28Z
 **Source review:** .planning/phases/01-foundation-day-loop/01-REVIEW.md
 **Iteration:** 1
 
@@ -20,54 +20,62 @@ status: all_fixed
 - Fixed: 5
 - Skipped: 0
 
-**Verification environment:** every gate ran in the main checkout on branch `gsd/phase-01-foundation-day-loop`, not in an isolated worktree. The orchestrator's notes describe in-place edits (backup-and-restore mutation probes, an unrelated uncommitted `.planning/config.json` that had to stay uncommitted), so no worktree was created and no recovery sentinel or cleanup tail applies. The results below are reproducible from the current tree: `bash tools/test.sh` gave 260/260 in 34 scripts (258 before, plus the 2 new WR-02 tests), and `bash tools/lint.sh` is clean.
+**Verification ran in the main checkout** (branch `gsd/phase-01-foundation-day-loop`), not in an isolated worktree. A hand-rolled worktree has no `.godot/` import cache, so it cannot run the project's gates, and the orchestrator's notes describe editing and committing in the main checkout. Every number below is reproducible from the current tree: `bash tools/test.sh` reports 260/260 tests in 34 scripts, and `bash tools/lint.sh` is clean (69 files, no problems). `.planning/config.json` still carries its unrelated uncommitted change and was never staged. `.github/workflows/ci.yml` and the start-night prompt text were not touched.
 
 ## Fixed Issues
 
-### WR-01: Malformed provider rows are dropped silently, unlike every other provider failure
+### WR-01: `SIM_SIGNALS` is duplicated, and only one copy has a drift guard
 
-**Files modified:** `ui/overlay/debug_overlay_model.gd`, `tests/unit/test_debug_overlay_readonly.gd`
-**Commit:** b223b55
-**Applied fix:** `collect` now compares the provider's row count with the cleaned row count and calls `_warn_once` ("dropped N malformed row(s); rows are [label, value]") when any were dropped. The `_warned.erase(title)` re-arm moved to the branch where nothing was dropped, so a provider that keeps returning bad rows warns once per failure streak instead of on every refresh (the concern the review raised). `_warn_once` now takes the tail of the message so "skipped: ..." (section absent) and "dropped ..." (section present, rows missing) read correctly; existing "skipped: ..." texts are unchanged. `_clean_rows` keeps its old signature and still only filters; the warning lives in `collect`, next to the re-arm.
-**Test:** `test_a_provider_with_malformed_rows_keeps_only_the_well_formed_ones` (in the file at gdlint's public-method cap, so an existing test was extended rather than a new one added) now collects three times and asserts one warning each for `Flat` and `Mixed` and a warning count of 2.
-**Mutation probe:** with `debug_overlay_model.gd` restored to its pre-fix copy, that test failed (3 assertions: both warnings not seen, "Expected 2 push_warning errors. Got 0"; 19/20 passing). Fixed source restored; 20/20 passing.
-**Status note:** this changes warning behaviour (a logic-adjacent change); the warn-once/re-arm ordering is worth a glance from a human.
+**Files modified:** `tests/support/sim_signals.gd` (new), `tests/support/sim_signals.gd.uid` (new), `tests/unit/test_debug_overlay_readonly.gd`, `tests/unit/test_debug_overlay_timed_phases.gd`
+**Commit:** 24f0e1e
+**Applied fix:** Created `SimSignals` (`class_name SimSignals`, `const ALL`) in `tests/support/`. It is not named `test_*`, so GUT does not collect it, and its Godot-generated `.gd.uid` is committed with it. Both overlay suites now iterate `SimSignals.ALL`, and both local `SIM_SIGNALS` constants are gone. The drift-guard test `test_the_watched_signals_are_every_signal_the_simulation_declares` stays in `test_debug_overlay_readonly.gd` and compares `SimSignals.ALL` with the signals `SimEvents` declares, so one guard now covers every consumer. The public-method counts are unchanged (20 and 8).
 
-### WR-02: A payout with a positive `total` but only bad or negative `per_spot` entries gives no "+X gold" total and no feedback beyond a warning
+**Mutation probe (test-only fix, so the "unfixed code" was the old duplicated list):** I added a `probe_added` signal to `SimEvents` and to `SimSignals.ALL`, and made `DebugOverlayModel.collect` emit it.
+- With the fixed tests, all three read-only tests failed: the day test plus the night and dawn tests in `test_debug_overlay_timed_phases.gd` ("Expected ... to NOT emit signal [probe_added]").
+- With the pre-fix `test_debug_overlay_timed_phases.gd` (restored from `HEAD`) under the same probe, all 7 of its tests stayed green. This confirms the under-watching the review described.
+- `SimEvents`, `DebugOverlayModel`, `SimSignals` and the test files were restored from backup copies afterwards, and `git diff` showed no residue.
 
-**Files modified:** `ui/hud/dawn_payout_vfx.gd`, `tests/e2e/test_dawn_payout_hardening.gd`
-**Commit:** 51f29b2
-**Applied fix:** the `total <= 0` early return in `_on_dawn_payout` now warns ("dawn payout claims %d gold but lists per-spot amounts; nothing shown") when `per_spot` is non-empty, then still emits `payout_started(0)` and returns. I checked `BuildingSystem.dawn_income_by_spot`: it only ever lists positive incomes, so a real dawn with no gold has an empty `per_spot` and the new warning cannot fire spuriously. The `total > 0`, `carried == 0` path already warned and emitted `payout_started(0)` (the review's own note); it is now pinned by a test.
-**Tests added (2, hardening file now 7 test/hook methods, well under the cap of 20):**
-- `test_a_payout_of_only_negative_amounts_shows_nothing_and_leaves_the_hud_on_the_ledger` (`emit(5, {HOUSE_ONE: -3})`): `payout_started` with 0, the existing "claims 5 gold ... carry 0" warning, no coin, `get_last_total() == 0`, no "+X gold" label, HUD readout equals the ledger. This pins existing behaviour, so it passes against unfixed code by design.
-- `test_a_payout_claiming_no_gold_but_listing_amounts_is_reported_and_shows_nothing` (`emit(0, {HOUSE_ONE: 3})`): the new warning exactly once, `payout_started` with 0, no coin, no label, HUD on the ledger.
-**Mutation probe:** with `dawn_payout_vfx.gd` restored to its pre-fix copy, the second test failed (missing warning, "Expected 1 push_warning errors. Got 0"; 6/7 passing); the first passed, as expected. Fixed source restored; 7/7 passing.
-**CR-01 guard re-check (the file was touched):** replacing `float(launches.size()) * stagger` with `STAGGER_SECONDS` in the fixed source made `test_a_real_payout_schedules_its_last_coin_to_land_inside_a_short_dawn_window` fail (delay 0.88 instead of 0.25; 17/18 passing). Restored from backup; `test_dawn_payout.gd` is 18/18 again.
-**Note:** `gdformat --fix` was run once to wrap the new warning line under 100 columns; it only touched this file.
-
-### IN-01: `_is_gone` and `_skip_reason` duplicate the owner/validity checks
+### IN-01: Control flow in `DebugOverlayModel` depends on free-text reason strings
 
 **Files modified:** `ui/overlay/debug_overlay_model.gd`
-**Commit:** 3b68379
-**Applied fix:** `_skip_reason` is now the single place that decides why a provider cannot be called. Two constants, `REASON_OWNER_FREED` and `REASON_CALLABLE_INVALID`, name the permanent reasons, and `_is_gone(skip_reason)` is derived from them instead of re-checking the owner and the Callable. The transient "declares parameters" reason stays a literal in `_skip_reason` (as a constant it did not fit gdlint's 100-column limit). Behaviour is unchanged.
-**Mutation probe:** none possible, this is a behaviour-preserving refactor. The existing suites that drive both branches (`test_a_provider_whose_owner_was_freed_is_dropped_after_its_one_warning`, `test_a_lambda_that_captured_a_freed_object_is_skipped_when_it_names_that_owner`, `test_a_provider_that_needs_an_argument_is_skipped_instead_of_crashing`) still pass: readonly 20/20, registration 5/5.
+**Commit:** ab99a82
+**Applied fix:** `_skip_reason` (returned prose) became `_skip_code`, returning a new `Skip` enum (`NONE`, `OWNER_FREED`, `CALLABLE_INVALID`, `DECLARES_PARAMETERS`). All message text now lives in one `SKIP_MESSAGES` table, and a `GONE_FOR_GOOD` list names the codes that drop a section. `collect` warns with `SKIP_MESSAGES[skip]` and erases the entry when `skip in GONE_FOR_GOOD`. `_is_gone` and the `REASON_*` string constants are removed (nothing else referenced them). Warning text is byte-for-byte unchanged, so the existing tests that pin it did not need edits. `gdformat` re-wrapped the long `DECLARES_PARAMETERS` message entry.
 
-### IN-02: The read-only assertion covers only part of the simulation state
+**Mutation probe:** Removing `Skip.CALLABLE_INVALID` from `GONE_FOR_GOOD` (making it transient) failed `test_a_provider_with_an_invalid_callable_is_dropped_after_its_one_warning` in `test_debug_overlay_readonly.gd` (`["Perf","Loop","Agents","Ghost","Live"]` != `[..."Live","Ghost"]`), so the new structure is pinned by the existing tests. The source was restored from a backup copy.
 
-**Files modified:** `tests/unit/test_debug_overlay_timed_phases.gd`
-**Commit:** ee97f17
-**Applied fix:** new helper `_agents_and_buildings(ctx)` snapshots `current_tier` for every spot id plus `get_unit_count` and `get_enemy_count`; `_assert_collecting_is_read_only` takes it before the 200 collects and asserts it unchanged afterwards.
-**Mutation probe:** a temporary edit made `_count_buildings` silently bump a built spot's tier on every call (no gold change, no event). With it in place both read-only tests failed (`house_1` 202 versus 2; 5/7 passing), which the old assertions could not have caught. Model restored from backup; 7/7 passing.
+### IN-02: Dead tuning setup in the hardening e2e test
 
-### IN-03: The registration tests bypass the toggle path, and the visible-refresh timing is wall-clock dependent
+**Files modified:** `tests/e2e/test_dawn_payout_hardening.gd`
+**Commit:** a39c356
+**Applied fix:** Deleted `FAST_NIGHT_S` and the `_tuning.placeholder_night_seconds = FAST_NIGHT_S` line. `before_each` keeps the duplicated tuning resource. All 7 tests in the file still pass, which confirms the setting had no effect.
 
-**Files modified:** `tests/unit/test_debug_overlay_registration.gd`
-**Commit:** 6c38829
-**Applied fix:** `_shown_text` now shows the overlay through `Input.action_press` / `action_release` of `DebugOverlay.TOGGLE_ACTION`, so it exercises `_process`'s toggle branch and its immediate `_refresh()`, waits a few process frames instead of 0.35 s, and asserts the overlay became visible. The `REFRESH_WAIT_S` constant is gone and an `after_each` releases all actions so no input state leaks. A first attempt without a leading `wait_process_frames(1)` failed deterministically in the first test of the file (the overlay had not yet run a `_process` frame), so one warm-up frame was added; 3 consecutive runs then passed 5/5.
-**Mutation probe:** with the toggle branch's `_refresh()` removed from `debug_overlay.gd`, 4 of 5 tests failed (empty overlay text). The old wall-clock version would have passed against that break because the 0.25 s interval refreshed it anyway. Source restored from backup; 5/5 passing.
+### IN-03: Test name and message use "owner freed" for a case with no owner
+
+**Files modified:** `tests/unit/test_debug_overlay_readonly.gd`
+**Commit:** 14cfed2
+**Applied fix:** Renamed `test_a_provider_whose_owner_was_freed_is_dropped_after_its_one_warning` to `test_a_provider_with_an_invalid_callable_is_dropped_after_its_one_warning`. "Owner freed" now appears only on the `lifetime_owner` test. Its assertion messages already say "callable is no longer valid" and needed no change. I did not merge or remove the overlapping `test_a_freed_section_provider_is_skipped_instead_of_crashing`, because the review only asked for the rename and that test also pins the skipped-instead-of-crashing behaviour. The public-method count stays at 20.
+
+### IN-04: The clamp e2e test does not check what it claims about the amounts
+
+**Files modified:** `tests/e2e/test_dawn_payout_hardening.gd`
+**Commit:** 3f3ee45
+**Applied fix:** In `test_absurdly_large_amounts_are_clamped_so_the_coin_cap_still_holds`:
+- `assert_lte(get_launch_delays().size(), MAX_COINS)` became `assert_eq(..., MAX_COINS)`. Two spots at the clamped amount plan exactly 12 coins.
+- After the flight, the test asserts `vfx.get_last_total() == clamped_total`.
+- It asserts the two spots' spawned counts sum to `MAX_COINS`, and that they are equal (an even 6 and 6). This replaces the two `assert_gte(..., 1)` checks and avoids integer division.
+
+**Mutation probes** (each restored from a backup copy of `ui/hud/dawn_payout_vfx.gd`):
+- Shrinking the split budget in `_coins_for_amount` to `MAX_COINS - 2` gives 10 coins per payout. The new test failed on "plan exactly the coin budget" (`[10] expected to equal [12]`) and "exactly the budget of coins flew". By inspection the old `<= MAX_COINS` and `>= 1` assertions would have passed.
+- Making `_show_total` set `_last_total = _pending_total - 1` failed the new test with `[1999999] expected to equal [2000000]`. The old test never read `get_last_total()` after the flight.
+
+`ui/hud/dawn_payout_vfx.gd` is unchanged in the final tree (`git status` clean for it), so the CR-01 guard `test_a_real_payout_schedules_its_last_coin_to_land_inside_a_short_dawn_window` was not affected and its probe was not re-run.
+
+## Skipped Issues
+
+None. All in-scope findings were fixed.
 
 ---
 
-_Fixed: 2026-09-30T10:50:43Z_
+_Fixed: 2026-09-30T11:17:28Z_
 _Fixer: Claude (gsd-code-fixer)_
 _Iteration: 1_
