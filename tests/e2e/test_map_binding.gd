@@ -87,8 +87,6 @@ func test_binding_the_hud_and_payout_view_again_connects_nothing_twice() -> void
 		"gold_changed": ctx.events.gold_changed,
 		"dawn_payout": ctx.events.dawn_payout,
 		"phase_changed": ctx.events.phase_changed,
-		"night_started": ctx.events.night_started,
-		"day_started": ctx.events.day_started,
 		"coin_landed": payout_vfx.coin_landed,
 		"payout_started": payout_vfx.payout_started,
 		"hold_progress": hold.hold_progress,

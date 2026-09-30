@@ -62,8 +62,6 @@ func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
 	hold.hold_completed.connect(_on_hold_completed)
 	ctx.events.gold_changed.connect(_on_gold_changed)
 	ctx.events.phase_changed.connect(_on_phase_changed)
-	ctx.events.night_started.connect(_on_night_started)
-	ctx.events.day_started.connect(_on_day_started)
 	_payout_vfx.payout_started.connect(_on_payout_started)
 	_payout_vfx.coin_landed.connect(_on_coin_landed)
 	var start_night_hold: StartNightHoldController = (
@@ -120,14 +118,8 @@ func _on_phase_changed(old_phase: int, _new_phase: int) -> void:
 	if old_phase == RunManager.RunPhase.DAWN and _payout_pending != 0:
 		_payout_pending = 0
 		_refresh()
-	_refresh_loop()
-
-
-func _on_night_started(_night_number: int) -> void:
-	_refresh_loop()
-
-
-func _on_day_started(_day_number: int) -> void:
+	# Every phase change lands here, and RunManager has already updated the phase and the day and
+	# night numbers by then, so this alone keeps the prompt and the banner current.
 	_refresh_loop()
 
 

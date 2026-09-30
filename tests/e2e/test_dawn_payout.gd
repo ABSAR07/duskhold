@@ -412,12 +412,17 @@ func test_the_hud_releases_a_held_back_readout_when_dawn_ends() -> void:
 	assert_not_null(vfx, "the HUD has a DawnPayoutVfx")
 	if vfx == null:
 		return
+	assert_eq(ctx.commands.submit(StartNightIntent.new()), CommandProcessor.OK, "night started")
+	ctx.run_manager.tick(FAST_NIGHT_S + PAST_END_S)
+	assert_eq(ctx.run_manager.get_phase(), RunManager.RunPhase.DAWN, "a real dawn began")
 	# A payout whose coins will never land (the vfx was freed, a tween was killed).
 	vfx.payout_started.emit(7)
 	assert_false(_hud_gold_settled(map_root), "the readout is held back")
 
-	ctx.events.phase_changed.emit(RunManager.RunPhase.DAWN, RunManager.RunPhase.DAY)
+	# The dawn really ends, so every other listener on the bus sees a genuine transition.
+	ctx.run_manager.tick(_tuning.dawn_seconds)
 
+	assert_eq(ctx.run_manager.get_phase(), RunManager.RunPhase.DAY, "the day returned")
 	assert_true(_hud_gold_settled(map_root), "dawn ending puts the readout back on the ledger")
 
 
