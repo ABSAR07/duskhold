@@ -1,97 +1,80 @@
 ---
 phase: 01-foundation-day-loop
-reviewed: 2026-09-30T10:32:57Z
+reviewed: 2026-09-30T11:01:16Z
 depth: standard
-files_reviewed: 8
+files_reviewed: 6
 files_reviewed_list:
   - tests/e2e/test_dawn_payout_hardening.gd
+  - tests/unit/test_debug_overlay_readonly.gd
   - tests/unit/test_debug_overlay_registration.gd
-  - tests/unit/test_debug_overlay_registration.gd.uid
   - tests/unit/test_debug_overlay_timed_phases.gd
-  - tests/unit/test_debug_overlay_timed_phases.gd.uid
   - ui/hud/dawn_payout_vfx.gd
-  - ui/overlay/debug_overlay.gd
   - ui/overlay/debug_overlay_model.gd
 findings:
   critical: 0
-  warning: 2
-  info: 3
+  warning: 1
+  info: 4
   total: 5
 status: issues_found
 ---
 
 # Phase 1: Code Review Report
 
-**Reviewed:** 2026-09-30T10:32:57Z
+**Reviewed:** 2026-09-30T11:01:16Z
 **Depth:** standard
-**Files Reviewed:** 8
+**Files Reviewed:** 6
 **Status:** issues_found
 
 ## Summary
 
-I reviewed the debug overlay (view and model), the dawn payout VFX, and the three test suites that cover them. I cross-checked them against `hud.gd`, `run_manager.gd`, `sim_events.gd`, `project.godot` and `debug_overlay.tscn`.
+Reviewed the dawn payout VFX, the debug overlay model and their four test files. Cross-checked against `ui/hud/hud.gd` (payout_started / coin_landed consumers), `simulation/run/run_manager.gd` (dawn payout emission and phase clocks), `simulation/buildings/building_system.gd` (`dawn_income_by_spot`) and `simulation/events/sim_events.gd`.
 
-I found no crashes, security issues or data-loss bugs. The interplay between `payout_started`, `coin_landed` and the HUD's `_payout_pending` holds up. Superseded payouts are handled by the generation guard. `Hud._on_phase_changed` also resets `_payout_pending` when dawn ends. The overlay's pre-bind registration, owner-lifetime handling and default-title guard behave as documented. The `.uid` files are unique. All signal names in `SIM_SIGNALS` exist in `sim_events.gd`, and the `toggle_debug_overlay` action is defined in `project.godot`.
+I found no correctness or security defects in the production code. I traced these paths:
 
-What remains is one inconsistency in the model's failure reporting, one silent-drop path in the VFX, and some minor quality and test-coverage gaps.
+- coin-count and share arithmetic: no division by zero, since `_coin_share` is only reached for `coin_count >= 1`, and shares always sum to the spot amount.
+- clamping against int overflow.
+- generation guards against superseded payouts.
+- the HUD held-back readout, which is reset by every `payout_started`, including the 0 case.
+- the model's skip, drop and warn-once state machine, including the re-registration path.
+
+The findings below are test-maintenance and quality issues, not shipping bugs.
 
 ## Warnings
 
-### WR-01: Malformed provider rows are dropped silently, unlike every other provider failure
+### WR-01: `SIM_SIGNALS` is duplicated, and only one copy has a drift guard
 
-**File:** `ui/overlay/debug_overlay_model.gd:117-122`
-**Issue:** `_clean_rows` discards any row that is not an `Array` of at least 2 elements. A provider that returns `PackedStringArray` rows, a `Dictionary` row, or a 1-element row loses those rows with no message. This contradicts the model's own stated principle at lines 106-107: "A section that silently never shows is hard to notice". Every other provider fault (freed owner, invalid callable, wrong arity, non-Array return) goes through `_warn_once`. If every row is dropped, the section still renders as a bare title with no rows, which looks like a working but empty section.
-**Fix:** Warn once when a row is dropped, reusing the existing throttle.
-```gdscript
-func _clean_rows(title: String, rows: Array) -> Array:
-	var clean: Array = []
-	var dropped: int = 0
-	for row: Variant in rows:
-		if row is Array and (row as Array).size() >= 2:
-			clean.append([str(row[0]), str(row[1])])
-		else:
-			dropped += 1
-	if dropped > 0:
-		_warn_once(title, "%d malformed row(s) dropped; rows must be [label, value]" % dropped)
-	return clean
-```
-Note that `collect` erases `_warned[title]` on every successful call at line 75. That erase would need to move so it does not re-arm the warning on every refresh. For example, re-arm only when `dropped == 0`.
-
-### WR-02: A payout with a positive `total` but only bad or negative `per_spot` entries gives no "+X gold" total and no feedback beyond a warning
-
-**File:** `ui/hud/dawn_payout_vfx.gd:151-194`
-**Issue:** The early return for `total <= 0` (lines 151-153) skips `per_spot` entirely. It is silent even when `per_spot` holds positive amounts, whereas the mismatch case at line 183 warns. A `total <= 0` payout that still carries gold in `per_spot` is a claim/detail disagreement of the same kind, and it currently produces neither coins nor a warning. The reverse case (`total > 0`, `carried == 0`) correctly emits `payout_started(0)` and warns, but nothing is shown. In that case the Economy has already been credited and the HUD is not held back, so the counter jumps with no attribution. The comment at lines 193-194 acknowledges this as intentional. The test file does not exercise the `total > 0`, `carried == 0` path. `test_a_payout_with_no_coins_does_not_report_the_previous_payouts_total` uses `emit(0, {})`, which only covers the early return.
-**Fix:** Warn in the `total <= 0` branch when `per_spot` is non-empty. Add an e2e case for `emit(5, {})` or `emit(5, {HOUSE_ONE: -3})`. It should assert `get_last_total() == 0`, that `payout_started` is emitted with 0, and that the HUD readout matches the ledger immediately.
-```gdscript
-if total <= 0:
-	if not per_spot.is_empty():
-		push_warning("dawn payout claims %d gold but lists per-spot amounts; nothing shown" % total)
-	payout_started.emit(0)
-	return
-```
+**File:** `tests/unit/test_debug_overlay_timed_phases.gd:9-17` (copy of `tests/unit/test_debug_overlay_readonly.gd:8-16`)
+**Issue:** The list of simulation signals is duplicated verbatim in two files. `test_debug_overlay_readonly.gd` guards its copy with `test_the_watched_signals_are_every_signal_the_simulation_declares` (line 299), which fails when `SimEvents` gains a signal. The copy in `test_debug_overlay_timed_phases.gd` has no such guard. When a new SimEvents signal is added, the readonly test fails and the developer updates that list. The timed-phases list then silently under-watches, so its night and dawn "collecting emits no events" checks stop covering the new signal while staying green. Those two tests are the only place the read-only guarantee is checked in NIGHT and DAWN.
+**Fix:** Keep one source of truth and share it. For example, move the list to a small helper such as `tests/support/sim_signals.gd` (`const ALL: Array[String] = [...]`, next to `E2eSupport`). Reference it from both files, keep the drift-guard test with it, and delete the local `SIM_SIGNALS` constants. Alternatively, derive the list at runtime from `SimEvents.new().get_script().get_script_signal_list()` in both files, which removes the maintenance point entirely.
 
 ## Info
 
-### IN-01: `_is_gone` and `_skip_reason` duplicate the owner/validity checks
+### IN-01: Control flow in `DebugOverlayModel` depends on free-text reason strings
 
-**File:** `ui/overlay/debug_overlay_model.gd:84-103`
-**Issue:** Both functions re-derive "owner freed" and "callable invalid". The rules can drift, for example if a third permanent-failure reason is added to one and not the other. `collect` calls both for every skipped entry.
-**Fix:** Have `_skip_reason` return a reason and let `_is_gone` be derived from it. Alternatively return a small struct or tuple `{reason, permanent}` from one function.
+**File:** `ui/overlay/debug_overlay_model.gd:96-111`
+**Issue:** `_skip_reason` returns a human-readable message that `_is_gone` compares against two constants to decide whether to erase the entry. The same string is also used as warning text. A typo, a reworded message, or a new "permanent" reason added without updating `_is_gone` silently makes a permanent failure transient. The failed provider is then re-checked on every refresh instead of dropped. The comment on the constants acknowledges the coupling, but the design still relies on a comment.
+**Fix:** Return a small enum or `StringName` code from `_skip_reason` (for example `SKIP_NONE`, `SKIP_OWNER_FREED`, `SKIP_CALLABLE_INVALID`, `SKIP_NEEDS_ARGS`) and map it to message text in one place, so `_is_gone` compares codes rather than prose.
 
-### IN-02: The read-only assertion covers only part of the simulation state
+### IN-02: Dead tuning setup in the hardening e2e test
 
-**File:** `tests/unit/test_debug_overlay_timed_phases.gd:60-73`
-**Issue:** `_assert_collecting_is_read_only` checks gold, phase, timer, elapsed and the events. The model also reads `buildings.current_tier`, `spot_ids`, `get_unit_count` and `get_enemy_count`. A regression that mutated building state, for example lazily initialising a spot's tier inside a getter, would go unnoticed.
-**Fix:** Snapshot `_count_buildings()`-equivalent state before and after, such as `current_tier` for every spot id plus the unit and enemy counts, and assert them unchanged.
+**File:** `tests/e2e/test_dawn_payout_hardening.gd:8, 18`
+**Issue:** `before_each` sets `_tuning.placeholder_night_seconds = FAST_NIGHT_S`, but no test in this file starts a night. Every test emits `dawn_payout` directly on the events bus. The constant and the assignment have no effect and imply a night-driven scenario that does not exist. Anyone changing dawn or night timing may assume this file depends on it.
+**Fix:** Delete `FAST_NIGHT_S` and the assignment, keeping only the duplicated tuning. Or drop `_tuning` entirely and let `_spawn` pass the default resource duplicate.
 
-### IN-03: The registration tests bypass the toggle path, and the visible-refresh timing is wall-clock dependent
+### IN-03: Test name and message use "owner freed" for a case with no owner
 
-**File:** `tests/unit/test_debug_overlay_registration.gd:25-28`
-**Issue:** `_shown_text` sets `overlay.visible = true` directly and waits 0.35 s for the 0.25 s refresh interval. This never exercises `_process`'s `toggle_debug_overlay` branch (which refreshes immediately on show). The 0.10 s margin also depends on frame deltas under CI load. The tests would be tighter, and independent of the interval, if they forced a refresh through the same path the player uses, for example with `Input.action_press` and `Input.action_release`.
-**Fix:** Simulate the toggle input with `Input.parse_input_event` or `action_press` and then await one process frame. That gives an immediate `_refresh()` and no timing margin.
+**File:** `tests/unit/test_debug_overlay_readonly.gd:142-162`
+**Issue:** `test_a_provider_whose_owner_was_freed_is_dropped_after_its_one_warning` registers `owner_node.get_children` without a `lifetime_owner`. The warning it asserts is "its callable is no longer valid", not "its owner was freed". "Owner" here means the method's target object. In the neighbouring test (line 165) "owner" means the `lifetime_owner` argument and produces the other reason string. The overloaded word makes it hard to see which of the two `REASON_*` paths each test pins. The scenario at line 128 (`test_a_freed_section_provider_is_skipped_instead_of_crashing`) also covers the same registration, which makes the overlap more confusing.
+**Fix:** Rename to something like `test_a_provider_with_an_invalid_callable_is_dropped_after_its_one_warning`. Keep "owner freed" only for the `lifetime_owner` tests.
+
+### IN-04: The clamp e2e test does not check what it claims about the amounts
+
+**File:** `tests/e2e/test_dawn_payout_hardening.gd:74-96`
+**Issue:** The test name says the amounts are clamped so the coin cap holds. It asserts that `payout_started` carries `2 * MAX_AMOUNT`, that the delay count is at most `MAX_COINS`, that the HUD settles, and that each spot sent at least one coin. It does not assert `vfx.get_last_total()` after the flight or the number of coins actually sent. The HUD-settled check only proves the landed shares sum to the announced total, and it can pass even if the cap were hit in a different way. The `<= MAX_COINS` check is also loose: with two spots at the clamped amount the plan is exactly 12 coins (6 per spot), so an assertion of equality would catch regressions in the proportional split.
+**Fix:** After the wait, add `assert_eq(vfx.get_last_total(), clamped_total)` and assert `vfx.get_launch_delays().size() == DawnPayoutVfx.MAX_COINS`, or assert 6 spawned per spot.
 
 ---
 
-_Reviewed: 2026-09-30T10:32:57Z_
+_Reviewed: 2026-09-30T11:01:16Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
