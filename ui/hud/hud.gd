@@ -24,6 +24,12 @@ const PAD_BUTTON_NAMES: Dictionary = {
 	JOY_BUTTON_LEFT_SHOULDER: "LB",
 	JOY_BUTTON_RIGHT_SHOULDER: "RB",
 }
+## Gamepad trigger names shown in the start-night hint, by JoyAxis index. Xbox-style labels like the
+## buttons above, so other pads read differently (a known Phase-1 limitation).
+const AXIS_NAMES: Dictionary = {
+	JOY_AXIS_TRIGGER_LEFT: "LT",
+	JOY_AXIS_TRIGGER_RIGHT: "RT",
+}
 
 var _ctx: RunContext
 var _pending: int = 0
@@ -153,18 +159,33 @@ func _start_night_hint() -> String:
 	var pad: PackedStringArray = PackedStringArray()
 	for event: InputEvent in InputMap.action_get_events(&"start_night"):
 		if event is InputEventKey:
-			var key_event: InputEventKey = event as InputEventKey
-			var code: Key = key_event.physical_keycode
-			if code == KEY_NONE:
-				code = key_event.keycode
-			keys.append(OS.get_keycode_string(code))
+			# Modifiers are part of the text ("Ctrl+N"), so the prompt names what actually triggers it.
+			var key_text: String = _key_text(event as InputEventKey)
+			if not key_text.is_empty():
+				keys.append(key_text)
+		elif event is InputEventMouseButton:
+			keys.append(event.as_text())
 		elif event is InputEventJoypadButton:
 			var button: int = (event as InputEventJoypadButton).button_index
 			pad.append("(%s)" % PAD_BUTTON_NAMES.get(button, "Pad %d" % button))
+		elif event is InputEventJoypadMotion:
+			var axis: int = (event as InputEventJoypadMotion).axis
+			pad.append("(%s)" % AXIS_NAMES.get(axis, "Axis %d" % axis))
 	var parts: PackedStringArray = keys + pad
 	if parts.is_empty():
 		return UNBOUND_HINT
 	return " / ".join(parts)
+
+
+## A key event's text, with modifiers; empty when it names no key at all.
+func _key_text(key_event: InputEventKey) -> String:
+	if key_event.physical_keycode != KEY_NONE:
+		return key_event.as_text_physical_keycode()
+	if key_event.keycode != KEY_NONE:
+		return key_event.as_text_keycode()
+	if key_event.key_label != KEY_NONE:
+		return key_event.as_text_key_label()
+	return ""
 
 
 func _refresh() -> void:

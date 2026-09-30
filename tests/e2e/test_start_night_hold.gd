@@ -334,3 +334,40 @@ func test_the_prompt_follows_a_runtime_rebind_of_start_night() -> void:
 	await wait_process_frames(2)
 
 	assert_eq(_prompt(map_root).text, "Hold M to start Night 1", "the new key is named, no pad")
+
+
+## Rebinds start_night to `event` alone and returns the prompt text once the HUD has noticed.
+func _prompt_after_rebind(map_root: MapRoot, event: InputEvent) -> String:
+	InputMap.action_erase_events(ACTION)
+	InputMap.action_add_event(ACTION, event)
+	await wait_process_frames(2)
+	return _prompt(map_root).text
+
+
+func test_the_prompt_names_a_trigger_or_mouse_button_binding() -> void:
+	var map_root: MapRoot = await E2eSupport.spawn_map(self, null, _tuning)
+	var trigger: InputEventJoypadMotion = InputEventJoypadMotion.new()
+	trigger.axis = JOY_AXIS_TRIGGER_RIGHT
+	trigger.axis_value = 1.0
+	var click: InputEventMouseButton = InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_MIDDLE
+
+	var trigger_text: String = await _prompt_after_rebind(map_root, trigger)
+	var click_text: String = await _prompt_after_rebind(map_root, click)
+
+	assert_eq(trigger_text, "Hold (RT) to start Night 1", "a trigger binding is named, not unbound")
+	assert_eq(click_text, "Hold %s to start Night 1" % click.as_text(), "a mouse button is named")
+
+
+func test_the_prompt_keeps_key_modifiers_and_skips_an_event_that_names_no_key() -> void:
+	var map_root: MapRoot = await E2eSupport.spawn_map(self, null, _tuning)
+	var chord: InputEventKey = InputEventKey.new()
+	chord.physical_keycode = KEY_N
+	chord.ctrl_pressed = true
+	var blank: InputEventKey = InputEventKey.new()
+
+	var chord_text: String = await _prompt_after_rebind(map_root, chord)
+	var blank_text: String = await _prompt_after_rebind(map_root, blank)
+
+	assert_eq(chord_text, "Hold Ctrl+N to start Night 1", "the modifier is part of the hint")
+	assert_eq(blank_text, "Hold (unbound) to start Night 1", "no stray separator or blank name")
