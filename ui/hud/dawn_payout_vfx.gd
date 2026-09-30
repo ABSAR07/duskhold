@@ -26,6 +26,9 @@ const STAGGER_SECONDS: float = 0.08
 ## budget), so a payout from more than MAX_COINS spots sends one coin per spot. The launch stagger
 ## (see launch_stagger) is what keeps the whole flight inside the dawn window either way.
 const MAX_COINS: int = 12
+## Largest gold amount one spot's payout is trusted to carry, far above any real income. Bigger
+## (malformed) amounts are clamped to it so the carried sum cannot overflow an int.
+const MAX_AMOUNT: int = 1_000_000
 const POP_SECONDS: float = 0.15
 const POP_HEIGHT_PX: float = 40.0
 ## Whole trip per coin: the pop plus the flight to the counter.
@@ -175,8 +178,9 @@ func _on_dawn_payout(total: int, per_spot: Dictionary) -> void:
 
 ## `per_spot` arrives as an untyped Dictionary, so each entry is checked and coerced once here: the
 ## spot id must be a name (it is stored as a StringName, which the loops in _on_dawn_payout rely on)
-## and the amount a finite number, truncated to a whole one if it is a float. An entry that fails
-## either check is dropped with a warning, so one bad entry cannot abort the whole payout.
+## and the amount a finite number, truncated to a whole one if it is a float and clamped to
+## +/-MAX_AMOUNT. An entry that fails either check is dropped with a warning, so one bad entry
+## cannot abort the whole payout.
 func _whole_amounts(per_spot: Dictionary) -> Dictionary:
 	var amounts: Dictionary = {}
 	for spot_id: Variant in per_spot:
@@ -189,7 +193,10 @@ func _whole_amounts(per_spot: Dictionary) -> Dictionary:
 		elif not (amount is int or amount is float):
 			problem = "%s is not a number" % type_string(typeof(amount))
 		if problem.is_empty():
-			amounts[StringName(spot_id)] = int(amount)
+			# Clamped before it becomes an int (a huge float has no defined int value) so that
+			# neither the amount nor the sum of several can overflow and slip under MAX_COINS.
+			var bounded: float = clampf(float(amount), -float(MAX_AMOUNT), float(MAX_AMOUNT))
+			amounts[StringName(spot_id)] = int(bounded)
 		else:
 			push_warning("dawn payout for '%s' ignored: %s" % [spot_id, problem])
 	return amounts
