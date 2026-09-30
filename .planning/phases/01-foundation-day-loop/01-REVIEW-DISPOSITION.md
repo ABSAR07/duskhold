@@ -5,28 +5,28 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: fixed
-    title: "A provider that returns a non-Array is skipped silently, contradicting the \"warn once\" design"
+    disposition: open
+    title: "`_whole_amounts` validates amounts but not spot keys, so a bad key still aborts the payout"
   - id: WR-02
     severity: warning
-    disposition: fixed
-    title: "`_warned` is never cleared when a provider is re-registered"
+    disposition: open
+    title: "The \"+X gold\" label shows the claimed total while the coins and the HUD readout use the carried gold"
+  - id: IN-01
+    severity: info
+    disposition: open
+    title: "`_launch` tweens from an earlier payout are never killed on reset"
+  - id: IN-02
+    severity: info
+    disposition: open
+    title: "`_count_buildings` allocates a snapshot per spot on every overlay refresh just to test for emptiness"
+  - id: IN-03
+    severity: info
+    disposition: open
+    title: "A registered section named like a default (\"Perf\", \"Loop\", \"Agents\") shows twice"
   - id: WR-03
     severity: warning
     disposition: fixed
     title: "Wall-clock-dependent e2e assertions can flake on a slow or loaded runner"
-  - id: IN-01
-    severity: info
-    disposition: fixed
-    title: "`BuildingSystem.get_instance` hands out the live mutable instance, contradicting the \"reads never mutate\" contract"
-  - id: IN-02
-    severity: info
-    disposition: fixed
-    title: "`DawnPayoutVfx._on_dawn_payout` trusts untyped Dictionary values as `int`"
-  - id: IN-03
-    severity: info
-    disposition: fixed
-    title: "Redundant HUD refresh triggers and a test that emits synthetic phase transitions"
   - id: IN-04
     severity: info
     disposition: fixed
@@ -87,21 +87,21 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 0
+open: 5
 total: 21
-recorded: 2026-09-30T08:12:32.003Z
+recorded: 2026-09-30T08:18:09.509Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-02 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-03 | warning | fixed | 01-REVIEW-FIX.md |
-| IN-01 | info | fixed | 01-REVIEW-FIX.md |
-| IN-02 | info | fixed | 01-REVIEW-FIX.md |
-| IN-03 | info | fixed | 01-REVIEW-FIX.md |
+| WR-01 | warning | open | - |
+| WR-02 | warning | open | - |
+| IN-01 | info | open | - |
+| IN-02 | info | open | - |
+| IN-03 | info | open | - |
+| WR-03 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-04 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-05 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-04 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
