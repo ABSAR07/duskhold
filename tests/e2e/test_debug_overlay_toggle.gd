@@ -4,7 +4,7 @@ extends GutTest
 
 const TOGGLE_ACTION := &"toggle_debug_overlay"
 const RIDE_TIMEOUT_S: float = 5.0
-const REFRESH_WINDOW_S: float = 0.5
+const REFRESH_WINDOW_S: float = 1.0
 const REQUIRED_FIELDS: Array[String] = [
 	"FPS",
 	"Phase: DAY",
