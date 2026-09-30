@@ -38,9 +38,9 @@ func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 	_ctx = ctx
 	_model = DebugOverlayModel.new(ctx)
 	for entry: Dictionary in _pending:
-		var owner_ref: WeakRef = entry["owner"]
-		var lifetime_owner: Object = owner_ref.get_ref() if owner_ref != null else null
-		if owner_ref != null and lifetime_owner == null:
+		var owner_weak: WeakRef = entry["owner"]
+		var lifetime_owner: Object = owner_weak.get_ref() if owner_weak != null else null
+		if owner_weak != null and lifetime_owner == null:
 			DebugOverlayModel.warn_not_registered(
 				entry["title"], DebugOverlayModel.OWNER_FREED_REASON + " before bind_run"
 			)

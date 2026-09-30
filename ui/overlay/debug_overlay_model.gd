@@ -165,8 +165,8 @@ func collect(fps: float) -> Array:
 ## Why an entry's provider cannot be called with no arguments, or Skip.NONE when it can. Parameters
 ## with default values count as arguments here, so a provider must declare none at all.
 func _skip_code(entry: Dictionary) -> Skip:
-	var owner_ref: WeakRef = entry["owner"]
-	if owner_ref != null and owner_ref.get_ref() == null:
+	var owner_weak: WeakRef = entry["owner"]
+	if owner_weak != null and owner_weak.get_ref() == null:
 		return Skip.OWNER_FREED
 	var provider: Callable = entry["provider"]
 	if not provider.is_valid():
