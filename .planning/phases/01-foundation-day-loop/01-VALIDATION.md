@@ -27,7 +27,7 @@ validated: "2026-09-29"
 | **Full suite command** | `bash tools/test.sh` (headless import pass, then GUT over all three dirs; fails on any first-party parse/load error) |
 | **Single file** | `bash tools/test.sh -gselect=<test_file>.gd` |
 | **Lint** | `bash tools/lint.sh` (gdtoolkit 4.5.0: `gdformat --check` + `gdlint`) |
-| **Measured runtime** | Quick: ~14 s wall (20 scripts, 175 tests). Full: ~96 s wall (36 scripts, 279 tests) |
+| **Measured runtime** | Quick: ~14 s wall (20 scripts, 179 tests). Full: ~96 s wall (36 scripts, 283 tests) |
 
 The `tools/*.sh` wrappers need Git Bash on Windows; they resolve the pinned binary under `.tools/godot/4.7.2-stable/` (D-14).
 
@@ -136,6 +136,8 @@ GUT rows run as `bash tools/test.sh -gselect=<file>`. Threat refs are the plans'
 | IN-01 / IN-02 / IN-03 fix (pass 18) | review | — | DEV-03 | T-01-15 | Overlay rows must be exactly [label, value]: a longer row is dropped and counted in the malformed-row warning, not truncated; the shared helper asserts the map has a spot before indexing it and deep-copies tuning like the map; the map-copy test can no longer pass on an empty map | unit | `test_debug_overlay_providers.gd` (malformed-rows test updated), `test_overlay_test_support.gd` | ✅ | ✅ green |
 | WR-01 fix (pass 19) | review | — | DEV-03 | T-01-15 | `lifetime_owner` is documented for what it does: it ends a section whose owner is freed explicitly (a Node); a RefCounted captured strongly by its provider stays alive, and a weakly captured one ends its section when freed | unit | `test_debug_overlay_providers.gd` (`test_a_refcounted_owner_captured_by_its_provider_is_kept_alive_by_the_section`, `test_a_weakly_captured_refcounted_owner_ends_its_section_when_freed`) | ✅ | ✅ green |
 | IN-01 / IN-02 / IN-03 fix (pass 19) | review | — | DEV-03 | T-01-15 | Skip warnings in the Ghost, Needy and Defaulted tests are asserted with their full reason; a shadowing local renamed; the tuning copy is checked to share no Resource with the cached tuning | unit | `test_debug_overlay_providers.gd`, `test_overlay_test_support.gd` (`test_a_new_tuning_copy_shares_no_resource_with_the_cached_tuning`) | ✅ | ✅ green |
+| WR-01 / IN-01 / IN-02 fix (pass 20) | review | — | DEV-03 | — | The map-copy test restores the cached map it writes to; a shadowing local renamed; the tuning-sharing check walks nested properties, with a positive control proving it finds a shared nested resource | unit | `test_overlay_test_support.gd` (`test_the_sharing_check_finds_a_nested_resource_under_a_base_script_property`) | ✅ | ✅ green |
+| IN-03 fix (pass 20) | review | — | DEV-03 | T-01-15 | A section registered twice before `bind_run` replaces the pending entry in place (keeping its order), so bind never warns about the replaced section's freed owner; a refused replacement leaves the registered section alone | unit | `test_debug_overlay_registration.gd` (`test_a_pending_section_replaced_before_bind_run_does_not_warn_about_the_old_owner`, `test_a_pending_section_replaced_before_bind_run_keeps_its_place_in_the_order`, `test_a_refused_pending_replacement_leaves_the_registered_section_alone`) | ✅ | ✅ green |
 
 Owner gates with no automated verify by design: 01-01-T2 (toolchain download approval), 01-03-T2 (public repo name), 01-07-T2 (CC0 model download approval). No run of three consecutive tasks lacks automated verification.
 
@@ -588,6 +590,29 @@ Re-audited after the nineteenth review-fix pass (4 commits, `a7d732d`..`79b4513`
 Evidence:
 - Full suite 279/279 (36 scripts); lint clean (72 files).
 - Unit quick run 175/175 (20 scripts, ~14 s).
+- `tools/screenshot.sh`: 6/6 non-blank captures.
+- Headless guard exits 2.
+- `ci.yml` unchanged.
+
+## Validation Audit 2026-09-30 (re-audit after review-fix pass 20)
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Re-audited after the twentieth review-fix pass (4 commits, `66e7307`..`9ef9e59`). 15/15 requirements are still COVERED.
+
+- **Tests:** +4 new. Three cover the pre-bind replace-in-place rule. One is a positive control for the recursive tuning-sharing check.
+  - The map-copy isolation test now restores what it writes, so even a regressed helper cannot dirty later suites.
+  - Two of the new registration tests also pass on the old code, because the model's own replace-in-place hides the difference. They guard the new pending-list logic, and `01-REVIEW-FIX.md` records this.
+- **Mutation probes:** every behaviour change carries one in `01-REVIEW-FIX.md`. IN-01 is a rename.
+- **CR-01 guard:** re-probed by the orchestrator; it fails 17/18 with the old spacing. `dawn_payout_vfx.gd` was not touched this pass.
+
+Evidence:
+- Full suite 283/283 (36 scripts); lint clean (72 files).
+- Unit quick run 179/179 (20 scripts, ~14 s).
 - `tools/screenshot.sh`: 6/6 non-blank captures.
 - Headless guard exits 2.
 - `ci.yml` unchanged.
