@@ -3,7 +3,7 @@ status: testing
 phase: 01-foundation-day-loop
 source: [01-VERIFICATION.md]
 started: 2026-09-29T12:10:00Z
-updated: 2026-09-30T09:17:57Z
+updated: 2026-09-30T09:48:17Z
 ---
 
 ## Current Test
@@ -36,7 +36,7 @@ result: [pending]
 expected: Overlay appears with FPS, units, enemies, phase, day, night, gold, buildings and is readable
 result: [pending]
 
-### 6. Hold N (and gamepad Y) for 1.5 s, then watch night banner, lighting, dawn payout and return to Day as 'Night 2'. Pass-5 change to watch specifically: the gold counter must stay lagged while coins fly, tick up as each coin lands, and be exactly the ledger gold once dawn ends (never stuck low, never ahead of the coins)
+### 6. Hold N (and gamepad Y) for 1.5 s, then watch night banner, lighting, dawn payout and return to Day as 'Night 2'. Watch specifically: the gold counter must stay lagged while coins fly, tick up as each coin lands, and be exactly the ledger gold once dawn ends (never stuck low, never ahead of the coins)
 expected: Prompt fills, banner and night lighting show, dawn coins fly from each paying House to the gold counter, '+X gold' appears, day returns with carried-over gold (known: the dawn capture looks mostly night-coloured because the 1.0 s lighting ease outlasts the 0.6 s coin flight)
 result: [pending]
 
@@ -44,16 +44,20 @@ result: [pending]
 expected: Owner confirms keeping the 2021 CC0 Poly Pizza copy despite the newer Quaternius Asset License, or replaces it before the itch.io release
 result: [pending]
 
-### 8. Check the start-night prompt on a non-QWERTY keyboard layout (Dvorak or AZERTY): Hold the bound physical key's position and read the on-screen prompt
+### 8. Check the start-night prompt on a non-QWERTY keyboard layout (Dvorak or AZERTY): hold the bound physical key's position and read the on-screen prompt
 expected: The prompt names the key by the label printed on that keycap on the player's layout (the default N key on QWERTY reads 'Hold N / (Y) to start Night 1'), not by its US-QWERTY position
+result: [pending]
+
+### 9. Owner decision on CI trigger semantics for DEV-02, then push the branch and confirm CI is green on the final HEAD
+expected: Owner either accepts 'main, master, gsd/** and PRs' as satisfying 'on every push' (record an override) or widens the trigger; after pushing, lint, test, export and screenshots jobs are green on the new HEAD (last green run is 981e4c8, 160 commits behind)
 result: [pending]
 
 ## Summary
 
-total: 8
+total: 9
 passed: 0
 issues: 0
-pending: 8
+pending: 9
 skipped: 0
 blocked: 0
 
