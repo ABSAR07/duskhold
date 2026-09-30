@@ -17,6 +17,8 @@ const DEFAULT_TITLES: Array[String] = ["Perf", "Loop", "Agents"]
 ## is also the wording for a section dropped once its owner is freed later.
 const OWNER_FREED_REASON := "its owner was freed"
 const OWNER_NOT_OBJECT_REASON := "its owner is not an Object"
+## Why a title that names a default section is refused at registration (see title_problem).
+const DEFAULT_TITLE_REASON := "the title is a default section"
 ## The words that complete "debug overlay section '<title>' skipped: ..." for each Skip code. Every
 ## code except NONE needs a message.
 const SKIP_MESSAGES: Dictionary = {
@@ -60,10 +62,9 @@ func _init(ctx: RunContext) -> void:
 ## instance to an Object parameter raises a script error in the caller's frame, before this body
 ## could guard.
 func register_section(title: String, provider: Callable, lifetime_owner: Variant = null) -> void:
-	if title in DEFAULT_TITLES:
-		warn_not_registered(title, "the title is a default section")
-		return
-	var problem: String = owner_problem(lifetime_owner)
+	var problem: String = title_problem(title)
+	if problem == "":
+		problem = owner_problem(lifetime_owner)
 	if problem != "":
 		warn_not_registered(title, problem)
 		return
@@ -71,6 +72,13 @@ func register_section(title: String, provider: Callable, lifetime_owner: Variant
 	_registered[title] = {"provider": provider, "owner": owner_ref(lifetime_owner)}
 	# The one-shot warning belongs to the provider, so a replacement may warn afresh.
 	_warned.erase(title)
+
+
+## Why a section title cannot be used, or "" when it can: only a title that names a default section
+## is refused. The overlay view checks a pre-bind registration with this too, so both paths refuse
+## the same mistake at the same moment, in the same words.
+static func title_problem(title: String) -> String:
+	return DEFAULT_TITLE_REASON if title in DEFAULT_TITLES else ""
 
 
 ## Why a `lifetime_owner` cannot be used, or "" when it can (no owner at all is fine). The overlay

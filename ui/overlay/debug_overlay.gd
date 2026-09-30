@@ -43,7 +43,11 @@ func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 ## alive at registration).
 func register_section(title: String, provider: Callable, lifetime_owner: Variant = null) -> void:
 	if _model == null:
-		var problem: String = DebugOverlayModel.owner_problem(lifetime_owner)
+		# The same checks, in the same order, as DebugOverlayModel.register_section, so a mistake is
+		# refused when it is made, not later at bind_run (or never, if the overlay is never bound).
+		var problem: String = DebugOverlayModel.title_problem(title)
+		if problem == "":
+			problem = DebugOverlayModel.owner_problem(lifetime_owner)
 		if problem != "":
 			DebugOverlayModel.warn_not_registered(title, problem)
 			return

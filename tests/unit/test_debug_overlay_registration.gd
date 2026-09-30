@@ -122,6 +122,36 @@ func test_an_owner_that_is_not_an_object_is_refused_before_and_after_bind_run_as
 	assert_push_warning_count(2, "each refusal is named once, and none says the owner was freed")
 
 
+func test_a_default_title_is_refused_at_once_before_bind_run_and_never_buffered() -> void:
+	var overlay: DebugOverlay = _overlay()
+
+	overlay.register_section("Perf", func() -> Array: return [["Shadow", "1"]])
+
+	# Refused when it is registered, not later when bind_run would replay it.
+	assert_push_warning(
+		"debug overlay section 'Perf' not registered: the title is a default section"
+	)
+	overlay.bind_run(_context(), null)
+	var text: String = await _shown_text(overlay)
+	assert_false(text.contains("Shadow"), "the refused section never shows")
+	assert_eq(text.count("Perf"), 1, "and the default Perf section is listed once")
+	assert_push_warning_count(1, "the refusal is named once, not again at bind_run")
+
+
+func test_a_default_title_is_refused_the_same_way_after_bind_run() -> void:
+	var overlay: DebugOverlay = _overlay()
+	overlay.bind_run(_context(), null)
+
+	overlay.register_section("Loop", func() -> Array: return [["Shadow", "1"]])
+
+	assert_push_warning(
+		"debug overlay section 'Loop' not registered: the title is a default section"
+	)
+	var text: String = await _shown_text(overlay)
+	assert_false(text.contains("Shadow"), "the refused section never shows")
+	assert_push_warning_count(1, "the refusal is named once")
+
+
 func test_get_text_before_the_overlay_is_in_the_tree_is_empty_instead_of_a_script_error() -> void:
 	# instantiate() without add_child: the @onready label does not exist yet.
 	var overlay: DebugOverlay = autofree((load(OVERLAY_SCENE) as PackedScene).instantiate())
