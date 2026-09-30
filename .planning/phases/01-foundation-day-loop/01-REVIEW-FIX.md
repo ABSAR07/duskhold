@@ -1,63 +1,51 @@
 ---
 phase: 01-foundation-day-loop
-fixed_at: 2026-09-30T09:30:10Z
+fixed_at: 2026-09-30T09:56:01Z
 review_path: .planning/phases/01-foundation-day-loop/01-REVIEW.md
 iteration: 1
-findings_in_scope: 4
-fixed: 4
+findings_in_scope: 3
+fixed: 3
 skipped: 0
 status: all_fixed
 ---
 
-# Phase 01: Code Review Fix Report
+# Phase 1: Code Review Fix Report
 
-**Fixed at:** 2026-09-30T09:30:10Z
+**Fixed at:** 2026-09-30T09:56:01Z
 **Source review:** .planning/phases/01-foundation-day-loop/01-REVIEW.md
 **Iteration:** 1
 
 **Summary:**
-- Findings in scope: 4
-- Fixed: 4
+- Findings in scope: 3
+- Fixed: 3
 - Skipped: 0
 
-**Verification environment:** every gate (`bash tools/lint.sh`, `bash tools/test.sh`) ran in the main checkout on branch `gsd/phase-01-foundation-day-loop` (workflow ran without a worktree, per orchestrator instruction), so the numbers are reproducible from the tree. Final state: lint clean, GUT 243/243 passing (baseline was 241; +2 new tests).
+**Verification environment:** all gates ran in the main checkout, not in an isolated worktree. The pinned Godot binary and the lint venv live in the untracked `.tools/` directory, which a fresh worktree does not have, so gates could not run there. Full suite after the last commit: `bash tools/test.sh` 245/245 (243 before, plus the two new tests); `bash tools/lint.sh` clean. `.planning/config.json` was already modified before this run and was left alone (each commit staged explicit paths only).
 
 ## Fixed Issues
 
-### WR-01: A tightened stagger leaves zero slack, so the last coin can land after dawn ends
+### WR-01: Overlay provider guard does not catch a lambda that captured a freed object
 
-**Files modified:** `ui/hud/dawn_payout_vfx.gd`, `tests/e2e/test_dawn_payout.gd`
-**Commit:** f1806f5
-**Applied fix:** Added `DAWN_MARGIN_SECONDS = 0.15` and `launch_stagger` now computes its window as `dawn_seconds - TRIP_SECONDS - DAWN_MARGIN_SECONDS` (still clamped to `[0, STAGGER_SECONDS]`). Default tuning (2.0 s dawn, at most 12 coins) still gets the full 0.08 s stagger: (2.0 - 0.6 - 0.15) / 11 = 0.114 s, so it clamps to `STAGGER_SECONDS`. Both exact-fill tests were updated to the new formula (the first was renamed `..._to_fill_the_dawn_window_less_its_margin`; the second now asserts the last coin lands by `dawn_seconds - DAWN_MARGIN_SECONDS`). Logic-related change: requires human verification of the chosen margin value.
+**Files modified:** `ui/overlay/debug_overlay_model.gd`, `ui/overlay/debug_overlay.gd`, `tests/unit/test_debug_overlay_readonly.gd`
+**Commit:** a273e88
+**Applied fix:** Took the reviewer's second option and also documented the contract. `register_section` (model and the `DebugOverlay` forwarder) takes an optional `owner: Object`. The model keeps it as a `WeakRef`, so the overlay never extends a RefCounted owner's life. When the owner is freed, collect() skips the section, warns once ("its owner was freed") and drops the entry, the same lifecycle as an invalid Callable (`_is_gone` / `_skip_reason` now take the entry). The doc comment states that without an owner a provider may only capture run-lifetime objects (RunContext and what it holds) or check `is_instance_valid` itself, because a script error cannot be caught in GDScript. Two tests added: a lambda capturing a Node that is freed is skipped and named once when the Node is passed as owner, and a lambda capturing live objects keeps showing with and without an owner (pins the supported shape). The logic is about lifecycle handling, so a human may want to glance at it.
+**Mutation probe:** replaced both `owner_ref != null and owner_ref.get_ref() == null` checks with `false` in `debug_overlay_model.gd`. `test_a_lambda_that_captured_a_freed_object_is_skipped_when_it_names_that_owner` failed (the "Watched" section was still present with empty rows, and the expected "its owner was freed" warning was missing; 19/20 passed), and the older `test_a_provider_whose_owner_was_freed_is_dropped_after_its_one_warning` also showed the shifted warning text. Source restored from a backup copy and re-run: 20/20. Note: the probe's `git checkout` restore step initially reverted the whole file to HEAD (before the fix was committed), which I noticed at once and fixed by restoring the backup; the committed content is the intended fix.
 
-**Mutation probe (CR-01 guard):** replaced `stagger` with `STAGGER_SECONDS` in the coin schedule (`float(launches.size()) * STAGGER_SECONDS`) and ran `bash tools/test.sh -gselect=test_dawn_payout.gd`. Result: `test_a_real_payout_schedules_its_last_coin_to_land_inside_a_short_dawn_window` FAILED (17 pass, 1 fail). Both the exact last-delay assertion (0.88 vs 0.25) and the new margin assertion (1.48 <= 0.851) failed independently. Source restored byte-for-byte from a backup; the file test ran 18/18 green afterwards.
+### IN-01: Production class exposes several test-only hooks
 
-### IN-01: `start_point` dereferences `_ctx` without the null guard `launch_stagger` has
+**Files modified:** `ui/hud/dawn_payout_vfx.gd`
+**Commit:** f66045f
+**Applied fix:** Comment and ordering change only, no behaviour change. `launch_stagger` moved above a `# --- Test hooks ---` banner, so the two genuine test hooks (`get_launch_delays`, `get_launch_tweens`) sit together under it. `get_spawned_count` and `start_point` were left in the normal API because production code uses them (`_launch_coin`). The reviewer's `duplicate()` suggestion was not applied: `get_launch_tweens` already builds a fresh filtered array, and the live `Tween` references are what `test_a_new_payout_stops_the_pending_launches_of_the_one_it_supersedes` needs to assert they were killed. The doc comment now says so explicitly: the array is a copy, the Tweens are live, and only tests should read them. No new public methods, so the gdlint cap is unaffected.
+**Mutation probe:** not applicable to the comment/reorder itself. Because the file was touched, the CR-01 guard probe was re-run: with `float(launches.size()) * stagger` changed to `* STAGGER_SECONDS`, `test_a_real_payout_schedules_its_last_coin_to_land_inside_a_short_dawn_window` failed (17/18 in `test_dawn_payout.gd`). Source restored and confirmed identical to the committed reorder; `test_dawn_payout*` 22/22 afterwards.
 
-**Files modified:** `ui/hud/dawn_payout_vfx.gd`, `tests/e2e/test_dawn_payout_hardening.gd`
-**Commit:** edf7e62
-**Applied fix:** `start_point` returns the middle of the viewport when `_ctx` is null. Added `test_start_point_before_the_run_is_bound_falls_back_to_mid_screen` to the hardening file (a bare `DawnPayoutVfx` with the two unique-name labels it needs, never bound; the main test file is at the 20-public-method cap).
-
-**Mutation probe:** removed the guard and ran `-gselect=test_dawn_payout_hardening.gd`. The new test FAILED (returned (0,0) instead of (32,32), plus an unexpected script error); the other 3 passed. Guard restored from backup.
-
-### IN-02: `_warn_once` is keyed by title only, so a second, different failure of the same provider is silent
-
-**Files modified:** `ui/overlay/debug_overlay_model.gd`, `tests/unit/test_debug_overlay_readonly.gd`
-**Commit:** 532be7a
-**Applied fix:** When a provider returns a valid Array, `collect` now clears `_warned[title]`, so a failure after recovery warns again (still once per failure streak, not per refresh). Doc comment on `_warn_once` updated. Added `test_a_flapping_provider_warns_again_after_it_recovers` (fail, fail, recover, fail, fail expects exactly 2 warnings).
-
-**Mutation probe:** removed the new `_warned.erase` in `collect` and ran `-gselect=test_debug_overlay_readonly.gd`. The new test FAILED ("Expected 2 push_warning errors. Got 1"); the other 17 passed. Restored from backup.
-
-### IN-03: Tests for skipped providers are inconsistent about asserting the warning
+### IN-02: Overlay test builds its context from shared cached resources
 
 **Files modified:** `tests/unit/test_debug_overlay_readonly.gd`
-**Commit:** c3905c7
-**Applied fix:** Added `assert_push_warning("debug overlay section 'Ghost' skipped")` to the freed-provider test and `assert_push_warning("debug overlay section 'Needy' skipped")` to the needs-an-argument test.
-
-**Mutation probe:** replaced the `push_warning` call in `_warn_once` with `pass` and ran the overlay test file. Both `test_a_freed_section_provider_is_skipped_instead_of_crashing` and `test_a_provider_that_needs_an_argument_is_skipped_instead_of_crashing` FAILED (along with the other warning-asserting tests; 7 failures in all). Source restored from backup.
+**Commit:** 46299c3
+**Applied fix:** `_prototype_with_one_house` now builds the context from `(load(PROTOTYPE_MAP) as MapConfig).duplicate(true)` and `(load(TUNING) as LoopTuning).duplicate(true)`, matching the e2e tests. Test-hygiene change with no behaviour to probe, so no mutation probe. The file now has 20 public methods (18 plus the two WR-01 tests), which is exactly gdlint's cap; lint is clean.
 
 ---
 
-_Fixed: 2026-09-30T09:30:10Z_
+_Fixed: 2026-09-30T09:56:01Z_
 _Fixer: Claude (gsd-code-fixer)_
 _Iteration: 1_
