@@ -145,6 +145,20 @@ func test_a_provider_that_needs_an_argument_is_skipped_instead_of_crashing() -> 
 	assert_eq(_row_value(_section(sections, "Live"), "Answer"), "42", "valid sections still show")
 
 
+func test_a_skipped_provider_is_warned_about_once_however_often_the_overlay_refreshes() -> void:
+	var model: DebugOverlayModel = DebugOverlayModel.new(_prototype_with_one_house())
+	model.register_section(
+		"Defaulted", func(verbose: bool = false) -> Array: return [["Verbose", str(verbose)]]
+	)
+
+	model.collect(60.0)
+	model.collect(60.0)
+	model.collect(60.0)
+
+	assert_push_warning("debug overlay section 'Defaulted' skipped")
+	assert_push_warning_count(1, "one warning, not one per refresh")
+
+
 func test_a_provider_that_returns_a_non_array_is_skipped_instead_of_crashing() -> void:
 	var model: DebugOverlayModel = DebugOverlayModel.new(_prototype_with_one_house())
 	model.register_section("Null", func() -> Variant: return null)

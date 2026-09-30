@@ -9,6 +9,8 @@ extends RefCounted
 
 var _ctx: RunContext
 var _registered: Array[Dictionary] = []
+## Titles already warned about, so a skipped provider is reported once, not on every refresh.
+var _warned: Dictionary = {}
 
 
 func _init(ctx: RunContext) -> void:
@@ -36,12 +38,32 @@ func collect(fps: float) -> Array:
 		var provider: Callable = entry["provider"]
 		# A freed owner leaves an invalid Callable, and a provider that needs an argument cannot be
 		# called with none; skip either instead of raising a script error on every refresh.
-		if not provider.is_valid() or provider.get_argument_count() > 0:
+		var skip_reason: String = _skip_reason(provider)
+		if not skip_reason.is_empty():
+			_warn_once(entry["title"], skip_reason)
 			continue
 		var rows: Variant = provider.call()
 		if rows is Array:
 			sections.append(_section(entry["title"], _clean_rows(rows)))
 	return sections
+
+
+## Why a provider cannot be called with no arguments, or "" when it can. Parameters with default
+## values count as arguments here, so a provider must declare none at all.
+func _skip_reason(provider: Callable) -> String:
+	if not provider.is_valid():
+		return "its callable is no longer valid"
+	if provider.get_argument_count() > 0:
+		return "it declares parameters (default values count); a provider takes none"
+	return ""
+
+
+## A section that silently never shows is hard to notice, so name it once.
+func _warn_once(title: String, reason: String) -> void:
+	if _warned.has(title):
+		return
+	_warned[title] = true
+	push_warning("debug overlay section '%s' skipped: %s" % [title, reason])
 
 
 ## Keeps only rows shaped like [label, value] (as strings), so a malformed provider row is dropped
