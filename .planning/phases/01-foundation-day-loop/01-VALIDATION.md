@@ -27,7 +27,7 @@ validated: "2026-09-29"
 | **Full suite command** | `bash tools/test.sh` (headless import pass, then GUT over all three dirs; fails on any first-party parse/load error) |
 | **Single file** | `bash tools/test.sh -gselect=<test_file>.gd` |
 | **Lint** | `bash tools/lint.sh` (gdtoolkit 4.5.0: `gdformat --check` + `gdlint`) |
-| **Measured runtime** | Quick: ~14 s wall (20 scripts, 171 tests). Full: ~96 s wall (36 scripts, 275 tests) |
+| **Measured runtime** | Quick: ~14 s wall (20 scripts, 172 tests). Full: ~96 s wall (36 scripts, 276 tests) |
 
 The `tools/*.sh` wrappers need Git Bash on Windows; they resolve the pinned binary under `.tools/godot/4.7.2-stable/` (D-14).
 
@@ -132,6 +132,8 @@ GUT rows run as `bash tools/test.sh -gselect=<file>`. Threat refs are the plans'
 | IN-02 / IN-03 fix (pass 16) | review | — | DEV-03 | T-01-15 | One shared owner check (`DebugOverlayModel.owner_problem`) for the model, the view's pre-bind path and the bind replay; a non-Object owner is refused as "not an Object", not as freed; the registration suite builds its context from `OverlayTestSupport.new_map()`/`new_tuning()` | unit | `test_debug_overlay_providers.gd` (`test_a_section_whose_owner_is_not_an_object_is_refused_as_such_not_as_freed`), `test_debug_overlay_registration.gd` (`test_an_owner_that_is_not_an_object_is_refused_before_and_after_bind_run_as_such`) | ✅ | ✅ green |
 | WR-01 fix (pass 17) | review | — | DEV-03 | — | `OverlayTestSupport.new_map()` deep-copies building definitions and tiers (`duplicate_deep(DEEP_DUPLICATE_ALL)`), so no overlay test can leak an edit into the cached map or a later copy | unit | `test_overlay_test_support.gd` (4 tests, new file) | ✅ | ✅ green |
 | IN-01 / IN-02 fix (pass 17) | review | — | DEV-03 | T-01-15 | A default section title is refused at once before `bind_run` too (never buffered); a repeat `bind_run` with a different `RunContext` warns and the overlay keeps reading the first run | unit | `test_debug_overlay_registration.gd` (`test_a_default_title_is_refused_at_once_before_bind_run_and_never_buffered`, `test_a_default_title_is_refused_the_same_way_after_bind_run`, `test_a_repeat_bind_run_with_another_context_warns_and_keeps_reading_the_first_run`) | ✅ | ✅ green |
+| WR-01 fix (pass 18) | review | — | DEV-03 | T-01-15 | `DebugOverlay.bind_run` with no `RunContext` warns and stays unbound, so a later valid bind still works (no script error on every refresh) | unit | `test_debug_overlay_registration.gd` (`test_bind_run_with_no_context_warns_and_leaves_the_overlay_free_to_bind_properly`) | ✅ | ✅ green |
+| IN-01 / IN-02 / IN-03 fix (pass 18) | review | — | DEV-03 | T-01-15 | Overlay rows must be exactly [label, value]: a longer row is dropped and counted in the malformed-row warning, not truncated; the shared helper asserts the map has a spot before indexing it and deep-copies tuning like the map; the map-copy test can no longer pass on an empty map | unit | `test_debug_overlay_providers.gd` (malformed-rows test updated), `test_overlay_test_support.gd` | ✅ | ✅ green |
 
 Owner gates with no automated verify by design: 01-01-T2 (toolchain download approval), 01-03-T2 (public repo name), 01-07-T2 (CC0 model download approval). No run of three consecutive tasks lacks automated verification.
 
@@ -537,6 +539,31 @@ Re-audited after the seventeenth review-fix pass (3 commits, `457e334`..`8a440c0
 Evidence:
 - Full suite 275/275 (36 scripts); lint clean (72 files).
 - Unit quick run 171/171 (20 scripts, ~14 s).
+- `tools/screenshot.sh`: 6/6 non-blank captures.
+- Headless guard exits 2.
+- `ci.yml` unchanged.
+
+## Validation Audit 2026-09-30 (re-audit after review-fix pass 18)
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Re-audited after the eighteenth review-fix pass (4 commits, `546c3dc`..`c886c04`). 15/15 requirements are still COVERED.
+
+- **Tests:** +1 new, the null-context `bind_run` test.
+  - The malformed-rows provider test now expects an over-long row to be dropped rather than truncated. This is the one intended behaviour change in the overlay's row contract.
+  - The map-copy helper test now asserts it has buildings and tiers to compare.
+- **Mutation probes:** WR-01 and IN-03 each carry one in `01-REVIEW-FIX.md`.
+  - IN-01's guard was probed against an empty map.
+  - IN-02 needs none: `LoopTuning` holds only scalars, so the two copy methods behave the same today.
+- **CR-01 guard:** re-probed by the orchestrator; it fails 17/18 with the old spacing. `dawn_payout_vfx.gd` was not touched this pass.
+
+Evidence:
+- Full suite 276/276 (36 scripts); lint clean (72 files).
+- Unit quick run 172/172 (20 scripts, ~16 s).
 - `tools/screenshot.sh`: 6/6 non-blank captures.
 - Headless guard exits 2.
 - `ci.yml` unchanged.
