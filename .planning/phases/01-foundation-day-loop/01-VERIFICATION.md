@@ -1,6 +1,6 @@
 ---
 phase: 01-foundation-day-loop
-verified: 2026-09-30T07:20:46Z
+verified: 2026-09-30T07:51:39Z
 status: human_needed
 score: 5/5 must-haves verified
 covered_files:
@@ -37,7 +37,7 @@ covered_files:
   - "ui/hud/dawn_payout_vfx.gd"
   - "ui/hud/hud.gd"
   - "ui/overlay/debug_overlay_model.gd"
-covered_digest: "v2:sha256:473ef6d725f40437f48973e68e11427c7daa695fbf8781a162577ed4e22fd1a1"
+covered_digest: "v2:sha256:a80194c6e26f36cf1ed0cc9d7607b39e12ea90d0dd7e4f24964e5d143769a710"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
@@ -51,19 +51,19 @@ deferred:
     addressed_in: "Phase 2"
     evidence: "ROADMAP Phase 1 SC5: 'wave state and enemy paths join it once nights have enemies in Phase 2'; Phase 2 SC3 requires 'the debug overlay shows live enemy counts, wave state, and enemy paths'"
 advisory:
-  - finding: "Review 5 WR-01: Hud._key_text names a physical key by its US-QWERTY position (as_text_physical_keycode), so on Dvorak/AZERTY the 'Hold N' prompt can name the wrong keycap"
+  - finding: "Review 6 WR-01: DebugOverlayModel silently skips a provider that returns a non-Array (no warn-once, unlike invalid or parameterised providers)"
     category: other
-    reason: "Default binding is N / gamepad Y; no rebinding UI until Phase 13 and no SC covers layout-aware labels. Recorded open in 01-REVIEW-DISPOSITION.md."
-    evidence_status: "review text; source read (ui/hud/hud.gd lines 181-190)"
-  - finding: "Review 5 WR-02: DebugOverlayModel silently drops providers that take (even defaulted) arguments or are invalid Callables"
+    reason: "Extension point is first used in Phase 2; the shipped default sections work and are test-covered. Recorded open in 01-REVIEW-DISPOSITION.md."
+    evidence_status: "review text; source read (ui/overlay/debug_overlay_model.gd lines 38-49)"
+  - finding: "Review 6 WR-02: _warned is keyed by title and not cleared when a provider is re-registered, so a second failure under the same title is not reported"
     category: other
-    reason: "Extension point is first used in Phase 2; the shipped default sections work and are test-covered."
-    evidence_status: "review text; source read (ui/overlay/debug_overlay_model.gd)"
-  - finding: "Review 5 WR-03: BuildingSystem does not skip a BuildingDef whose id is empty (spots with an empty id are now skipped)"
+    reason: "Diagnostic-only; no success criterion depends on it."
+    evidence_status: "review text; source read (debug_overlay_model.gd)"
+  - finding: "Review 6 WR-03: two e2e tests (test_dawn_payout coins-in-flight lag, test_start_night_hold tap) depend on wall-clock timing and could flake on a loaded runner"
     category: other
-    reason: "MapConfig.validate() reports it and the shipped prototype map is valid; no SC affected."
-    evidence_status: "review text; source read (simulation/buildings/building_system.gd lines 16-20)"
-  - finding: "Review 5 IN-01..IN-05 (in-place rebind not detected, joypad axis direction hidden, tautological last-lands test, double-bind test covers only 4 signals, coin start point behind camera)"
+    reason: "Passed in this run (232/232) and in the orchestrator's runs; a CI flake risk, not a must-have failure."
+    evidence_status: "review text; full suite run in this pass"
+  - finding: "Review 6 IN-01..IN-03 (BuildingSystem.get_instance exposes the live instance; DawnPayoutVfx trusts untyped Dictionary values as int; redundant HUD refresh handlers and a synthetic phase_changed emission in one test)"
     category: other
     reason: "Info-level; none touches a success criterion."
     evidence_status: "review text"
@@ -75,10 +75,10 @@ advisory:
     category: other
     reason: "MVP narrowing could not be applied; verified as standard goal-backward against the roadmap contract."
     evidence_status: "ROADMAP.md Phase 1 goal text"
-  - finding: "build/windows/Duskhold.exe is a local artifact older than the latest fix commits, and origin's last green CI run (981e4c8) is 96 commits behind HEAD (1d0601f); nothing is pushed"
+  - finding: "build/windows/Duskhold.exe is a local artifact older than the latest fix commits, and origin's last green CI run (981e4c8) is many commits behind HEAD; nothing is pushed"
     category: other
     reason: "CI rebuilds the export from the pushed tree; push and confirm CI green on the final HEAD before treating DEV-02's remote evidence as current."
-    evidence_status: "file listing; git rev-list --count 981e4c8..HEAD = 96"
+    evidence_status: "file listing; orchestrator report"
 human_verification:
   - test: "Ride the king with keyboard and with a gamepad (walk, sprint, diagonal, stop) and watch the follow camera"
     expected: "Acceleration, turning and camera trail feel responsive and readable; sprint is clearly faster; camera never rotates"
@@ -101,14 +101,17 @@ human_verification:
   - test: "Owner decision on the Quaternius horse licence (review WR-06, skipped in review-fix)"
     expected: "Owner confirms keeping the 2021 CC0 Poly Pizza copy despite the newer Quaternius Asset License, or replaces it before the itch.io release"
     why_human: "Legal/licence risk against the project's CC0-only constraint; unresolved in the review disposition"
+  - test: "Check the start-night prompt on a non-QWERTY keyboard layout (Dvorak or AZERTY): Hold the bound physical key's position and read the on-screen prompt"
+    expected: "The prompt names the key by the label printed on that keycap on the player's layout (the default N key on QWERTY reads 'Hold N / (Y) to start Night 1'), not by its US-QWERTY position"
+    why_human: "Pass 6 names the key via DisplayServer.keyboard_get_label_from_physical, which is unavailable headless; only a fake-layout resolver seam is unit-tested, so the real OS-layout call is unexercised (also listed as manual-only in 01-VALIDATION.md)"
 ---
 
 # Phase 1: Foundation & Day Loop Verification Report
 
 **Phase Goal:** A Godot 4.7.2 project where, on the prototype map, the player rides the king by day and spends scarce gold on Houses and a basic tower, earning income from one day to the next. From the first commit, the agent can lint, test, screenshot, and export the game headlessly on every push.
-**Verified:** 2026-09-30T07:20:46Z
-**Status:** human_needed (every automated check passes and no must-have fails; remaining items are visual/feel judgments plus one owner licence decision)
-**Re-verification:** Yes. The previous report went stale after review-fix pass 5 (9 fix commits e83e5e0..17c661d) changed `simulation/buildings/building_system.gd`, `ui/hud/dawn_payout_vfx.gd`, `ui/hud/hud.gd` and `ui/overlay/debug_overlay_model.gd`. I read the full source diff of those four files (`git diff a3b5b4a..17c661d -- simulation ui presentation input`) and re-checked every truth against the current tree (HEAD 1d0601f; only docs commits follow 17c661d). No regressions.
+**Verified:** 2026-09-30T07:51:39Z
+**Status:** human_needed (every automated check passes and no must-have fails; remaining items are visual/feel judgments, one non-QWERTY layout check, and one owner licence decision)
+**Re-verification:** Yes. The previous report went stale after review-fix pass 6 (8 fix commits 723080f..1c3e320) changed `simulation/buildings/building_system.gd`, `ui/hud/dawn_payout_vfx.gd`, `ui/hud/hud.gd` and `ui/overlay/debug_overlay_model.gd`. I read the full source diff of those files (`git diff 17c661d..HEAD -- simulation ui`) and re-checked every truth against the current tree (HEAD d510346; only docs commits follow 1c3e320). No regressions.
 
 ## Goal Achievement
 
@@ -116,15 +119,15 @@ human_verification:
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 | Player rides the mounted king (WASD/stick, sprint) under a following isometric-style camera; near each fixed spot sees what can be built and its cost | VERIFIED (feel: human) | King, camera rig, spot-label sources untouched by pass 5; their tests are in the 227/227 run I executed. `MapRoot` builds the `RunContext` and calls `bind_run` on the run-bound nodes. |
-| 2 | Holding the action key near a spot, with a visible progress indicator, builds/upgrades; only when affordable, only on spots, never at night | VERIFIED | `command_processor.gd`, `build_hold_controller.gd` untouched. The only pass-5 change in this path is `BuildingSystem.apply_next_tier` returning null (no mutation) for a missing tier def, and empty-id spots being skipped: strictly more guarded. Build-hold, refund, phase-guard, upgrade and denied tests pass. |
-| 3 | Gold is the only currency and on the HUD; ending the day via the placeholder night leads to dawn where each House pays tier-scaled income and unspent gold carries over | VERIFIED | `run_manager.gd` untouched: `_apply_dawn_payout` grants the total then emits `dawn_payout`. Pass-5 change read in full: `DawnPayoutVfx._on_dawn_payout` sums positive per-spot amounts, plans every coin, emits `payout_started(carried)` before scheduling, and the HUD sets `_payout_pending` from it, decrements per `coin_landed`, and zeroes it when the phase leaves DAWN. Signal order is safe: `grant` fires `gold_changed` (full readout) then `payout_started` lowers it synchronously in the same call stack, so no visible frame. CR-01 line still schedules with the computed `stagger` (`float(launches.size()) * stagger`). Dawn income, payout, carryover, start-night hold tests pass. |
-| 4 | From CLI and in CI on every push: lint + headless GUT cover economy, building rules, transitions; scripted scenes export screenshots; CI produces a Windows export | VERIFIED (CI on final HEAD not yet run, see advisory) | I ran `bash tools/lint.sh`: 65 files unchanged, no problems. I ran `bash tools/test.sh` once: 31 scripts, 227/227 tests, 1484 asserts, exit 0. `ci.yml` defines lint, test, export (`needs` lint+test) and screenshots jobs using the same `tools/*.sh` wrappers. `screenshots/` holds 6 PNGs; `build/windows/Duskhold.exe` and `.pck` exist. Origin's last green CI run is 981e4c8; 96 local commits are unpushed. |
-| 5 | A key toggles a debug overlay with FPS, unit/enemy counts and loop state; every third-party asset is in the attribution log | VERIFIED | `debug_overlay_model.gd` pass-5 change: `register_section` now replaces an existing title in place (no duplicate section). Overlay model/toggle/read-only tests and the attribution-coverage test pass; `assets/attribution.json` present. |
+| 1 | Player rides the mounted king (WASD/stick, sprint) under a following isometric-style camera; near each fixed spot sees what can be built and its cost | VERIFIED (feel: human) | King, camera rig and spot-label sources are untouched by pass 6; their tests are in the 232/232 run I executed. |
+| 2 | Holding the action key near a spot, with a visible progress indicator, builds/upgrades; only when affordable, only on spots, never at night | VERIFIED | `command_processor.gd` and `build_hold_controller.gd` are untouched. Pass 6 changes the path only in `BuildingSystem._init`: a `BuildingDef` with an empty id is now skipped (`building_def.id == &""`), so a spot with an unset building_id resolves to nothing instead of an empty-id def. Strictly more guarded; covered by a new case in `test_building_system_data_errors.gd`. |
+| 3 | Gold is the only currency and on the HUD; ending the day via the placeholder night leads to dawn where each House pays tier-scaled income and unspent gold carries over | VERIFIED | `run_manager.gd` untouched. Pass-6 change to `dawn_payout_vfx.gd` is only `_start_point`: a spot behind the camera (`camera.is_position_behind`) falls back to mid-screen instead of a mirrored `unproject_position`. Payout arithmetic, HUD lag/release and coin scheduling untouched. The CR-01 guard (`test_dawn_payout.gd`) was re-probed by the orchestrator (fails with stagger reverted). Dawn income, payout, carryover and start-night hold tests pass. |
+| 4 | From CLI and in CI on every push: lint + headless GUT cover economy, building rules, transitions; scripted scenes export screenshots; CI produces a Windows export | VERIFIED (CI on final HEAD not yet run, see advisory) | I ran `bash tools/lint.sh`: 65 files unchanged, no problems. I ran `bash tools/test.sh` once: 31 scripts, 232/232 tests, 1518 asserts, exit 0. `ci.yml` defines lint, test, export and screenshots jobs using the same `tools/*.sh` wrappers. `screenshots/` holds 6 PNGs; `build/windows/Duskhold.exe` and `.pck` exist. Origin's last green CI run is 981e4c8; local commits are unpushed. |
+| 5 | A key toggles a debug overlay with FPS, unit/enemy counts and loop state; every third-party asset is in the attribution log | VERIFIED | `debug_overlay_model.gd` pass-6 change adds `_skip_reason` and `_warn_once` (`push_warning`, once per title) for invalid or parameterised providers; the read-only behaviour and default sections are unchanged and covered by `test_debug_overlay_readonly.gd`. `assets/attribution.json` present, coverage test passes. |
 
 **Score:** 5/5 truths verified, 0 behavior-unverified.
 
-Behavior-dependent invariants (phase gating, refund on cancel, gold never negative, dawn payout landing, carryover, HUD lag release) are exercised by named GUT tests that passed in the run above. The CR-01 stagger guard (`test_a_real_payout_schedules_its_last_coin_to_land_inside_a_short_dawn_window`) now asserts on `get_launch_delays()` (last delay == `(n-1) * launch_stagger(n)`, plus trip time within the dawn window), which is a discriminating check, not a wall-clock wait; the orchestrator's revert probe (14/15 failing with the stagger line reverted) corroborates it. I did not repeat that probe.
+Behavior-dependent invariants (phase gating, refund on cancel, gold never negative, dawn payout landing, carryover, HUD lag release, start-night prompt follows rebinds) are exercised by named GUT tests that passed in the run above. The pass-6 HUD change is exercised by five prompt tests in `test_start_night_hold.gd` (default text `Hold N / (Y) to start Night 1`, layout-label resolver seam giving `Hold Ctrl+B`, runtime rebind, in-place edit, trigger/mouse and modifier handling). Only the real `keyboard_get_label_from_physical` call cannot run headless (`_layout_label` returns the physical key under the headless display server), so it goes to human verification.
 
 ### Deferred Items
 
@@ -134,7 +137,7 @@ Behavior-dependent invariants (phase gating, refund on cancel, gold never negati
 
 ### Advisory (open review findings, not must-have failures)
 
-See the `advisory` frontmatter list. Fresh review 01-REVIEW.md (0 critical, 3 warnings, 5 info, all recorded open in 01-REVIEW-DISPOSITION.md) was cross-checked against the code; none breaks a ROADMAP success criterion or PLAN must-have. Prior-pass advisories WR-05 (weak CR-01 test), WR-02 (HUD payout state derived independently of the VFX), WR-03 (soft coin cap) and WR-04 (empty-id spot, unguarded apply_next_tier) are now resolved by the pass-5 code and tests; the start-night hint's joypad-motion, mouse and modifier handling (old WR-01) is also fixed.
+See the `advisory` frontmatter list. Fresh review 01-REVIEW.md (0 critical, 3 warnings, 3 info, all recorded open in 01-REVIEW-DISPOSITION.md) was cross-checked against the code; none breaks a ROADMAP success criterion or PLAN must-have. The prior pass-5 advisories (layout-aware key label, provider silent drop, empty-id building def, IN-01..IN-05) are resolved by the pass-6 code and tests.
 
 ### Required Artifacts
 
@@ -150,8 +153,8 @@ See the `advisory` frontmatter list. Fresh review 01-REVIEW.md (0 critical, 3 wa
 | command_processor | economy / building_system | `try_spend`, `apply_next_tier` | WIRED |
 | start_night_hold_controller | command_processor | `submit(StartNightIntent)` | WIRED |
 | run_manager | economy | dawn payout `grant` | WIRED |
-| map_root | run_bound nodes | `RunContext.new`, then `bind_run` (map_root.gd:25) | WIRED |
-| hud | dawn_payout_vfx | `payout_started`, `coin_landed` (hud.gd:63-64) | WIRED |
+| map_root | run_bound nodes | `RunContext.new`, then `bind_run` | WIRED |
+| hud | dawn_payout_vfx | `payout_started`, `coin_landed` | WIRED |
 | dawn_payout_vfx | sim_events | `dawn_payout.connect(_on_dawn_payout)` | WIRED |
 | ci.yml | tools/*.sh, bootstrap.py | same wrappers as local | WIRED |
 
@@ -161,20 +164,20 @@ See the `advisory` frontmatter list. Fresh review 01-REVIEW.md (0 critical, 3 wa
 |----------|------|--------|-----------|--------|
 | HUD gold label | economy gold minus in-flight coins minus payout lag | `Economy.get_gold()`, `payout_started`, `coin_landed` | Yes | FLOWING |
 | Dawn payout VFX | per_spot amounts | `SimEvents.dawn_payout` from `RunManager._apply_dawn_payout` | Yes | FLOWING |
-| Start-night prompt | key names | `InputMap.action_get_events(&"start_night")` | Yes | FLOWING |
+| Start-night prompt | key names | `InputMap.action_get_events(&"start_night")` then layout label | Yes | FLOWING |
 | Debug overlay | FPS, phase, gold, counts | Engine + RunContext (units/enemies honestly 0 until Phase 2) | Yes | FLOWING |
 
 ### Behavioral Spot-Checks
 
 | Behavior | Command | Result | Status |
 |----------|---------|--------|--------|
-| Full headless GUT suite (run once) | `bash tools/test.sh` | 31 scripts, 227/227, 1484 asserts, exit 0 | PASS |
+| Full headless GUT suite (run once) | `bash tools/test.sh` | 31 scripts, 232/232, 1518 asserts, exit 0 | PASS |
 | Lint and format | `bash tools/lint.sh` | 65 files unchanged, no problems | PASS |
 | Debt markers | grep `TBD\|FIXME\|XXX\|TODO\|HACK` over simulation, presentation, ui, input, tools, tests, .github | none | PASS |
 | Screenshots on disk | `ls screenshots` | 6 PNGs (build_in_progress, dawn_payout, day_overview, night_banner, overlay_on, spot_label) | PASS |
 | Windows export on disk | `ls build/windows` | Duskhold.exe + Duskhold.pck (local artifact, older than fixes) | PASS |
 
-I relied on the orchestrator's reported results for `tools/screenshot.sh` (6/6 non-blank PNGs), the headless screenshot guard (exit 2), `tools/prepush_check.sh` (PASSED) and the CR-01-reverted experiment; I did not re-run them. Remote CI was not queried.
+I relied on the orchestrator's reported results for `tools/screenshot.sh` (6/6 non-blank PNGs), the headless screenshot guard (exit 2), `tools/prepush_check.sh` (PASSED), the real-window prompt screenshot ("Hold N / (Y) to start Night 1") and the CR-01-reverted experiment; I did not re-run them. Remote CI was not queried.
 
 ### Probe Execution
 
@@ -188,7 +191,7 @@ The union of `requirements:` across the ten PLAN frontmatters (01: DEV-01, DEV-0
 |-------------|----------------|--------|----------|
 | KING-01 | 01-02, 01-04 | SATISFIED | king ride and input-map tests |
 | KING-02 | 01-04 | SATISFIED | fixed-offset camera rig tests |
-| BLDG-01 | 01-02, 01-05 | SATISFIED | spot-only BuildingSystem, unknown/empty-id spot rejection |
+| BLDG-01 | 01-02, 01-05 | SATISFIED | spot-only BuildingSystem, unknown/empty-id spot and def rejection |
 | BLDG-02 | 01-05, 01-06 | SATISFIED | spot label model and world label tests |
 | BLDG-03 | 01-02, 01-06 | SATISFIED | hold controller, coin drip, refund tests |
 | BLDG-04 | 01-05 | SATISFIED | upgrade flow test |
@@ -197,24 +200,24 @@ The union of `requirements:` across the ten PLAN frontmatters (01: DEV-01, DEV-0
 | ECON-02 | 01-09, 01-10 | SATISFIED | tier-scaled dawn income and payout tests |
 | ECON-07 | 01-09 | SATISFIED | gold carryover test |
 | ART-02 | 01-07 | SATISFIED (horse licence decision pending) | attribution.json, coverage test |
-| DEV-01 | 01-01, 01-02 | SATISFIED | headless RunContext, 227 tests |
+| DEV-01 | 01-01, 01-02 | SATISFIED | headless RunContext, 232 tests |
 | DEV-02 | 01-01, 01-03, 01-10 | SATISFIED (trigger narrowed; CI on HEAD pending) | ci.yml lint/test/export/screenshots |
 | DEV-03 | 01-08 | SATISFIED for Phase 1 scope | overlay tests; wave/pathing deferred to Phase 2 |
 | DEV-04 | 01-10 | SATISFIED | screenshot.sh, shot_runner, CI job, 6 PNGs |
 
 ### Anti-Patterns Found
 
-No debt markers in source, tests, tools or workflow. No stubs, hollow props or static-return data paths in the pass-5 files. No blocker anti-patterns. Open review warnings are advisories only.
+No debt markers in source, tests, tools or workflow. No stubs, hollow props or static-return data paths in the pass-6 files. No blocker anti-patterns. Open review warnings are advisories only.
 
 ### Human Verification Required
 
-See the `human_verification` list in the frontmatter (7 items, matching the 7 pending items in 01-UAT.md; item 6 now flags the pass-5 HUD payout-lag behaviour). Non-UAT recommendation: push the 96 local commits and confirm CI is green on the new HEAD, since DEV-02's remote evidence still comes from 981e4c8.
+See the `human_verification` list in the frontmatter: 8 items. Items 1 to 7 keep their wording and match the 7 pending items in 01-UAT.md; item 8 (non-QWERTY key label) is new this pass and is not yet in 01-UAT.md. Non-UAT recommendation: push the local commits and confirm CI is green on the new HEAD, since DEV-02's remote evidence still comes from 981e4c8.
 
 ### Gaps Summary
 
-No must-have gaps. Every ROADMAP success criterion is backed by source I read and by a full passing suite I ran (227/227, lint clean). Status is `human_needed` because riding feel, map and label readability, model look, overlay look, night/dawn VFX and HUD-lag feel, and the Quaternius horse licence cannot be verified programmatically.
+No must-have gaps. Every ROADMAP success criterion is backed by source I read and by a full passing suite I ran (232/232, lint clean). Status is `human_needed` because riding feel, map and label readability, model look, overlay look, night/dawn VFX and HUD-lag feel, the non-QWERTY key label, and the Quaternius horse licence cannot be verified programmatically.
 
 ---
 
-_Verified: 2026-09-30T07:20:46Z_
+_Verified: 2026-09-30T07:51:39Z_
 _Verifier: Claude (gsd-verifier)_

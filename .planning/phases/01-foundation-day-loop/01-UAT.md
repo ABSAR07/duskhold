@@ -3,7 +3,7 @@ status: testing
 phase: 01-foundation-day-loop
 source: [01-VERIFICATION.md]
 started: 2026-09-29T12:10:00Z
-updated: 2026-09-30T07:22:20Z
+updated: 2026-09-30T07:53:32Z
 ---
 
 ## Current Test
@@ -44,12 +44,16 @@ result: [pending]
 expected: Owner confirms keeping the 2021 CC0 Poly Pizza copy despite the newer Quaternius Asset License, or replaces it before the itch.io release
 result: [pending]
 
+### 8. Check the start-night prompt on a non-QWERTY keyboard layout (Dvorak or AZERTY): Hold the bound physical key's position and read the on-screen prompt
+expected: The prompt names the key by the label printed on that keycap on the player's layout (the default N key on QWERTY reads 'Hold N / (Y) to start Night 1'), not by its US-QWERTY position
+result: [pending]
+
 ## Summary
 
-total: 7
+total: 8
 passed: 0
 issues: 0
-pending: 7
+pending: 8
 skipped: 0
 blocked: 0
 
