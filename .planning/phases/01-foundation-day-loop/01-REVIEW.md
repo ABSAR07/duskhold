@@ -2,17 +2,19 @@
 phase: 01-foundation-day-loop
 reviewed: 2026-09-30T00:00:00Z
 depth: standard
-files_reviewed: 4
+files_reviewed: 6
 files_reviewed_list:
   - tests/e2e/test_dawn_payout.gd
+  - tests/e2e/test_dawn_payout_hardening.gd
+  - tests/e2e/test_dawn_payout_hardening.gd.uid
   - tests/unit/test_debug_overlay_readonly.gd
   - ui/hud/dawn_payout_vfx.gd
   - ui/overlay/debug_overlay_model.gd
 findings:
   critical: 0
-  warning: 3
+  warning: 1
   info: 3
-  total: 6
+  total: 4
 status: issues_found
 ---
 
@@ -20,75 +22,59 @@ status: issues_found
 
 **Reviewed:** 2026-09-30
 **Depth:** standard
-**Files Reviewed:** 4
-**Status:** issues_found
+**Files Reviewed:** 6
 
 ## Summary
 
-The four files were read in full and cross-checked against `ui/hud/hud.gd`, `ui/hud/hud.tscn`, `simulation/buildings/building_system.gd`, `simulation/events/sim_events.gd` and the GUT addon. `DebugOverlayModel` is sound: the read-only contract holds, the warn-once and replace-in-place paths are consistent, and the tests cover them. `DawnPayoutVfx` has correct generation guarding, HUD hold-back accounting (`payout_started` / `coin_landed` sum to the carried total) and dawn-window stagger math. No blockers. The remaining issues are one input-hardening gap in the VFX (int overflow bypasses the coin cap), one accessor whose behaviour contradicts its doc comment, and one test that dereferences an unchecked null.
+I read all six files in full and cross-checked them against `hud.gd`, `run_manager.gd`, `sim_events.gd`, `E2eSupport.wait_until` and the vendored GUT 9.7.1 error tracker. The prior review fixes hold up. Payout amounts are clamped before the int cast. Delay tweens are killed when a payout is superseded. Malformed `per_spot` entries are dropped one by one. Invalid overlay providers are warned about once and then dropped.
+
+I found no crashes, security problems or data-loss risks. I checked the GUT semantics the tests rely on:
+- `assert_push_warning_count` counts handled warnings, so it works after `assert_push_warning`.
+- `push_warning` does not fail a test, so the tests that don't assert warnings are safe.
+- `SIM_SIGNALS` matches the seven signals in `sim_events.gd` exactly.
+- The `.uid` value is unique in the repo.
+- `test_dawn_payout.gd` is at exactly 20 public methods, the `max-public-methods` limit in `.gdlintrc`.
+
+One design edge and three minor items remain.
 
 ## Warnings
 
-### WR-01: Integer overflow in `carried_gold` defeats the coin cap and can spawn a huge number of coins
+### WR-01: A tightened stagger leaves zero slack, so the last coin can land after dawn ends
 
-**File:** `ui/hud/dawn_payout_vfx.gd:135-143, 192, 201-206`
-**Issue:** `_whole_amounts` exists to stop malformed `per_spot` entries aborting the payout. It rejects NaN, Inf and non-numbers, but not very large finite values. `int(amount)` on a float such as 1e30 is undefined, and two large int amounts can sum past 2^63. `carried_gold` then wraps to a negative number. `_coins_for_amount` tests `carried_gold <= MAX_COINS`, which is true for a negative value, so it returns `amount` as the coin count. `_on_dawn_payout` then builds a `launches` array of that many dictionaries and hangs the game. The cap is documented as a soft cap that always holds, and this input bypasses it. It needs a corrupt payout to trigger, so it is unlikely in practice, but the function's own goal is to survive malformed data.
-**Fix:** Clamp each coerced amount to a sane range in `_whole_amounts` so the sum cannot overflow, and clamp the result of `_coins_for_amount`:
+**File:** `ui/hud/dawn_payout_vfx.gd:113-117`
+**Issue:** `launch_stagger` returns `(dawn_seconds - TRIP_SECONDS) / (coin_total - 1)`, so the last coin is scheduled to land at exactly `dawn_seconds`. The test at `tests/e2e/test_dawn_payout.gd:286-290` even pins this with a +0.001 tolerance. The two clocks are not the same:
+- Dawn ends in `RunManager.tick`, which advances by simulation steps.
+- The coin delay tweens and flight run on the process clock.
+
+Any frame-boundary skew therefore lets the final coin arrive after `phase_changed(DAWN -> DAY)`. The HUD backstop (`hud.gd:_on_phase_changed`) has already zeroed `_payout_pending` by then. The readout jumps to the full ledger amount before the last coin visibly lands, and "+X gold" appears during the day. The default tuning (12 coins at most, 2.0 s dawn) has about 0.5 s of slack, so it does not trigger today. It will once a later phase has more than 12 paying spots or a shorter dawn, which is the case the tightening exists for.
+
+**Fix:** Reserve a margin when computing the stagger:
 ```gdscript
-const MAX_AMOUNT: int = 1_000_000
-...
-amounts[StringName(spot_id)] = clampi(int(amount), -MAX_AMOUNT, MAX_AMOUNT)
-...
-func _coins_for_amount(amount: int, carried_gold: int) -> int:
-	if amount <= 0:
-		return 0
-	if carried_gold <= MAX_COINS:
-		return mini(amount, MAX_COINS)
-	return clampi(floori(float(amount) * float(MAX_COINS) / float(carried_gold)), 1, amount)
+const DAWN_MARGIN_SECONDS: float = 0.15
+var window: float = _ctx.tuning.dawn_seconds - TRIP_SECONDS - DAWN_MARGIN_SECONDS
+return clampf(window / float(maxi(coin_total - 1, 1)), 0.0, STAGGER_SECONDS)
 ```
-
-### WR-02: `get_launch_tweens()` returns finished tweens, contradicting its documentation
-
-**File:** `ui/hud/dawn_payout_vfx.gd:94-97, 241-244`
-**Issue:** The doc says it returns "the delay tweens ... that have not launched yet". `_launch_tweens` is only appended to in `_schedule_launch` and only cleared in `_reset_for_new_payout`. A tween that has fired and finished stays in the array as an invalid Tween until the next payout. The accessor therefore reports launched coins as pending. `test_a_new_payout_stops_the_pending_launches...` passes only because it reads the array before any tween has fired. The array is also never pruned within a payout.
-**Fix:** Prune when a launch fires, or filter on read:
-```gdscript
-func get_launch_tweens() -> Array[Tween]:
-	return _launch_tweens.filter(func(t: Tween) -> bool: return t.is_valid())
-```
-Alternatively remove the tween from `_launch_tweens` inside `_launch_coin`.
-
-### WR-03: Camera test dereferences a possibly-null `vfx`
-
-**File:** `tests/e2e/test_dawn_payout.gd:233-236`
-**Issue:** `test_a_coin_starts_mid_screen_when_its_plot_is_behind_the_camera` calls `vfx.get_viewport()` without the `assert_not_null(vfx)` / early-return guard that every other test in the file uses. If the HUD node is missing, the test dies with a script error instead of a readable assertion failure. It also calls the private `vfx._start_point` directly.
-**Fix:** Add the guard used elsewhere:
-```gdscript
-var vfx: DawnPayoutVfx = _vfx(map_root)
-assert_not_null(vfx, "the HUD has a DawnPayoutVfx")
-if vfx == null:
-	return
-```
+Update the two tests that assert the exact fill (`test_a_crowded_payout_tightens_the_stagger...` and `test_a_real_payout_schedules_its_last_coin...`) to include the margin.
 
 ## Info
 
-### IN-01: `_last_total` is not reset between payouts
+### IN-01: `start_point` dereferences `_ctx` without the null guard `launch_stagger` has
 
-**File:** `ui/hud/dawn_payout_vfx.gd:41, 217-233`
-**Issue:** `_reset_for_new_payout` clears every other per-payout field but not `_last_total`. After day 1 pays, a day 2 payout with no coins still reports the day 1 total from `get_last_total()`. The doc ("most recent payout whose total was shown") permits this. The test at line 315 (`get_last_total() == 0`, "no total was shown") only passes because it runs on a fresh VFX, so the assertion is weaker than its message.
-**Fix:** Either reset `_last_total = 0` in `_reset_for_new_payout`, or make the test messages say "no total yet".
+**File:** `ui/hud/dawn_payout_vfx.gd:292-294`
+**Issue:** `start_point` is public and documented as callable from tests. Before `bind_run` it hits `_ctx.buildings` on a null `_ctx` and raises a script error. `launch_stagger` handles the same unbound state and has a test for it (`test_launch_stagger_before_the_run_is_bound...`).
+**Fix:** Add `if _ctx == null: return get_viewport_rect().size * 0.5` at the top of `start_point`.
 
-### IN-02: Test-only accessors and private access widen the production surface
+### IN-02: `_warn_once` is keyed by title only, so a second, different failure of the same provider is silent
 
-**File:** `ui/hud/dawn_payout_vfx.gd:88-97`, `tests/e2e/test_dawn_payout.gd:241, 251`
-**Issue:** `get_launch_delays`, `get_launch_tweens` and `get_spawned_count` exist only for tests, and the tests still reach into `_start_point`. Harmless, but the accessors are a coupling point that WR-02 shows can drift from their documentation.
-**Fix:** Keep them, but name or annotate them as test hooks, or make `_start_point` a public `start_point` so the test does not use a private member.
+**File:** `ui/overlay/debug_overlay_model.gd:84-88`
+**Issue:** A provider that returns a non-Array once, then rows, then a non-Array again gets one warning in total. This is harmless today because `_warned` is cleared only on replacement or drop. It would hide a flapping provider once Phase 2 registers real wave sections.
+**Fix:** Key the warning by `title + reason`, or clear `_warned[title]` when the provider returns a valid Array.
 
-### IN-03: Unreachable providers stay registered for the model's lifetime
+### IN-03: Tests for skipped providers are inconsistent about asserting the warning
 
-**File:** `ui/overlay/debug_overlay_model.gd:49-56`
-**Issue:** A section whose Callable has gone invalid, or that declares parameters, is skipped on every `collect()` and re-checked on every refresh. It is never pruned. It is warned about once, so nothing breaks. An invalid-callable entry can never recover and could be dropped after the warning.
-**Fix:** Optionally remove entries whose `provider.is_valid()` is false after warning. Low priority.
+**File:** `tests/unit/test_debug_overlay_readonly.gd:124-135, 160-168`
+**Issue:** `test_a_freed_section_provider_is_skipped...` and `test_a_provider_that_needs_an_argument...` trigger a `push_warning` but never assert it. Sibling tests do assert it. The tests pass, because GUT does not fail on warnings, but they don't pin the "skipped with a warning" behaviour they are named for.
+**Fix:** Add `assert_push_warning("debug overlay section 'Ghost' skipped")` and `assert_push_warning("debug overlay section 'Needy' skipped")` respectively.
 
 ---
 
