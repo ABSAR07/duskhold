@@ -5,28 +5,28 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: fixed
-    title: "Spot-position check in the cache-isolation test passes when the copy shares the spot with the cache"
+    disposition: open
+    title: "The pause test checks the flag, not the behaviour it claims to protect"
   - id: WR-02
     severity: warning
-    disposition: fixed
-    title: "The replay of a pending section with a live owner is not tested"
+    disposition: open
+    title: "The \"refreshes about 4 times/s\" contract has no upper-bound or cadence test"
+  - id: IN-01
+    severity: info
+    disposition: open
+    title: "The toggle is read by polling `Input`, so it also fires for input a UI has consumed"
+  - id: IN-02
+    severity: info
+    disposition: open
+    title: "`_refresh` advances on scaled delta, so a paused or slowed simulation freezes the overlay"
+  - id: IN-03
+    severity: info
+    disposition: open
+    title: "Pending sections are held forever if the overlay is never bound"
   - id: WR-03
     severity: warning
     disposition: fixed
     title: "`test_a_new_tuning_copy_shares_no_resource_with_the_cached_tuning` cannot fail today"
-  - id: IN-01
-    severity: info
-    disposition: fixed
-    title: "The Ghost test does not pin the warning count or the \"before bind_run\" wording"
-  - id: IN-02
-    severity: info
-    disposition: fixed
-    title: "A bind while the overlay is visible shows stale text for up to 0.25 s"
-  - id: IN-03
-    severity: info
-    disposition: fixed
-    title: "Overlay processing follows the tree's pause state"
   - id: IN-04
     severity: info
     disposition: fixed
@@ -87,21 +87,21 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 0
+open: 5
 total: 21
-recorded: 2026-09-30T14:05:41.673Z
+recorded: 2026-09-30T14:11:09.318Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-02 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-03 | warning | fixed | 01-REVIEW-FIX.md |
-| IN-01 | info | fixed | 01-REVIEW-FIX.md |
-| IN-02 | info | fixed | 01-REVIEW-FIX.md |
-| IN-03 | info | fixed | 01-REVIEW-FIX.md |
+| WR-01 | warning | open | - |
+| WR-02 | warning | open | - |
+| IN-01 | info | open | - |
+| IN-02 | info | open | - |
+| IN-03 | info | open | - |
+| WR-03 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-04 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-05 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-04 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
