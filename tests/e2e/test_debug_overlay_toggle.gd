@@ -1,6 +1,9 @@
 extends GutTest
 ## DEV-03 on the real scene: toggle_debug_overlay (F3 / gamepad Back) shows and hides a read-only
-## overlay that is hidden by default, shows the required fields and refreshes about 4 times/s.
+## overlay that is hidden by default, shows the required fields, refreshes while shown and does not
+## refresh while hidden. The refresh cadence itself (about 4 times/s, REFRESH_INTERVAL_S) is pinned
+## with synthetic deltas in tests/unit/test_debug_overlay_registration.gd, not with wall-clock time;
+## here a shown overlay only has to catch up within REFRESH_WINDOW_S of real time.
 
 const TOGGLE_ACTION := &"toggle_debug_overlay"
 const RIDE_TIMEOUT_S: float = 5.0
@@ -140,3 +143,27 @@ func test_overlay_keeps_refreshing_while_the_engine_time_scale_is_zero() -> void
 		self, func() -> bool: return overlay.get_text().contains("Buildings: 1"), REFRESH_WINDOW_S
 	)
 	assert_true(refreshed, "the overlay refreshes within %s s of real time" % REFRESH_WINDOW_S)
+
+
+func test_hidden_overlay_does_not_refresh_until_it_is_shown_again() -> void:
+	# Deterministic in the failing direction only: a hidden overlay that did refresh would show the
+	# new count after a few intervals; a correct one stays stale however long we wait.
+	var map_root: MapRoot = await E2eSupport.spawn_map(self)
+	var overlay: DebugOverlay = _overlay_of(map_root)
+	assert_not_null(overlay, "the HUD instances the debug overlay")
+	if overlay == null:
+		return
+	await _press_toggle()
+	assert_string_contains(overlay.get_text(), "Buildings: 0", "no building yet")
+	await _press_toggle()
+	assert_false(overlay.is_overlay_visible(), "the second press hides the overlay")
+
+	var ctx: RunContext = map_root.get_context()
+	var spot_id: StringName = ctx.buildings.spot_ids()[0]
+	var result: StringName = ctx.commands.submit(BuildIntent.new(spot_id))
+	assert_eq(result, CommandProcessor.OK, "the House was built through the command gate")
+	await wait_seconds(REFRESH_WINDOW_S)
+	assert_string_contains(overlay.get_text(), "Buildings: 0", "a hidden overlay does not refresh")
+
+	await _press_toggle()
+	assert_string_contains(overlay.get_text(), "Buildings: 1", "showing it again refreshes at once")
