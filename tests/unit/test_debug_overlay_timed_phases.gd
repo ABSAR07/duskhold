@@ -57,11 +57,20 @@ func _row(section: Dictionary, label: String) -> Variant:
 	return null
 
 
+## What the model reads beyond gold and the clock: every spot's tier and the unit and enemy counts.
+func _agents_and_buildings(ctx: RunContext) -> Dictionary:
+	var tiers: Dictionary = {}
+	for spot_id: StringName in ctx.buildings.spot_ids():
+		tiers[spot_id] = ctx.buildings.current_tier(spot_id)
+	return {"tiers": tiers, "units": ctx.get_unit_count(), "enemies": ctx.get_enemy_count()}
+
+
 func _assert_collecting_is_read_only(ctx: RunContext, model: DebugOverlayModel) -> void:
 	var gold_before: int = ctx.economy.get_gold()
 	var phase_before: RunManager.RunPhase = ctx.run_manager.get_phase()
 	var timer_before: float = ctx.run_manager.get_phase_time_remaining()
 	var elapsed_before: float = ctx.run_manager.get_elapsed()
+	var agents_and_buildings_before: Dictionary = _agents_and_buildings(ctx)
 	watch_signals(ctx.events)
 	for i: int in COLLECT_REPEATS:
 		model.collect(float(i))
@@ -69,6 +78,11 @@ func _assert_collecting_is_read_only(ctx: RunContext, model: DebugOverlayModel) 
 	assert_eq(ctx.run_manager.get_phase(), phase_before, "phase unchanged")
 	assert_eq(ctx.run_manager.get_phase_time_remaining(), timer_before, "the phase timer unchanged")
 	assert_eq(ctx.run_manager.get_elapsed(), elapsed_before, "simulation time unchanged")
+	assert_eq(
+		_agents_and_buildings(ctx),
+		agents_and_buildings_before,
+		"every spot's tier and the unit and enemy counts unchanged"
+	)
 	for signal_name: String in SIM_SIGNALS:
 		assert_signal_not_emitted(ctx.events, signal_name)
 
