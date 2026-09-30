@@ -72,7 +72,7 @@ func test_a_freed_section_provider_is_skipped_instead_of_crashing() -> void:
 		"42",
 		"valid sections still show"
 	)
-	assert_push_warning("debug overlay section 'Ghost' skipped")
+	assert_push_warning("debug overlay section 'Ghost' skipped: its callable is no longer valid")
 
 
 func test_a_provider_with_an_invalid_callable_is_dropped_after_its_one_warning() -> void:
@@ -220,7 +220,7 @@ func test_a_provider_that_needs_an_argument_is_skipped_instead_of_crashing() -> 
 		"42",
 		"valid sections still show"
 	)
-	assert_push_warning("debug overlay section 'Needy' skipped")
+	assert_push_warning("debug overlay section 'Needy' skipped: it declares parameters")
 
 
 func test_a_skipped_provider_is_warned_about_once_however_often_the_overlay_refreshes() -> void:
@@ -233,7 +233,7 @@ func test_a_skipped_provider_is_warned_about_once_however_often_the_overlay_refr
 	model.collect(60.0)
 	model.collect(60.0)
 
-	assert_push_warning("debug overlay section 'Defaulted' skipped")
+	assert_push_warning("debug overlay section 'Defaulted' skipped: it declares parameters")
 	assert_push_warning_count(1, "one warning, not one per refresh")
 
 
