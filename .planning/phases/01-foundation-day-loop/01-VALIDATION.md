@@ -27,7 +27,7 @@ validated: "2026-09-29"
 | **Full suite command** | `bash tools/test.sh` (headless import pass, then GUT over all three dirs; fails on any first-party parse/load error) |
 | **Single file** | `bash tools/test.sh -gselect=<test_file>.gd` |
 | **Lint** | `bash tools/lint.sh` (gdtoolkit 4.5.0: `gdformat --check` + `gdlint`) |
-| **Measured runtime** | Quick: ~11 s wall (16 scripts, 140 tests). Full: ~85 s wall (31 scripts, 237 tests) |
+| **Measured runtime** | Quick: ~12 s wall (16 scripts, 141 tests). Full: ~85 s wall (32 scripts, 241 tests) |
 
 The `tools/*.sh` wrappers need Git Bash on Windows; they resolve the pinned binary under `.tools/godot/4.7.2-stable/` (D-14).
 
@@ -108,6 +108,9 @@ GUT rows run as `bash tools/test.sh -gselect=<file>`. Threat refs are the plans'
 | WR-02 fix (pass 8) | review | — | ECON-01, ECON-02 | — | The "+X gold" label, the coins and the HUD readout all use the gold that flies; no coin, no total | e2e | `test_dawn_payout.gd` (2 renamed tests + coin-cap expectation) | ✅ | ✅ green |
 | IN-01 fix (pass 8) | review | — | ECON-02 | — | A new payout stops the pending launches of the one it supersedes | e2e | `test_dawn_payout.gd` (`test_a_new_payout_stops_the_pending_launches_of_the_one_it_supersedes`) | ✅ | ✅ green |
 | IN-02 / IN-03 fix (pass 8) | review | — | DEV-03 | T-01-15 | Buildings counted by tier (no snapshot allocation); a section titled like a default one is refused | unit | `test_debug_overlay_readonly.gd` (`test_registering_a_default_section_title_is_refused_instead_of_showing_it_twice`) | ✅ | ✅ green |
+| WR-01 / WR-02 / IN-01 fix (pass 9) | review | — | ECON-02 | — | Absurdly large amounts are clamped so the coin cap holds; fired launch tweens are no longer reported as waiting; a coinless payout does not report the previous total | e2e | `test_dawn_payout_hardening.gd` (3 tests, new file) | ✅ | ✅ green |
+| WR-03 / IN-02 fix (pass 9) | review | — | ECON-02 | — | Camera test null-guarded; test hooks documented, `start_point` public | e2e | `test_dawn_payout.gd` | ✅ | ✅ green |
+| IN-03 fix (pass 9) | review | — | DEV-03 | T-01-15 | A provider whose owner was freed is dropped after its one warning | unit | `test_debug_overlay_readonly.gd` (`test_a_provider_whose_owner_was_freed_is_dropped_after_its_one_warning`) | ✅ | ✅ green |
 
 Owner gates with no automated verify by design: 01-01-T2 (toolchain download approval), 01-03-T2 (public repo name), 01-07-T2 (CC0 model download approval). No run of three consecutive tasks lacks automated verification.
 
@@ -306,6 +309,27 @@ Re-audited after the eighth review-fix pass (5 fix commits, `60d4881`..`30d0dd4`
 Evidence:
 - Full suite 237/237 (31 scripts); lint clean.
 - Unit quick run 140/140 (~11 s).
+- `tools/screenshot.sh`: 6/6 non-blank captures.
+- Headless guard exits 2.
+- `ci.yml` unchanged.
+
+## Validation Audit 2026-09-30 (re-audit after review-fix pass 9)
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Re-audited after the ninth review-fix pass (6 fix commits, `7cd97d9`..`1a0bb93`). 15/15 requirements are still COVERED.
+
+- **Tests:** +4 new, three of them in `tests/e2e/test_dawn_payout_hardening.gd`, split out because `test_dawn_payout.gd` is at gdlint's 20-method cap.
+- **Mutation probes:** every change carries one in `01-REVIEW-FIX.md`.
+- **CR-01 guard:** re-probed by the orchestrator; it fails 17/18 with the old spacing.
+
+Evidence:
+- Full suite 241/241 (32 scripts); lint clean.
+- Unit quick run 141/141 (~12 s).
 - `tools/screenshot.sh`: 6/6 non-blank captures.
 - Headless guard exits 2.
 - `ci.yml` unchanged.
