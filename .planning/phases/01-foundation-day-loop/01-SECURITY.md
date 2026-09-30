@@ -56,7 +56,7 @@ created: "2026-09-29"
 | T-01-14 | Tampering | `RunManager` transitions and dawn payout | low | mitigate | `start_night()` returns false unless `_phase == DAY`; `test_only_the_run_manager_assigns_the_loop_phase` source-scan test; `CommandProcessor` rejects StartNightIntent outside DAY; `test_run_manager.gd`, `test_build_phase_guard.gd`, `test_loop_gold_carryover.gd` green | closed |
 | T-01-15 | Elevation of Privilege | DebugOverlay in release builds | low | accept | See AR-01 (since pass 3 the read-only test watches all 7 simulation signals, and malformed provider rows are dropped) | closed |
 | T-01-16 | Information Disclosure | `duskhold-screenshots` CI artifact | low | accept | See AR-02 (`retention-days: 7` confirmed in `ci.yml`; since IN-04 the upload runs `if: always()` and also carries `build/screenshot-import.log`) | closed |
-| T-01-17 | Information Disclosure | `git push` of new history | high | mitigate | `bash tools/prepush_check.sh` before every push; re-run 2026-09-30 over all refs, including the 216 local commits not yet pushed: PASSED | closed |
+| T-01-17 | Information Disclosure | `git push` of new history | high | mitigate | `bash tools/prepush_check.sh` before every push; re-run 2026-09-30 over all refs, including the 226 local commits not yet pushed: PASSED | closed |
 | T-01-SC (01-10) | Tampering | apt packages on the CI runner | low | accept | See AR-03 | closed |
 | T-01-SC (no-install plans) | Tampering | Package installs in 01-02, 01-04, 01-05, 01-06, 01-08, 01-09 | low | accept | See AR-04 | closed |
 
@@ -68,7 +68,7 @@ The plans list T-01-SC seven times; the six identical "this plan installs no pac
 
 ### Observations (non-blocking)
 
-- **T-01-06 / T-01-17: enforcement is procedural.** `.git/hooks/pre-push` only runs Git LFS, so nothing forces `tools/prepush_check.sh` to run before a push. Run it before pushing the 216 pending local commits (it passes today). Optional hardening: call it from the pre-push hook.
+- **T-01-06 / T-01-17: enforcement is procedural.** `.git/hooks/pre-push` only runs Git LFS, so nothing forces `tools/prepush_check.sh` to run before a push. Run it before pushing the 226 pending local commits (it passes today). Optional hardening: call it from the pre-push hook.
 - **T-01-12: residual licence risk.** The allow-list test trusts each entry's declared `license` field. The Quaternius horse is logged as CC0-1.0, based on the 2021 Poly Pizza CC0 statement, while Quaternius now publishes its own Asset License. That is review finding WR-06, disposition skipped, owner decision pending. It is also listed as a human verification item.
 - **T-01-13: out-of-scope mention.** A comment on line 3 of `tools/_common.sh` names the local checkout folder, which contains the reference game's name. `tools/*` is not game content and is excluded from the export (`exclude_filter="tests/*, addons/gut/*, tools/*"`). The owner may still want to reword it before release.
 
@@ -106,6 +106,7 @@ The plans list T-01-SC seven times; the six identical "this plan installs no pac
 | 2026-09-30 (re-audit 12) | 22 | 22 | 0 | secure-phase orchestrator (State A; re-checked mitigations touched by review-fix pass 13) |
 | 2026-09-30 (re-audit 13) | 22 | 22 | 0 | secure-phase orchestrator (State A; re-checked mitigations touched by review-fix pass 14) |
 | 2026-09-30 (re-audit 14) | 22 | 22 | 0 | secure-phase orchestrator (State A; re-checked mitigations touched by review-fix pass 15) |
+| 2026-09-30 (re-audit 15) | 22 | 22 | 0 | secure-phase orchestrator (State A; re-checked mitigations touched by review-fix pass 16) |
 
 ## Security Audit 2026-09-29
 
@@ -352,6 +353,23 @@ Re-checked the mitigations touched by the 6 commits (`639f5fd`..`4fac944`), whic
 - **T-01-06 / T-01-17:** `tools/prepush_check.sh` PASSED over all refs, including the 216 unpushed commits.
 - **CI:** `ci.yml` is unchanged.
 - **Tests:** full suite 265/265.
+
+## Security Audit 2026-09-30 (re-audit after review-fix pass 16)
+
+| Metric | Count |
+|--------|-------|
+| Threats found | 22 |
+| Closed | 22 |
+| Open | 0 |
+
+Re-checked the mitigations touched by the 3 commits (`187f47a`..`49f4ae9`), which changed only `ui/overlay/debug_overlay.gd` and `ui/overlay/debug_overlay_model.gd`, plus tests and the test-only `tests/support/overlay_test_support.gd`:
+- **T-01-15:** the overlay model still makes no mutating calls; its only simulation calls are getters.
+  - Owner checks are now one shared static helper (`owner_problem`, `owner_ref`, `warn_not_registered`). A non-Object owner is refused, and an accepted owner is still held only as a `WeakRef`.
+  - `get_text()` returns "" before the overlay is ready.
+- **T-01-13:** the scoped name check is clean.
+- **T-01-06 / T-01-17:** `tools/prepush_check.sh` PASSED over all refs, including the 226 unpushed commits.
+- **CI:** `ci.yml` is unchanged.
+- **Tests:** full suite 268/268.
 
 ---
 
