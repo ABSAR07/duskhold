@@ -154,7 +154,7 @@ func test_a_pending_section_whose_owner_is_freed_after_bind_run_is_dropped_with_
 
 	watched.free()
 	# One refresh interval of synthetic time, so the refresh runs without a real-time wait.
-	overlay._process(DebugOverlay.REFRESH_INTERVAL_S)
+	overlay._advance_refresh(DebugOverlay.REFRESH_INTERVAL_S)
 
 	var after: String = overlay.get_text()
 	assert_false(after.contains("Watched"), "the section ends once its owner is freed")
@@ -190,11 +190,11 @@ func test_a_shown_overlay_refreshes_once_the_interval_has_passed_and_not_before(
 	overlay.bind_run(_context(), null)
 	overlay.visible = true
 
-	overlay._process(DebugOverlay.REFRESH_INTERVAL_S * 0.8)
+	overlay._advance_refresh(DebugOverlay.REFRESH_INTERVAL_S * 0.8)
 	assert_eq(calls[0], 0, "less than one interval has passed: no refresh yet")
-	overlay._process(DebugOverlay.REFRESH_INTERVAL_S * 0.4)
+	overlay._advance_refresh(DebugOverlay.REFRESH_INTERVAL_S * 0.4)
 	assert_eq(calls[0], 1, "the interval has now passed: one refresh")
-	overlay._process(DebugOverlay.REFRESH_INTERVAL_S * 0.8)
+	overlay._advance_refresh(DebugOverlay.REFRESH_INTERVAL_S * 0.8)
 	assert_eq(calls[0], 1, "the timer restarted at the refresh: no second one yet")
 
 
@@ -205,12 +205,12 @@ func test_a_shown_overlay_refreshes_about_four_times_a_second_and_a_hidden_one_n
 	overlay.bind_run(_context(), null)
 
 	for frame: int in SIMULATED_FRAMES:
-		overlay._process(1.0 / float(SIMULATED_FPS))
+		overlay._advance_refresh(1.0 / float(SIMULATED_FPS))
 	assert_eq(calls[0], 0, "a hidden overlay does not refresh")
 
 	overlay.visible = true
 	for frame: int in SIMULATED_FRAMES:
-		overlay._process(1.0 / float(SIMULATED_FPS))
+		overlay._advance_refresh(1.0 / float(SIMULATED_FPS))
 	# Two simulated seconds at 60 fps: 8 refreshes at a 0.25 s interval, 1 either way for rounding.
 	assert_between(calls[0], 7, 9, "about 4 refreshes per second, not one per frame")
 

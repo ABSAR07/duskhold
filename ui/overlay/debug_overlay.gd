@@ -7,12 +7,14 @@ extends CanvasLayer
 
 const TOGGLE_ACTION := &"toggle_debug_overlay"
 const REFRESH_INTERVAL_S: float = 0.25
+const USEC_PER_SECOND: float = 1000000.0
 const REBIND_IGNORED_WARNING := "debug overlay bind_run ignored: already bound to another run"
 const NO_CONTEXT_WARNING := "debug overlay bind_run ignored: no RunContext"
 
 var _model: DebugOverlayModel
 var _ctx: RunContext
 var _since_refresh: float = 0.0
+var _last_frame_usec: int = 0
 ## Sections registered before bind_run, as {title, provider, owner: WeakRef or null}, one per title
 ## (a repeat registration replaces the earlier one in place, as in the model). Bind order across the
 ## run_bound group is not guaranteed, so a caller may register first; bind_run replays these in
@@ -97,15 +99,32 @@ func get_text() -> String:
 	return _text.text if _text != null else ""
 
 
-func _process(delta: float) -> void:
+func _ready() -> void:
+	_last_frame_usec = Time.get_ticks_usec()
+
+
+## The refresh clock is real time, not `delta`: delta is scaled by Engine.time_scale, so a debug
+## fast-forward or a time_scale of 0 would otherwise slow or freeze the overlay (and its FPS row).
+func _process(_delta: float) -> void:
+	var now_usec: int = Time.get_ticks_usec()
+	var real_delta: float = float(now_usec - _last_frame_usec) / USEC_PER_SECOND
+	_last_frame_usec = now_usec
 	if Input.is_action_just_pressed(TOGGLE_ACTION):
 		visible = not visible
 		if visible:
 			_refresh()
-	elif visible:
-		_since_refresh += delta
-		if _since_refresh >= REFRESH_INTERVAL_S:
-			_refresh()
+	else:
+		_advance_refresh(real_delta)
+
+
+## Adds `seconds` of real time to the refresh clock and refreshes once the interval has passed. A
+## hidden overlay does neither.
+func _advance_refresh(seconds: float) -> void:
+	if not visible:
+		return
+	_since_refresh += seconds
+	if _since_refresh >= REFRESH_INTERVAL_S:
+		_refresh()
 
 
 func _refresh() -> void:

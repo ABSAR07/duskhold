@@ -19,6 +19,7 @@ const REQUIRED_FIELDS: Array[String] = [
 
 func after_each() -> void:
 	get_tree().paused = false
+	Engine.time_scale = 1.0
 	E2eSupport.release_all_actions()
 
 
@@ -117,3 +118,25 @@ func test_overlay_toggles_and_refreshes_while_the_tree_is_paused() -> void:
 
 	await _press_toggle()
 	assert_false(overlay.is_overlay_visible(), "F3 hides it again while the tree is paused")
+
+
+func test_overlay_keeps_refreshing_while_the_engine_time_scale_is_zero() -> void:
+	# A later debug fast-forward or freeze scales _process delta; the overlay runs on real time.
+	# after_each restores the time scale, so a failure here cannot freeze every later suite.
+	var map_root: MapRoot = await E2eSupport.spawn_map(self)
+	var overlay: DebugOverlay = _overlay_of(map_root)
+	assert_not_null(overlay, "the HUD instances the debug overlay")
+	if overlay == null:
+		return
+	await _press_toggle()
+	assert_string_contains(overlay.get_text(), "Buildings: 0", "no building yet")
+
+	Engine.time_scale = 0.0
+	var ctx: RunContext = map_root.get_context()
+	var spot_id: StringName = ctx.buildings.spot_ids()[0]
+	var result: StringName = ctx.commands.submit(BuildIntent.new(spot_id))
+	assert_eq(result, CommandProcessor.OK, "the House was built through the command gate")
+	var refreshed: bool = await E2eSupport.wait_until(
+		self, func() -> bool: return overlay.get_text().contains("Buildings: 1"), REFRESH_WINDOW_S
+	)
+	assert_true(refreshed, "the overlay refreshes within %s s of real time" % REFRESH_WINDOW_S)
