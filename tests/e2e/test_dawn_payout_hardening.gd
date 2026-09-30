@@ -5,7 +5,6 @@ extends GutTest
 const PROTOTYPE_MAP := "res://data/maps/prototype_map.tres"
 const TUNING := "res://data/tuning/loop_tuning.tres"
 const RICH_GOLD: int = 20
-const FAST_NIGHT_S: float = 0.5
 const SETTLED_S: float = 3.0
 const HOUSE_ONE: StringName = &"house_1"
 const HOUSE_TWO: StringName = &"house_2"
@@ -15,7 +14,6 @@ var _tuning: LoopTuning
 
 func before_each() -> void:
 	_tuning = (load(TUNING) as LoopTuning).duplicate(true)
-	_tuning.placeholder_night_seconds = FAST_NIGHT_S
 
 
 func _spawn() -> MapRoot:
