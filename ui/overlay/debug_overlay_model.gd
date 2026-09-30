@@ -11,7 +11,9 @@ extends RefCounted
 const DEFAULT_TITLES: Array[String] = ["Perf", "Loop", "Agents"]
 
 var _ctx: RunContext
-var _registered: Array[Dictionary] = []
+## Registered sections by title: {title: {provider: Callable, owner: WeakRef or null}}. A Dictionary
+## keeps insertion order, so sections show in registration order, and removing one is erase(title).
+var _registered: Dictionary = {}
 ## Titles already warned about, so a skipped provider is reported once, not on every refresh.
 var _warned: Dictionary = {}
 
@@ -39,14 +41,10 @@ func register_section(title: String, provider: Callable, lifetime_owner: Object 
 		return
 	# A WeakRef, so the overlay never keeps a RefCounted owner alive; null when there is no owner.
 	var owner_ref: WeakRef = weakref(lifetime_owner) if lifetime_owner != null else null
-	for entry: Dictionary in _registered:
-		if entry["title"] == title:
-			entry["provider"] = provider
-			entry["owner"] = owner_ref
-			# The one-shot warning belongs to the provider, so a replacement may warn afresh.
-			_warned.erase(title)
-			return
-	_registered.append({"title": title, "provider": provider, "owner": owner_ref})
+	# Assigning to an existing title keeps its position; a new title goes last.
+	_registered[title] = {"provider": provider, "owner": owner_ref}
+	# The one-shot warning belongs to the provider, so a replacement may warn afresh.
+	_warned.erase(title)
 
 
 func collect(fps: float) -> Array:
@@ -55,30 +53,29 @@ func collect(fps: float) -> Array:
 		_section("Loop", _loop_rows()),
 		_section("Agents", _agent_rows()),
 	]
-	# Iterates a copy: an entry that is gone for good is dropped from _registered below.
-	for entry: Dictionary in _registered.duplicate():
+	# keys() is a copy: an entry that is gone for good is dropped from _registered below.
+	for title: String in _registered.keys():
+		var entry: Dictionary = _registered[title]
 		var provider: Callable = entry["provider"]
 		# A freed owner or an invalid Callable cannot be called, and a provider that needs an
 		# argument cannot be called with none; skip any of them instead of raising a script error
 		# on every refresh.
 		var skip_reason: String = _skip_reason(entry)
 		if not skip_reason.is_empty():
-			_warn_once(entry["title"], skip_reason)
+			_warn_once(title, skip_reason)
 			if _is_gone(entry):
 				# A freed owner or an invalid Callable never recovers (register_section is the way to
 				# replace it), so it is named once and then forgotten, not re-checked each refresh.
-				_registered.erase(entry)
-				_warned.erase(entry["title"])
+				_registered.erase(title)
+				_warned.erase(title)
 			continue
 		var rows: Variant = provider.call()
 		if rows is Array:
 			# A provider that works again may fail again later, and that failure is news.
-			_warned.erase(entry["title"])
-			sections.append(_section(entry["title"], _clean_rows(rows)))
+			_warned.erase(title)
+			sections.append(_section(title, _clean_rows(rows)))
 		else:
-			_warn_once(
-				entry["title"], "it returned %s, not an Array of rows" % type_string(typeof(rows))
-			)
+			_warn_once(title, "it returned %s, not an Array of rows" % type_string(typeof(rows)))
 	return sections
 
 
