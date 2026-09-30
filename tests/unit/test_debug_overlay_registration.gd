@@ -125,7 +125,10 @@ func test_a_pending_section_whose_owner_died_before_bind_run_is_left_out_with_a_
 	var text: String = await _shown_text(overlay)
 	assert_false(text.contains("Ghost"), "the freed owner's section is left out")
 	assert_string_contains(text, "Answer: 42", "the other pending section still shows")
-	assert_push_warning("debug overlay section 'Ghost' not registered: its owner was freed")
+	assert_push_warning(
+		"debug overlay section 'Ghost' not registered: its owner was freed before bind_run"
+	)
+	assert_push_warning_count(1, "the freed owner is named once")
 
 
 func test_a_pending_section_whose_owner_is_freed_after_bind_run_is_dropped_with_a_warning() -> void:
