@@ -5,23 +5,23 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`SIM_SIGNALS` is duplicated, and only one copy has a drift guard"
   - id: IN-01
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Control flow in `DebugOverlayModel` depends on free-text reason strings"
   - id: IN-02
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Dead tuning setup in the hardening e2e test"
   - id: IN-03
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Test name and message use \"owner freed\" for a case with no owner"
   - id: IN-04
     severity: info
-    disposition: open
+    disposition: fixed
     title: "The clamp e2e test does not check what it claims about the amounts"
   - id: WR-02
     severity: warning
@@ -87,20 +87,20 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 5
+open: 0
 total: 21
-recorded: 2026-09-30T11:02:00.444Z
+recorded: 2026-09-30T11:20:52.644Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
-| IN-01 | info | open | - |
-| IN-02 | info | open | - |
-| IN-03 | info | open | - |
-| IN-04 | info | open | - |
+| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
+| IN-01 | info | fixed | 01-REVIEW-FIX.md |
+| IN-02 | info | fixed | 01-REVIEW-FIX.md |
+| IN-03 | info | fixed | 01-REVIEW-FIX.md |
+| IN-04 | info | fixed | 01-REVIEW-FIX.md |
 | WR-02 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-03 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-05 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
