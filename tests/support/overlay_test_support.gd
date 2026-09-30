@@ -14,9 +14,12 @@ static func new_tuning() -> LoopTuning:
 	return (load(TUNING) as LoopTuning).duplicate(true)
 
 
-## A private copy of the prototype map, for the same reason as new_tuning.
+## A private copy of the prototype map, for the same reason as new_tuning. It is copied all the way
+## down, building definitions and their tiers included: those are external .tres files, which
+## duplicate(true) would leave shared with the cached resource, so a test that edits a cost or a
+## dawn income would leak into every later suite of the run.
 static func new_map() -> MapConfig:
-	return (load(PROTOTYPE_MAP) as MapConfig).duplicate(true)
+	return (load(PROTOTYPE_MAP) as MapConfig).duplicate_deep(Resource.DEEP_DUPLICATE_ALL)
 
 
 ## A RunContext on its own copies of the prototype map and (unless given) the tuning, with a House
