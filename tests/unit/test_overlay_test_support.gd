@@ -87,10 +87,12 @@ func test_a_new_tuning_copy_shares_no_resource_with_the_cached_tuning() -> void:
 		if (property["usage"] as int) & PROPERTY_USAGE_STORAGE == 0:
 			continue
 		checked += 1
-		var name: String = property["name"]
-		var copied: Array[Resource] = _resources_in(copy.get(name))
-		for resource: Resource in _resources_in(cached.get(name)):
-			assert_false(copied.has(resource), "'%s' shares a subresource with the cache" % name)
+		var prop_name: String = property["name"]
+		var copied: Array[Resource] = _resources_in(copy.get(prop_name))
+		for resource: Resource in _resources_in(cached.get(prop_name)):
+			assert_false(
+				copied.has(resource), "'%s' shares a subresource with the cache" % prop_name
+			)
 	assert_gt(checked, 0, "the tuning has stored properties, so the loop above checked something")
 
 
