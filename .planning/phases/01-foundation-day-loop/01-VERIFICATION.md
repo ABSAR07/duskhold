@@ -1,6 +1,6 @@
 ---
 phase: 01-foundation-day-loop
-verified: 2026-09-30T11:59:57Z
+verified: 2026-09-30T12:18:33Z
 status: human_needed
 score: 5/5 must-haves verified
 covered_files:
@@ -45,7 +45,7 @@ covered_files:
   - "ui/hud/hud.gd"
   - "ui/overlay/debug_overlay.gd"
   - "ui/overlay/debug_overlay_model.gd"
-covered_digest: "v2:sha256:bffc9c8254fcabeb5fb8324da17b0f52907f58b646e54660edeaad9a6d6df3ea"
+covered_digest: "v2:sha256:42c199a333072ece45c7cea41bfed2928de76f312cdf1d49a88ecde72c3335d9"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
@@ -59,18 +59,18 @@ deferred:
     addressed_in: "Phase 2"
     evidence: "ROADMAP Phase 1 SC5: 'wave state and enemy paths join it once nights have enemies in Phase 2'; Phase 2 SC3 requires 'the debug overlay shows live enemy counts, wave state, and enemy paths'"
 advisory:
-  - finding: "The freshest review (01-REVIEW.md, 0 critical, 0 warnings, 3 info: IN-01 get_text() readiness guard, IN-02 duplicated owner-validity handling with a misleading message for non-Object owners, IN-03 duplicated test constants) is open"
+  - finding: "The freshest review (01-REVIEW.md, 0 critical, 1 warning, 2 info) is open. WR-01: OverlayTestSupport.new_map()/new_tuning() are documented as private copies, but Resource.duplicate(true) leaves the external building and tier resources shared with the cached prototype_map.tres. IN-01: a pre-bind registration of a default title is buffered silently and refused only at bind_run. IN-02: a repeat bind_run with a different RunContext is ignored (stale context) and the test does not pin which context is read"
     category: other
-    reason: "All three concern the debug overlay's robustness and test-suite structure. None sits on a shipped Phase 1 behaviour path, and none breaks a ROADMAP success criterion or a PLAN must-have. They are recorded as open in 01-REVIEW-DISPOSITION.md and await the next fix pass. 01-REVIEW-FIX.md describes the previous review's fixes (WR-01, WR-02, IN-01, IN-02, IN-03, IN-04 of that round), which are in the tree."
-    evidence_status: "01-REVIEW.md and 01-REVIEW-DISPOSITION.md read in full; git diff 7a90011 HEAD for ui/ read in full"
+    reason: "All three concern the debug overlay's test helper and bind-order edge cases. No test in the tree edits a BuildingDef or BuildingTierDef through the helper today (the suite is green in any order), the overlay is bound once per run by map_root, and none breaks a ROADMAP success criterion or a PLAN must-have. They are recorded as open in 01-REVIEW-DISPOSITION.md and await the next fix pass. 01-REVIEW-FIX.md describes the PREVIOUS review's fixes (IN-01, IN-02, IN-03 of that round), which are in the tree."
+    evidence_status: "01-REVIEW.md read in full; ui/overlay/debug_overlay.gd and debug_overlay_model.gd read in full at HEAD; the review's WR-01 probe result not re-run"
   - finding: "CI trigger is main, master and gsd/** pushes plus all pull requests and workflow_dispatch, not literally every push"
     category: other
     reason: "ROADMAP SC4 and DEV-02 say 'on every push'; plan 01-03's truth says 'every push to any branch'. Pushes to other branch names are covered only via a pull request. Owner-pending decision (record an override or widen the trigger)."
     evidence_status: ".github/workflows/ci.yml lines 8-12"
-  - finding: "The branch is not pushed: origin/gsd/phase-01-foundation-day-loop is still 981e4c8 and the local branch is 219 commits ahead; build/windows/Duskhold.exe (Sep 29 21:57) predates the latest fixes"
+  - finding: "The branch is not pushed: origin/gsd/phase-01-foundation-day-loop is still 981e4c8 and the local branch is 229 commits ahead; build/windows/Duskhold.exe (Sep 29 21:57) predates the latest fixes"
     category: other
     reason: "Plan 01-10's last truth ('the final phase state is pushed to origin and its CI run is green') and plan 01-03's 'first push and green CI' cannot be observed from this environment for the current HEAD. CI rebuilds the export from the pushed tree. Owner-pending."
-    evidence_status: "git rev-list --count origin/gsd/phase-01-foundation-day-loop..HEAD returns 219; git ls-remote --heads origin returns 981e4c8; ls -la build/windows"
+    evidence_status: "git rev-list --count origin/gsd/phase-01-foundation-day-loop..HEAD returns 229; git ls-remote --heads origin returns 981e4c8; ls -la build/windows"
   - finding: "Phase is Mode: mvp but its goal is not in 'As a..., I want to..., so that...' form"
     category: other
     reason: "MVP narrowing could not be applied; verified as standard goal-backward against the roadmap contract."
@@ -101,27 +101,26 @@ human_verification:
     expected: "The prompt names the key by the label printed on that keycap on the player's layout (the default N key on QWERTY reads 'Hold N / (Y) to start Night 1'), not by its US-QWERTY position"
     why_human: "The prompt names the key via DisplayServer.keyboard_get_label_from_physical (ui/hud/hud.gd), which is unavailable headless; only a fake-layout resolver seam is unit-tested"
   - test: "Owner decision on CI trigger semantics for DEV-02, then push the branch and confirm CI is green on the final HEAD"
-    expected: "Owner either accepts 'main, master, gsd/** and PRs' as satisfying 'on every push' (record an override) or widens the trigger; after pushing, lint, test, export and screenshots jobs are green on the new HEAD (last green run is 981e4c8, the current origin tip; the local branch is 219 commits ahead)"
+    expected: "Owner either accepts 'main, master, gsd/** and PRs' as satisfying 'on every push' (record an override) or widens the trigger; after pushing, lint, test, export and screenshots jobs are green on the new HEAD (last green run is 981e4c8, the current origin tip; the local branch is 229 commits ahead)"
     why_human: "Owner policy decision, and remote CI state cannot be observed from this environment"
 ---
 
 # Phase 1: Foundation & Day Loop Verification Report
 
 **Phase Goal:** A Godot 4.7.2 project where, on the prototype map, the player rides the king by day and spends scarce gold on Houses and a basic tower, earning income from one day to the next. From the first commit, the agent can lint, test, screenshot, and export the game headlessly on every push.
-**Verified:** 2026-09-30T11:59:57Z
+**Verified:** 2026-09-30T12:18:33Z
 **Status:** human_needed (every automated check passes and no must-have fails; what remains is feel and visual judgment, a non-QWERTY layout check, and owner decisions on the horse licence and on the CI trigger and push)
-**Re-verification:** Yes. The previous report (human_needed, 5/5, HEAD 7a90011) went stale after review-fix pass 15 changed `ui/overlay/debug_overlay_model.gd` and `ui/overlay/debug_overlay.gd` and restructured the overlay tests. Every verdict below was regenerated from the current tree at HEAD bce5dfd; none was copied.
+**Re-verification:** Yes. The previous report (HEAD bce5dfd) went stale after review-fix pass 16 changed `ui/overlay/debug_overlay.gd` and `ui/overlay/debug_overlay_model.gd` and three test files. Every verdict below was regenerated from the current tree at HEAD 684952e; none was copied.
 
-## Pass-15 change audit
+## Pass-16 change audit
 
-`git diff 7a90011 HEAD` outside `.planning` touches 10 files: two source files (`ui/overlay/debug_overlay.gd`, `ui/overlay/debug_overlay_model.gd`) and eight test-side files. `simulation`, `presentation`, `input`, `.github`, `tools`, `ui/hud` and `project.godot` are unchanged. Working tree is clean except `.planning/config.json`.
+`git diff bce5dfd HEAD` outside `.planning` touches 5 files: two source files (`ui/overlay/debug_overlay.gd`, `ui/overlay/debug_overlay_model.gd`) and three test-side files (`tests/support/overlay_test_support.gd`, `tests/unit/test_debug_overlay_providers.gd`, `tests/unit/test_debug_overlay_registration.gd`). `simulation`, `presentation`, `input`, `.github`, `tools`, `ui/hud` and `project.godot` are unchanged. Working tree is clean except `.planning/config.json`.
 
 | Change | Source read | Impact on a truth |
 |--------|-------------|-------------------|
-| `_warned` now maps title to a problem kind; `_warn_once(title, kind, problem)` warns again when a streak changes from one problem to another (kinds: `skip <code>`, `malformed rows`, `returned <type>`); the malformed-row kind excludes the count | full diff read | Diagnostics path only. The built-in Perf, Loop and Agents rows are untouched, so SC5's shown/dropped behaviour is unchanged. Pinned by `test_a_provider_whose_problem_changes_within_one_streak_is_named_again` (passes). |
-| `register_section` takes `lifetime_owner: Variant`, uses `typeof(...) != TYPE_NIL` plus `is_instance_valid`, and refuses an already-freed owner with a warning (model, and the view's pre-bind path) | full diff read | Removes a script error in the caller's frame; the section is simply not registered. Pinned by `test_a_section_whose_owner_was_already_freed_is_refused_with_a_warning` and `test_a_section_registered_with_an_already_freed_owner_is_refused_before_and_after_bind_run` (both pass). No effect on shipped rows. |
-| 12 provider tests moved unchanged into `tests/unit/test_debug_overlay_providers.gd` (16 tests there now); shared helper `tests/support/overlay_test_support.gd`; 5 new tests | files listed, full-suite run | Test structure and stronger evidence only. Suite grew from 260 tests / 34 scripts to 265 / 35. |
-| Two comments in `test_dawn_payout_hardening.gd` corrected (the synthetic emit does not credit the ledger) | diff read | Comment-only. |
+| `DebugOverlay.get_text()` returns `""` while `_text` (the `@onready` label) is still null | full file read | Removes a script error before the overlay enters the tree. Pinned by `test_get_text_before_the_overlay_is_in_the_tree_is_empty_instead_of_a_script_error` (passes). No effect on the shipped rows. |
+| Shared static helpers `DebugOverlayModel.owner_problem`, `owner_ref`, `warn_not_registered`; the view's pre-bind path and `bind_run` replay use them, so pre-bind and post-bind refusals read the same. A non-Object owner is refused as "its owner is not an Object" (not as "freed") | full file read | Diagnostics path only. Pinned by `test_a_section_whose_owner_is_not_an_object_is_refused_as_such_not_as_freed` and `test_an_owner_that_is_not_an_object_is_refused_before_and_after_bind_run_as_such` (both pass). The built-in Perf, Loop and Agents rows are untouched. |
+| Registration suite uses `OverlayTestSupport.new_map()` / `new_tuning()` | diff stat | Test structure only. Review WR-01 (open) notes the helper's "private copy" promise does not cover the external building resources. |
 
 ## Goal Achievement
 
@@ -129,15 +128,15 @@ human_verification:
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 | During the day the player rides the mounted king (WASD / stick, sprint) under a following isometric-style camera; near each fixed spot sees what can be built and its gold cost | VERIFIED (feel: human) | King, camera rig and spot-label sources are unchanged since the last verification and their tests pass in this pass's full run (265/265). `overlay_on.png` (viewed; regenerated today at 16:51 local) shows the mounted king (rider T-pose on a small horse), the castle, two build plots, the HUD gold and the start-night prompt. `verify.artifacts` reports every artifact present and non-stub for all ten plans. |
-| 2 | Holding the action key near a spot, with a visible progress indicator, builds a House or basic tower, or upgrades it after showing the next tier cost and effect; only when affordable, only on build spots, never at night | VERIFIED | `command_processor.gd` `validate_build` (read this pass, lines 30-40): NOT_DAY when `is_build_allowed()` is false, then UNKNOWN_SPOT when `get_spot` is null, then MAX_TIER when `next_action_cost < 0`, then CANNOT_AFFORD via `can_afford`, else OK. `submit` routes `BuildIntent` through the same validation. `RunManager.is_build_allowed()` is `_phase == RunPhase.DAY` (line 35). Build, upgrade, affordability, range, NOT_DAY and refund tests pass in the full run. |
-| 3 | Gold is the only currency and always on the HUD; ending the day through the placeholder transition leads to dawn where each House pays tier-scaled income and unspent gold carries over | VERIFIED | `run_manager.gd` `_apply_dawn_payout` (read this pass, lines 111-118): sums `_buildings.dawn_income_by_spot()`, calls `_economy.grant(total)` when positive, emits `dawn_payout(total, per_spot)`. `_enter_day` only bumps the day and emits, so nothing resets gold and unspent gold carries over. `Gold: 30` is visible in `overlay_on.png`. Dawn income, payout VFX, HUD lag release, carryover and start-night hold tests pass. |
-| 4 | From the command line and in CI on every push: lint plus headless GUT cover economy, building rules, transitions; scripted scenes export screenshots; CI produces a Windows export | VERIFIED locally; CI on the final HEAD not yet run, and the trigger is narrower than "every push" (both owner-pending, see advisory and human item 9) | I ran `bash tools/lint.sh` (71 files unchanged, no problems) and `bash tools/test.sh` once (35 scripts, 265/265, 1738 asserts, exit 0). `ci.yml` defines lint, test, export and screenshots jobs through the same `tools/*.sh` wrappers, read-only token, actions pinned by SHA, trigger `push: [main, master, "gsd/**"]` plus `pull_request` and `workflow_dispatch`. `screenshots/` holds 6 PNGs stamped 16:51 local today (build_in_progress, dawn_payout, day_overview, night_banner, overlay_on, spot_label). `build/windows/Duskhold.exe` and `.pck` exist (Sep 29 local artifact, stale). |
-| 5 | A key toggles a debug overlay with FPS, unit/enemy counts and loop state; every third-party asset is in the attribution log | VERIFIED | `debug_overlay_model.gd` builds Perf (FPS), Loop (Phase, Day, Night, Gold, Buildings, plus Timer in NIGHT and DAWN only) and Agents (Units, Enemies) rows plus registered sections; `overlay_on.png` (viewed) shows exactly those rows in the running scene (FPS 16 in the headless-software capture is a render-environment artifact, not a measurement of target hardware). Read-only, toggle, refresh, registration, timed-phase, provider and owner/recovery tests pass, including the pass-15 kind-keyed re-warning and freed-owner refusal. `assets/attribution.json` exists and its coverage test passes in the suite. Wave state and enemy paths are deferred to Phase 2 by the roadmap's own wording. |
+| 1 | During the day the player rides the mounted king (WASD / stick, sprint) under a following isometric-style camera; near each fixed spot sees what can be built and its gold cost | VERIFIED (feel: human) | King, camera rig and spot-label sources are unchanged since the last verification; their tests pass in this pass's full run (268/268). `overlay_on.png` (viewed; captured today 17:13 local) shows the mounted king (rider T-pose on a small horse), the castle, two build plots, the HUD gold and the start-night prompt. `verify.artifacts` reports every artifact present and non-stub for all ten plans. |
+| 2 | Holding the action key near a spot, with a visible progress indicator, builds a House or basic tower, or upgrades it after showing the next tier cost and effect; only when affordable, only on build spots, never at night | VERIFIED | `command_processor.gd` `validate_build` (read this pass, lines 30-40): NOT_DAY when `is_build_allowed()` is false, then UNKNOWN_SPOT when `get_spot` is null, then MAX_TIER when `next_action_cost < 0`, then CANNOT_AFFORD via `can_afford`, else OK. Build, upgrade, affordability, range, NOT_DAY and refund tests pass in the full run. |
+| 3 | Gold is the only currency and always on the HUD; ending the day through the placeholder transition leads to dawn where each House pays tier-scaled income and unspent gold carries over | VERIFIED | `run_manager.gd` `_apply_dawn_payout` (read this pass, lines 111-118): sums `_buildings.dawn_income_by_spot()`, calls `_economy.grant(total)` when positive, emits `dawn_payout(total, per_spot)`; comment and code show nothing resets gold at day start, so unspent gold carries over. `Gold: 30` is visible in `overlay_on.png`. Dawn income, payout VFX, HUD lag release, carryover and start-night hold tests pass. |
+| 4 | From the command line and in CI on every push: lint plus headless GUT cover economy, building rules, transitions; scripted scenes export screenshots; CI produces a Windows export | VERIFIED locally; CI on the final HEAD not yet run, and the trigger is narrower than "every push" (both owner-pending, see advisory and human item 9) | I ran `bash tools/lint.sh` (71 files unchanged, no problems, exit 0) and `bash tools/test.sh` once (35 scripts, 268/268, 1750 asserts, exit 0). `ci.yml` defines lint, test, export and screenshots jobs through the same `tools/*.sh` wrappers; trigger is `push: [main, master, "gsd/**"]` plus `pull_request` and `workflow_dispatch`. `screenshots/` holds 6 PNGs stamped 17:13 local today (build_in_progress, dawn_payout, day_overview, night_banner, overlay_on, spot_label). `build/windows/Duskhold.exe` and `.pck` exist (Sep 29 local artifact, stale). |
+| 5 | A key toggles a debug overlay with FPS, unit/enemy counts and loop state; every third-party asset is in the attribution log | VERIFIED | `debug_overlay_model.gd` (read in full) builds Perf (FPS), Loop (Phase, Day, Night, Gold, Buildings, plus Timer in NIGHT and DAWN only) and Agents (Units, Enemies) rows plus registered sections; `overlay_on.png` (viewed) shows exactly those rows in the running scene (FPS 1 in the headless-software capture is a render-environment artifact, not a measurement of target hardware). Read-only, toggle, refresh, registration, timed-phase, provider and owner/recovery tests pass, including the three pass-16 tests. `assets/attribution.json` exists and its coverage test passes in the suite. Wave state and enemy paths are deferred to Phase 2 by the roadmap's own wording. |
 
 **Score:** 5/5 truths verified, 0 behavior-unverified.
 
-Behavior-dependent invariants (phase gating, refund on cancel, gold never negative, dawn payout landing inside the window, HUD lag release, carryover, start-night prompt follows rebinds, snapshot isolation, superseded payouts stop pending launches, payout clamp, payout/total disagreement warnings, overlay pre-bind registration and repeat-bind idempotency, overlay warning re-arm and per-problem re-warning, malformed-row warning, overlay owner-freed and invalid-callable drop, refusal of an already-freed owner) each have a named GUT test inside the 265/265 run, so none is left present-but-unverified. Only the real `DisplayServer.keyboard_get_label_from_physical` call cannot run headless and stays a human item.
+Behavior-dependent invariants (phase gating, refund on cancel, gold never negative, dawn payout landing inside the window, HUD lag release, carryover, start-night prompt follows rebinds, snapshot isolation, superseded payouts stop pending launches, payout clamp, overlay pre-bind registration and repeat-bind idempotency, overlay warning re-arm and per-problem re-warning, malformed-row warning, owner-freed and invalid-callable drop, refusal of an already-freed or non-Object owner, `get_text()` before ready) each have a named GUT test inside the 268/268 run, so none is left present-but-unverified. Only the real `DisplayServer.keyboard_get_label_from_physical` call cannot run headless and stays a human item.
 
 ### Deferred Items
 
@@ -147,7 +146,7 @@ Behavior-dependent invariants (phase gating, refund on cancel, gold never negati
 
 ### Advisory (open review findings and owner-pending items, not must-have failures)
 
-See the `advisory` frontmatter list. The freshest review (01-REVIEW.md: 0 critical, 0 warnings, 3 info) is open: IN-01 (`DebugOverlay.get_text()` reads an `@onready` node without a readiness guard), IN-02 (owner-validity handling duplicated between view and model; a non-Object owner gets a misleading "freed" message), IN-03 (duplicated test constants). I read the sources and agree none affects a shipped behaviour path; they await the next fix pass. Plan 01-10's "pushed and CI green" truth and 01-03's "every push to any branch" wording are the owner-pending remote facts.
+See the `advisory` frontmatter list. The freshest review (01-REVIEW.md: 0 critical, 1 warning, 2 info) is OPEN and awaits the next fix pass: WR-01 (test-helper "private copy" claim does not cover shared building/tier resources), IN-01 (pre-bind default-title refusal deferred to `bind_run`), IN-02 (repeat `bind_run` with a different context is silently ignored). I read the sources: the behaviours the review describes are real in the code (pre-bind branch in `register_section` checks only the owner; `bind_run` returns early when `_model != null`), but none affects a shipped behaviour path or a success criterion, so they are advisory. Plan 01-10's "pushed and CI green" truth and 01-03's "every push to any branch" wording are the owner-pending remote facts.
 
 ### Required Artifacts
 
@@ -155,7 +154,7 @@ See the `advisory` frontmatter list. The freshest review (01-REVIEW.md: 0 critic
 
 ### Key Link Verification
 
-`gsd-tools query verify.key-links` this pass: plans 02-10 all verified. Plan 01 reports 2/3 because of one link, `tools/godot.sh -> tools/godot_version.txt` (pattern not found in `godot.sh`). `godot.sh` sources `_common.sh` (line 7) and `_common.sh` line 23 reads `tools/godot_version.txt`, so the link is wired; the plan named the wrong file. Not a gap.
+`gsd-tools query verify.key-links` this pass: plans 02-10 all verified. Plan 01 reports 2/3 because of one link, `tools/godot.sh -> tools/godot_version.txt` (pattern not found in `godot.sh`). `godot.sh` sources `_common.sh`, which reads `tools/godot_version.txt`, so the link is wired; the plan named the wrong file. Not a gap.
 
 | From | To | Via | Status |
 |------|----|-----|--------|
@@ -167,7 +166,7 @@ See the `advisory` frontmatter list. The freshest review (01-REVIEW.md: 0 critic
 | hud | dawn_payout_vfx | `payout_started`, `coin_landed` | WIRED |
 | hud | run_manager | `phase_changed` -> `_refresh_loop` | WIRED |
 | dawn_payout_vfx | sim_events | `dawn_payout.connect(_on_dawn_payout)` | WIRED |
-| debug_overlay | debug_overlay_model | `bind_run` builds the model and replays pending registrations (a pending freed owner is warned about and skipped) | WIRED |
+| debug_overlay | debug_overlay_model | `bind_run` builds the model and replays pending registrations through the shared owner check | WIRED |
 | debug_overlay_model | building_system | `current_tier(spot_id)` in the Buildings count | WIRED |
 | ci.yml | tools/*.sh, bootstrap.py | same wrappers as local | WIRED |
 
@@ -184,8 +183,8 @@ See the `advisory` frontmatter list. The freshest review (01-REVIEW.md: 0 critic
 
 | Behavior | Command | Result | Status |
 |----------|---------|--------|--------|
-| Full headless GUT suite (run once) | `bash tools/test.sh` | 35 scripts, 265/265, 1738 asserts, exit 0 | PASS |
-| Lint and format | `bash tools/lint.sh` | 71 files unchanged, no problems | PASS |
+| Full headless GUT suite (run once) | `bash tools/test.sh` | 35 scripts, 268/268, 1750 asserts, exit 0 | PASS |
+| Lint and format | `bash tools/lint.sh` | 71 files unchanged, no problems, exit 0 | PASS |
 | Debt markers | grep `TBD\|FIXME\|XXX\|TODO\|HACK` over simulation, presentation, ui, input, tools, tests, .github, data, project.godot | no matches | PASS |
 | Screenshots on disk | `ls -la screenshots`; `overlay_on.png` viewed | 6 PNGs dated today; overlay_on is a real render | PASS |
 | Windows export on disk | `ls -la build/windows` | Duskhold.exe + Duskhold.pck (Sep 29 local artifact) | PASS (stale, see advisory) |
@@ -213,24 +212,24 @@ The union of `requirements:` across the ten PLAN frontmatters is ART-02, BLDG-01
 | ECON-02 | 01-09, 01-10 | SATISFIED | tier-scaled dawn income and payout tests |
 | ECON-07 | 01-09 | SATISFIED | gold carryover test |
 | ART-02 | 01-07 | SATISFIED (horse licence decision pending) | attribution.json and coverage test |
-| DEV-01 | 01-01, 01-02 | SATISFIED | headless RunContext, 265 tests |
+| DEV-01 | 01-01, 01-02 | SATISFIED | headless RunContext, 268 tests |
 | DEV-02 | 01-01, 01-03, 01-10 | SATISFIED locally (trigger narrower than "every push"; CI on HEAD pending) | ci.yml lint/test/export/screenshots |
 | DEV-03 | 01-08 | SATISFIED for Phase 1 scope | overlay tests; wave/pathing deferred to Phase 2 |
 | DEV-04 | 01-10 | SATISFIED | screenshot.sh, shot_runner, CI job, 6 PNGs |
 
 ### Anti-Patterns Found
 
-No debt markers in source, tests, tools or workflow. No stubs, hollow props or static-return data paths in the two pass-15 source files: `SKIP_MESSAGES` covers every non-NONE `Skip` code (guarded by a test), `_registered` and `_pending` are populated by `register_section` and consumed by `bind_run` and `collect`, and the freed-owner refusal returns before anything is stored. No blocker anti-patterns.
+No debt markers in source, tests, tools or workflow. No stubs, hollow props or static-return data paths in the two pass-16 source files: `SKIP_MESSAGES` covers every non-NONE `Skip` code, `_registered` and `_pending` are populated by `register_section` and consumed by `bind_run` and `collect`, the freed and non-Object owner refusals return before anything is stored, and `get_text()` guards the null label. No blocker anti-patterns.
 
 ### Human Verification Required
 
-See the `human_verification` list in the frontmatter: 9 items, matching 01-UAT.md by position with `test:` wording unchanged. Item 9's `expected:` text is refreshed to the current facts (origin tip 981e4c8, local branch 219 commits ahead).
+See the `human_verification` list in the frontmatter: 9 items, matching 01-UAT.md by position with `test:` wording unchanged. Item 9's `expected:` text is refreshed to the current facts (origin tip 981e4c8, local branch 229 commits ahead).
 
 ### Gaps Summary
 
-No must-have gaps. Every ROADMAP success criterion is backed by source I read and by a full passing suite I ran (265/265, lint clean). Status is `human_needed` because riding feel, map and label readability, model look, overlay look, night/dawn VFX and HUD-lag feel, the non-QWERTY key label, the Quaternius horse licence, and the CI trigger and push confirmation cannot be verified programmatically or are owner decisions. ROADMAP.md still shows the Phase 1 checkbox unticked; that is the orchestrator's phase-completion step, not a verification gap.
+No must-have gaps. Every ROADMAP success criterion is backed by source I read and by a full passing suite I ran (268/268, lint clean). Status is `human_needed` because riding feel, map and label readability, model look, overlay look, night/dawn VFX and HUD-lag feel, the non-QWERTY key label, the Quaternius horse licence, and the CI trigger and push confirmation cannot be verified programmatically or are owner decisions. ROADMAP.md still shows the Phase 1 checkbox unticked; that is the orchestrator's phase-completion step, not a verification gap.
 
 ---
 
-_Verified: 2026-09-30T11:59:57Z_
+_Verified: 2026-09-30T12:18:33Z_
 _Verifier: Claude (gsd-verifier)_
