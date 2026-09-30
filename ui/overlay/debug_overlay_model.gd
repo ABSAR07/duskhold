@@ -49,14 +49,24 @@ func _init(ctx: RunContext) -> void:
 ## a node) must pass it as `lifetime_owner`: the section is skipped and dropped once that owner is
 ## freed. Without an owner the provider may only capture objects that live as long as the run
 ## (RunContext and what it holds), or check is_instance_valid itself.
-func register_section(title: String, provider: Callable, lifetime_owner: Object = null) -> void:
+##
+## `lifetime_owner` must be alive when this is called: an owner that is already freed is refused
+## with a warning, like a default title. It is a Variant, not an Object, because passing a freed
+## instance to an Object parameter raises a script error in the caller's frame, before this body
+## could guard.
+func register_section(title: String, provider: Callable, lifetime_owner: Variant = null) -> void:
 	if title in DEFAULT_TITLES:
 		push_warning(
 			"debug overlay section '%s' not registered: the title is a default section" % title
 		)
 		return
+	# typeof, not `!= null`: a freed instance compares equal to null, so it must be told apart here.
+	var has_owner: bool = typeof(lifetime_owner) != TYPE_NIL
+	if has_owner and not is_instance_valid(lifetime_owner):
+		push_warning("debug overlay section '%s' not registered: its owner was freed" % title)
+		return
 	# A WeakRef, so the overlay never keeps a RefCounted owner alive; null when there is no owner.
-	var owner_ref: WeakRef = weakref(lifetime_owner) if lifetime_owner != null else null
+	var owner_ref: WeakRef = weakref(lifetime_owner) if has_owner else null
 	# Assigning to an existing title keeps its position; a new title goes last.
 	_registered[title] = {"provider": provider, "owner": owner_ref}
 	# The one-shot warning belongs to the provider, so a replacement may warn afresh.

@@ -95,6 +95,23 @@ func test_a_pending_section_whose_owner_died_before_bind_run_is_left_out_with_a_
 	assert_push_warning("debug overlay section 'Ghost' not registered: its owner was freed")
 
 
+func test_a_section_registered_with_an_already_freed_owner_is_refused_before_and_after_bind_run(
+) -> void:
+	var overlay: DebugOverlay = _overlay()
+	var gone: Node = Node.new()
+	gone.free()
+
+	overlay.register_section("Early", func() -> Array: return [["Wave", "3"]], gone)
+	overlay.bind_run(_context(), null)
+	overlay.register_section("Late", func() -> Array: return [["Wave", "4"]], gone)
+
+	var text: String = await _shown_text(overlay)
+	assert_false(text.contains("Early") or text.contains("Late"), "neither section is listed")
+	assert_push_warning("debug overlay section 'Early' not registered: its owner was freed")
+	assert_push_warning("debug overlay section 'Late' not registered: its owner was freed")
+	assert_push_warning_count(2, "each refusal is named once")
+
+
 func test_register_section_does_not_name_a_parameter_after_the_node_owner_property() -> void:
 	# `owner` would shadow Node.owner on the CanvasLayer; the model keeps the same name as the view.
 	for script: GDScript in [DebugOverlay, DebugOverlayModel]:

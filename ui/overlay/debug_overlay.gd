@@ -42,11 +42,16 @@ func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 ## Phase 2 and later add sections (wave state, enemy paths) through this, not by editing the model.
 ## Safe to call before bind_run: the section is held and added when the overlay is bound.
 ## Pass `lifetime_owner` when the provider reads an object that can be freed before the overlay (see
-## DebugOverlayModel.register_section).
-func register_section(title: String, provider: Callable, lifetime_owner: Object = null) -> void:
+## DebugOverlayModel.register_section, which also says why `lifetime_owner` is a Variant and must be
+## alive at registration).
+func register_section(title: String, provider: Callable, lifetime_owner: Variant = null) -> void:
 	if _model == null:
+		var has_owner: bool = typeof(lifetime_owner) != TYPE_NIL
+		if has_owner and not is_instance_valid(lifetime_owner):
+			push_warning("debug overlay section '%s' not registered: its owner was freed" % title)
+			return
 		# A WeakRef, like the model's, so a pending section never keeps its owner alive.
-		var owner_ref: WeakRef = weakref(lifetime_owner) if lifetime_owner != null else null
+		var owner_ref: WeakRef = weakref(lifetime_owner) if has_owner else null
 		_pending.append({"title": title, "provider": provider, "owner": owner_ref})
 		return
 	_model.register_section(title, provider, lifetime_owner)

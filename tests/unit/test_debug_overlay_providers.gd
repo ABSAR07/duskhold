@@ -324,3 +324,21 @@ func test_registering_a_title_twice_replaces_the_section_instead_of_duplicating_
 		"2",
 		"the newer provider"
 	)
+
+
+func test_a_section_whose_owner_was_already_freed_is_refused_with_a_warning() -> void:
+	var model: DebugOverlayModel = _model()
+	var gone: Node = Node.new()
+	gone.free()
+
+	# The owner is a Variant parameter, so this raises no script error in this frame.
+	model.register_section("Late", func() -> Array: return [["Answer", "42"]], gone)
+	model.register_section("Live", func() -> Array: return [["Answer", "42"]])
+
+	var sections: Array = model.collect(60.0)
+	assert_eq(OverlayTestSupport.section(sections, "Late"), {}, "the refused section never shows")
+	assert_eq(
+		OverlayTestSupport.row_value(OverlayTestSupport.section(sections, "Live"), "Answer"), "42"
+	)
+	assert_push_warning("debug overlay section 'Late' not registered: its owner was freed")
+	assert_push_warning_count(1, "named once at registration, not on every refresh")
