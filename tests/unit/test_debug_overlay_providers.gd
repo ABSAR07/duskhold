@@ -44,3 +44,13 @@ func test_the_count_of_malformed_rows_changing_is_not_a_new_problem() -> void:
 
 	assert_push_warning("debug overlay section 'Counted' dropped 1 malformed row(s)")
 	assert_push_warning_count(1, "still the same problem, so still one warning")
+
+
+func test_every_skip_code_except_none_has_a_message() -> void:
+	# collect() looks the message up by code on every refresh, so a code without one would raise a
+	# script error there instead of naming the skipped section.
+	for code_name: String in DebugOverlayModel.Skip.keys():
+		var code: int = DebugOverlayModel.Skip[code_name]
+		if code == DebugOverlayModel.Skip.NONE:
+			continue
+		assert_true(DebugOverlayModel.SKIP_MESSAGES.has(code), "%s has a message" % code_name)
