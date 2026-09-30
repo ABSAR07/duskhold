@@ -132,6 +132,7 @@ func test_a_freed_section_provider_is_skipped_instead_of_crashing() -> void:
 
 	assert_eq(_section(sections, "Ghost"), {}, "the invalid provider's section is left out")
 	assert_eq(_row_value(_section(sections, "Live"), "Answer"), "42", "valid sections still show")
+	assert_push_warning("debug overlay section 'Ghost' skipped")
 
 
 func test_a_provider_whose_owner_was_freed_is_dropped_after_its_one_warning() -> void:
@@ -166,6 +167,7 @@ func test_a_provider_that_needs_an_argument_is_skipped_instead_of_crashing() -> 
 
 	assert_eq(_section(sections, "Needy"), {}, "a provider needing an argument is left out")
 	assert_eq(_row_value(_section(sections, "Live"), "Answer"), "42", "valid sections still show")
+	assert_push_warning("debug overlay section 'Needy' skipped")
 
 
 func test_a_skipped_provider_is_warned_about_once_however_often_the_overlay_refreshes() -> void:
