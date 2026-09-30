@@ -53,6 +53,22 @@ func test_a_duplicate_building_id_keeps_the_first_definition() -> void:
 	assert_eq(ctx.buildings.next_action_cost(&"a"), 2, "the first def's tier table is used")
 
 
+func test_a_building_with_an_empty_id_is_skipped_and_never_matches_an_unset_building_id() -> void:
+	var map: MapConfig = _valid_map()
+	map.buildings[0].id = &""
+	map.spots[0].building_id = &""
+
+	var ctx: RunContext = RunContext.new(map, LoopTuning.new())
+
+	assert_push_error("empty id")
+	assert_null(
+		ctx.buildings.get_building_def_for_spot(&"a"),
+		"an unset building_id must not resolve to the nameless def"
+	)
+	assert_null(ctx.buildings.apply_next_tier(&"a"), "so nothing is built")
+	assert_null(ctx.buildings.get_instance(&"a"), "and no instance is recorded")
+
+
 func test_a_spot_with_an_empty_id_is_skipped_and_never_focusable() -> void:
 	var map: MapConfig = _valid_map()
 	var nameless: BuildSpotDef = BuildSpotDef.new()
