@@ -396,11 +396,22 @@ func test_the_prompt_names_a_trigger_or_mouse_button_binding() -> void:
 	var click: InputEventMouseButton = InputEventMouseButton.new()
 	click.button_index = MOUSE_BUTTON_MIDDLE
 
+	var stick_left: InputEventJoypadMotion = InputEventJoypadMotion.new()
+	stick_left.axis = JOY_AXIS_LEFT_X
+	stick_left.axis_value = -1.0
+	var stick_right: InputEventJoypadMotion = InputEventJoypadMotion.new()
+	stick_right.axis = JOY_AXIS_LEFT_X
+	stick_right.axis_value = 1.0
+
 	var trigger_text: String = await _prompt_after_rebind(map_root, trigger)
 	var click_text: String = await _prompt_after_rebind(map_root, click)
+	var left_text: String = await _prompt_after_rebind(map_root, stick_left)
+	var right_text: String = await _prompt_after_rebind(map_root, stick_right)
 
 	assert_eq(trigger_text, "Hold (RT) to start Night 1", "a trigger binding is named, not unbound")
 	assert_eq(click_text, "Hold %s to start Night 1" % click.as_text(), "a mouse button is named")
+	assert_eq(left_text, "Hold (Axis 0-) to start Night 1", "a stick pushed one way")
+	assert_eq(right_text, "Hold (Axis 0+) to start Night 1", "and the other way reads differently")
 
 
 func test_the_prompt_keeps_key_modifiers_and_skips_an_event_that_names_no_key() -> void:

@@ -174,12 +174,19 @@ func _start_night_hint() -> String:
 			var button: int = (event as InputEventJoypadButton).button_index
 			pad.append("(%s)" % PAD_BUTTON_NAMES.get(button, "Pad %d" % button))
 		elif event is InputEventJoypadMotion:
-			var axis: int = (event as InputEventJoypadMotion).axis
-			pad.append("(%s)" % AXIS_NAMES.get(axis, "Axis %d" % axis))
+			pad.append("(%s)" % _axis_text(event as InputEventJoypadMotion))
 	var parts: PackedStringArray = keys + pad
 	if parts.is_empty():
 		return UNBOUND_HINT
 	return " / ".join(parts)
+
+
+## A joypad axis binding's name: a trigger by its name, any other axis by index and direction
+## ("Axis 0-" and "Axis 0+" are the two ways to push one stick axis).
+func _axis_text(motion: InputEventJoypadMotion) -> String:
+	if AXIS_NAMES.has(motion.axis):
+		return AXIS_NAMES[motion.axis]
+	return "Axis %d%s" % [motion.axis, "-" if motion.axis_value < 0.0 else "+"]
 
 
 ## The default resolver. The headless display server has no keyboard layout (its call errors), so
