@@ -9,6 +9,10 @@ extends RefCounted
 
 ## Titles of the sections collect() always builds itself; registered sections cannot reuse them.
 const DEFAULT_TITLES: Array[String] = ["Perf", "Loop", "Agents"]
+## Why a provider cannot be called (see _skip_reason). The first two never recover; _is_gone names
+## them, so a reason added later is transient unless it is listed there too.
+const REASON_OWNER_FREED: String = "its owner was freed"
+const REASON_CALLABLE_INVALID: String = "its callable is no longer valid"
 
 var _ctx: RunContext
 ## Registered sections by title: {title: {provider: Callable, owner: WeakRef or null}}. A Dictionary
@@ -63,7 +67,7 @@ func collect(fps: float) -> Array:
 		var skip_reason: String = _skip_reason(entry)
 		if not skip_reason.is_empty():
 			_warn_once(title, "skipped: %s" % skip_reason)
-			if _is_gone(entry):
+			if _is_gone(skip_reason):
 				# A freed owner or an invalid Callable never recovers (register_section is the way to
 				# replace it), so it is named once and then forgotten, not re-checked each refresh.
 				_registered.erase(title)
@@ -86,14 +90,11 @@ func collect(fps: float) -> Array:
 	return sections
 
 
-## Whether the entry's provider can never be called again: its owner was freed or its Callable is
-## invalid. Unlike a provider that merely fails to answer, that does not recover.
-func _is_gone(entry: Dictionary) -> bool:
-	var owner_ref: WeakRef = entry["owner"]
-	if owner_ref != null and owner_ref.get_ref() == null:
-		return true
-	var provider: Callable = entry["provider"]
-	return not provider.is_valid()
+## Whether a _skip_reason means the provider can never be called again: its owner was freed or its
+## Callable is invalid. Unlike a provider that merely fails to answer, that does not recover. It is
+## derived from the reason, so the two can never disagree about what is wrong.
+func _is_gone(skip_reason: String) -> bool:
+	return skip_reason == REASON_OWNER_FREED or skip_reason == REASON_CALLABLE_INVALID
 
 
 ## Why an entry's provider cannot be called with no arguments, or "" when it can. Parameters with
@@ -101,10 +102,10 @@ func _is_gone(entry: Dictionary) -> bool:
 func _skip_reason(entry: Dictionary) -> String:
 	var owner_ref: WeakRef = entry["owner"]
 	if owner_ref != null and owner_ref.get_ref() == null:
-		return "its owner was freed"
+		return REASON_OWNER_FREED
 	var provider: Callable = entry["provider"]
 	if not provider.is_valid():
-		return "its callable is no longer valid"
+		return REASON_CALLABLE_INVALID
 	if provider.get_argument_count() > 0:
 		return "it declares parameters (default values count); a provider takes none"
 	return ""
