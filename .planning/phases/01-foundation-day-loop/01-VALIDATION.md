@@ -27,7 +27,7 @@ validated: "2026-09-29"
 | **Full suite command** | `bash tools/test.sh` (headless import pass, then GUT over all three dirs; fails on any first-party parse/load error) |
 | **Single file** | `bash tools/test.sh -gselect=<test_file>.gd` |
 | **Lint** | `bash tools/lint.sh` (gdtoolkit 4.5.0: `gdformat --check` + `gdlint`) |
-| **Measured runtime** | Quick: ~14 s wall (19 scripts, 164 tests). Full: ~96 s wall (35 scripts, 268 tests) |
+| **Measured runtime** | Quick: ~14 s wall (20 scripts, 171 tests). Full: ~96 s wall (36 scripts, 275 tests) |
 
 The `tools/*.sh` wrappers need Git Bash on Windows; they resolve the pinned binary under `.tools/godot/4.7.2-stable/` (D-14).
 
@@ -130,6 +130,8 @@ GUT rows run as `bash tools/test.sh -gselect=<file>`. Threat refs are the plans'
 | IN-01 / IN-02 / IN-03 fix (pass 15) | review | — | DEV-03, ECON-02 | T-01-15 | Overlay suites share setup, lookup and the 200-collect read-only assertion (`tests/support/overlay_test_support.gd`); 12 provider tests moved unchanged into their own suite; a payout-test comment corrected | unit + e2e | `test_debug_overlay_readonly.gd`, `test_debug_overlay_providers.gd`, `test_debug_overlay_timed_phases.gd`, `test_dawn_payout_hardening.gd` | ✅ | ✅ green |
 | IN-01 fix (pass 16) | review | — | DEV-03 | — | `DebugOverlay.get_text()` before the overlay is in the tree returns "" instead of a null-instance script error | unit | `test_debug_overlay_registration.gd` (`test_get_text_before_the_overlay_is_in_the_tree_is_empty_instead_of_a_script_error`) | ✅ | ✅ green |
 | IN-02 / IN-03 fix (pass 16) | review | — | DEV-03 | T-01-15 | One shared owner check (`DebugOverlayModel.owner_problem`) for the model, the view's pre-bind path and the bind replay; a non-Object owner is refused as "not an Object", not as freed; the registration suite builds its context from `OverlayTestSupport.new_map()`/`new_tuning()` | unit | `test_debug_overlay_providers.gd` (`test_a_section_whose_owner_is_not_an_object_is_refused_as_such_not_as_freed`), `test_debug_overlay_registration.gd` (`test_an_owner_that_is_not_an_object_is_refused_before_and_after_bind_run_as_such`) | ✅ | ✅ green |
+| WR-01 fix (pass 17) | review | — | DEV-03 | — | `OverlayTestSupport.new_map()` deep-copies building definitions and tiers (`duplicate_deep(DEEP_DUPLICATE_ALL)`), so no overlay test can leak an edit into the cached map or a later copy | unit | `test_overlay_test_support.gd` (4 tests, new file) | ✅ | ✅ green |
+| IN-01 / IN-02 fix (pass 17) | review | — | DEV-03 | T-01-15 | A default section title is refused at once before `bind_run` too (never buffered); a repeat `bind_run` with a different `RunContext` warns and the overlay keeps reading the first run | unit | `test_debug_overlay_registration.gd` (`test_a_default_title_is_refused_at_once_before_bind_run_and_never_buffered`, `test_a_default_title_is_refused_the_same_way_after_bind_run`, `test_a_repeat_bind_run_with_another_context_warns_and_keeps_reading_the_first_run`) | ✅ | ✅ green |
 
 Owner gates with no automated verify by design: 01-01-T2 (toolchain download approval), 01-03-T2 (public repo name), 01-07-T2 (CC0 model download approval). No run of three consecutive tasks lacks automated verification.
 
@@ -510,6 +512,31 @@ Re-audited after the sixteenth review-fix pass (3 commits, `187f47a`..`49f4ae9`)
 Evidence:
 - Full suite 268/268 (35 scripts); lint clean (71 files).
 - Unit quick run 164/164 (19 scripts, ~14 s).
+- `tools/screenshot.sh`: 6/6 non-blank captures.
+- Headless guard exits 2.
+- `ci.yml` unchanged.
+
+## Validation Audit 2026-09-30 (re-audit after review-fix pass 17)
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Re-audited after the seventeenth review-fix pass (3 commits, `457e334`..`8a440c0`). 15/15 requirements are still COVERED.
+
+- **Tests:** +7 new.
+  - 4 are in the new `test_overlay_test_support.gd`. They pin that the shared overlay test helper hands out fully private map and tuning copies.
+  - 3 are in `test_debug_overlay_registration.gd`: a default title refused before and after bind, and a repeat bind with another run.
+  - The existing second-bind test now rebinds the same run and asserts silence.
+  - The 13 other suites that use `duplicate(true)` were left alone. None edits a building definition, so the review scoped the finding to the shared helper.
+- **Mutation probes:** every change carries one in `01-REVIEW-FIX.md`.
+- **CR-01 guard:** re-probed by the orchestrator; it fails 17/18 with the old spacing. `dawn_payout_vfx.gd` was not touched this pass.
+
+Evidence:
+- Full suite 275/275 (36 scripts); lint clean (72 files).
+- Unit quick run 171/171 (20 scripts, ~14 s).
 - `tools/screenshot.sh`: 6/6 non-blank captures.
 - Headless guard exits 2.
 - `ci.yml` unchanged.
