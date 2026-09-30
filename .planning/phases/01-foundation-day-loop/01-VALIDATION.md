@@ -27,7 +27,7 @@ validated: "2026-09-29"
 | **Full suite command** | `bash tools/test.sh` (headless import pass, then GUT over all three dirs; fails on any first-party parse/load error) |
 | **Single file** | `bash tools/test.sh -gselect=<test_file>.gd` |
 | **Lint** | `bash tools/lint.sh` (gdtoolkit 4.5.0: `gdformat --check` + `gdlint`) |
-| **Measured runtime** | Quick: ~12 s wall (16 scripts, 142 tests). Full: ~85 s wall (32 scripts, 243 tests) |
+| **Measured runtime** | Quick: ~12 s wall (16 scripts, 144 tests). Full: ~85 s wall (32 scripts, 245 tests) |
 
 The `tools/*.sh` wrappers need Git Bash on Windows; they resolve the pinned binary under `.tools/godot/4.7.2-stable/` (D-14).
 
@@ -114,6 +114,8 @@ GUT rows run as `bash tools/test.sh -gselect=<file>`. Threat refs are the plans'
 | WR-01 fix (pass 10) | review | — | ECON-02 | — | A tightened stagger keeps a `DAWN_MARGIN_SECONDS` (0.15 s) landing margin before dawn ends; the default tuning keeps the full stagger | e2e | `test_dawn_payout.gd` (`test_a_crowded_payout_tightens_the_stagger_to_fill_the_dawn_window_less_its_margin` + a margin assertion in the CR-01 guard) | ✅ | ✅ green |
 | IN-01 fix (pass 10) | review | — | ECON-02 | — | `start_point` before `bind_run` falls back to mid-screen instead of dereferencing a null run | e2e | `test_dawn_payout_hardening.gd` (`test_start_point_before_the_run_is_bound_falls_back_to_mid_screen`) | ✅ | ✅ green |
 | IN-02 / IN-03 fix (pass 10) | review | — | DEV-03 | T-01-15 | The provider warning re-arms once the provider returns rows again; the freed-owner and needs-an-argument tests assert their warnings | unit | `test_debug_overlay_readonly.gd` (`test_a_flapping_provider_warns_again_after_it_recovers` + 2 tests extended) | ✅ | ✅ green |
+| WR-01 fix (pass 11) | review | — | DEV-03 | T-01-15 | A provider can name the object its lambda captured as `owner`; once that owner is freed the section is warned about once and dropped, while live captures keep showing | unit | `test_debug_overlay_readonly.gd` (`test_a_lambda_that_captured_a_freed_object_is_skipped_when_it_names_that_owner`, `test_a_lambda_that_captured_a_live_object_keeps_showing_with_or_without_an_owner`) | ✅ | ✅ green |
+| IN-01 / IN-02 fix (pass 11) | review | — | ECON-02, DEV-03 | T-01-15 | Payout test hooks grouped and documented (no behaviour change); the overlay read-only test builds its context from duplicated resources | e2e + unit | `test_dawn_payout.gd`, `test_debug_overlay_readonly.gd` | ✅ | ✅ green |
 
 Owner gates with no automated verify by design: 01-01-T2 (toolchain download approval), 01-03-T2 (public repo name), 01-07-T2 (CC0 model download approval). No run of three consecutive tasks lacks automated verification.
 
@@ -355,6 +357,28 @@ Re-audited after the tenth review-fix pass (4 fix commits, `f1806f5`..`c3905c7`)
 Evidence:
 - Full suite 243/243 (32 scripts); lint clean.
 - Unit quick run 142/142 (~12 s).
+- `tools/screenshot.sh`: 6/6 non-blank captures.
+- Headless guard exits 2.
+- `ci.yml` unchanged.
+
+## Validation Audit 2026-09-30 (re-audit after review-fix pass 11)
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Re-audited after the eleventh review-fix pass (3 fix commits, `a273e88`..`f66045f`). 15/15 requirements are still COVERED.
+
+- **Tests:** +2 new in `test_debug_overlay_readonly.gd`, which is now at gdlint's 20-method cap. They cover an owner-guarded lambda provider (freed owner: one warning, then dropped) and live captures with and without an owner.
+- **No behaviour change:** IN-01 (the payout view's test hooks grouped and documented) and IN-02 (the overlay test builds its context from duplicated resources).
+- **Mutation probes:** the WR-01 probe is recorded in `01-REVIEW-FIX.md`.
+- **CR-01 guard:** re-probed by the orchestrator, since `dawn_payout_vfx.gd` was touched; it fails 17/18 with the old spacing.
+
+Evidence:
+- Full suite 245/245 (32 scripts); lint clean.
+- Unit quick run 144/144 (~12 s).
 - `tools/screenshot.sh`: 6/6 non-blank captures.
 - Headless guard exits 2.
 - `ci.yml` unchanged.
