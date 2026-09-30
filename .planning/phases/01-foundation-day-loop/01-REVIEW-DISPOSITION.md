@@ -5,43 +5,43 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "Start-night hint reports \"(unbound)\" for bindings that work"
   - id: WR-02
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "HUD readout lag is derived independently of the VFX, so it holds only by an unenforced invariant"
   - id: WR-03
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "The coin cap and the \"fits the dawn window\" guarantee are not actually enforced"
   - id: WR-04
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "BuildingSystem hardening is inconsistent: empty-id spots are kept and `apply_next_tier` is unguarded"
   - id: WR-05
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "Two e2e tests claim more than they assert"
   - id: IN-01
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Orphaned comment above the house constants"
   - id: IN-02
     severity: info
-    disposition: open
+    disposition: fixed
     title: "PAD_BUTTON_NAMES is Xbox-only"
   - id: IN-03
     severity: info
-    disposition: open
+    disposition: fixed
     title: "`_coin_share` does integer division through floats"
   - id: IN-04
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Default-binding test depends on suite order"
   - id: IN-05
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Debug overlay accepts duplicate titles and cannot detect impure providers"
   - id: CR-01
     severity: critical
@@ -87,25 +87,25 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 10
+open: 0
 total: 21
-recorded: 2026-09-30T06:49:01.551Z
+recorded: 2026-09-30T07:11:08.325Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
-| WR-02 | warning | open | - |
-| WR-03 | warning | open | - |
-| WR-04 | warning | open | - |
-| WR-05 | warning | open | - |
-| IN-01 | info | open | - |
-| IN-02 | info | open | - |
-| IN-03 | info | open | - |
-| IN-04 | info | open | - |
-| IN-05 | info | open | - |
+| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
+| WR-02 | warning | fixed | 01-REVIEW-FIX.md |
+| WR-03 | warning | fixed | 01-REVIEW-FIX.md |
+| WR-04 | warning | fixed | 01-REVIEW-FIX.md |
+| WR-05 | warning | fixed | 01-REVIEW-FIX.md |
+| IN-01 | info | fixed | 01-REVIEW-FIX.md |
+| IN-02 | info | fixed | 01-REVIEW-FIX.md |
+| IN-03 | info | fixed | 01-REVIEW-FIX.md |
+| IN-04 | info | fixed | 01-REVIEW-FIX.md |
+| IN-05 | info | fixed | 01-REVIEW-FIX.md |
 | CR-01 | critical | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-06 | warning | skipped | 01-REVIEW-FIX.md (not in the current review) |
 | WR-10 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
