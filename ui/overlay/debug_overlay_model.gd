@@ -62,7 +62,7 @@ func collect(fps: float) -> Array:
 		# on every refresh.
 		var skip_reason: String = _skip_reason(entry)
 		if not skip_reason.is_empty():
-			_warn_once(title, skip_reason)
+			_warn_once(title, "skipped: %s" % skip_reason)
 			if _is_gone(entry):
 				# A freed owner or an invalid Callable never recovers (register_section is the way to
 				# replace it), so it is named once and then forgotten, not re-checked each refresh.
@@ -71,11 +71,18 @@ func collect(fps: float) -> Array:
 			continue
 		var rows: Variant = provider.call()
 		if rows is Array:
-			# A provider that works again may fail again later, and that failure is news.
-			_warned.erase(title)
-			sections.append(_section(title, _clean_rows(rows)))
+			var clean: Array = _clean_rows(rows)
+			var dropped: int = (rows as Array).size() - clean.size()
+			if dropped > 0:
+				_warn_once(title, "dropped %d malformed row(s); rows are [label, value]" % dropped)
+			else:
+				# A provider that works again may fail again later, and that failure is news.
+				_warned.erase(title)
+			sections.append(_section(title, clean))
 		else:
-			_warn_once(title, "it returned %s, not an Array of rows" % type_string(typeof(rows)))
+			_warn_once(
+				title, "skipped: it returned %s, not an Array of rows" % type_string(typeof(rows))
+			)
 	return sections
 
 
@@ -103,17 +110,19 @@ func _skip_reason(entry: Dictionary) -> String:
 	return ""
 
 
-## A section that silently never shows is hard to notice, so name it once per failure streak: the
-## warning re-arms when the provider returns rows again (see collect).
-func _warn_once(title: String, reason: String) -> void:
+## A section that silently never shows, or shows without some of its rows, is hard to notice, so
+## name it once per failure streak: the warning re-arms when the provider returns only well-formed
+## rows again (see collect). `problem` completes "debug overlay section '<title>' ...".
+func _warn_once(title: String, problem: String) -> void:
 	if _warned.has(title):
 		return
 	_warned[title] = true
-	push_warning("debug overlay section '%s' skipped: %s" % [title, reason])
+	push_warning("debug overlay section '%s' %s" % [title, problem])
 
 
 ## Keeps only rows shaped like [label, value] (as strings), so a malformed provider row is dropped
-## here rather than raising a script error in the overlay on every refresh.
+## here rather than raising a script error in the overlay on every refresh. collect reports the
+## number dropped, so a provider that returns malformed rows is not mistaken for an empty one.
 func _clean_rows(rows: Array) -> Array:
 	var clean: Array = []
 	for row: Variant in rows:
