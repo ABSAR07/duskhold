@@ -5,16 +5,16 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: fixed
-    title: "A tightened stagger leaves zero slack, so the last coin can land after dawn ends"
+    disposition: open
+    title: "Overlay provider guard does not catch a lambda that captured a freed object"
   - id: IN-01
     severity: info
-    disposition: fixed
-    title: "`start_point` dereferences `_ctx` without the null guard `launch_stagger` has"
+    disposition: open
+    title: "Production class exposes several test-only hooks"
   - id: IN-02
     severity: info
-    disposition: fixed
-    title: "`_warn_once` is keyed by title only, so a second, different failure of the same provider is silent"
+    disposition: open
+    title: "Overlay test builds its context from shared cached resources"
   - id: IN-03
     severity: info
     disposition: fixed
@@ -87,19 +87,19 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 0
+open: 3
 total: 21
-recorded: 2026-09-30T09:33:23.112Z
+recorded: 2026-09-30T09:43:10.357Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
-| IN-01 | info | fixed | 01-REVIEW-FIX.md |
-| IN-02 | info | fixed | 01-REVIEW-FIX.md |
-| IN-03 | info | fixed | 01-REVIEW-FIX.md |
+| WR-01 | warning | open | - |
+| IN-01 | info | open | - |
+| IN-02 | info | open | - |
+| IN-03 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-02 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-03 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-04 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
