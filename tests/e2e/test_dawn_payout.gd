@@ -241,7 +241,7 @@ func test_a_coin_starts_mid_screen_when_its_plot_is_behind_the_camera() -> void:
 	if camera == null:
 		return
 	assert_ne(
-		vfx._start_point(HOUSE_ONE),
+		vfx.start_point(HOUSE_ONE),
 		vfx.get_viewport_rect().size * 0.5,
 		"with the camera where it is, the plot has its own screen point"
 	)
@@ -250,7 +250,7 @@ func test_a_coin_starts_mid_screen_when_its_plot_is_behind_the_camera() -> void:
 	camera.global_position += -camera.global_basis.z * 1000.0
 
 	assert_eq(
-		vfx._start_point(HOUSE_ONE),
+		vfx.start_point(HOUSE_ONE),
 		vfx.get_viewport_rect().size * 0.5,
 		"a plot behind the camera falls back to the middle of the screen, not a mirrored point"
 	)

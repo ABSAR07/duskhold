@@ -84,19 +84,19 @@ func get_last_total() -> int:
 	return _last_total
 
 
-## Coins that have left `spot_id` during the current payout.
+## Coins that have left `spot_id` during the current payout. Tests read it too.
 func get_spawned_count(spot_id: StringName) -> int:
 	return _launched.get(spot_id, 0)
 
 
 ## Seconds after the payout began at which each coin of the current payout launches, in launch
-## order. Read-only: it lets a test check the schedule without waiting on the clock.
+## order. Test hook, read-only: it lets a test check the schedule without waiting on the clock.
 func get_launch_delays() -> Array[float]:
 	return _launch_delays.duplicate()
 
 
-## The delay tweens of the current payout's coins that have not launched yet. Read-only: it lets
-## a test check that a superseding payout stopped them.
+## The delay tweens of the current payout's coins that have not launched yet. Test hook,
+## read-only: it lets a test check that a superseding payout stopped them.
 func get_launch_tweens() -> Array[Tween]:
 	var waiting: Array[Tween] = []
 	for tween: Tween in _launch_tweens:
@@ -268,7 +268,7 @@ func _launch_coin(spot_id: StringName, generation: int, share: int) -> void:
 	coin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	coin.size = COIN_SIZE
 	add_child(coin)
-	var start: Vector2 = _start_point(spot_id) - COIN_SIZE * 0.5
+	var start: Vector2 = start_point(spot_id) - COIN_SIZE * 0.5
 	var target: Vector2 = _gold_label.get_global_rect().get_center() - COIN_SIZE * 0.5
 	coin.global_position = start
 	var tween: Tween = coin.create_tween()
@@ -287,8 +287,9 @@ func _launch_coin(spot_id: StringName, generation: int, share: int) -> void:
 	tween.tween_callback(_on_coin_arrived.bind(coin, generation, share))
 
 
-## Where the plot appears on screen; the middle of the screen if there is no camera yet.
-func _start_point(spot_id: StringName) -> Vector2:
+## Where the plot appears on screen; the middle of the screen if there is no camera or the plot is
+## behind it. Public so a test can call it without reaching for a private member.
+func start_point(spot_id: StringName) -> Vector2:
 	var camera: Camera3D = get_viewport().get_camera_3d()
 	var spot: BuildSpotDef = _ctx.buildings.get_spot(spot_id)
 	if camera == null or spot == null:
