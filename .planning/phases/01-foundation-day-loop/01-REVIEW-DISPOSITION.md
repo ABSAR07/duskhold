@@ -5,11 +5,11 @@ titles: json
 findings:
   - id: IN-01
     severity: info
-    disposition: open
+    disposition: skipped
     title: "Toggle reads `Input` directly, so it fires for input a UI has already consumed"
   - id: IN-02
     severity: info
-    disposition: open
+    disposition: fixed
     title: "The e2e refresh assertions have a tight real-time window"
   - id: WR-01
     severity: warning
@@ -87,17 +87,17 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 2
+open: 0
 total: 21
-recorded: 2026-09-30T14:32:53.452Z
+recorded: 2026-09-30T14:44:27.271Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| IN-01 | info | open | - |
-| IN-02 | info | open | - |
+| IN-01 | info | skipped | 01-REVIEW-FIX.md |
+| IN-02 | info | fixed | 01-REVIEW-FIX.md |
 | WR-01 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-02 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-03 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
