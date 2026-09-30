@@ -3,24 +3,15 @@ extends GutTest
 ## day; this one drives the run to NIGHT and DAWN, where the Loop section gains a Timer row, and
 ## checks the Day and Night counters and that collecting there stays read-only too.
 
-const PROTOTYPE_MAP := "res://data/maps/prototype_map.tres"
-const TUNING := "res://data/tuning/loop_tuning.tres"
-const COLLECT_REPEATS: int = 200
-
 var _tuning: LoopTuning
 
 
 func before_each() -> void:
-	_tuning = (load(TUNING) as LoopTuning).duplicate(true)
+	_tuning = OverlayTestSupport.new_tuning()
 
 
 func _context_with_one_house() -> RunContext:
-	var map: MapConfig = (load(PROTOTYPE_MAP) as MapConfig).duplicate(true)
-	var ctx: RunContext = RunContext.new(map, _tuning)
-	var first_spot: StringName = ctx.buildings.spot_ids()[0]
-	var result: StringName = ctx.commands.submit(BuildIntent.new(first_spot))
-	assert_eq(result, CommandProcessor.OK, "the setup House is built through the command gate")
-	return ctx
+	return OverlayTestSupport.context_with_one_house(self, _tuning)
 
 
 func _into_night(ctx: RunContext) -> void:
@@ -35,56 +26,18 @@ func _into_dawn(ctx: RunContext) -> void:
 
 
 func _loop(model: DebugOverlayModel) -> Dictionary:
-	for section: Dictionary in model.collect(60.0):
-		if section["title"] == "Loop":
-			return section
-	return {}
-
-
-func _row(section: Dictionary, label: String) -> Variant:
-	for row: Array in section.get("rows", []):
-		if row[0] == label:
-			return row[1]
-	return null
-
-
-## What the model reads beyond gold and the clock: every spot's tier and the unit and enemy counts.
-func _agents_and_buildings(ctx: RunContext) -> Dictionary:
-	var tiers: Dictionary = {}
-	for spot_id: StringName in ctx.buildings.spot_ids():
-		tiers[spot_id] = ctx.buildings.current_tier(spot_id)
-	return {"tiers": tiers, "units": ctx.get_unit_count(), "enemies": ctx.get_enemy_count()}
-
-
-func _assert_collecting_is_read_only(ctx: RunContext, model: DebugOverlayModel) -> void:
-	var gold_before: int = ctx.economy.get_gold()
-	var phase_before: RunManager.RunPhase = ctx.run_manager.get_phase()
-	var timer_before: float = ctx.run_manager.get_phase_time_remaining()
-	var elapsed_before: float = ctx.run_manager.get_elapsed()
-	var agents_and_buildings_before: Dictionary = _agents_and_buildings(ctx)
-	watch_signals(ctx.events)
-	for i: int in COLLECT_REPEATS:
-		model.collect(float(i))
-	assert_eq(ctx.economy.get_gold(), gold_before, "gold unchanged")
-	assert_eq(ctx.run_manager.get_phase(), phase_before, "phase unchanged")
-	assert_eq(ctx.run_manager.get_phase_time_remaining(), timer_before, "the phase timer unchanged")
-	assert_eq(ctx.run_manager.get_elapsed(), elapsed_before, "simulation time unchanged")
-	assert_eq(
-		_agents_and_buildings(ctx),
-		agents_and_buildings_before,
-		"every spot's tier and the unit and enemy counts unchanged"
-	)
-	for signal_name: String in SimSignals.ALL:
-		assert_signal_not_emitted(ctx.events, signal_name)
+	return OverlayTestSupport.section(model.collect(60.0), "Loop")
 
 
 func test_by_day_the_loop_section_has_no_timer_row_and_counts_day_one_night_zero() -> void:
 	var loop: Dictionary = _loop(DebugOverlayModel.new(_context_with_one_house()))
 
-	assert_eq(_row(loop, "Phase"), "DAY", "phase row")
-	assert_eq(_row(loop, "Day"), "1", "day one")
-	assert_eq(_row(loop, "Night"), "0", "no night yet")
-	assert_null(_row(loop, "Timer"), "the day has no clock, so no Timer row")
+	assert_eq(OverlayTestSupport.row_value(loop, "Phase"), "DAY", "phase row")
+	assert_eq(OverlayTestSupport.row_value(loop, "Day"), "1", "day one")
+	assert_eq(OverlayTestSupport.row_value(loop, "Night"), "0", "no night yet")
+	assert_null(
+		OverlayTestSupport.row_value(loop, "Timer"), "the day has no clock, so no Timer row"
+	)
 
 
 func test_by_night_the_loop_section_shows_the_night_timer_and_counts() -> void:
@@ -94,10 +47,14 @@ func test_by_night_the_loop_section_shows_the_night_timer_and_counts() -> void:
 
 	var loop: Dictionary = _loop(model)
 
-	assert_eq(_row(loop, "Phase"), "NIGHT", "phase row")
-	assert_eq(_row(loop, "Day"), "1", "still the first day's number")
-	assert_eq(_row(loop, "Night"), "1", "night one started")
-	assert_eq(_row(loop, "Timer"), "%.1f" % _tuning.placeholder_night_seconds, "a full night left")
+	assert_eq(OverlayTestSupport.row_value(loop, "Phase"), "NIGHT", "phase row")
+	assert_eq(OverlayTestSupport.row_value(loop, "Day"), "1", "still the first day's number")
+	assert_eq(OverlayTestSupport.row_value(loop, "Night"), "1", "night one started")
+	assert_eq(
+		OverlayTestSupport.row_value(loop, "Timer"),
+		"%.1f" % _tuning.placeholder_night_seconds,
+		"a full night left"
+	)
 
 
 func test_the_night_timer_row_follows_the_clock_down() -> void:
@@ -108,7 +65,11 @@ func test_the_night_timer_row_follows_the_clock_down() -> void:
 	ctx.run_manager.tick(1.5)
 
 	var expected: float = _tuning.placeholder_night_seconds - 1.5
-	assert_eq(_row(_loop(model), "Timer"), "%.1f" % expected, "the row reads the live time left")
+	assert_eq(
+		OverlayTestSupport.row_value(_loop(model), "Timer"),
+		"%.1f" % expected,
+		"the row reads the live time left"
+	)
 
 
 func test_by_dawn_the_loop_section_shows_the_dawn_timer_and_counts() -> void:
@@ -118,26 +79,38 @@ func test_by_dawn_the_loop_section_shows_the_dawn_timer_and_counts() -> void:
 
 	var loop: Dictionary = _loop(model)
 
-	assert_eq(_row(loop, "Phase"), "DAWN", "phase row")
-	assert_eq(_row(loop, "Day"), "1", "the day number only grows when dawn hands over to day")
-	assert_eq(_row(loop, "Night"), "1", "night one is behind us")
-	assert_eq(_row(loop, "Timer"), "%.1f" % _tuning.dawn_seconds, "a full dawn left")
-	assert_eq(_row(loop, "Gold"), str(ctx.economy.get_gold()), "the paid-out gold is shown")
+	assert_eq(OverlayTestSupport.row_value(loop, "Phase"), "DAWN", "phase row")
+	assert_eq(
+		OverlayTestSupport.row_value(loop, "Day"),
+		"1",
+		"the day number only grows when dawn hands over to day"
+	)
+	assert_eq(OverlayTestSupport.row_value(loop, "Night"), "1", "night one is behind us")
+	assert_eq(
+		OverlayTestSupport.row_value(loop, "Timer"),
+		"%.1f" % _tuning.dawn_seconds,
+		"a full dawn left"
+	)
+	assert_eq(
+		OverlayTestSupport.row_value(loop, "Gold"),
+		str(ctx.economy.get_gold()),
+		"the paid-out gold is shown"
+	)
 
 
 func test_the_timer_row_goes_away_and_the_day_counter_grows_when_dawn_hands_over_to_day() -> void:
 	var ctx: RunContext = _context_with_one_house()
 	var model: DebugOverlayModel = DebugOverlayModel.new(ctx)
 	_into_dawn(ctx)
-	assert_not_null(_row(_loop(model), "Timer"), "dawn has a Timer row")
+	assert_not_null(OverlayTestSupport.row_value(_loop(model), "Timer"), "dawn has a Timer row")
 
 	ctx.run_manager.tick(_tuning.dawn_seconds + 0.1)
 
 	var loop: Dictionary = _loop(model)
-	assert_eq(_row(loop, "Phase"), "DAY", "back to day")
-	assert_eq(_row(loop, "Day"), "2", "day two")
-	assert_eq(_row(loop, "Night"), "1", "one night behind us")
-	assert_null(_row(loop, "Timer"), "and the Timer row is gone again")
+	assert_eq(OverlayTestSupport.row_value(loop, "Phase"), "DAY", "back to day")
+	assert_eq(OverlayTestSupport.row_value(loop, "Day"), "2", "day two")
+	assert_eq(OverlayTestSupport.row_value(loop, "Night"), "1", "one night behind us")
+	assert_null(OverlayTestSupport.row_value(loop, "Timer"), "and the Timer row is gone again")
 
 
 func test_collecting_200_times_by_night_changes_no_state_and_emits_no_events() -> void:
@@ -145,9 +118,11 @@ func test_collecting_200_times_by_night_changes_no_state_and_emits_no_events() -
 	var model: DebugOverlayModel = DebugOverlayModel.new(ctx)
 	_into_night(ctx)
 	ctx.run_manager.tick(1.0)
-	assert_not_null(_row(_loop(model), "Timer"), "the timer getter is really being read")
+	assert_not_null(
+		OverlayTestSupport.row_value(_loop(model), "Timer"), "the timer getter is really being read"
+	)
 
-	_assert_collecting_is_read_only(ctx, model)
+	OverlayTestSupport.assert_collecting_is_read_only(self, ctx, model)
 
 
 func test_collecting_200_times_by_dawn_changes_no_state_and_emits_no_events() -> void:
@@ -155,6 +130,8 @@ func test_collecting_200_times_by_dawn_changes_no_state_and_emits_no_events() ->
 	var model: DebugOverlayModel = DebugOverlayModel.new(ctx)
 	_into_dawn(ctx)
 	ctx.run_manager.tick(0.5)
-	assert_not_null(_row(_loop(model), "Timer"), "the timer getter is really being read")
+	assert_not_null(
+		OverlayTestSupport.row_value(_loop(model), "Timer"), "the timer getter is really being read"
+	)
 
-	_assert_collecting_is_read_only(ctx, model)
+	OverlayTestSupport.assert_collecting_is_read_only(self, ctx, model)

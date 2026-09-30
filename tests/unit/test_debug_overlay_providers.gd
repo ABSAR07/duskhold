@@ -3,14 +3,9 @@ extends GutTest
 ## that turns from one problem into a different one names the new problem too, so a section that
 ## keeps failing in a new way is never silent.
 
-const PROTOTYPE_MAP := "res://data/maps/prototype_map.tres"
-const TUNING := "res://data/tuning/loop_tuning.tres"
-
 
 func _model() -> DebugOverlayModel:
-	var map: MapConfig = (load(PROTOTYPE_MAP) as MapConfig).duplicate(true)
-	var tuning: LoopTuning = (load(TUNING) as LoopTuning).duplicate(true)
-	return DebugOverlayModel.new(RunContext.new(map, tuning))
+	return DebugOverlayModel.new(OverlayTestSupport.context_with_one_house(self))
 
 
 func test_a_provider_whose_problem_changes_within_one_streak_is_named_again() -> void:
