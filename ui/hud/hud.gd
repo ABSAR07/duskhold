@@ -13,7 +13,9 @@ extends CanvasLayer
 const START_NIGHT_PROMPT := "Hold %s to start Night %d"
 const NIGHT_BANNER := "Night %d — no enemies yet"
 const UNBOUND_HINT := "(unbound)"
-## Gamepad button names shown in the start-night hint, by JoyButton index.
+## Gamepad button names shown in the start-night hint, by JoyButton index. These are Xbox-style
+## labels: on a PlayStation or Switch pad they are wrong (button 3 reads "Y", not "Triangle"/"X").
+## Known Phase-1 limitation; later, key the names off Input.get_joy_name.
 const PAD_BUTTON_NAMES: Dictionary = {
 	JOY_BUTTON_A: "A",
 	JOY_BUTTON_B: "B",
@@ -24,8 +26,8 @@ const PAD_BUTTON_NAMES: Dictionary = {
 	JOY_BUTTON_LEFT_SHOULDER: "LB",
 	JOY_BUTTON_RIGHT_SHOULDER: "RB",
 }
-## Gamepad trigger names shown in the start-night hint, by JoyAxis index. Xbox-style labels like the
-## buttons above, so other pads read differently (a known Phase-1 limitation).
+## Gamepad trigger names shown in the start-night hint, by JoyAxis index. Xbox-style like the
+## buttons above, with the same limitation.
 const AXIS_NAMES: Dictionary = {
 	JOY_AXIS_TRIGGER_LEFT: "LT",
 	JOY_AXIS_TRIGGER_RIGHT: "RT",
