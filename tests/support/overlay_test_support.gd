@@ -10,8 +10,9 @@ const COLLECT_REPEATS: int = 200
 
 
 ## A private copy of the loop tuning, so a test that edits it never writes to the cached resource.
+## Copied all the way down like new_map, so a subresource added to LoopTuning later is not shared.
 static func new_tuning() -> LoopTuning:
-	return (load(TUNING) as LoopTuning).duplicate(true)
+	return (load(TUNING) as LoopTuning).duplicate_deep(Resource.DEEP_DUPLICATE_ALL)
 
 
 ## A private copy of the prototype map, for the same reason as new_tuning. It is copied all the way

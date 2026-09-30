@@ -52,6 +52,8 @@ func test_editing_a_new_tuning_copy_leaves_the_cached_tuning_alone() -> void:
 	var cached: LoopTuning = load(OverlayTestSupport.TUNING)
 	var dawn_before: float = cached.dawn_seconds
 
-	OverlayTestSupport.new_tuning().dawn_seconds = dawn_before + 100.0
+	var copy: LoopTuning = OverlayTestSupport.new_tuning()
+	copy.dawn_seconds = dawn_before + 100.0
 
+	assert_ne(copy, cached, "the tuning is a copy")
 	assert_eq(cached.dawn_seconds, dawn_before, "the cached tuning is unchanged")
