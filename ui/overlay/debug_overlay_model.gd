@@ -7,12 +7,23 @@ extends RefCounted
 ##
 ## collect() returns Array of {title: String, rows: Array of [label: String, value: String]}.
 
+## Why a provider cannot be called (see _skip_code). Control flow branches on these codes, never on
+## the message text, so rewording a message cannot change what is dropped.
+enum Skip { NONE, OWNER_FREED, CALLABLE_INVALID, DECLARES_PARAMETERS }
+
 ## Titles of the sections collect() always builds itself; registered sections cannot reuse them.
 const DEFAULT_TITLES: Array[String] = ["Perf", "Loop", "Agents"]
-## Why a provider cannot be called (see _skip_reason). The first two never recover; _is_gone names
-## them, so a reason added later is transient unless it is listed there too.
-const REASON_OWNER_FREED: String = "its owner was freed"
-const REASON_CALLABLE_INVALID: String = "its callable is no longer valid"
+## The words that complete "debug overlay section '<title>' skipped: ..." for each Skip code. Every
+## code except NONE needs a message.
+const SKIP_MESSAGES: Dictionary = {
+	Skip.OWNER_FREED: "its owner was freed",
+	Skip.CALLABLE_INVALID: "its callable is no longer valid",
+	Skip.DECLARES_PARAMETERS:
+	"it declares parameters (default values count); a provider takes none",
+}
+## The Skip codes that never recover, so the section is dropped once named. Any code left out is
+## transient: the provider is checked again on the next refresh.
+const GONE_FOR_GOOD: Array[Skip] = [Skip.OWNER_FREED, Skip.CALLABLE_INVALID]
 
 var _ctx: RunContext
 ## Registered sections by title: {title: {provider: Callable, owner: WeakRef or null}}. A Dictionary
@@ -64,10 +75,10 @@ func collect(fps: float) -> Array:
 		# A freed owner or an invalid Callable cannot be called, and a provider that needs an
 		# argument cannot be called with none; skip any of them instead of raising a script error
 		# on every refresh.
-		var skip_reason: String = _skip_reason(entry)
-		if not skip_reason.is_empty():
-			_warn_once(title, "skipped: %s" % skip_reason)
-			if _is_gone(skip_reason):
+		var skip: Skip = _skip_code(entry)
+		if skip != Skip.NONE:
+			_warn_once(title, "skipped: %s" % SKIP_MESSAGES[skip])
+			if skip in GONE_FOR_GOOD:
 				# A freed owner or an invalid Callable never recovers (register_section is the way to
 				# replace it), so it is named once and then forgotten, not re-checked each refresh.
 				_registered.erase(title)
@@ -90,25 +101,18 @@ func collect(fps: float) -> Array:
 	return sections
 
 
-## Whether a _skip_reason means the provider can never be called again: its owner was freed or its
-## Callable is invalid. Unlike a provider that merely fails to answer, that does not recover. It is
-## derived from the reason, so the two can never disagree about what is wrong.
-func _is_gone(skip_reason: String) -> bool:
-	return skip_reason == REASON_OWNER_FREED or skip_reason == REASON_CALLABLE_INVALID
-
-
-## Why an entry's provider cannot be called with no arguments, or "" when it can. Parameters with
-## default values count as arguments here, so a provider must declare none at all.
-func _skip_reason(entry: Dictionary) -> String:
+## Why an entry's provider cannot be called with no arguments, or Skip.NONE when it can. Parameters
+## with default values count as arguments here, so a provider must declare none at all.
+func _skip_code(entry: Dictionary) -> Skip:
 	var owner_ref: WeakRef = entry["owner"]
 	if owner_ref != null and owner_ref.get_ref() == null:
-		return REASON_OWNER_FREED
+		return Skip.OWNER_FREED
 	var provider: Callable = entry["provider"]
 	if not provider.is_valid():
-		return REASON_CALLABLE_INVALID
+		return Skip.CALLABLE_INVALID
 	if provider.get_argument_count() > 0:
-		return "it declares parameters (default values count); a provider takes none"
-	return ""
+		return Skip.DECLARES_PARAMETERS
+	return Skip.NONE
 
 
 ## A section that silently never shows, or shows without some of its rows, is hard to notice, so
