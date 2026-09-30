@@ -78,6 +78,7 @@ func test_binding_the_hud_and_payout_view_again_connects_nothing_twice() -> void
 	var gold_links_before: int = ctx.events.gold_changed.get_connections().size()
 	var payout_links_before: int = ctx.events.dawn_payout.get_connections().size()
 	var landed_links_before: int = payout_vfx.coin_landed.get_connections().size()
+	var started_links_before: int = payout_vfx.payout_started.get_connections().size()
 
 	hud.bind_run(ctx, map_root)
 	payout_vfx.bind_run(ctx, map_root)
@@ -85,3 +86,6 @@ func test_binding_the_hud_and_payout_view_again_connects_nothing_twice() -> void
 	assert_eq(ctx.events.gold_changed.get_connections().size(), gold_links_before, "gold_changed")
 	assert_eq(ctx.events.dawn_payout.get_connections().size(), payout_links_before, "dawn_payout")
 	assert_eq(payout_vfx.coin_landed.get_connections().size(), landed_links_before, "coin_landed")
+	assert_eq(
+		payout_vfx.payout_started.get_connections().size(), started_links_before, "payout_started"
+	)

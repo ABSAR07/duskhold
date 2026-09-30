@@ -58,7 +58,7 @@ func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
 	ctx.events.phase_changed.connect(_on_phase_changed)
 	ctx.events.night_started.connect(_on_night_started)
 	ctx.events.day_started.connect(_on_day_started)
-	ctx.events.dawn_payout.connect(_on_dawn_payout)
+	_payout_vfx.payout_started.connect(_on_payout_started)
 	_payout_vfx.coin_landed.connect(_on_coin_landed)
 	var start_night_hold: StartNightHoldController = (
 		map_root.find_child("StartNightHold", true, false) as StartNightHoldController
@@ -97,13 +97,9 @@ func _on_gold_changed(_new_amount: int, _delta: int) -> void:
 	_refresh()
 
 
-func _on_dawn_payout(total: int, per_spot: Dictionary) -> void:
-	# Only the gold that coins will carry can ever land, so lag by that much and no more. A payout
-	# whose parts do not add up to its total would otherwise leave the readout short for good.
-	var carried: int = 0
-	for amount: int in per_spot.values():
-		carried += maxi(amount, 0)
-	_payout_pending = mini(maxi(total, 0), carried)
+## The VFX announces the gold its coins carry, so the readout lags by exactly what will land.
+func _on_payout_started(carried_total: int) -> void:
+	_payout_pending = maxi(carried_total, 0)
 	_refresh()
 
 
@@ -112,7 +108,11 @@ func _on_coin_landed(amount: int) -> void:
 	_refresh()
 
 
-func _on_phase_changed(_old_phase: int, _new_phase: int) -> void:
+func _on_phase_changed(old_phase: int, _new_phase: int) -> void:
+	# Backstop: whatever a coin left unreleased, the readout is back on the ledger once dawn ends.
+	if old_phase == RunManager.RunPhase.DAWN and _payout_pending != 0:
+		_payout_pending = 0
+		_refresh()
 	_refresh_loop()
 
 

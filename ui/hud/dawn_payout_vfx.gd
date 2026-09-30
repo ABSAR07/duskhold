@@ -5,8 +5,12 @@ extends Control
 ## lands a "+X gold" total appears for a moment. Purely visual: the Economy was already credited
 ## when dawn began, and the HUD lags its readout behind the coins (see Hud).
 
+## Emitted once per dawn_payout, before any coin launches, with the gold the coins of this payout
+## will carry in all. The HUD holds its readout back by exactly this much, so what is held back and
+## what lands can never disagree. 0 when nothing will fly.
+signal payout_started(carried_total: int)
 ## Emitted once for every coin that reaches the gold counter, with the gold that coin carries.
-## The amounts of one payout always sum to its total.
+## The amounts of one payout always sum to `carried_total` of its payout_started.
 signal coin_landed(amount: int)
 
 const COIN_SIZE := Vector2(22.0, 22.0)
@@ -99,6 +103,7 @@ func _make_coin_texture() -> GradientTexture2D:
 func _on_dawn_payout(total: int, per_spot: Dictionary) -> void:
 	_reset_for_new_payout()
 	if total <= 0:
+		payout_started.emit(0)
 		return
 	_pending_total = total
 	var coin_counts: Dictionary = {}
@@ -108,14 +113,22 @@ func _on_dawn_payout(total: int, per_spot: Dictionary) -> void:
 		coin_counts[spot_id] = count
 		coin_total += count
 	var stagger: float = launch_stagger(coin_total)
-	var index: int = 0
+	# Plan every coin first, so the carried gold is announced before the first one can launch.
+	var launches: Array[Dictionary] = []
+	var carried: int = 0
 	for spot_id: StringName in per_spot:
 		var amount: int = per_spot[spot_id]
 		var coin_count: int = coin_counts[spot_id]
 		for coin: int in range(coin_count):
-			_expected_coins += 1
-			_schedule_launch(spot_id, float(index) * stagger, _coin_share(amount, coin_count, coin))
-			index += 1
+			var share: int = _coin_share(amount, coin_count, coin)
+			carried += share
+			launches.append(
+				{"spot": spot_id, "delay": float(launches.size()) * stagger, "share": share}
+			)
+	_expected_coins = launches.size()
+	payout_started.emit(carried)
+	for launch: Dictionary in launches:
+		_schedule_launch(launch["spot"], launch["delay"], launch["share"])
 	if _expected_coins == 0:
 		# Nothing to fly (malformed per_spot): no coin will ever land, so show the total now.
 		_show_total()

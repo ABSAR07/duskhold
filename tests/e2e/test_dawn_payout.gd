@@ -307,3 +307,39 @@ func test_launch_stagger_before_the_run_is_bound_falls_back_to_the_default() -> 
 	assert_eq(unbound.launch_stagger(40), DawnPayoutVfx.STAGGER_SECONDS, "no dawn window yet")
 
 	unbound.free()
+
+
+func test_the_vfx_announces_the_gold_its_coins_carry_and_the_hud_lags_by_exactly_that() -> void:
+	var map_root: MapRoot = await E2eSupport.spawn_map(self, _rich_map(), _tuning)
+	var ctx: RunContext = map_root.get_context()
+	var vfx: DawnPayoutVfx = _vfx(map_root)
+	assert_not_null(vfx, "the HUD has a DawnPayoutVfx")
+	if vfx == null:
+		return
+	watch_signals(vfx)
+
+	# A negative amount carries no coin, so of the claimed total of 9 only 4 gold ever flies.
+	ctx.events.dawn_payout.emit(9, {HOUSE_ONE: 4, HOUSE_TWO: -2})
+
+	assert_signal_emitted_with_parameters(vfx, "payout_started", [4])
+	assert_eq(_gold_text(map_root), "Gold: %d" % (RICH_GOLD - 4), "held back by the coins' 4 gold")
+	var settled: bool = await E2eSupport.wait_until(
+		self, _hud_gold_settled.bind(map_root), SETTLED_S
+	)
+	assert_true(settled, "those coins landed and released exactly what was held")
+
+
+func test_the_hud_releases_a_held_back_readout_when_dawn_ends() -> void:
+	var map_root: MapRoot = await E2eSupport.spawn_map(self, _rich_map(), _tuning)
+	var ctx: RunContext = map_root.get_context()
+	var vfx: DawnPayoutVfx = _vfx(map_root)
+	assert_not_null(vfx, "the HUD has a DawnPayoutVfx")
+	if vfx == null:
+		return
+	# A payout whose coins will never land (the vfx was freed, a tween was killed).
+	vfx.payout_started.emit(7)
+	assert_false(_hud_gold_settled(map_root), "the readout is held back")
+
+	ctx.events.phase_changed.emit(RunManager.RunPhase.DAWN, RunManager.RunPhase.DAY)
+
+	assert_true(_hud_gold_settled(map_root), "dawn ending puts the readout back on the ledger")
