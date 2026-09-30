@@ -217,6 +217,29 @@ func test_a_crowded_payout_tightens_the_stagger_to_exactly_fill_the_dawn_window(
 	)
 
 
+func test_a_coin_starts_mid_screen_when_its_plot_is_behind_the_camera() -> void:
+	var map_root: MapRoot = await E2eSupport.spawn_map(self, _rich_map(), _tuning)
+	var vfx: DawnPayoutVfx = _vfx(map_root)
+	var camera: Camera3D = vfx.get_viewport().get_camera_3d()
+	assert_not_null(camera, "the map has a current camera")
+	if camera == null:
+		return
+	assert_ne(
+		vfx._start_point(HOUSE_ONE),
+		vfx.get_viewport_rect().size * 0.5,
+		"with the camera where it is, the plot has its own screen point"
+	)
+
+	# Fly the camera on past the map along its view direction, so every plot is behind it.
+	camera.global_position += -camera.global_basis.z * 1000.0
+
+	assert_eq(
+		vfx._start_point(HOUSE_ONE),
+		vfx.get_viewport_rect().size * 0.5,
+		"a plot behind the camera falls back to the middle of the screen, not a mirrored point"
+	)
+
+
 func test_a_real_payout_schedules_its_last_coin_to_land_inside_a_short_dawn_window() -> void:
 	# 12 coins at the default 0.08 s stagger would launch the last one at 0.88 s and land it at
 	# 1.48 s, well past a 1.0 s dawn. The launch delays the payout really scheduled are compared

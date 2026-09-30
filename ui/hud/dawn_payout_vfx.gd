@@ -232,7 +232,12 @@ func _start_point(spot_id: StringName) -> Vector2:
 	var spot: BuildSpotDef = _ctx.buildings.get_spot(spot_id)
 	if camera == null or spot == null:
 		return get_viewport_rect().size * 0.5
-	return camera.unproject_position(spot.position + SPOT_ANCHOR)
+	var world_pos: Vector3 = spot.position + SPOT_ANCHOR
+	# unproject_position mirrors a point behind the camera onto the screen, so it needs the
+	# fallback too.
+	if camera.is_position_behind(world_pos):
+		return get_viewport_rect().size * 0.5
+	return camera.unproject_position(world_pos)
 
 
 func _on_coin_arrived(coin: TextureRect, generation: int, share: int) -> void:
