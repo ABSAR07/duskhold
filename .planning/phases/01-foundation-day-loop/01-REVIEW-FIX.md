@@ -1,71 +1,77 @@
 ---
 phase: 01-foundation-day-loop
-fixed_at: 2026-09-30T08:38:20Z
+fixed_at: 2026-09-30T09:04:22Z
 review_path: .planning/phases/01-foundation-day-loop/01-REVIEW.md
 iteration: 1
-findings_in_scope: 5
-fixed: 5
+findings_in_scope: 6
+fixed: 6
 skipped: 0
 status: all_fixed
 ---
 
-# Phase 1: Code Review Fix Report
+# Phase 01: Code Review Fix Report
 
-**Fixed at:** 2026-09-30T08:38:20Z
+**Fixed at:** 2026-09-30T09:04:22Z
 **Source review:** .planning/phases/01-foundation-day-loop/01-REVIEW.md
 **Iteration:** 1
 
 **Summary:**
-- Findings in scope: 5
-- Fixed: 5
+- Findings in scope: 6
+- Fixed: 6
 - Skipped: 0
 
-**Verification:** `bash tools/test.sh` (full GUT suite) and `bash tools/lint.sh` ran in the main checkout on branch `gsd/phase-01-foundation-day-loop` (`workflow.use_worktrees` was off for this pass, so no worktree was used). Both were green before every commit; the suite went 235 -> 237 tests as two tests were added (one in IN-01, one in IN-03) and one existing test was reworked.
+**Verification:** run in the main checkout (no worktree, per the orchestrator), Git Bash. `bash tools/lint.sh` clean (66 files) and the full `bash tools/test.sh` suite green at 241/241 (237 before this pass plus 4 new tests) after the last commit. Each commit was preceded by lint plus the relevant test file.
 
 ## Fixed Issues
 
-### WR-01: `_whole_amounts` validates amounts but not spot keys, so a bad key still aborts the payout
+### WR-01: Integer overflow in `carried_gold` defeats the coin cap and can spawn a huge number of coins
+
+**Files modified:** `ui/hud/dawn_payout_vfx.gd`, `tests/e2e/test_dawn_payout_hardening.gd` (new), `tests/e2e/test_dawn_payout_hardening.gd.uid` (new)
+**Commit:** 7cd97d9
+**Applied fix:** added `MAX_AMOUNT = 1_000_000`; `_whole_amounts` now clamps each amount as a float to +/-MAX_AMOUNT before `int()`, so a huge float never reaches an undefined `int()` conversion and the sum of several amounts cannot wrap. The review's second suggestion (`mini(amount, MAX_COINS)` in `_coins_for_amount`) was not applied: with clamped amounts, `carried_gold <= MAX_COINS` already implies `amount <= MAX_COINS`, so it would be dead code.
+**New test:** `test_absurdly_large_amounts_are_clamped_so_the_coin_cap_still_holds` (a float 1e30 and an int 9e18 in one payout; asserts `payout_started` carries 2 * MAX_AMOUNT, at most MAX_COINS coins are scheduled, both spots still send a coin, and the HUD settles). It went in a new file because `tests/e2e/test_dawn_payout.gd` is at gdlint's 20-public-method cap (18 tests plus `before_each` and `after_each`).
+**Mutation probe:** reverted the clamp to `int(amount)`; the test FAILED (`payout_started` carried 9000000000000000000 instead of 2000000). Restored; passes. The probe avoided the two-large-ints wrap case on purpose, since unclamped that would schedule an enormous coin count and hang the run.
+
+### WR-02: `get_launch_tweens()` returns finished tweens, contradicting its documentation
+
+**Files modified:** `ui/hud/dawn_payout_vfx.gd`, `tests/e2e/test_dawn_payout_hardening.gd`
+**Commit:** 534b895
+**Applied fix:** `get_launch_tweens()` now returns only tweens that are still valid (a fired tween is finished and invalid), built with an explicit loop so the result stays a typed `Array[Tween]`.
+**New test:** `test_launch_tweens_that_have_fired_are_no_longer_reported_as_waiting` (12-coin payout, waits for the total, asserts no tween is reported waiting).
+**Mutation probe:** replaced the `is_valid()` filter with `if true:`; the test FAILED ("no launch is waiting once every coin left"). Restored; passes.
+
+### WR-03: Camera test dereferences a possibly-null `vfx`
+
+**Files modified:** `tests/e2e/test_dawn_payout.gd`
+**Commit:** 433e30d
+**Applied fix:** added the `assert_not_null(vfx, ...)` plus early return used by every other test in the file, before `vfx.get_viewport()`. The private `_start_point` access the review also mentions is handled under IN-02.
+**Mutation probe:** none. This is a failure-mode guard (a missing node now fails readably instead of a script error), not behaviour that a production bug can regress; the test itself still passes.
+
+### IN-01: `_last_total` is not reset between payouts
+
+**Files modified:** `ui/hud/dawn_payout_vfx.gd`, `tests/e2e/test_dawn_payout_hardening.gd`
+**Commit:** 6500c3f
+**Applied fix:** `_reset_for_new_payout` now sets `_last_total = 0`, and the `get_last_total()` doc says it is the current payout's total, 0 until shown and 0 again when a new payout begins. Chose the reset over rewording the test messages, so the accessor matches what the assertions claim.
+**New test:** `test_a_payout_with_no_coins_does_not_report_the_previous_payouts_total` (a 3-gold payout lands and shows its total, then an empty payout must report 0).
+**Mutation probe:** removed the reset; the test FAILED ("the next payout, with nothing to show, starts from 0"). Restored; passes.
+
+### IN-02: Test-only accessors and private access widen the production surface
 
 **Files modified:** `ui/hud/dawn_payout_vfx.gd`, `tests/e2e/test_dawn_payout.gd`
-**Commit:** 60d4881
-**Applied fix:** `_whole_amounts` now checks the key (must be a `StringName` or `String`, stored as `StringName`) and rejects a non-finite float amount (`NAN`/`INF`) in the same pass. Each rejected entry is dropped with a `push_warning` of the form `dawn payout for '<key>' ignored: <reason>`; the existing `'house_2' ignored` wording is unchanged. The float/null test became `test_a_malformed_payout_entry_does_not_abort_the_payout` and now also feeds a `NAN` amount and an `int` key, asserting `payout_started(4)`, the three warnings and that the bad entries send no coin. The reviewer suggested a separate test; it was folded into the existing one because `test_dawn_payout.gd` sits close to gdlint's 20-public-method cap.
-**Mutation probe:** replacing the key check with `if false:` made `test_a_malformed_payout_entry_does_not_abort_the_payout` fail (16/17); restored byte-identical.
+**Commit:** e6761b5
+**Applied fix:** kept the read-only accessors and documented `get_launch_delays` and `get_launch_tweens` as test hooks (`get_spawned_count` is also used internally, so its doc just says tests read it too). Renamed `_start_point` to the public `start_point` (with a doc line) and updated its two callers in the camera test, so no test reaches for a private member any more.
+**Guard probe (per orchestrator note):** `get_launch_delays()` is unchanged, so the CR-01 dawn-window guard `test_a_real_payout_schedules_its_last_coin_to_land_inside_a_short_dawn_window` keeps its observation point. Re-ran the mutation after the change: replaced `stagger` with `STAGGER_SECONDS` in the coin schedule; the guard FAILED (last launch delay 0.88 vs expected 0.4, and 1.48 > 1.001 dawn window). Restored precisely (`git diff` shows only the intended IN-02 changes); all 18 tests in the file pass.
 
-### WR-02: The "+X gold" label shows the claimed total while the coins and the HUD readout use the carried gold
-
-**Files modified:** `ui/hud/dawn_payout_vfx.gd`, `tests/e2e/test_dawn_payout.gd`
-**Commit:** 982b071
-**Applied fix:** Decision: the label shows the carried gold, the same figure the HUD readout is held back by and the coins fly with. `_pending_total` is now set to `carried` after the planning loop and before `payout_started.emit`. When `carried != total` a `push_warning` ("dawn payout claims X gold but its per-spot amounts carry Y; showing Y") makes the divergence visible. With no coin to fly (`carried == 0`, malformed `per_spot`) no total is shown at all, since there is no gold in the air to attribute and the readout is not held back; this replaces the old "show it now" branch. `get_last_total()` is documented as the carried figure. For the shipped `per_spot` source (amounts sum to `total`) behaviour is identical, and no e2e test on the real RunManager path changed.
-Tests updated to the new intent:
-- `test_the_vfx_announces_the_gold_its_coins_carry_and_the_hud_lags_by_exactly_that` renamed `test_the_label_the_coins_and_the_hud_readout_all_use_the_gold_that_flies`; claimed 9 vs carried 4 now asserts the warning, the label `+4 gold` and `get_last_total() == 4`.
-- `test_the_coin_cap_follows_the_gold_that_flies_not_the_claimed_total` (claimed 5, carried 120) asserts the warning and the label `+120 gold`.
-- `test_a_payout_with_no_coin_to_fly_does_not_leave_the_hud_short` renamed `..._shows_no_total_and_does_not_leave_the_hud_short`; it now asserts the label stays hidden, `get_last_total() == 0` and the warning, alongside the readout staying settled.
-**Mutation probe:** temporarily restoring `_pending_total = total` failed `test_the_coin_cap_follows_the_gold_that_flies_not_the_claimed_total` and the reworked label test (15/17). The CR-01 dawn-window guard was also probed: changing the coin schedule to `STAGGER_SECONDS` instead of `stagger` still fails `test_a_real_payout_schedules_its_last_coin_to_land_inside_a_short_dawn_window` (delay 0.88 vs 0.4, land time 1.48 vs 1.001). All probes restored byte-identical.
-**Status note:** this is a display-semantics decision; worth a human glance that "carried gold" is the figure the owner wants on the label.
-
-### IN-01: `_launch` tweens from an earlier payout are never killed on reset
-
-**Files modified:** `ui/hud/dawn_payout_vfx.gd`, `tests/e2e/test_dawn_payout.gd`
-**Commit:** 3c29bd2
-**Applied fix:** `_schedule_launch` records each delay tween in a new `_launch_tweens: Array[Tween]`, and `_reset_for_new_payout` kills and clears them. The generation guard stays as a backstop. A read-only `get_launch_tweens()` accessor (same style as `get_launch_delays()`) lets the new test `test_a_new_payout_stops_the_pending_launches_of_the_one_it_supersedes` hold the tweens of a 12-coin payout, supersede it with an empty payout, and assert each is no longer valid.
-**Mutation probe:** replacing the `tween.kill()` in reset with `pass` failed that test (17/18). A first version of the test counted the array's contents and did not fail under the mutation (the array is cleared either way), so it was rewritten to hold the tween objects.
-
-### IN-02: `_count_buildings` allocates a snapshot per spot on every overlay refresh just to test for emptiness
-
-**Files modified:** `ui/overlay/debug_overlay_model.gd`
-**Commit:** 6240e20
-**Applied fix:** `_count_buildings` now tests `_ctx.buildings.current_tier(spot_id) > 0`, exactly as suggested. Covered by the existing "Buildings" row assertion in `test_default_rows_report_fps_phase_gold_buildings_units_enemies`.
-**Mutation probe:** changing the test to `>= 0` made that test fail (`8` vs `1`).
-
-### IN-03: A registered section named like a default ("Perf", "Loop", "Agents") shows twice
+### IN-03: Unreachable providers stay registered for the model's lifetime
 
 **Files modified:** `ui/overlay/debug_overlay_model.gd`, `tests/unit/test_debug_overlay_readonly.gd`
-**Commit:** 30d0dd4
-**Applied fix:** Added `DebugOverlayModel.DEFAULT_TITLES`; `register_section` refuses a title in it with a `push_warning` and returns, and its docstring says so. New test `test_registering_a_default_section_title_is_refused_instead_of_showing_it_twice` registers each default title, asserts the warning, and asserts `collect` still lists exactly Perf, Loop, Agents once each.
-**Mutation probe:** disabling the guard (`if false:`) failed the new test (three missing warnings and the duplicated section list).
+**Commit:** 1a0bb93
+**Applied fix:** `collect()` iterates a copy of `_registered`; a provider whose Callable is no longer valid is warned about once and then removed (and its warn-once flag cleared). A provider that merely declares parameters is still kept, since replacing it is a valid recovery path and it is warned once as before.
+**New test:** `test_a_provider_whose_owner_was_freed_is_dropped_after_its_one_warning` (one warning across two refreshes; re-registering the dead title then appends it after "Live" instead of replacing in place, which is the observable sign that the dead entry was dropped).
+**Mutation probe:** replaced the `_registered.erase(entry)` with `pass`; the test FAILED (two warnings, and Ghost stayed ahead of Live). Restored; passes.
 
 ---
 
-_Fixed: 2026-09-30T08:38:20Z_
+_Fixed: 2026-09-30T09:04:22Z_
 _Fixer: Claude (gsd-code-fixer)_
 _Iteration: 1_
