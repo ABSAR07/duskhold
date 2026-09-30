@@ -152,6 +152,26 @@ func test_a_pending_section_whose_owner_is_freed_after_bind_run_is_dropped_with_
 	assert_push_warning_count(1, "the freed owner is named once, not on every refresh")
 
 
+func test_binding_an_overlay_that_is_already_shown_fills_it_at_once() -> void:
+	var overlay: DebugOverlay = _overlay()
+	overlay.register_section("Early", func() -> Array: return [["Wave", "3"]])
+	await wait_process_frames(1)
+	Input.action_press(DebugOverlay.TOGGLE_ACTION)
+	await wait_process_frames(2)
+	Input.action_release(DebugOverlay.TOGGLE_ACTION)
+	await wait_process_frames(1)
+	assert_true(overlay.is_overlay_visible(), "the overlay was shown before it was bound")
+	assert_eq(overlay.get_text(), "", "with no run to read, it has nothing to show yet")
+
+	overlay.bind_run(_context(), null)
+
+	# No frames or refresh interval are waited on: the bind itself fills the label.
+	assert_string_contains(overlay.get_text(), "Phase: DAY", "the default rows show at once")
+	assert_string_contains(
+		overlay.get_text(), "Wave: 3", "and so does the section registered early"
+	)
+
+
 func test_a_pending_section_replaced_before_bind_run_does_not_warn_about_the_old_owner() -> void:
 	var overlay: DebugOverlay = _overlay()
 	var old_owner: Node = Node.new()

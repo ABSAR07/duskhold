@@ -48,6 +48,10 @@ func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 			continue
 		_model.register_section(entry["title"], entry["provider"], lifetime_owner)
 	_pending.clear()
+	# Toggled on before this bind, _refresh() found no model and left the label empty; fill it now
+	# rather than showing nothing until the next refresh tick.
+	if visible and _text != null:
+		_refresh()
 
 
 ## Phase 2 and later add sections (wave state, enemy paths) through this, not by editing the model.
