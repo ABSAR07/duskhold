@@ -6,8 +6,10 @@ extends GutTest
 const OVERLAY_SCENE := "res://ui/overlay/debug_overlay.tscn"
 const PROTOTYPE_MAP := "res://data/maps/prototype_map.tres"
 const TUNING := "res://data/tuning/loop_tuning.tres"
-# A little over DebugOverlay.REFRESH_INTERVAL_S, so a shown overlay has refreshed once.
-const REFRESH_WAIT_S: float = 0.35
+
+
+func after_each() -> void:
+	E2eSupport.release_all_actions()
 
 
 func _context() -> RunContext:
@@ -22,9 +24,16 @@ func _overlay() -> DebugOverlay:
 	return overlay
 
 
+## Shows the overlay the way the player does, by pressing the toggle action. Showing it refreshes it
+## at once, so the text is current after a couple of frames and no refresh interval is waited on.
+## The leading frame lets the overlay run its first _process before the press.
 func _shown_text(overlay: DebugOverlay) -> String:
-	overlay.visible = true
-	await wait_seconds(REFRESH_WAIT_S)
+	await wait_process_frames(1)
+	Input.action_press(DebugOverlay.TOGGLE_ACTION)
+	await wait_process_frames(2)
+	Input.action_release(DebugOverlay.TOGGLE_ACTION)
+	await wait_process_frames(1)
+	assert_true(overlay.is_overlay_visible(), "the toggle action shows the overlay")
 	return overlay.get_text()
 
 
