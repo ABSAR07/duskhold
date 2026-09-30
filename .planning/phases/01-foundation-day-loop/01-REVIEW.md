@@ -1,67 +1,65 @@
 ---
 phase: 01-foundation-day-loop
-reviewed: 2026-09-30T14:32:14Z
+reviewed: 2026-09-30T14:49:08Z
 depth: standard
-files_reviewed: 3
+files_reviewed: 1
 files_reviewed_list:
   - tests/e2e/test_debug_overlay_toggle.gd
-  - tests/unit/test_debug_overlay_registration.gd
-  - ui/overlay/debug_overlay.gd
 findings:
   critical: 0
-  warning: 0
+  warning: 1
   info: 2
-  total: 2
+  total: 3
 status: issues_found
 ---
 
 # Phase 1: Code Review Report
 
-**Reviewed:** 2026-09-30T14:32:14Z
+**Reviewed:** 2026-09-30T14:49:08Z
 **Depth:** standard
-**Files Reviewed:** 3
+**Files Reviewed:** 1
 **Status:** issues_found
 
 ## Summary
 
-Reviewed `ui/overlay/debug_overlay.gd` with its two test files. I also read `debug_overlay_model.gd`, `debug_overlay.tscn`, `hud.tscn`, `project.godot` and `tests/e2e/e2e_support.gd` to check the call paths.
+Reviewed `tests/e2e/test_debug_overlay_toggle.gd` against `tests/e2e/e2e_support.gd`, `ui/overlay/debug_overlay.gd` and `ui/overlay/debug_overlay.tscn`. The file has six tests. I ran it three times with `-gselect=test_debug_overlay_toggle.gd`: 6/6 passed with 29 asserts each time, so I found no flakiness.
 
-No bugs or security problems were found. The points I checked:
+The paused-tree and time-scale tests are sound. The overlay root has `process_mode = 3` (ALWAYS), and the refresh clock uses `Time.get_ticks_usec()`. `after_each` restores pause, time scale and held actions, so a failing test cannot leak state into later suites. There are no correctness or security defects. The remaining weakness is that the cadence the header promises is not really asserted.
 
-- **Bind logic:** `bind_run` refuses a null context before `_model` is set, so a later valid bind still works. A repeat bind is idempotent, and a repeat with a different context warns.
-- **Pending sections:** the pending list mirrors the model's replace-in-place rule. It holds owners only through a `WeakRef`, so a replaced entry never warns about its old owner. The pre-bind checks (`title_problem`, `owner_problem`) match the model's, so the two paths agree.
-- **Timing and process mode:** the refresh clock uses real time (`Time.get_ticks_usec`), so `Engine.time_scale` cannot slow or freeze it. The scene sets `process_mode = 3` (ALWAYS), so the overlay keeps running while the tree is paused.
-- **Bindings:** the F3 and gamepad Back bindings in `project.godot` (keycode 4194334, joypad button 4) are covered by `tests/unit/test_input_map.gd`.
-- **Input polling:** `Input.is_action_just_pressed` is read from `_process`, which is correct for a per-frame check. The toggle frame skips `_advance_refresh` but calls `_refresh` itself when the overlay becomes visible.
-- **Tests:** each e2e test that changes global state (pause, `time_scale`, held actions) restores it in `after_each`. The unit tests drive `_advance_refresh` synchronously with no awaits in between, so real `_process` ticks cannot disturb the call counts they assert.
+## Warnings
 
-The previous review's skipped "toggle polls `Input`" note is judged below on its merits (IN-01).
+### WR-01: The "about 4 times/s" refresh cadence is documented but effectively untested
+
+**File:** `tests/e2e/test_debug_overlay_toggle.gd:7`, `:88-91`, `:114-117`, `:139-142`
+**Issue:** The header says the overlay "refreshes about 4 times/s" (`REFRESH_INTERVAL_S = 0.25`). Every refresh test only asserts that the text changes within `REFRESH_WINDOW_S = 1.0` s, which is 4x the interval. A regression to a 0.9 s interval, or to a refresh that fires only once a second, would still pass. The window was widened from a smaller value in commit 625a89d, which made this looser. Nothing checks that a hidden overlay does not refresh, either. `_advance_refresh` returns early when `not visible`, and no test covers it.
+**Fix:** Either reword the header to say the tests check "refreshes within 1 s", or add one cadence test with the interval tied to the production constant. For example, count text changes over a fixed real-time span, or assert the elapsed time until "Buildings: 1" is at most `DebugOverlay.REFRESH_INTERVAL_S * 2 + slack`:
+
+```gdscript
+const CADENCE_WINDOW_S: float = DebugOverlay.REFRESH_INTERVAL_S * 2.0 + 0.15
+...
+var refreshed: bool = await E2eSupport.wait_until(
+	self, func() -> bool: return overlay.get_text().contains("Buildings: 1"), CADENCE_WINDOW_S
+)
+```
+
+Add a test that submits the build while the overlay is hidden and asserts the text is still stale after a window longer than the interval.
 
 ## Info
 
-### IN-01: Toggle reads `Input` directly, so it fires for input a UI has already consumed
+### IN-01: Required-field check is substring-only and does not check values
 
-**File:** `ui/overlay/debug_overlay.gd:114`
-**Issue:** `Input.is_action_just_pressed(TOGGLE_ACTION)` ignores GUI focus and `set_input_as_handled()`. The gamepad binding is Back (`JOY_BUTTON_BACK`), a button that menus and rebind screens commonly use. Once a rebind UI or pause menu exists and the player presses Back or F3 there, the overlay toggles as well. The same applies to a rebind screen capturing F3. The overlay also ships in release builds (accepted threat T-01-15). It is harmless today, since no UI exists that consumes those inputs, and it matches the other controllers (`build_hold_controller.gd` and `start_night_hold_controller.gd` also poll `Input`). It becomes a real defect the moment a Phase 2+ screen binds F3 or Back.
-**Fix:** When a rebind or menu UI arrives, either move the toggle to `_unhandled_input(event)` with `event.is_action_pressed(TOGGLE_ACTION)` and `get_viewport().set_input_as_handled()`, or have the UI set a suppress flag while it captures input. For example:
-```gdscript
-func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed(TOGGLE_ACTION, false, true):
-		visible = not visible
-		if visible:
-			_refresh()
-		get_viewport().set_input_as_handled()
-```
-Then `_process` only advances the refresh clock. The e2e tests would need to send real `InputEventAction`s instead of using `Input.action_press`.
+**File:** `tests/e2e/test_debug_overlay_toggle.gd:8-17`, `:66-67`
+**Issue:** `"Gold"`, `"Units"`, `"Enemies"` and `"FPS"` are checked only as substrings of the whole text. A row with a wrong or empty value (for example `Gold: `) would pass, and so would a title that appears in some other row. Only `Phase: DAY`, `Day: 1` and `Night: 0` include values. `"Buildings: 1"` would also match `"Buildings: 10"`. That is harmless here, since the test builds exactly one.
+**Fix:** Assert on `"  Gold: "` with the value (the label format is `"  %s: %s"`). Or parse the lines into a dictionary and check each key has a non-empty value.
 
-### IN-02: The e2e refresh assertions have a tight real-time window
+### IN-02: Repeated overlay lookup and null-guard boilerplate
 
-**File:** `tests/e2e/test_debug_overlay_toggle.gd:7`, `:88-91`, `:114-117`, `:139-142`
-**Issue:** `REFRESH_WINDOW_S` is 0.5 s against a 0.25 s refresh interval. `wait_until` measures wall-clock milliseconds, so a frame hitch of 250 ms or more (a cold shader compile, or a loaded CI runner) can time the wait out even though the overlay is correct. The `test_shown_overlay_refreshes_the_buildings_row_after_a_build` case is the most exposed, because it runs the whole ride-and-hold build path first. This is a test-reliability risk only.
-**Fix:** Give the window headroom without weakening what it proves: `REFRESH_WINDOW_S = 1.0` still shows "refreshes about 4 times a second" through the unit cadence tests, which already assert the 0.25 s interval deterministically.
+**File:** `tests/e2e/test_debug_overlay_toggle.gd:38-42`, `:47-51`, `:59-63`, `:71-75`, `:97-101`, `:127-131`
+**Issue:** Every test repeats the same five lines: spawn the map, look up the overlay, `assert_not_null`, and `return` on null. The `_press_toggle` and build-then-wait-for-"Buildings: 1" sequences are also duplicated. This is maintainability only.
+**Fix:** Add a helper such as `_spawn_with_overlay() -> Array` (or store `_map_root` and `_overlay` in `before_each`) and a `_wait_for_buildings(overlay, n)` helper.
 
 ---
 
-_Reviewed: 2026-09-30T14:32:14Z_
+_Reviewed: 2026-09-30T14:49:08Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
