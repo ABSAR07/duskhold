@@ -13,9 +13,10 @@ const NO_CONTEXT_WARNING := "debug overlay bind_run ignored: no RunContext"
 var _model: DebugOverlayModel
 var _ctx: RunContext
 var _since_refresh: float = 0.0
-## Sections registered before bind_run, as {title, provider, owner: WeakRef or null}. Bind order
-## across the run_bound group is not guaranteed, so a caller may register first; bind_run replays
-## these in order, so registration never depends on who is bound first.
+## Sections registered before bind_run, as {title, provider, owner: WeakRef or null}, one per title
+## (a repeat registration replaces the earlier one in place, as in the model). Bind order across the
+## run_bound group is not guaranteed, so a caller may register first; bind_run replays these in
+## order, so registration never depends on who is bound first.
 var _pending: Array[Dictionary] = []
 
 @onready var _text: Label = %OverlayText
@@ -67,13 +68,18 @@ func register_section(title: String, provider: Callable, lifetime_owner: Variant
 			return
 		# A WeakRef, like the model's, so the pending entry's own reference never keeps its owner
 		# alive. The stored provider still holds whatever it captured (see register_section).
-		_pending.append(
-			{
-				"title": title,
-				"provider": provider,
-				"owner": DebugOverlayModel.owner_ref(lifetime_owner)
-			}
-		)
+		var entry: Dictionary = {
+			"title": title,
+			"provider": provider,
+			"owner": DebugOverlayModel.owner_ref(lifetime_owner)
+		}
+		# The model's replace-in-place rule: a title registered again supersedes the earlier entry
+		# and keeps its position, so bind_run never warns about an owner whose section was replaced.
+		for index: int in _pending.size():
+			if _pending[index]["title"] == title:
+				_pending[index] = entry
+				return
+		_pending.append(entry)
 		return
 	_model.register_section(title, provider, lifetime_owner)
 
