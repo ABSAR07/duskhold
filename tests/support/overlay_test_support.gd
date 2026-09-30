@@ -27,8 +27,11 @@ static func new_map() -> MapConfig:
 ## here is ever tested against a shared cached resource that another test wrote to.
 static func context_with_one_house(test: GutTest, tuning: LoopTuning = null) -> RunContext:
 	var ctx: RunContext = RunContext.new(new_map(), tuning if tuning != null else new_tuning())
-	var first_spot: StringName = ctx.buildings.spot_ids()[0]
-	var result: StringName = ctx.commands.submit(BuildIntent.new(first_spot))
+	var spot_ids: Array[StringName] = ctx.buildings.spot_ids()
+	test.assert_false(spot_ids.is_empty(), "the map has a spot to build the setup House on")
+	if spot_ids.is_empty():
+		return ctx
+	var result: StringName = ctx.commands.submit(BuildIntent.new(spot_ids[0]))
 	test.assert_eq(result, CommandProcessor.OK, "the setup House is built through the command gate")
 	return ctx
 
