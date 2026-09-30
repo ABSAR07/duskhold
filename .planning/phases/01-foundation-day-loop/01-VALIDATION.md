@@ -27,7 +27,7 @@ validated: "2026-09-29"
 | **Full suite command** | `bash tools/test.sh` (headless import pass, then GUT over all three dirs; fails on any first-party parse/load error) |
 | **Single file** | `bash tools/test.sh -gselect=<test_file>.gd` |
 | **Lint** | `bash tools/lint.sh` (gdtoolkit 4.5.0: `gdformat --check` + `gdlint`) |
-| **Measured runtime** | Quick: ~14 s wall (18 scripts, 156 tests). Full: ~96 s wall (34 scripts, 260 tests) |
+| **Measured runtime** | Quick: ~13 s wall (19 scripts, 161 tests). Full: ~96 s wall (35 scripts, 265 tests) |
 
 The `tools/*.sh` wrappers need Git Bash on Windows; they resolve the pinned binary under `.tools/godot/4.7.2-stable/` (D-14).
 
@@ -77,10 +77,10 @@ GUT rows run as `bash tools/test.sh -gselect=<file>`. Threat refs are the plans'
 | CR-01 fix (pass 2) | review | — | ECON-02 | — | Every dawn coin lands inside a short dawn window on a real payout | e2e | `test_dawn_payout.gd` (`test_a_real_payout_lands_every_coin_inside_a_short_dawn_window`) | ✅ | ✅ green |
 | WR-01 fix (pass 2) | review | — | BLDG-01 | T-01-10 | Empty building ids reported; null map entries skipped instead of crashing | unit | `test_prototype_map_data.gd` (2 tests) | ✅ | ✅ green |
 | WR-02 fix (pass 2) | review | — | ECON-01 | — | A payout with no coin to fly never leaves the HUD gold short | e2e | `test_dawn_payout.gd` (`test_a_payout_with_no_coin_to_fly_does_not_leave_the_hud_short`) | ✅ | ✅ green |
-| WR-03 fix (pass 2) | review | — | DEV-03 | T-01-15 | A provider returning a non-Array is skipped, not a crash | unit | `test_debug_overlay_readonly.gd` | ✅ | ✅ green |
+| WR-03 fix (pass 2) | review | — | DEV-03 | T-01-15 | A provider returning a non-Array is skipped, not a crash | unit | `test_debug_overlay_providers.gd` | ✅ | ✅ green |
 | WR-01 fix (pass 3) | review | — | ECON-01, ECON-02 | — | A payout naming an unknown spot still lands its coin and settles the HUD | e2e | `test_dawn_payout.gd` (`test_a_payout_naming_an_unknown_spot_still_lands_its_coin_and_settles_the_hud`) | ✅ | ✅ green |
 | WR-02 fix (pass 3) | review | — | BLDG-01, ECON-02 | T-01-10 | Duplicate spot id listed once (first definition wins); unknown building id skipped in dawn income | unit | `test_building_system_data_errors.gd` (2 tests) | ✅ | ✅ green |
-| WR-03 / IN-03 fix (pass 3) | review | — | DEV-03 | T-01-15 | Malformed provider rows dropped; the read-only test watches every simulation signal | unit | `test_debug_overlay_readonly.gd` (2 tests) | ✅ | ✅ green |
+| WR-03 / IN-03 fix (pass 3) | review | — | DEV-03 | T-01-15 | Malformed provider rows dropped; the read-only test watches every simulation signal | unit | `test_debug_overlay_providers.gd` (malformed rows), `test_debug_overlay_readonly.gd` (every simulation signal watched) | ✅ | ✅ green |
 | IN-01 fix (pass 3) | review | — | ECON-01 | — | Binding the HUD twice connects nothing twice | e2e | `test_map_binding.gd` (`test_binding_the_hud_again_connects_nothing_twice`) | ✅ | ✅ green |
 | IN-02 fix (pass 3) | review | — | BLDG-06 (start-night input) | — | The start-night prompt names the live bindings and follows a runtime rebind | e2e | `test_start_night_hold.gd` (2 tests) | ✅ | ✅ green |
 | IN-04 fix (pass 3) | review | — | ECON-02 | — | `launch_stagger` falls back to the default before `bind_run`; payout timing tests poll instead of racing | e2e | `test_dawn_payout.gd` (`test_launch_stagger_before_the_run_is_bound_falls_back_to_the_default`) | ✅ | ✅ green |
@@ -89,42 +89,45 @@ GUT rows run as `bash tools/test.sh -gselect=<file>`. Threat refs are the plans'
 | WR-03 fix (pass 4) | review | — | ECON-02, ECON-07 | — | Payout and dawn hand-back tests assert game state, not wall-clock time | e2e | `test_dawn_payout.gd` | ✅ | ✅ green |
 | WR-04 / IN-04 fix (pass 4) | review | — | BLDG-01 | T-01-10 | A duplicate building id keeps the first definition, like spots; duplicate-spot test asserts identity | unit | `test_building_system_data_errors.gd` (`test_a_duplicate_building_id_keeps_the_first_definition`) | ✅ | ✅ green |
 | WR-05 fix (pass 4) | review | — | BLDG-01 | — | Changing the returned spot ids does not change the system | unit | `test_build_spot.gd` (`test_changing_the_returned_spot_ids_does_not_change_the_system`) | ✅ | ✅ green |
-| IN-01 fix (pass 4) | review | — | DEV-03 | T-01-15 | A provider that needs an argument is skipped instead of crashing; phase name via `find_key` | unit | `test_debug_overlay_readonly.gd` (`test_a_provider_that_needs_an_argument_is_skipped_instead_of_crashing`) | ✅ | ✅ green |
+| IN-01 fix (pass 4) | review | — | DEV-03 | T-01-15 | A provider that needs an argument is skipped instead of crashing; phase name via `find_key` | unit | `test_debug_overlay_providers.gd` (`test_a_provider_that_needs_an_argument_is_skipped_instead_of_crashing`) | ✅ | ✅ green |
 | WR-05 fix (pass 5) | review | — | ECON-02 | — | The CR-01 guard is discriminating again: the last coin's scheduled launch delay equals (n-1)·launch_stagger(n) and lands inside the dawn window (fails 14/15 with the old `STAGGER_SECONDS` spacing; orchestrator-probed) | e2e | `test_dawn_payout.gd` (`test_a_real_payout_schedules_its_last_coin_to_land_inside_a_short_dawn_window`) | ✅ | ✅ green |
 | WR-02 / WR-03 fix (pass 5) | review | — | ECON-01, ECON-02 | — | The VFX announces the gold its coins carry and the HUD lags by exactly that, releasing at dawn end; coin cap follows the gold that flies; a too-short dawn warns | e2e | `test_dawn_payout.gd` (4 tests) | ✅ | ✅ green |
 | WR-01 fix (pass 5) | review | — | BLDG-06 (start-night input) | — | The prompt names trigger/mouse bindings, keeps key modifiers, skips an event that names no key | e2e | `test_start_night_hold.gd` (2 tests) | ✅ | ✅ green |
 | WR-04 fix (pass 5) | review | — | BLDG-01, BLDG-04 | T-01-10 | Empty-id spots skipped and never focusable; `apply_next_tier` refuses unknown buildings and never passes the last tier | unit | `test_building_system_data_errors.gd` (3 tests) | ✅ | ✅ green |
-| IN-05 fix (pass 5) | review | — | DEV-03 | T-01-15 | Registering a title twice replaces the section instead of duplicating it | unit | `test_debug_overlay_readonly.gd` | ✅ | ✅ green |
+| IN-05 fix (pass 5) | review | — | DEV-03 | T-01-15 | Registering a title twice replaces the section instead of duplicating it | unit | `test_debug_overlay_providers.gd` | ✅ | ✅ green |
 | WR-01 / IN-01 / IN-02 fix (pass 6) | review | — | BLDG-06 (start-night input) | — | The prompt names a key by its layout label (fake-layout seam; real layouts need a human check), follows an in-place rebind, and shows a stick axis's direction | e2e | `test_start_night_hold.gd` (2 tests + extended assertions) | ✅ | ✅ green |
-| WR-02 fix (pass 6) | review | — | DEV-03 | T-01-15 | A skipped overlay provider is warned about once per title | unit | `test_debug_overlay_readonly.gd` (`test_a_skipped_provider_is_warned_about_once_however_often_the_overlay_refreshes`) | ✅ | ✅ green |
+| WR-02 fix (pass 6) | review | — | DEV-03 | T-01-15 | A skipped overlay provider is warned about once per title | unit | `test_debug_overlay_providers.gd` (`test_a_skipped_provider_is_warned_about_once_however_often_the_overlay_refreshes`) | ✅ | ✅ green |
 | WR-03 fix (pass 6) | review | — | BLDG-01 | T-01-10 | A building with an empty id is skipped and never matches an unset building id | unit | `test_building_system_data_errors.gd` | ✅ | ✅ green |
 | IN-03 / IN-05 fix (pass 6) | review | — | ECON-02 | — | A crowded payout tightens the stagger to exactly fill the dawn window (asserted against tuning, not itself); a coin whose plot is behind the camera starts mid-screen | e2e | `test_dawn_payout.gd` (2 tests; the stagger test was renamed in pass 10 for the landing margin) | ✅ | ✅ green |
 | IN-04 fix (pass 6) | review | — | ECON-01 | — | The double-bind test covers all 11 HUD connections and asserts each is bound first | e2e | `test_map_binding.gd` | ✅ | ✅ green |
-| WR-01 / WR-02 fix (pass 7) | review | — | DEV-03 | T-01-15 | A non-Array provider return warns once; replacing a warned provider lets the new one warn again | unit | `test_debug_overlay_readonly.gd` (`test_replacing_a_warned_provider_lets_the_new_one_warn_again` + extended non-Array test) | ✅ | ✅ green |
+| WR-01 / WR-02 fix (pass 7) | review | — | DEV-03 | T-01-15 | A non-Array provider return warns once; replacing a warned provider lets the new one warn again | unit | `test_debug_overlay_providers.gd` (`test_replacing_a_warned_provider_lets_the_new_one_warn_again` + extended non-Array test) | ✅ | ✅ green |
 | WR-03 / IN-03 fix (pass 7) | review | — | ECON-01, ECON-02, BLDG-06 | — | In-flight-coin and early-release tests drive the run manager by hand with no wall-clock race; the dawn-end release is tested through a real night→dawn→day | e2e | `test_dawn_payout.gd`, `test_start_night_hold.gd` | ✅ | ✅ green |
 | IN-01 fix (pass 7) | review | — | BLDG-01, BLDG-04 | T-01-04 | Readers get a `BuildingInstance` snapshot; changing it does not change the building | unit | `test_build_spot.gd` (`test_a_reader_changing_the_instance_it_was_given_does_not_change_the_building`) | ✅ | ✅ green |
 | IN-02 fix (pass 7) | review | — | ECON-02 | — | A float or non-number payout amount does not abort the payout | e2e | `test_dawn_payout.gd` (superseded in pass 8 by `test_a_malformed_payout_entry_does_not_abort_the_payout`) | ✅ | ✅ green |
 | WR-01 fix (pass 8) | review | — | ECON-02 | — | A malformed payout entry (bad spot key, non-number or non-finite amount) is dropped with a warning and does not abort the payout | e2e | `test_dawn_payout.gd` (`test_a_malformed_payout_entry_does_not_abort_the_payout`) | ✅ | ✅ green |
 | WR-02 fix (pass 8) | review | — | ECON-01, ECON-02 | — | The "+X gold" label, the coins and the HUD readout all use the gold that flies; no coin, no total | e2e | `test_dawn_payout.gd` (2 renamed tests + coin-cap expectation) | ✅ | ✅ green |
 | IN-01 fix (pass 8) | review | — | ECON-02 | — | A new payout stops the pending launches of the one it supersedes | e2e | `test_dawn_payout.gd` (`test_a_new_payout_stops_the_pending_launches_of_the_one_it_supersedes`) | ✅ | ✅ green |
-| IN-02 / IN-03 fix (pass 8) | review | — | DEV-03 | T-01-15 | Buildings counted by tier (no snapshot allocation); a section titled like a default one is refused | unit | `test_debug_overlay_readonly.gd` (`test_registering_a_default_section_title_is_refused_instead_of_showing_it_twice`) | ✅ | ✅ green |
+| IN-02 / IN-03 fix (pass 8) | review | — | DEV-03 | T-01-15 | Buildings counted by tier (no snapshot allocation); a section titled like a default one is refused | unit | `test_debug_overlay_providers.gd` (`test_registering_a_default_section_title_is_refused_instead_of_showing_it_twice`) | ✅ | ✅ green |
 | WR-01 / WR-02 / IN-01 fix (pass 9) | review | — | ECON-02 | — | Absurdly large amounts are clamped so the coin cap holds; fired launch tweens are no longer reported as waiting; a coinless payout does not report the previous total | e2e | `test_dawn_payout_hardening.gd` (3 tests, new file) | ✅ | ✅ green |
 | WR-03 / IN-02 fix (pass 9) | review | — | ECON-02 | — | Camera test null-guarded; test hooks documented, `start_point` public | e2e | `test_dawn_payout.gd` | ✅ | ✅ green |
-| IN-03 fix (pass 9) | review | — | DEV-03 | T-01-15 | A provider whose Callable became invalid (its object was freed) is dropped after its one warning | unit | `test_debug_overlay_readonly.gd` (`test_a_provider_with_an_invalid_callable_is_dropped_after_its_one_warning`, renamed in pass 14) | ✅ | ✅ green |
+| IN-03 fix (pass 9) | review | — | DEV-03 | T-01-15 | A provider whose Callable became invalid (its object was freed) is dropped after its one warning | unit | `test_debug_overlay_providers.gd` (`test_a_provider_with_an_invalid_callable_is_dropped_after_its_one_warning`, renamed in pass 14) | ✅ | ✅ green |
 | WR-01 fix (pass 10) | review | — | ECON-02 | — | A tightened stagger keeps a `DAWN_MARGIN_SECONDS` (0.15 s) landing margin before dawn ends; the default tuning keeps the full stagger | e2e | `test_dawn_payout.gd` (`test_a_crowded_payout_tightens_the_stagger_to_fill_the_dawn_window_less_its_margin` + a margin assertion in the CR-01 guard) | ✅ | ✅ green |
 | IN-01 fix (pass 10) | review | — | ECON-02 | — | `start_point` before `bind_run` falls back to mid-screen instead of dereferencing a null run | e2e | `test_dawn_payout_hardening.gd` (`test_start_point_before_the_run_is_bound_falls_back_to_mid_screen`) | ✅ | ✅ green |
-| IN-02 / IN-03 fix (pass 10) | review | — | DEV-03 | T-01-15 | The provider warning re-arms once the provider returns rows again; the freed-owner and needs-an-argument tests assert their warnings | unit | `test_debug_overlay_readonly.gd` (`test_a_flapping_provider_warns_again_after_it_recovers` + 2 tests extended) | ✅ | ✅ green |
-| WR-01 fix (pass 11) | review | — | DEV-03 | T-01-15 | A provider can name the object its lambda captured as `owner`; once that owner is freed the section is warned about once and dropped, while live captures keep showing | unit | `test_debug_overlay_readonly.gd` (`test_a_lambda_that_captured_a_freed_object_is_skipped_when_it_names_that_owner`, `test_a_lambda_that_captured_a_live_object_keeps_showing_with_or_without_an_owner`) | ✅ | ✅ green |
-| IN-01 / IN-02 fix (pass 11) | review | — | ECON-02, DEV-03 | T-01-15 | Payout test hooks grouped and documented (no behaviour change); the overlay read-only test builds its context from duplicated resources | e2e + unit | `test_dawn_payout.gd`, `test_debug_overlay_readonly.gd` | ✅ | ✅ green |
+| IN-02 / IN-03 fix (pass 10) | review | — | DEV-03 | T-01-15 | The provider warning re-arms once the provider returns rows again; the freed-owner and needs-an-argument tests assert their warnings | unit | `test_debug_overlay_providers.gd` (`test_a_flapping_provider_warns_again_after_it_recovers` + 2 tests extended) | ✅ | ✅ green |
+| WR-01 fix (pass 11) | review | — | DEV-03 | T-01-15 | A provider can name the object its lambda captured as `owner`; once that owner is freed the section is warned about once and dropped, while live captures keep showing | unit | `test_debug_overlay_providers.gd` (`test_a_lambda_that_captured_a_freed_object_is_skipped_when_it_names_that_owner`, `test_a_lambda_that_captured_a_live_object_keeps_showing_with_or_without_an_owner`) | ✅ | ✅ green |
+| IN-01 / IN-02 fix (pass 11) | review | — | ECON-02, DEV-03 | T-01-15 | Payout test hooks grouped and documented (no behaviour change); the overlay read-only test builds its context from duplicated resources | e2e + unit | `test_dawn_payout.gd`, `test_debug_overlay_readonly.gd` (context now built by `tests/support/overlay_test_support.gd`, still from duplicated resources) | ✅ | ✅ green |
 | WR-01 / IN-02 fix (pass 12) | review | — | DEV-03 | T-01-15 | Sections registered before `bind_run` are held and replayed in order (a pending one whose owner died is left out with a warning); a repeat `bind_run` keeps them; the owner parameter is `lifetime_owner`, not `owner` | unit | `test_debug_overlay_registration.gd` (5 tests, new file) | ✅ | ✅ green |
 | WR-02 fix (pass 12) | review | — | DEV-03, BLDG-06 | T-01-15 | The overlay's Loop section shows the Timer row by night and dawn only, follows the clock, counts days and nights, and 200 collects by night and by dawn change no state and emit no events | unit | `test_debug_overlay_timed_phases.gd` (7 tests, new file) | ✅ | ✅ green |
-| IN-01 / IN-03 fix (pass 12) | review | — | ECON-02, DEV-03 | — | The payout view counts and frees only its coins (group `payout_coin`); overlay sections keyed by title keep replace-in-place order | e2e + unit | `test_dawn_payout_hardening.gd` (`test_a_child_that_is_not_a_coin_is_neither_counted_nor_freed_by_a_payout`), `test_debug_overlay_readonly.gd` | ✅ | ✅ green |
-| WR-01 / IN-01 fix (pass 13) | review | — | DEV-03 | T-01-15 | A provider whose rows are dropped as malformed is warned about once per failure streak (re-armed only by a fully well-formed answer); the permanent-failure check is derived from the skip reason | unit | `test_debug_overlay_readonly.gd` (malformed-rows test extended) | ✅ | ✅ green |
+| IN-01 / IN-03 fix (pass 12) | review | — | ECON-02, DEV-03 | — | The payout view counts and frees only its coins (group `payout_coin`); overlay sections keyed by title keep replace-in-place order | e2e + unit | `test_dawn_payout_hardening.gd` (`test_a_child_that_is_not_a_coin_is_neither_counted_nor_freed_by_a_payout`), `test_debug_overlay_providers.gd` | ✅ | ✅ green |
+| WR-01 / IN-01 fix (pass 13) | review | — | DEV-03 | T-01-15 | A provider whose rows are dropped as malformed is warned about once per failure streak (re-armed only by a fully well-formed answer); the permanent-failure check is derived from the skip reason | unit | `test_debug_overlay_providers.gd` (malformed-rows test extended) | ✅ | ✅ green |
 | WR-02 fix (pass 13) | review | — | ECON-01, ECON-02 | — | A payout claiming no gold but listing per-spot amounts warns and shows nothing; a payout of only negative amounts shows nothing and leaves the HUD on the ledger | e2e | `test_dawn_payout_hardening.gd` (`test_a_payout_claiming_no_gold_but_listing_amounts_is_reported_and_shows_nothing`, `test_a_payout_of_only_negative_amounts_shows_nothing_and_leaves_the_hud_on_the_ledger`) | ✅ | ✅ green |
 | IN-02 / IN-03 fix (pass 13) | review | — | DEV-03 | T-01-15 | The night/dawn read-only check also snapshots every spot's tier and the unit/enemy counts; registration tests show the overlay through the real toggle action and wait frames, not wall-clock time | unit | `test_debug_overlay_timed_phases.gd`, `test_debug_overlay_registration.gd` | ✅ | ✅ green |
 | WR-01 fix (pass 14) | review | — | DEV-03 | T-01-15 | Every read-only overlay suite watches one shared `SimSignals.ALL` list, and the drift guard checks that list against `SimEvents`, so no suite silently under-watches a new signal | unit | `test_debug_overlay_readonly.gd` (drift guard), `test_debug_overlay_timed_phases.gd`; shared list `tests/support/sim_signals.gd` | ✅ | ✅ green |
-| IN-01 / IN-03 fix (pass 14) | review | — | DEV-03 | T-01-15 | Overlay skip handling branches on `Skip` codes (messages in one table, `GONE_FOR_GOOD` names the permanent ones), not message text; the invalid-callable test is named for what it pins | unit | `test_debug_overlay_readonly.gd` | ✅ | ✅ green |
+| IN-01 / IN-03 fix (pass 14) | review | — | DEV-03 | T-01-15 | Overlay skip handling branches on `Skip` codes (messages in one table, `GONE_FOR_GOOD` names the permanent ones), not message text; the invalid-callable test is named for what it pins | unit | `test_debug_overlay_providers.gd` | ✅ | ✅ green |
 | IN-02 / IN-04 fix (pass 14) | review | — | ECON-02 | — | The clamp test pins the exact plan (`MAX_COINS` coins split evenly between the two spots) and the shown total; dead night-length setup removed | e2e | `test_dawn_payout_hardening.gd` | ✅ | ✅ green |
+| WR-01 / WR-02 fix (pass 15) | review | — | DEV-03 | T-01-15 | A provider whose problem changes within one failure streak is named again (a changing count of malformed rows is not a new problem); every `Skip` code except NONE has a message | unit | `test_debug_overlay_providers.gd` (`test_a_provider_whose_problem_changes_within_one_streak_is_named_again`, `test_the_count_of_malformed_rows_changing_is_not_a_new_problem`, `test_every_skip_code_except_none_has_a_message`) | ✅ | ✅ green |
+| IN-04 fix (pass 15) | review | — | DEV-03 | T-01-15 | A section registered with an already-freed `lifetime_owner` is refused with a warning (model and overlay, before and after `bind_run`) instead of a script error at the call site | unit | `test_debug_overlay_providers.gd` (`test_a_section_whose_owner_was_already_freed_is_refused_with_a_warning`), `test_debug_overlay_registration.gd` (`test_a_section_registered_with_an_already_freed_owner_is_refused_before_and_after_bind_run`) | ✅ | ✅ green |
+| IN-01 / IN-02 / IN-03 fix (pass 15) | review | — | DEV-03, ECON-02 | T-01-15 | Overlay suites share setup, lookup and the 200-collect read-only assertion (`tests/support/overlay_test_support.gd`); 12 provider tests moved unchanged into their own suite; a payout-test comment corrected | unit + e2e | `test_debug_overlay_readonly.gd`, `test_debug_overlay_providers.gd`, `test_debug_overlay_timed_phases.gd`, `test_dawn_payout_hardening.gd` | ✅ | ✅ green |
 
 Owner gates with no automated verify by design: 01-01-T2 (toolchain download approval), 01-03-T2 (public repo name), 01-07-T2 (CC0 model download approval). No run of three consecutive tasks lacks automated verification.
 
@@ -147,7 +150,7 @@ Owner gates with no automated verify by design: 01-01-T2 (toolchain download app
 | ART-02 | `test_attribution_log` (every third-party file covered by exactly one entry, allow-listed licences, ASSETS.md in sync) | COVERED |
 | DEV-01 | Whole suite runs headless from the command line (`tools/test.sh`); `test_build_flow` runs without a scene tree; `test_toolchain_smoke` | COVERED |
 | DEV-02 | `ci.yml` lint/test/export/screenshots jobs on push; export + launch + pre-push checks re-run locally | COVERED |
-| DEV-03 | `test_debug_overlay_readonly`, `test_debug_overlay_timed_phases`, `test_debug_overlay_registration`, `test_debug_overlay_toggle` (FPS, phase, gold, buildings, units, enemies; wave-state and pathing rows are Phase 2 scope per ROADMAP SC5) | COVERED (Phase 1 scope) |
+| DEV-03 | `test_debug_overlay_readonly`, `test_debug_overlay_providers`, `test_debug_overlay_timed_phases`, `test_debug_overlay_registration`, `test_debug_overlay_toggle` (FPS, phase, gold, buildings, units, enemies; wave-state and pathing rows are Phase 2 scope per ROADMAP SC5) | COVERED (Phase 1 scope) |
 | DEV-04 | `tools/screenshot.sh` six scenes, `test_shot_blank_check`, headless guard, CI `screenshots` job | COVERED |
 
 ---
@@ -460,6 +463,30 @@ Re-audited after the fourteenth review-fix pass (5 commits, `24f0e1e`..`3f3ee45`
 Evidence:
 - Full suite 260/260 (34 scripts); lint clean (69 files).
 - Unit quick run 156/156 (18 scripts, ~12 s).
+- `tools/screenshot.sh`: 6/6 non-blank captures.
+- Headless guard exits 2.
+- `ci.yml` unchanged.
+
+## Validation Audit 2026-09-30 (re-audit after review-fix pass 15)
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Re-audited after the fifteenth review-fix pass (6 commits, `639f5fd`..`4fac944`). 15/15 requirements are still COVERED.
+
+- **Tests:** +5 new. 12 provider tests moved unchanged from `test_debug_overlay_readonly.gd` into the new `test_debug_overlay_providers.gd`; none was removed.
+  - The map rows for those tests (passes 2 to 14) now point at the providers suite.
+  - The read-only contract tests (01-08-T1, the drift guard) stay in `test_debug_overlay_readonly.gd`.
+  - Shared setup and the 200-collect assertion now live in `tests/support/overlay_test_support.gd`, which is test-only and not collected by GUT. Plan 01-08's artifact check still passes (`verify.artifacts` 3/3).
+- **Mutation probes:** every behaviour change carries one in `01-REVIEW-FIX.md`. IN-02 (a pure move) and IN-03 (a comment) need none.
+- **CR-01 guard:** re-probed by the orchestrator; it fails 17/18 with the old spacing. `dawn_payout_vfx.gd` was not touched this pass.
+
+Evidence:
+- Full suite 265/265 (35 scripts, ~96 s); lint clean (71 files).
+- Unit quick run 161/161 (19 scripts, ~13 s).
 - `tools/screenshot.sh`: 6/6 non-blank captures.
 - Headless guard exits 2.
 - `ci.yml` unchanged.
