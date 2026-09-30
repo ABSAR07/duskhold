@@ -16,8 +16,8 @@ files_reviewed_list:
 findings:
   critical: 0
   warning: 3
-  info: 5
-  total: 8
+  info: 3
+  total: 6
 status: issues_found
 ---
 
@@ -30,71 +30,71 @@ status: issues_found
 
 ## Summary
 
-Reviewed the building system, the HUD and dawn-payout VFX, the debug overlay model, and the tests that cover them. I traced the dawn payout flow through `RunManager._apply_dawn_payout`, `DawnPayoutVfx` and `Hud`, and checked the `MapConfig.validate()` error strings the data-error tests depend on. The payout accounting holds up. Coin shares sum to each spot's amount, the announced `carried_total` equals the sum of landed shares, and the `_generation` guard stops a stale payout from touching the counters. The HUD's `_payout_pending = carried_total` assignment resets the lag on every payout. I found no crashes, security issues or data-loss paths. The findings below are robustness and correctness edges, mostly in how the code handles data errors and non-default input setups.
+Reviewed the building system, the HUD and dawn-payout view, the debug overlay model and their unit and e2e tests. Cross-checked against `MapConfig.validate`, `RunContext`, `RunManager._apply_dawn_payout`, `SimEvents`, `hud.tscn`, `E2eSupport` and the GUT 9.7.1 error tracker.
+
+No correctness bugs or security problems were found in the shipped logic. I traced these paths and found no defect:
+
+- Coin share arithmetic: no modulo by zero, and a spot's shares always sum to its amount.
+- HUD held-back gold accounting: `payout_started` assigns rather than adds, coin arrivals are clamped, and the phase-change backstop covers a dawn shorter than one coin trip.
+- The generation guard on stale launches and arrivals.
+- Empty and duplicate id handling in `BuildingSystem` against `validate()`.
+- The GUT push-error and push-warning assertions: the count assertion includes already-handled entries, so `assert_push_warning` followed by `assert_push_warning_count(1)` passes.
+
+The findings below are robustness gaps in the debug overlay's error reporting and test-reliability risks.
 
 ## Warnings
 
-### WR-01: Start-night hint names the wrong key on non-QWERTY keyboard layouts
+### WR-01: A provider that returns a non-Array is skipped silently, contradicting the "warn once" design
 
-**File:** `ui/hud/hud.gd:183-185`
-**Issue:** `_key_text` prefers `as_text_physical_keycode()`. Godot's physical-keycode text names the key by its US-QWERTY position, not by the label printed on the user's keycap. Default bindings are stored as `physical_keycode` (the tests use `KEY_N`). For a player on Dvorak, AZERTY or similar, the prompt "Hold N to start Night 2" can point at a key whose cap reads something else. The prompt is the only place the player learns this binding, so a wrong hint means they cannot start the night.
-**Fix:** Resolve the layout-specific label for physical keys before falling back to the QWERTY name.
-```gdscript
-if key_event.physical_keycode != KEY_NONE:
-	var label_key: Key = DisplayServer.keyboard_get_label_from_physical(key_event.physical_keycode)
-	var text: String = OS.get_keycode_string(label_key | key_event.get_modifiers_mask())
-	return text if not text.is_empty() else key_event.as_text_physical_keycode()
-```
-Verify the API name and modifier handling against 4.7 before adopting.
-
-### WR-02: Debug-overlay providers with default arguments are silently dropped
-
-**File:** `ui/overlay/debug_overlay_model.gd:39-40`
-**Issue:** `provider.get_argument_count() > 0` also counts parameters that have defaults. A provider such as `func _wave_rows(verbose := false) -> Array` can be called with no arguments, yet it is skipped on every refresh without any message. This is the extension point Phase 2 will use for wave and path sections, and the failure mode is a section that quietly never appears. The invalid-Callable and needs-an-argument paths are equally silent.
-**Fix:** Warn once per skipped provider so a misregistered section is discoverable, for example by keeping a `_warned: Dictionary` of titles and calling `push_warning("debug overlay section '%s' skipped: ..." % entry["title"])` on first skip. Alternatively, validate in `register_section` where the caller is on the stack.
-
-### WR-03: BuildingSystem does not skip an empty building id, unlike spots
-
-**File:** `simulation/buildings/building_system.gd:16-20`
-**Issue:** The constructor skips spots with an empty id because it "could not be told apart from 'no spot in range'". A `BuildingDef` with `id == &""` is not skipped. It is stored as `_defs[&""]`, and any spot whose `building_id` is `&""` (the unset default) then resolves to that def. `MapConfig.validate()` reports both cases as errors, but `RunContext` only pushes the error and carries on, so the game builds it anyway. The two data-error paths are inconsistent, and the "data error is reported and skipped" contract is only half implemented. There is also no test for it in `test_building_system_data_errors.gd`.
+**File:** `ui/overlay/debug_overlay_model.gd:45-47`
+**Issue:** `_warn_once` exists because "a section that silently never shows is hard to notice". Invalid callables and providers with parameters get a warning, but a provider that returns `null` or a `String` (`if rows is Array`) is dropped with no diagnostic. `test_a_provider_that_returns_a_non_array_is_skipped_instead_of_crashing` locks that silence in. A Phase 2 wave provider that returns `null` by mistake produces a missing section and no clue why.
 **Fix:**
 ```gdscript
-if building_def == null or building_def.id == &"" or _defs.has(building_def.id):
-	continue
+var rows: Variant = provider.call()
+if rows is Array:
+	sections.append(_section(entry["title"], _clean_rows(rows)))
+else:
+	_warn_once(entry["title"], "it returned %s, not an Array of rows" % type_string(typeof(rows)))
 ```
-Add a test alongside the empty-spot-id one.
+Add a `push_warning` assertion to the test.
+
+### WR-02: `_warned` is never cleared when a provider is re-registered
+
+**File:** `ui/overlay/debug_overlay_model.gd:23-28, 62-66`
+**Issue:** `register_section` replaces the provider for an existing title but leaves `_warned[title]` set. If a broken provider is replaced by another broken one, or a fixed one later breaks, the new failure is never reported. The one-shot suppression is keyed by title, not by provider.
+**Fix:** In the replace branch, add `_warned.erase(title)` before returning.
+
+### WR-03: Wall-clock-dependent e2e assertions can flake on a slow or loaded runner
+
+**File:** `tests/e2e/test_dawn_payout.gd:104-110`, `tests/e2e/test_start_night_hold.gd:100-104`
+**Issue:**
+- `test_coins_are_in_flight_and_the_counter_lags_early_in_dawn` says "no real-time wait, so no race", but it relies on the first coin (0.6 s trip) still being airborne after `wait_until` returns and one more frame. A hitch over 0.6 s, such as a first-frame shader compile or CI contention, lands the coin and fails `assert_lt(shown, gold)` and `assert_gte(live_coin_count, 1)`.
+- `test_a_tap_fills_the_prompt_but_releasing_early_keeps_the_day` waits 30% of the hold in real time, then asserts the ratio is below 1.0. A stall of more than 70% of the hold time flips it.
+
+**Fix:** Assert immediately after the phase change, with no extra frame wait, or drive the payout deterministically with a direct `ctx.events.dawn_payout.emit(...)` followed by an immediate check (other tests here already do this). For the hold test, hold a slower-tuned duplicate (`start_night_hold_seconds` at 5 s or more) so the 30% mark has wide margin.
 
 ## Info
 
-### IN-01: Rebind detection relies on event object identity
+### IN-01: `BuildingSystem.get_instance` hands out the live mutable instance, contradicting the "reads never mutate" contract
 
-**File:** `ui/hud/hud.gd:79`
-**Issue:** `InputMap.action_get_events(...) != _hint_events` compares the arrays element by element, so it detects only added, removed or replaced event objects. A rebind UI that edits an existing event in place (for example setting `physical_keycode` on the stored `InputEventKey`) leaves the prompt stale. Nothing in Phase 1 rebinds this way, but a later remapping screen might.
-**Fix:** Compare a derived signature instead, such as the resulting hint string, or document that rebinding must replace events.
+**File:** `simulation/buildings/building_system.gd:3-4, 50-52`
+**Issue:** The header says only `apply_next_tier` mutates, and `DebugOverlayModel` is documented as strictly read-only. `get_instance` returns the stored `BuildingInstance`, whose `tier` is a plain public field. Any reader (an overlay section provider, a view) can bump it without emitting `building_built` or going through `CommandProcessor`. The same applies to the shared `BuildSpotDef` and `BuildingDef` resources. The read-only test cannot catch this, because it only exercises the model's own getters.
+**Fix:** Have `get_instance` return a duplicate or a read-only snapshot, or document the caveat and give callers `current_tier()` and friends. If it stays as is, soften the "never mutate" wording.
 
-### IN-02: Joypad axis hint hides the direction
+### IN-02: `DawnPayoutVfx._on_dawn_payout` trusts untyped Dictionary values as `int`
 
-**File:** `ui/hud/hud.gd:173-175`
-**Issue:** Every `InputEventJoypadMotion` shows as `(Axis N)` or `(LT)`/`(RT)` regardless of `axis_value` sign. A stick bound to "left" and one bound to "right" read identically. This is cosmetic, and the Xbox-only naming is already documented as a known limitation.
-**Fix:** Append the direction for non-trigger axes, or accept and document.
+**File:** `ui/hud/dawn_payout_vfx.gd:127-132, 140`
+**Issue:** `per_spot` arrives as an untyped `Dictionary`. `for amount: int in per_spot.values()` and `var amount: int = per_spot[spot_id]` raise a runtime type error inside a signal handler if a value is a float or null. That would happen after `_reset_for_new_payout` has already run and after the Economy was credited. `RunManager` emits ints today, so this only matters if a later payout source (Phase 2 rebuild refunds) emits floats.
+**Fix:** Coerce once, for example `var amount: int = int(per_spot[spot_id])`, or skip non-int values with a warning.
 
-### IN-03: Tautological test of the stagger formula
+### IN-03: Redundant HUD refresh triggers and a test that emits synthetic phase transitions
 
-**File:** `tests/e2e/test_dawn_payout.gd:197-214`
-**Issue:** `test_the_last_coin_lands_inside_the_dawn_window_however_many_spots_pay` recomputes `(n-1) * stagger + TRIP_SECONDS` from `launch_stagger`'s own output. It checks the formula against itself, not real scheduling. It also spawns a full map it does not use. The next test (`test_a_real_payout_schedules_its_last_coin...`) is the meaningful one. Consider dropping the first test or reducing it to the `launch_stagger` clamp assertions.
-**Fix:** Delete the redundant last-lands assertion, or construct the vfx directly instead of spawning a map.
+**File:** `ui/hud/hud.gd:118-131`, `tests/e2e/test_dawn_payout.gd:382`
+**Issue:**
+- `_on_night_started` and `_on_day_started` only call `_refresh_loop()`, and `_on_phase_changed` already calls it for every transition, so the two extra connections do redundant work.
+- `test_the_hud_releases_a_held_back_readout_when_dawn_ends` emits a fake `phase_changed(DAWN, DAY)` on the real `ctx.events` while the run is actually in DAY. Every other subscriber on that bus (lighting, controllers) also receives the bogus transition, so the test can pass or fail for reasons unrelated to the HUD.
 
-### IN-04: Double-bind test does not cover most HUD connections
-
-**File:** `tests/e2e/test_map_binding.gd:73-91`
-**Issue:** `test_binding_the_hud_and_payout_view_again_connects_nothing_twice` counts only `gold_changed`, `dawn_payout`, `coin_landed` and `payout_started`. `Hud.bind_run` also connects `phase_changed`, `night_started`, `day_started`, the three `BuildHoldController` signals and the start-night `progress_changed`. A regression in the repeat-call guard that only affected those would go unnoticed.
-**Fix:** Add connection-count assertions for `phase_changed`, `night_started`, `day_started` and the hold signals.
-
-### IN-05: Coin start point is not guarded against a position behind the camera
-
-**File:** `ui/hud/dawn_payout_vfx.gd:230-235`
-**Issue:** `Camera3D.unproject_position` returns a mirrored screen point for a world position behind the camera. The fallback only covers a missing camera or spot. With the current fixed top-down camera this cannot happen, so it is a latent issue for later camera work.
-**Fix:** `if camera.is_position_behind(world_pos): return get_viewport_rect().size * 0.5`.
+**Fix:** Drop the two redundant handlers, or keep them and note why. In the test, call `hud._on_phase_changed(...)` directly, or drive a real dawn to day transition with `run_manager.tick`.
 
 ---
 
