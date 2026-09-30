@@ -159,6 +159,20 @@ func test_a_skipped_provider_is_warned_about_once_however_often_the_overlay_refr
 	assert_push_warning_count(1, "one warning, not one per refresh")
 
 
+func test_replacing_a_warned_provider_lets_the_new_one_warn_again() -> void:
+	var model: DebugOverlayModel = DebugOverlayModel.new(_prototype_with_one_house())
+	model.register_section("Wave", func(wave: int) -> Array: return [["Wave", str(wave)]])
+	model.collect(60.0)
+
+	model.register_section("Wave", func() -> Variant: return null)
+	model.collect(60.0)
+	model.collect(60.0)
+
+	assert_push_warning("debug overlay section 'Wave' skipped: it declares parameters")
+	assert_push_warning("debug overlay section 'Wave' skipped: it returned Nil")
+	assert_push_warning_count(2, "one warning per provider, however often the overlay refreshes")
+
+
 func test_a_provider_that_returns_a_non_array_is_skipped_instead_of_crashing() -> void:
 	var model: DebugOverlayModel = DebugOverlayModel.new(_prototype_with_one_house())
 	model.register_section("Null", func() -> Variant: return null)

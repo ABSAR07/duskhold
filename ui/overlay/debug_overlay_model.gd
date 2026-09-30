@@ -24,6 +24,8 @@ func register_section(title: String, provider: Callable) -> void:
 	for entry: Dictionary in _registered:
 		if entry["title"] == title:
 			entry["provider"] = provider
+			# The one-shot warning belongs to the provider, so a replacement may warn afresh.
+			_warned.erase(title)
 			return
 	_registered.append({"title": title, "provider": provider})
 
