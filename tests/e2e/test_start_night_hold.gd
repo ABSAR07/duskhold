@@ -364,6 +364,22 @@ func test_the_prompt_follows_a_runtime_rebind_of_start_night() -> void:
 	assert_eq(_prompt(map_root).text, "Hold M to start Night 1", "the new key is named, no pad")
 
 
+func test_the_prompt_follows_a_bound_key_edited_in_place() -> void:
+	var map_root: MapRoot = await E2eSupport.spawn_map(self, null, _tuning)
+	var key: InputEventKey = InputEventKey.new()
+	key.physical_keycode = KEY_N
+	InputMap.action_erase_events(ACTION)
+	InputMap.action_add_event(ACTION, key)
+	await wait_process_frames(2)
+	assert_eq(_prompt(map_root).text, "Hold N to start Night 1", "the first key is named")
+
+	# The same event object, edited: the InputMap's event list still holds the identical instance.
+	key.physical_keycode = KEY_M
+	await wait_process_frames(2)
+
+	assert_eq(_prompt(map_root).text, "Hold M to start Night 1", "the edit shows up in the prompt")
+
+
 ## Rebinds start_night to `event` alone and returns the prompt text once the HUD has noticed.
 func _prompt_after_rebind(map_root: MapRoot, event: InputEvent) -> String:
 	InputMap.action_erase_events(ACTION)
