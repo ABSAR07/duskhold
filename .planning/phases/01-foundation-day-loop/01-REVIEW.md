@@ -2,93 +2,93 @@
 phase: 01-foundation-day-loop
 reviewed: 2026-09-30T00:00:00Z
 depth: standard
-files_reviewed: 9
+files_reviewed: 4
 files_reviewed_list:
-  - simulation/buildings/building_system.gd
   - tests/e2e/test_dawn_payout.gd
-  - tests/e2e/test_map_binding.gd
-  - tests/e2e/test_start_night_hold.gd
-  - tests/unit/test_build_spot.gd
   - tests/unit/test_debug_overlay_readonly.gd
   - ui/hud/dawn_payout_vfx.gd
-  - ui/hud/hud.gd
   - ui/overlay/debug_overlay_model.gd
 findings:
   critical: 0
-  warning: 2
+  warning: 3
   info: 3
-  total: 5
+  total: 6
 status: issues_found
 ---
 
-# Phase 1: Code Review Report
+# Phase 01: Code Review Report
 
 **Reviewed:** 2026-09-30
 **Depth:** standard
-**Files Reviewed:** 9
+**Files Reviewed:** 4
 **Status:** issues_found
 
 ## Summary
 
-Reviewed the building system, the dawn payout VFX, the HUD, the debug overlay model and their unit and e2e tests.
-I traced the payout accounting end to end (RunManager `_apply_dawn_payout` -> `dawn_payout` -> `DawnPayoutVfx` -> `payout_started` / `coin_landed` -> `Hud._payout_pending`).
-Carried-gold accounting is consistent: a spot's coin shares always sum to its amount, `payout_started` carries exactly the sum of the shares, and the phase-change backstop covers coins that never land.
-The HUD change that dropped the `night_started` and `day_started` handlers is sound. `RunManager.start_night` bumps `_night_number` before `_change_phase`, and `_enter_day` bumps `_day_number` before `_change_phase`, so `phase_changed` alone always sees current numbers.
-`BuildingSystem` snapshot and skip logic is correct.
-No crash, security or data-loss defects were found. The remaining issues are robustness gaps in the new `_whole_amounts` hardening, one HUD/label inconsistency, and minor quality items.
+The four files were read in full and cross-checked against `ui/hud/hud.gd`, `ui/hud/hud.tscn`, `simulation/buildings/building_system.gd`, `simulation/events/sim_events.gd` and the GUT addon. `DebugOverlayModel` is sound: the read-only contract holds, the warn-once and replace-in-place paths are consistent, and the tests cover them. `DawnPayoutVfx` has correct generation guarding, HUD hold-back accounting (`payout_started` / `coin_landed` sum to the carried total) and dawn-window stagger math. No blockers. The remaining issues are one input-hardening gap in the VFX (int overflow bypasses the coin cap), one accessor whose behaviour contradicts its doc comment, and one test that dereferences an unchecked null.
 
 ## Warnings
 
-### WR-01: `_whole_amounts` validates amounts but not spot keys, so a bad key still aborts the payout
+### WR-01: Integer overflow in `carried_gold` defeats the coin cap and can spawn a huge number of coins
 
-**File:** `ui/hud/dawn_payout_vfx.gd:161-174` (consumed at 132 and 140)
-**Issue:** The docstring promises "one bad entry cannot abort the whole payout", but only the value type is checked. Keys are copied through as-is (`amounts[spot_id] = int(amount)`), and the later loops are typed `for spot_id: StringName in amounts`. A non-string key (for example an `int`, or `null`) makes the typed loop raise a script error and abort `_on_dawn_payout`.
-By then `_reset_for_new_payout()` has run and `_pending_total` is set, but `payout_started` was never emitted. The result is a half-initialised payout: the HUD is not told what the coins carry and no total is shown.
-The same function also does not guard `int(float)` for non-finite floats (`INF` and `NAN` convert to an implementation-defined integer), so a bad float can slip through as a garbage amount.
-**Fix:** Validate the key type in the same pass, and reject non-finite floats:
+**File:** `ui/hud/dawn_payout_vfx.gd:135-143, 192, 201-206`
+**Issue:** `_whole_amounts` exists to stop malformed `per_spot` entries aborting the payout. It rejects NaN, Inf and non-numbers, but not very large finite values. `int(amount)` on a float such as 1e30 is undefined, and two large int amounts can sum past 2^63. `carried_gold` then wraps to a negative number. `_coins_for_amount` tests `carried_gold <= MAX_COINS`, which is true for a negative value, so it returns `amount` as the coin count. `_on_dawn_payout` then builds a `launches` array of that many dictionaries and hangs the game. The cap is documented as a soft cap that always holds, and this input bypasses it. It needs a corrupt payout to trigger, so it is unlikely in practice, but the function's own goal is to survive malformed data.
+**Fix:** Clamp each coerced amount to a sane range in `_whole_amounts` so the sum cannot overflow, and clamp the result of `_coins_for_amount`:
 ```gdscript
-for spot_id: Variant in per_spot:
-	var amount: Variant = per_spot[spot_id]
-	var key_ok: bool = spot_id is StringName or spot_id is String
-	var amount_ok: bool = amount is int or (amount is float and is_finite(amount))
-	if key_ok and amount_ok:
-		amounts[StringName(spot_id)] = int(amount)
-	else:
-		push_warning("dawn payout entry %s ignored: %s" % [spot_id, amount])
+const MAX_AMOUNT: int = 1_000_000
+...
+amounts[StringName(spot_id)] = clampi(int(amount), -MAX_AMOUNT, MAX_AMOUNT)
+...
+func _coins_for_amount(amount: int, carried_gold: int) -> int:
+	if amount <= 0:
+		return 0
+	if carried_gold <= MAX_COINS:
+		return mini(amount, MAX_COINS)
+	return clampi(floori(float(amount) * float(MAX_COINS) / float(carried_gold)), 1, amount)
 ```
-Add a test with a non-string key alongside the existing float/null-amount test.
 
-### WR-02: The "+X gold" label shows the claimed total while the coins and the HUD readout use the carried gold
+### WR-02: `get_launch_tweens()` returns finished tweens, contradicting its documentation
 
-**File:** `ui/hud/dawn_payout_vfx.gd:124, 273-275` (asserted by `tests/e2e/test_dawn_payout.gd:207`)
-**Issue:** `_pending_total = total` (the claimed total) feeds the label, but the readout is held back and released by `carried` (the sum of the coin shares). The two diverge whenever `per_spot` does not sum to `total`.
-Example: `emit(9, {A: 4, B: -2})` flies 4 gold, the HUD lags by 4, and the label then reads "+9 gold". `test_the_coin_cap_follows_the_gold_that_flies_not_the_claimed_total` uses claimed 5 against 120 flying gold. The other tests treat `get_last_total()` as "the full payout", which enshrines the mismatch.
-With the real `RunManager` the two are equal, so this only bites when a later payout source (Phase 2 rebuild or LOOP-05 rules) reports a total that differs from `per_spot`. The displayed number would then contradict what the player watched fly in and what the counter gained.
-**Fix:** Decide on one source of truth. Either show the carried total (`_pending_total = carried`, set after the planning loop and before `payout_started.emit`), or log a `push_warning` when `carried != total` so the divergence is visible instead of silent. Update the tests to match.
+**File:** `ui/hud/dawn_payout_vfx.gd:94-97, 241-244`
+**Issue:** The doc says it returns "the delay tweens ... that have not launched yet". `_launch_tweens` is only appended to in `_schedule_launch` and only cleared in `_reset_for_new_payout`. A tween that has fired and finished stays in the array as an invalid Tween until the next payout. The accessor therefore reports launched coins as pending. `test_a_new_payout_stops_the_pending_launches...` passes only because it reads the array before any tween has fired. The array is also never pruned within a payout.
+**Fix:** Prune when a launch fires, or filter on read:
+```gdscript
+func get_launch_tweens() -> Array[Tween]:
+	return _launch_tweens.filter(func(t: Tween) -> bool: return t.is_valid())
+```
+Alternatively remove the tween from `_launch_tweens` inside `_launch_coin`.
+
+### WR-03: Camera test dereferences a possibly-null `vfx`
+
+**File:** `tests/e2e/test_dawn_payout.gd:233-236`
+**Issue:** `test_a_coin_starts_mid_screen_when_its_plot_is_behind_the_camera` calls `vfx.get_viewport()` without the `assert_not_null(vfx)` / early-return guard that every other test in the file uses. If the HUD node is missing, the test dies with a script error instead of a readable assertion failure. It also calls the private `vfx._start_point` directly.
+**Fix:** Add the guard used elsewhere:
+```gdscript
+var vfx: DawnPayoutVfx = _vfx(map_root)
+assert_not_null(vfx, "the HUD has a DawnPayoutVfx")
+if vfx == null:
+	return
+```
 
 ## Info
 
-### IN-01: `_launch` tweens from an earlier payout are never killed on reset
+### IN-01: `_last_total` is not reset between payouts
 
-**File:** `ui/hud/dawn_payout_vfx.gd:196-217`
-**Issue:** `_reset_for_new_payout` kills `_total_tween` and frees coins, but the per-coin delay tweens created in `_schedule_launch` (`create_tween()` on the VFX node) keep running until they fire. The `generation` guard makes them harmless no-ops, but a payout that supersedes an in-progress one leaves up to `MAX_COINS` orphan tweens alive for up to the previous stagger window.
-**Fix:** Keep the scheduling tweens in an `Array[Tween]` and kill them in `_reset_for_new_payout`, or drive one sequential tween per payout. The generation guard can stay as a backstop.
+**File:** `ui/hud/dawn_payout_vfx.gd:41, 217-233`
+**Issue:** `_reset_for_new_payout` clears every other per-payout field but not `_last_total`. After day 1 pays, a day 2 payout with no coins still reports the day 1 total from `get_last_total()`. The doc ("most recent payout whose total was shown") permits this. The test at line 315 (`get_last_total() == 0`, "no total was shown") only passes because it runs on a fresh VFX, so the assertion is weaker than its message.
+**Fix:** Either reset `_last_total = 0` in `_reset_for_new_payout`, or make the test messages say "no total yet".
 
-### IN-02: `_count_buildings` allocates a snapshot per spot on every overlay refresh just to test for emptiness
+### IN-02: Test-only accessors and private access widen the production surface
 
-**File:** `ui/overlay/debug_overlay_model.gd:112-117`
-**Issue:** `get_instance` now returns a fresh `BuildingInstance` copy (`_snapshot`), so counting buildings allocates one object per occupied spot on every `collect()`. `current_tier(spot_id) > 0` answers the same question without allocating and states the intent more directly.
-**Fix:**
-```gdscript
-if _ctx.buildings.current_tier(spot_id) > 0:
-	count += 1
-```
+**File:** `ui/hud/dawn_payout_vfx.gd:88-97`, `tests/e2e/test_dawn_payout.gd:241, 251`
+**Issue:** `get_launch_delays`, `get_launch_tweens` and `get_spawned_count` exist only for tests, and the tests still reach into `_start_point`. Harmless, but the accessors are a coupling point that WR-02 shows can drift from their documentation.
+**Fix:** Keep them, but name or annotate them as test hooks, or make `_start_point` a public `start_point` so the test does not use a private member.
 
-### IN-03: A registered section named like a default ("Perf", "Loop", "Agents") shows twice
+### IN-03: Unreachable providers stay registered for the model's lifetime
 
-**File:** `ui/overlay/debug_overlay_model.gd:23-30, 33-38`
-**Issue:** `register_section` de-duplicates only against other registered sections. Registering the title "Loop" appends a second "Loop" section after the built-in one. The docstring's "a section never shows twice" therefore holds only among registered sections, and the test helper `_section()` returns the first match, hiding the duplicate.
-**Fix:** Reject or warn on titles that collide with the default section names, or document the limitation on `register_section`.
+**File:** `ui/overlay/debug_overlay_model.gd:49-56`
+**Issue:** A section whose Callable has gone invalid, or that declares parameters, is skipped on every `collect()` and re-checked on every refresh. It is never pruned. It is warned about once, so nothing breaks. An invalid-callable entry can never recover and could be dropped after the warning.
+**Fix:** Optionally remove entries whose `provider.is_valid()` is false after warning. Low priority.
 
 ---
 
