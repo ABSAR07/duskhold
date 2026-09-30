@@ -131,3 +131,45 @@ func test_a_child_that_is_not_a_coin_is_neither_counted_nor_freed_by_a_payout() 
 	assert_true(landed, "the last payout landed")
 	assert_true(is_instance_valid(marker), "and the child is still there")
 	assert_eq(vfx.live_coin_count(), 0, "with every coin gone, none is counted")
+
+
+func test_a_payout_of_only_negative_amounts_shows_nothing_and_leaves_the_hud_on_the_ledger(
+) -> void:
+	var map_root: MapRoot = await _spawn()
+	var ctx: RunContext = map_root.get_context()
+	var vfx: DawnPayoutVfx = _vfx(map_root)
+	assert_not_null(vfx, "the HUD has a DawnPayoutVfx")
+	if vfx == null:
+		return
+	watch_signals(vfx)
+
+	# The Economy was credited the claimed 5, but no per-spot amount can carry a coin.
+	ctx.events.dawn_payout.emit(5, {HOUSE_ONE: -3})
+	await wait_process_frames(2)
+
+	assert_signal_emitted_with_parameters(vfx, "payout_started", [0])
+	assert_push_warning("dawn payout claims 5 gold but its per-spot amounts carry 0")
+	assert_eq(vfx.live_coin_count(), 0, "no coin flew")
+	assert_eq(vfx.get_last_total(), 0, "no total was shown")
+	assert_false(_total_shown(map_root), "and no '+X gold' label appeared")
+	assert_true(_hud_gold_settled(map_root), "the readout is not held back by gold no coin carries")
+
+
+func test_a_payout_claiming_no_gold_but_listing_amounts_is_reported_and_shows_nothing() -> void:
+	var map_root: MapRoot = await _spawn()
+	var ctx: RunContext = map_root.get_context()
+	var vfx: DawnPayoutVfx = _vfx(map_root)
+	assert_not_null(vfx, "the HUD has a DawnPayoutVfx")
+	if vfx == null:
+		return
+	watch_signals(vfx)
+
+	ctx.events.dawn_payout.emit(0, {HOUSE_ONE: 3})
+	await wait_process_frames(2)
+
+	assert_push_warning("dawn payout claims 0 gold but lists per-spot amounts")
+	assert_push_warning_count(1, "one warning for the disagreement")
+	assert_signal_emitted_with_parameters(vfx, "payout_started", [0])
+	assert_eq(vfx.live_coin_count(), 0, "the listed amount sends no coin")
+	assert_false(_total_shown(map_root), "and no '+X gold' label appears")
+	assert_true(_hud_gold_settled(map_root), "the readout stays on the ledger")

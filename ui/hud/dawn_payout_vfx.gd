@@ -149,6 +149,12 @@ func _make_coin_texture() -> GradientTexture2D:
 func _on_dawn_payout(total: int, per_spot: Dictionary) -> void:
 	_reset_for_new_payout()
 	if total <= 0:
+		# A dawn that pays nothing has an empty per_spot; a non-empty one disagrees with its own
+		# total, the same kind of mismatch that is reported below once coins are planned.
+		if not per_spot.is_empty():
+			push_warning(
+				"dawn payout claims %d gold but lists per-spot amounts; nothing shown" % total
+			)
 		payout_started.emit(0)
 		return
 	var amounts: Dictionary = _whole_amounts(per_spot)
