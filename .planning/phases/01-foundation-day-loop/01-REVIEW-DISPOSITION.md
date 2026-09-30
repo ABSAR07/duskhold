@@ -5,48 +5,48 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: fixed
-    title: "DawnPayoutVfx.bind_run is not idempotent, and the \"bind again\" test does not cover it"
+    disposition: open
+    title: "Start-night hint reports \"(unbound)\" for bindings that work"
   - id: WR-02
     severity: warning
-    disposition: fixed
-    title: "Start-night prompt hint goes stale after a runtime rebind"
+    disposition: open
+    title: "HUD readout lag is derived independently of the VFX, so it holds only by an unenforced invariant"
   - id: WR-03
     severity: warning
-    disposition: fixed
-    title: "Wall-clock timing assertion in the short-dawn payout test"
+    disposition: open
+    title: "The coin cap and the \"fits the dawn window\" guarantee are not actually enforced"
   - id: WR-04
     severity: warning
-    disposition: fixed
-    title: "BuildingSystem duplicate handling is inconsistent (spots keep first, buildings keep last)"
+    disposition: open
+    title: "BuildingSystem hardening is inconsistent: empty-id spots are kept and `apply_next_tier` is unguarded"
   - id: WR-05
     severity: warning
-    disposition: fixed
-    title: "spot_ids() exposes the internal order array"
+    disposition: open
+    title: "Two e2e tests claim more than they assert"
   - id: IN-01
     severity: info
-    disposition: fixed
-    title: "DebugOverlayModel robustness gaps"
+    disposition: open
+    title: "Orphaned comment above the house constants"
   - id: IN-02
     severity: info
-    disposition: fixed
-    title: "Missing null guards in test_start_night_hold"
+    disposition: open
+    title: "PAD_BUTTON_NAMES is Xbox-only"
   - id: IN-03
     severity: info
-    disposition: fixed
-    title: "Magic literals and a hidden coupling to tuning in test_start_night_hold"
+    disposition: open
+    title: "`_coin_share` does integer division through floats"
   - id: IN-04
     severity: info
-    disposition: fixed
-    title: "Weak identity assertion in the duplicate-spot test"
+    disposition: open
+    title: "Default-binding test depends on suite order"
+  - id: IN-05
+    severity: info
+    disposition: open
+    title: "Debug overlay accepts duplicate titles and cannot detect impure providers"
   - id: CR-01
     severity: critical
     disposition: fixed
     title: "WR-10 stagger fix is a no-op; the computed `stagger` is never used"
-  - id: IN-05
-    severity: info
-    disposition: fixed
-    title: "Redundant `get_spot` lookups and a magic-number spacing in `_add_marker`"
   - id: WR-06
     severity: warning
     disposition: skipped
@@ -87,26 +87,26 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 0
+open: 10
 total: 21
-recorded: 2026-09-29T17:18:00.751Z
+recorded: 2026-09-30T06:49:01.551Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-02 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-03 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-04 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-05 | warning | fixed | 01-REVIEW-FIX.md |
-| IN-01 | info | fixed | 01-REVIEW-FIX.md |
-| IN-02 | info | fixed | 01-REVIEW-FIX.md |
-| IN-03 | info | fixed | 01-REVIEW-FIX.md |
-| IN-04 | info | fixed | 01-REVIEW-FIX.md |
+| WR-01 | warning | open | - |
+| WR-02 | warning | open | - |
+| WR-03 | warning | open | - |
+| WR-04 | warning | open | - |
+| WR-05 | warning | open | - |
+| IN-01 | info | open | - |
+| IN-02 | info | open | - |
+| IN-03 | info | open | - |
+| IN-04 | info | open | - |
+| IN-05 | info | open | - |
 | CR-01 | critical | fixed | 01-REVIEW-FIX.md (not in the current review) |
-| IN-05 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-06 | warning | skipped | 01-REVIEW-FIX.md (not in the current review) |
 | WR-10 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-06 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
