@@ -5,15 +5,15 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "The \"about 4 times/s\" refresh cadence is documented but effectively untested"
   - id: IN-01
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Required-field check is substring-only and does not check values"
   - id: IN-02
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Repeated overlay lookup and null-guard boilerplate"
   - id: WR-02
     severity: warning
@@ -87,18 +87,18 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 3
+open: 0
 total: 21
-recorded: 2026-09-30T14:49:49.059Z
+recorded: 2026-09-30T15:05:34.027Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
-| IN-01 | info | open | - |
-| IN-02 | info | open | - |
+| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
+| IN-01 | info | fixed | 01-REVIEW-FIX.md |
+| IN-02 | info | fixed | 01-REVIEW-FIX.md |
 | WR-02 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-03 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-03 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
