@@ -61,8 +61,9 @@ func is_overlay_visible() -> bool:
 	return visible
 
 
+## The overlay's current text, or "" before it has entered the tree (the label is @onready).
 func get_text() -> String:
-	return _text.text
+	return _text.text if _text != null else ""
 
 
 func _process(delta: float) -> void:

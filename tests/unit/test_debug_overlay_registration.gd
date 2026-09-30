@@ -112,6 +112,13 @@ func test_a_section_registered_with_an_already_freed_owner_is_refused_before_and
 	assert_push_warning_count(2, "each refusal is named once")
 
 
+func test_get_text_before_the_overlay_is_in_the_tree_is_empty_instead_of_a_script_error() -> void:
+	# instantiate() without add_child: the @onready label does not exist yet.
+	var overlay: DebugOverlay = autofree((load(OVERLAY_SCENE) as PackedScene).instantiate())
+
+	assert_eq(overlay.get_text(), "", "there is no text to read before the overlay is ready")
+
+
 func test_register_section_does_not_name_a_parameter_after_the_node_owner_property() -> void:
 	# `owner` would shadow Node.owner on the CanvasLayer; the model keeps the same name as the view.
 	for script: GDScript in [DebugOverlay, DebugOverlayModel]:
