@@ -1,9 +1,9 @@
 ---
-status: complete
+status: diagnosed
 phase: 01-foundation-day-loop
 source: [01-01-SUMMARY.md, 01-02-SUMMARY.md, 01-03-SUMMARY.md, 01-04-SUMMARY.md, 01-05-SUMMARY.md, 01-06-SUMMARY.md, 01-07-SUMMARY.md, 01-08-SUMMARY.md, 01-09-SUMMARY.md, 01-10-SUMMARY.md, 01-VERIFICATION.md]
 started: 2026-10-01T09:10:51Z
-updated: 2026-10-01T21:50:37Z
+updated: 2026-10-01T22:08:02Z
 ---
 
 ## Current Test
@@ -341,8 +341,30 @@ blocked: 0
   reason: "User reported: mostly good, but when the king goes behind a building like behind the castle, his silhouette is not visible. The king disappears behind stuff basically. Is that intentional? / I think we should move the camera a bit further away. Also should have buttons that zoom out or zoom in, to a certain extent"
   severity: major
   test: 3
-  artifacts: []
-  missing: []
+  root_cause: "Three causes. (1) Nothing lets the king show through geometry: the king model (presentation/king/king_model.tscn) uses plain opaque StandardMaterial3D surfaces with no x-ray, outline, overlay or fade, and buildings much taller than the king (castle keep 10.1 m vs king 2.6 m) fully cover him for several metres behind them at the fixed 55.5 degree pitch; moving the camera back does not fix this. (2) The camera offset is an untuned first-pass default: CameraRig.offset = Vector3(0, 16, 11) with fov 40 (camera_rig.gd:8, prototype_map.tscn:81-83), about 19.4 m from the king, framing only about 25 x 18 m of ground; plan 01-04 left it for playtest tuning and the in-window framing check was never done. (3) Zoom was deliberately excluded in plan 01-04 (\"no zoom, no orbit, no mouse\", camera_rig.gd:4); there is no zoom action, state or logic."
+  artifacts:
+    - path: "presentation/king/king_model.tscn"
+      issue: "king surface materials are opaque StandardMaterial3D with no x-ray/silhouette when occluded"
+    - path: "presentation/buildings/models/castle_center.tscn"
+      issue: "tall opaque keep (10.1 m) fully hides the king behind it; no collision (buildings only), so the king can ride into it"
+    - path: "presentation/camera/camera_rig.gd"
+      issue: "offset (0,16,11) first-pass default; no zoom state or input; one-time look_at in bind_run"
+    - path: "presentation/map/prototype_map.tscn"
+      issue: "Camera3D fov 40 set only in the scene, not exported; no offset override"
+    - path: "project.godot"
+      issue: "no zoom_in / zoom_out actions in [input]"
+    - path: "tests/unit/test_input_map.gd"
+      issue: "binding-table contract new zoom actions must join (keyboard + gamepad, no mouse)"
+    - path: "tests/e2e/test_king_ride.gd"
+      issue: "follow tests read rig.offset live; zoom must keep them coherent"
+    - path: "ui/world/spot_label.tscn"
+      issue: "world-sized labels (pixel_size 0.01) shrink as the camera pulls back, capping zoom-out for legibility"
+  missing:
+    - "Show the king when he is behind geometry: Godot 4.7 BaseMaterial3D stencil X-Ray (stencil_mode + stencil_color) on the king surface materials works in Forward+ and Compatibility with no false tint in the open (debugger-verified)"
+    - "Move the default camera further out along the same fixed angle (about 1.25-1.5x the current 19.4 m) and re-check spot-label legibility"
+    - "Add clamped zoom in/out as new Input Map actions with keyboard and gamepad bindings (no mouse; candidates: -/= or PgUp/PgDn, right stick Y or D-pad up/down), moving only along the fixed offset direction so the angle never changes (KING-02); update test_input_map tables and keep test_king_ride follow tests passing"
+    - "Optional: add a screenshot scenario with the king behind the castle keep; optionally give buildings collision so the king cannot ride inside them"
+  debug_session: .planning/debug/camera-occlusion-zoom.md
 
 - gap_id: G-01-4
   truth: "Holding the action key at a plot builds or upgrades it over a hold that feels deliberate (map, plots and tier growth otherwise passed)."
@@ -350,8 +372,21 @@ blocked: 0
   reason: "User reported: pass. But the building count up time is too short. needs tweaking to make it a biiiit longer (orchestrator note: coin_drip_interval is 0.2 s per coin in data/tuning/loop_tuning.tres, so House I completes in about 0.4 s)"
   severity: minor
   test: 4
-  artifacts: []
-  missing: []
+  root_cause: "Tuning, not a code bug: hold time is exactly cost x coin_drip_interval with no minimum (input/build_hold_controller.gd:91-102), and coin_drip_interval = 0.2 s (data/tuning/loop_tuning.tres:7) is the fast end of D-05's 0.15-0.3 s placeholder range, so the common early builds finish in 0.4 s (House I) and 0.6 s (House II), well under the 1.5 s start-night hold that is the game's existing \"deliberate\" reference. Measured in the real game: completion times match cost x 0.2 to within a frame."
+  artifacts:
+    - path: "data/tuning/loop_tuning.tres"
+      issue: "coin_drip_interval = 0.2 s per coin (main lever)"
+    - path: "simulation/defs/loop_tuning.gd"
+      issue: "matching script default 0.2"
+    - path: "input/build_hold_controller.gd"
+      issue: "straight per-coin model, no minimum hold"
+    - path: "presentation/vfx/coin_drip_vfx.gd"
+      issue: "coin flight capped at 0.18 s; a slower drip shows gaps between coins unless the cap is raised"
+  missing:
+    - "Raise coin_drip_interval to about 0.3 s (top of the D-05 range; House I 0.6 s, House III 1.5 s) in loop_tuning.tres and the script default"
+    - "Optionally raise the coin flight cap (MAX_FLIGHT_SECONDS 0.18 -> about 0.27) so coins still fly for about 90% of each interval"
+    - "Tests that compute waits from the live value scale automatically; check test_build_hold_refund 3.0 s timeouts and the screenshot HOLD_INTERVALS still hold"
+  debug_session: .planning/debug/build-hold-too-short.md
 
 ## Deferred Follow-Ups
 
