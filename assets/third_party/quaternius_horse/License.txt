@@ -33,6 +33,10 @@ Licence re-check (2026-10-01)
   The Poly Pizza page https://poly.pizza/m/qvTrSG9pZF still states "Public Domain (CC0)".
   The QAL v1.0 page (last updated 8/28/2026) says nothing about assets earlier released
   under CC0.
+  Note: "License CC0" (2026-09-29) and "License: CC0" (this re-check) are the same licence
+  line transcribed on different dates. This re-check came from a web-to-markdown fetch,
+  which may have added the colon. Both name CC0, and neither quote has been altered from
+  what was recorded.
 
 Decision (2026-10-01)
   The owner keeps this model. The decision rests on the author's own 2021 pack page and the

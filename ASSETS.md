@@ -50,6 +50,10 @@ Re-checked on 2026-10-01: https://quaternius.com/packs/ultimateanimatedanimals.h
 CC0" and links the CC0 1.0 deed, and https://poly.pizza/m/qvTrSG9pZF still states "Public Domain (CC0)". The QAL
 v1.0 page says nothing about assets earlier released under CC0.
 
+The two quotes of the 2021 pack page ("License CC0" on 2026-09-29, "License: CC0" on 2026-10-01) are the same
+licence line transcribed on different dates; the 2026-10-01 re-check came from a web-to-markdown fetch, which may
+have added the colon. Both name CC0, and neither quote has been altered from what was recorded.
+
 The QAL v1.0 (last updated 8/28/2026) predates the 2026-09-29 retrieval, so its "version in effect at the time
 you obtained the Assets" clause does not by itself favour CC0. The keep decision rests on the author's own 2021
 pack page and the Poly Pizza page both stating CC0 when the model was retrieved (checked 2026-09-29, re-checked
