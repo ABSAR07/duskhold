@@ -1,50 +1,70 @@
 ---
 phase: 01-foundation-day-loop
-fixed_at: 2026-10-01T07:37:00Z
+fixed_at: 2026-10-01T08:16:05Z
 review_path: .planning/phases/01-foundation-day-loop/01-REVIEW.md
 iteration: 1
-findings_in_scope: 2
-fixed: 2
+findings_in_scope: 3
+fixed: 3
 skipped: 0
 status: all_fixed
 ---
 
 # Phase 1: Code Review Fix Report
 
-**Fixed at:** 2026-10-01T07:37:00Z
+**Fixed at:** 2026-10-01T08:16:05Z
 **Source review:** .planning/phases/01-foundation-day-loop/01-REVIEW.md
-**Iteration:** 1
+**Iteration:** 1 (review-fix pass 26)
 
 **Summary:**
-- Findings in scope: 2
-- Fixed: 2
+- Findings in scope: 3
+- Fixed: 3
 - Skipped: 0
+
+All three findings were documentation fixes. Only the `quaternius-horse` entry's `notes` in
+`assets/attribution.json` changed; no other field and no ASSETS.md table row was touched. All three files remain
+pure ASCII.
+
+**Verification:** run in the main checkout (not an isolated worktree; the orchestrator's run was sequential and
+the tests need the main checkout's Godot import cache and `addons/gut`). `bash tools/test.sh
+-gselect=test_attribution_log.gd` passed 17/17 after each fix. The full suite `bash tools/test.sh` passed
+290/290 (36 scripts) after the last commit. No Godot process was left running. The pre-existing uncommitted
+change to `.planning/config.json` was left alone and never staged.
 
 ## Fixed Issues
 
-### WR-01: Horse licence record cites the QAL "time you obtained" clause, but the retrieval date falls after the QAL took effect
+### WR-01: "Not redistributed as a standalone asset" is inaccurate for a public repository
 
-**Files modified:** `ASSETS.md`, `assets/third_party/quaternius_horse/License.txt`, `assets/attribution.json`
-**Commit:** 6cdf386
-**Applied fix:** All three records now say the same thing: the QAL v1.0 (last updated 8/28/2026) predates the 2026-09-29 retrieval, so its "version in effect at the time you obtained the Assets" clause does not by itself favour CC0. The keep decision rests on the author's 2021 pack page and the Poly Pizza page both stating CC0 at retrieval (checked 2026-09-29, re-checked 2026-10-01) and on an earlier CC0 dedication being irrevocable, and the owner accepts the residual risk (2026-10-01). The old "obtained as CC0" claims were reworded to rest on that, and all existing quotes and dates were kept. Only the `quaternius-horse` entry's `notes` changed in the JSON. The review's optional archive.org/screenshot suggestion was not taken (no external fetches, per the orchestrator's instruction). Documentation-only change; the reasoning in the records is for the owner to confirm.
+**Files modified:** `ASSETS.md`, `assets/attribution.json`, `assets/third_party/quaternius_horse/License.txt`
+**Commit:** f84de3b
+**Applied fix:** Replaced the "used inside a game, not redistributed as a standalone asset" wording in all three
+records with the accurate position. The unmodified GLB is also committed (Git LFS) to the public repository
+ABSAR07/duskhold and ships in the exported build. CC0 allows both. If the Quaternius Asset License governed
+instead, the public copy could count as the "standalone asset" redistribution it forbids. The owner also accepts
+this risk (2026-10-01). The owner's two decisions (keep the horse and accept the licence risk; accept the
+public, unmodified GLB) were made on 2026-10-01 and are recorded as the owner's, not the fixer's. All quoted
+source wording, dates, the CC0-1.0 classification and the keep decision were left as they were.
+**Status:** fixed (wording of a record, no logic; no human verification needed beyond the owner's own decisions)
 
-### IN-01: ASSETS.md says every SHA256 is of a downloaded archive, which is not true for the horse or GUT
+### IN-01: "How to add an asset" still describes `sha256` as always "of the downloaded archive"
 
 **Files modified:** `ASSETS.md`
-**Commit:** 1784ffe, 1ce2f94 (follow-up, see below)
-**Applied fix:** Rewrote the "Archive checksums and download evidence" paragraph as a per-entry list, checked against `assets/attribution.json` and the files on disk. The Kenney hashes cover the downloaded zips, which are not in the repo. The GUT hash covers the v9.7.1 source zip, whose contents are vendored under `addons/gut/` (no zip is present in the repo; the text does not claim anything about whether it was deleted). The horse hash covers the single GLB kept in the repo, and `sha256sum` on the file matches the table. Godot has no SHA256 and is verified by SHA512 via `tools/godot_sha512sums.txt`. The first commit dropped the `curl --fail` / no-redirect remark as unconfirmed.
+**Commit:** 49fb595
+**Applied fix:** Step 4 now reads "`sha256` (of the downloaded archive, or of the file itself when there is no
+archive; say which in `notes`, see "Archive checksums and download evidence" above)".
 
-Follow-up commit 1ce2f94 (`ASSETS.md` only, requested by the orchestrator) restored that evidence after it was confirmed in `01-07-SUMMARY.md` (lines 132 and 214: `curl --fail`, `redirects=0`, each size matched the owner-approved figure). It is scoped to the three Kenney zips and the horse GLB only. The GUT bullet now notes the zip came through `tools/bootstrap.py` (plan 01-01, per `01-01-SUMMARY.md` and the script), and nothing new is claimed about how Godot was downloaded.
+### IN-02: The same source page is quoted two ways
 
-## Verification
-
-- Where it ran: the main checkout, not an isolated worktree (the work was documentation-only, and a worktree has no `.godot` import cache for the Godot test run). Files were staged by explicit path; the pre-existing uncommitted `.planning/config.json` change was left alone and never staged.
-- `node` JSON.parse of `assets/attribution.json`: OK. The three files contain only ASCII.
-- `bash tools/test.sh -gselect=test_attribution_log.gd`: 17/17 passing, run after each commit's edits.
-- Full `bash tools/test.sh`: 36 scripts, 290/290 tests passing. No Godot process was left running.
+**Files modified:** `ASSETS.md`, `assets/attribution.json`, `assets/third_party/quaternius_horse/License.txt`
+**Commit:** 70f4030
+**Applied fix:** Following the orchestrator's instruction not to fetch any external site and not to rewrite
+either quote, left both quotes ("License CC0" for 2026-09-29, "License: CC0" for 2026-10-01) verbatim and added
+a short note beside them in all three records. The note says they are the same licence line transcribed on
+different dates, that the 2026-10-01 re-check came from a web-to-markdown fetch which may have added the colon,
+and that both name CC0. Neither record can establish whether the colon is page text or formatting, and the note
+does not claim to.
 
 ---
 
-_Fixed: 2026-10-01T07:37:00Z_
+_Fixed: 2026-10-01T08:16:05Z_
 _Fixer: Claude (gsd-code-fixer)_
 _Iteration: 1_
