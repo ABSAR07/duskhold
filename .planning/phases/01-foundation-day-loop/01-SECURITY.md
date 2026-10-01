@@ -44,19 +44,19 @@ created: "2026-09-29"
 | T-01-04 | Tampering | `CommandProcessor.submit` / `Economy.try_spend` | medium | mitigate | `_submit_build` re-runs `validate_build` at apply time; `try_spend` refuses unaffordable or negative costs and changes nothing; since review-fix pass 5 `BuildingSystem.apply_next_tier` itself refuses an unknown building or a tier past the last; since pass 7 `get_instance`/`apply_next_tier` hand out snapshots, so no reader can mutate building state; `test_build_flow.gd`, `test_economy_gold.gd`, `test_building_system_data_errors.gd` green | closed |
 | T-01-05 | Tampering | `BuildHoldController` partial-payment state | low | mitigate | Nothing is deducted while coins drip; completion goes through `commands.submit(BuildIntent)`; refund is a pure reset (D-06); `test_build_hold_refund.gd` green | closed |
 | T-01-06 | Information Disclosure | First push / `tools/prepush_check.sh` | high | mitigate | Pre-push check scans current tree and `git log --all` for local tooling, generated output, credential-shaped values (plus gitleaks when installed) and >5 MB blobs, and prints identities for owner review; re-run 2026-09-29: PASSED | closed |
-| T-01-07 | Elevation of Privilege | `.github/workflows/ci.yml` | medium | mitigate | `permissions: contents: read`; `pull_request` trigger only (no `pull_request_target`); no `secrets.` references; every action from the `actions/` org, pinned to a full commit SHA (stronger than the planned major tags; 17/17 `uses:` lines re-checked after the IN-04 change) | closed |
+| T-01-07 | Elevation of Privilege | `.github/workflows/ci.yml` | medium | mitigate | `permissions: contents: read`; `pull_request` trigger only (no `pull_request_target`); no secrets context reference (the two mentions of secrets are comments); every action from the `actions/` org, pinned to a full commit SHA (stronger than the planned major tags; 17/17 `uses:` lines re-checked after the IN-04 change and again on 2026-10-01). Since quick task 261001-0dd (2026-10-01) the workflow also runs on every push to any branch or tag; a push needs write access to the repo, so this gives no untrusted code a run, and permissions, concurrency and jobs are unchanged | closed |
 | T-01-08 | Denial of Service | Git LFS quota in CI | low | mitigate | `.git/lfs` cache keyed on `hashFiles('.lfs-assets-id')`; lint job checks out with `lfs: false` | closed |
 | T-01-SC (01-03) | Tampering | CI Godot/templates/pip installs | high | mitigate | CI runs `python tools/bootstrap.py --godot [--templates] --yes --platform linux`, which verifies against the committed pin; lint installs `-r tools/requirements-lint.txt` (pinned) | closed |
 | T-01-09 | Tampering | `project.godot` `[input]` | low | mitigate | `test_input_map.gd` fails on any mouse binding in a project action, any missing keyboard/gamepad binding, or binding-table drift; green | closed |
 | T-01-10 | Tampering | `MapConfig` / `.tres` data | low | mitigate | `MapConfig.validate()` reports empty entries, duplicate/empty ids (building ids too since review-fix pass 2, WR-01), empty tier lists and non-positive costs (hardened by review fix IN-02); `BuildingSystem` skips null building/spot entries instead of crashing, and since pass 3 lists a duplicate spot id once (the first definition wins) and skips unknown building ids in dawn income; since pass 4 a duplicate building id also keeps the first definition and `spot_ids()` returns a copy; since pass 5 empty-id spots are skipped, and since pass 6 empty-id buildings too; `test_prototype_map_data.gd` and `test_building_system_data_errors.gd` green | closed |
 | T-01-11 | Tampering | `BuildHoldController` completion after leaving range, phase change or loss of affordability | medium | mitigate | Focus lock on the active spot; every frame cancels if the key is released, the spot is out of `interaction_radius` or `is_build_allowed()` is false; `submit` re-validates at completion; `test_build_hold_refund.gd`, `test_build_denied.gd` green | closed |
-| T-01-12 | Repudiation | `assets/attribution.json` licensing claims | medium | mitigate | `ALLOWED_LICENSES = ["CC0-1.0", "MIT"]` and full-coverage checks in `test_attribution_log.gd`; `License.txt` kept beside each of the 4 third-party asset folders; archive SHA256 on every model entry; source wording quoted in 01-07-SUMMARY | closed |
+| T-01-12 | Repudiation | `assets/attribution.json` licensing claims | medium | mitigate | `ALLOWED_LICENSES = ["CC0-1.0", "MIT"]` and full-coverage checks in `test_attribution_log.gd`; `License.txt` kept beside each of the 4 third-party asset folders; archive SHA256 on every model entry; source wording quoted in 01-07-SUMMARY; the Quaternius horse licence decision is recorded since 2026-10-01 (kept after a re-check; evidence in `ASSETS.md`, its `License.txt` and the manifest notes) | closed |
 | T-01-13 | Tampering | IP exposure in game content | medium | mitigate | Plan-scoped check `git grep -il thronefall -- data simulation input presentation ui assets project.godot export_presets.cfg ASSETS.md` is clean; only Kenney/Quaternius sources used | closed |
 | T-01-SC (01-07) | Tampering | CC0 archive downloads | high | mitigate | Owner approved exact URLs and sizes (01-07 Task 2); `curl --fail`; SHA256 recorded per archive in `attribution.json` (4 model entries); only chosen files extracted | closed |
 | T-01-14 | Tampering | `RunManager` transitions and dawn payout | low | mitigate | `start_night()` returns false unless `_phase == DAY`; `test_only_the_run_manager_assigns_the_loop_phase` source-scan test; `CommandProcessor` rejects StartNightIntent outside DAY; `test_run_manager.gd`, `test_build_phase_guard.gd`, `test_loop_gold_carryover.gd` green | closed |
 | T-01-15 | Elevation of Privilege | DebugOverlay in release builds | low | accept | See AR-01 (since pass 3 the read-only test watches all 7 simulation signals, and malformed provider rows are dropped) | closed |
 | T-01-16 | Information Disclosure | `duskhold-screenshots` CI artifact | low | accept | See AR-02 (`retention-days: 7` confirmed in `ci.yml`; since IN-04 the upload runs `if: always()` and also carries `build/screenshot-import.log`) | closed |
-| T-01-17 | Information Disclosure | `git push` of new history | high | mitigate | `bash tools/prepush_check.sh` before every push; re-run 2026-09-30 over all refs, including the 311 local commits not yet pushed: PASSED | closed |
+| T-01-17 | Information Disclosure | `git push` of new history | high | mitigate | `bash tools/prepush_check.sh` before every push; re-run 2026-10-01 over all refs before the push of 318 commits (`981e4c8`..`e6bbb47`): PASSED; re-run after it (379 commits on all refs, 1 unpushed): PASSED | closed |
 | T-01-SC (01-10) | Tampering | apt packages on the CI runner | low | accept | See AR-03 | closed |
 | T-01-SC (no-install plans) | Tampering | Package installs in 01-02, 01-04, 01-05, 01-06, 01-08, 01-09 | low | accept | See AR-04 | closed |
 
@@ -68,8 +68,8 @@ The plans list T-01-SC seven times; the six identical "this plan installs no pac
 
 ### Observations (non-blocking)
 
-- **T-01-06 / T-01-17: enforcement is procedural.** `.git/hooks/pre-push` only runs Git LFS, so nothing forces `tools/prepush_check.sh` to run before a push. Run it before pushing the 311 pending local commits (it passes today). Optional hardening: call it from the pre-push hook.
-- **T-01-12: residual licence risk.** The allow-list test trusts each entry's declared `license` field. The Quaternius horse is logged as CC0-1.0, based on the 2021 Poly Pizza CC0 statement, while Quaternius now publishes its own Asset License. That is review finding WR-06, disposition skipped, owner decision pending. It is also listed as a human verification item.
+- **T-01-06 / T-01-17: enforcement is procedural.** `.git/hooks/pre-push` only runs Git LFS, so nothing forces `tools/prepush_check.sh` to run before a push. It ran and passed before the 2026-10-01 push of 318 commits, and it passes today with 1 commit unpushed. Optional hardening: call it from the pre-push hook.
+- **T-01-12: residual licence risk.** The allow-list test trusts each entry's declared `license` field. The Quaternius horse is logged as CC0-1.0, based on the 2021 Poly Pizza CC0 statement, while Quaternius now publishes its own Asset License. That was review finding WR-06. The owner kept the horse on 2026-10-01 after a re-check: the 2021 pack page and Poly Pizza still state CC0, and the Quaternius Asset License page says nothing about earlier CC0 releases. The decision is recorded in `ASSETS.md`, the horse's `License.txt` and its manifest notes. Each new asset still needs the same judgment, because the test cannot check a declared licence against its source.
 - **T-01-13: out-of-scope mention.** A comment on line 3 of `tools/_common.sh` names the local checkout folder, which contains the reference game's name. `tools/*` is not game content and is excluded from the export (`exclude_filter="tests/*, addons/gut/*, tools/*"`). The owner may still want to reword it before release.
 
 ---
@@ -115,6 +115,7 @@ The plans list T-01-SC seven times; the six identical "this plan installs no pac
 | 2026-09-30 (re-audit 21) | 22 | 22 | 0 | secure-phase orchestrator (State A; re-checked mitigations touched by review-fix pass 22) |
 | 2026-09-30 (re-audit 22) | 22 | 22 | 0 | secure-phase orchestrator (State A; re-checked mitigations touched by review-fix pass 23) |
 | 2026-09-30 (re-audit 23) | 22 | 22 | 0 | secure-phase orchestrator (State A; re-checked after review-fix pass 24, test-only) |
+| 2026-10-01 (re-audit 24) | 22 | 22 | 0 | secure-phase orchestrator (State A; re-checked mitigations touched by quick task 261001-0dd: CI trigger, horse licence notes) |
 
 ## Security Audit 2026-09-29
 
@@ -509,6 +510,27 @@ Re-checked after the 3 commits `e720f2c`..`da45f5c`, which changed only `tests/e
 - **T-01-06 / T-01-17:** `tools/prepush_check.sh` PASSED over all refs, including the 311 unpushed commits.
 - **CI:** `ci.yml` is unchanged.
 - **Tests:** full suite 290/290.
+
+## Security Audit 2026-10-01 (re-audit after quick task 261001-0dd)
+
+| Metric | Count |
+|--------|-------|
+| Threats found | 22 |
+| Closed | 22 |
+| Open | 0 |
+
+Re-checked after quick task 261001-0dd (`622a93b`, `bfe3c97`), which changed the `ci.yml` trigger and the horse licence notes. No GDScript changed.
+- **T-01-07:** the `on:` block is now `push` (no filter), `pull_request` and `workflow_dispatch`. The only other change is the header comment.
+  - `permissions: contents: read` still holds.
+  - No `pull_request_target`, and no secrets context reference.
+  - 17/17 `uses:` lines are `actions/*` pinned to a 40-hex SHA.
+  - Running on every push widens nothing: pushing needs write access, and fork pull requests already ran with the read-only token.
+- **T-01-12:** a `License.txt` sits beside all 4 third-party asset folders. In `attribution.json` only the horse's notes line changed (1/1 numstat), and its licence is still CC0-1.0, retrieved 2026-09-29. `test_attribution_log.gd` is green.
+- **T-01-13:** the scoped name check is clean after the `ASSETS.md` edit.
+- **T-01-08 / T-01-16:** the LFS cache keys, `lfs: false` and `retention-days: 7` are unchanged.
+- **T-01-06 / T-01-17:** `tools/prepush_check.sh` PASSED before the push of 318 commits (`981e4c8`..`e6bbb47`), then again over all 379 commits with 1 unpushed.
+- **CI:** run 36827944700 on `e6bbb47` (push event) is green in all four jobs.
+- **Tests:** full suite 290/290; lint clean.
 
 ---
 
