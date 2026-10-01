@@ -1,58 +1,50 @@
 ---
 phase: 01-foundation-day-loop
-fixed_at: 2026-09-30T15:02:33Z
+fixed_at: 2026-10-01T07:37:00Z
 review_path: .planning/phases/01-foundation-day-loop/01-REVIEW.md
 iteration: 1
-findings_in_scope: 3
-fixed: 3
+findings_in_scope: 2
+fixed: 2
 skipped: 0
 status: all_fixed
 ---
 
 # Phase 1: Code Review Fix Report
 
-**Fixed at:** 2026-09-30T15:02:33Z
+**Fixed at:** 2026-10-01T07:37:00Z
 **Source review:** .planning/phases/01-foundation-day-loop/01-REVIEW.md
 **Iteration:** 1
 
 **Summary:**
-- Findings in scope: 3
-- Fixed: 3
+- Findings in scope: 2
+- Fixed: 2
 - Skipped: 0
-
-Verification ran in the main checkout (no isolated worktree; see the note at the end), so the numbers are reproducible from the tree as committed: `bash tools/lint.sh` clean (72 files unchanged), `bash tools/test.sh` 290/290 passing in 36 scripts (was 289; one new test), no Godot process left running.
 
 ## Fixed Issues
 
-### WR-01: The "about 4 times/s" refresh cadence is documented but effectively untested
+### WR-01: Horse licence record cites the QAL "time you obtained" clause, but the retrieval date falls after the QAL took effect
 
-**Files modified:** `tests/e2e/test_debug_overlay_toggle.gd`
-**Commit:** e720f2c
-**Applied fix:** Took the reviewer's first option (reword) rather than a wall-clock cadence test, because the previous review flagged a tight wall-clock window in this file as flaky and `tests/unit/test_debug_overlay_registration.gd` already pins the cadence deterministically with synthetic deltas (`test_a_shown_overlay_refreshes_once_the_interval_has_passed_and_not_before`, `test_a_shown_overlay_refreshes_about_four_times_a_second_and_a_hidden_one_never`). The header no longer claims a cadence; it says what the e2e file proves (shown overlay refreshes within `REFRESH_WINDOW_S` of real time, hidden overlay does not refresh) and points at the unit test for the 4 times/s cadence. Added `test_hidden_overlay_does_not_refresh_until_it_is_shown_again`: show, hide, build through the command gate, wait `REFRESH_WINDOW_S` (several intervals), assert the Buildings row is still stale, then show again and assert it refreshes at once. It can only fail in the failing direction, so it adds no flake risk.
-**Mutation probe:** With `if not visible: return` deleted from `DebugOverlay._advance_refresh` (`ui/overlay/debug_overlay.gd`), the new test failed ("a hidden overlay does not refresh", 6 pass / 1 fail); before the change no e2e test failed on that mutation. Source restored from a backup copy; `git status` showed only the test file and the unrelated `.planning/config.json`.
+**Files modified:** `ASSETS.md`, `assets/third_party/quaternius_horse/License.txt`, `assets/attribution.json`
+**Commit:** 6cdf386
+**Applied fix:** All three records now say the same thing: the QAL v1.0 (last updated 8/28/2026) predates the 2026-09-29 retrieval, so its "version in effect at the time you obtained the Assets" clause does not by itself favour CC0. The keep decision rests on the author's 2021 pack page and the Poly Pizza page both stating CC0 at retrieval (checked 2026-09-29, re-checked 2026-10-01) and on an earlier CC0 dedication being irrevocable, and the owner accepts the residual risk (2026-10-01). The old "obtained as CC0" claims were reworded to rest on that, and all existing quotes and dates were kept. Only the `quaternius-horse` entry's `notes` changed in the JSON. The review's optional archive.org/screenshot suggestion was not taken (no external fetches, per the orchestrator's instruction). Documentation-only change; the reasoning in the records is for the owner to confirm.
 
-### IN-01: Required-field check is substring-only and does not check values
+### IN-01: ASSETS.md says every SHA256 is of a downloaded archive, which is not true for the horse or GUT
 
-**Files modified:** `tests/e2e/test_debug_overlay_toggle.gd`
-**Commit:** 2091193
-**Applied fix:** Replaced the substring list `REQUIRED_FIELDS` with a `_rows_of(overlay)` helper that parses the `"  label: value"` lines into a dictionary. `Phase`/`Day`/`Night`/`Buildings` are compared exactly (`DAY`, `1`, `0`, `0`), and `FPS`/`Gold`/`Units`/`Enemies` must carry an integer (their values depend on tuning or frame rate). Section titles no longer satisfy a row check.
-**Mutation probe:** With the Gold row in `ui/overlay/debug_overlay_model.gd` changed to `["Gold", ""]`, the test failed ("the Gold row has an integer value, not ''"); the old substring check would still have passed because the title `Gold` remained. Source restored from a backup copy.
+**Files modified:** `ASSETS.md`
+**Commit:** 1784ffe, 1ce2f94 (follow-up, see below)
+**Applied fix:** Rewrote the "Archive checksums and download evidence" paragraph as a per-entry list, checked against `assets/attribution.json` and the files on disk. The Kenney hashes cover the downloaded zips, which are not in the repo. The GUT hash covers the v9.7.1 source zip, whose contents are vendored under `addons/gut/` (no zip is present in the repo; the text does not claim anything about whether it was deleted). The horse hash covers the single GLB kept in the repo, and `sha256sum` on the file matches the table. Godot has no SHA256 and is verified by SHA512 via `tools/godot_sha512sums.txt`. The first commit dropped the `curl --fail` / no-redirect remark as unconfirmed.
 
-### IN-02: Repeated overlay lookup and null-guard boilerplate
+Follow-up commit 1ce2f94 (`ASSETS.md` only, requested by the orchestrator) restored that evidence after it was confirmed in `01-07-SUMMARY.md` (lines 132 and 214: `curl --fail`, `redirects=0`, each size matched the owner-approved figure). It is scoped to the three Kenney zips and the horse GLB only. The GUT bullet now notes the zip came through `tools/bootstrap.py` (plan 01-01, per `01-01-SUMMARY.md` and the script), and nothing new is claimed about how Godot was downloaded.
 
-**Files modified:** `tests/e2e/test_debug_overlay_toggle.gd`
-**Commit:** da45f5c
-**Applied fix:** Added `_spawn_overlay()` (spawns the map, keeps `_map_root`, looks up the overlay and asserts non-null, so each test guard is three lines instead of five), `_buildings_shown()`, `_wait_for_buildings(overlay, count)` and `_build_first_plot_through_the_gate()`, and removed `_overlay_of`. Buildings checks now read the row as an exact value via `_rows_of`, so `"1"` no longer matches `"10"` (this also closes the substring gap IN-01 noted for that row). Test behaviour and assert count are unchanged (35 asserts, 7 tests). The `_press_toggle` helper was already shared and is unchanged.
-**Mutation probe:** With the refresh gate `if _since_refresh >= REFRESH_INTERVAL_S:` replaced by `if false:` in `ui/overlay/debug_overlay.gd`, the three refresh-within-window tests still failed after the refactor (4 pass / 3 fail), so the helpers kept the tests' teeth. Source restored from a backup copy.
+## Verification
 
-## Notes
-
-- **Isolation:** The orchestrator brief directed edits, `tools/test.sh` and `tools/lint.sh` in the main checkout on the phase branch with explicit-path staging (a fresh hand-rolled worktree has no warmed `.godot/` cache, so class_name scripts would not resolve for the tests). No worktree, temp branch or recovery sentinel was created. `.planning/config.json` still carries its unrelated uncommitted change and was never staged.
-- The working copy of the test file is CRLF (`core.autocrlf=true`); commits store LF. `gdformat` was applied through `bash tools/lint.sh --fix` before each commit.
-- `tests/unit/test_debug_overlay_registration.gd` (20 public methods, at the gdlint cap) was not touched; all new code is in the e2e file (now 7 tests, under the cap).
+- Where it ran: the main checkout, not an isolated worktree (the work was documentation-only, and a worktree has no `.godot` import cache for the Godot test run). Files were staged by explicit path; the pre-existing uncommitted `.planning/config.json` change was left alone and never staged.
+- `node` JSON.parse of `assets/attribution.json`: OK. The three files contain only ASCII.
+- `bash tools/test.sh -gselect=test_attribution_log.gd`: 17/17 passing, run after each commit's edits.
+- Full `bash tools/test.sh`: 36 scripts, 290/290 tests passing. No Godot process was left running.
 
 ---
 
-_Fixed: 2026-09-30T15:02:33Z_
+_Fixed: 2026-10-01T07:37:00Z_
 _Fixer: Claude (gsd-code-fixer)_
 _Iteration: 1_
