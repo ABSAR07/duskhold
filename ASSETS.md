@@ -57,7 +57,9 @@ pack page and the Poly Pizza page both stating CC0 when the model was retrieved 
 (2026-10-01).
 
 Owner decision (2026-10-01): keep the horse, recorded as CC0-1.0, on the grounds above. It is used inside a
-game, not redistributed as a standalone asset. The same evidence is kept in
+game, but the unmodified GLB is also committed (Git LFS) to the public repository ABSAR07/duskhold and ships in
+the exported build. CC0 allows both; if the QAL governed instead, the public copy could count as the "standalone
+asset" redistribution it forbids. The owner also accepts this risk (2026-10-01). The same evidence is kept in
 `assets/third_party/quaternius_horse/License.txt` and in the `quaternius-horse` entry's `notes` in
 `assets/attribution.json`.
 

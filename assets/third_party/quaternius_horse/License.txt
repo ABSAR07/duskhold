@@ -22,7 +22,10 @@ Licence evidence (checked 2026-09-29)
   8/28/2026) predates the 2026-09-29 retrieval, so that clause does not by itself favour
   CC0. The model is recorded here as CC0-1.0 because the Poly Pizza page and the author's
   2021 pack page above both stated CC0 when it was retrieved, and an earlier CC0 dedication
-  is irrevocable. It is used inside a game and is not redistributed as a standalone asset.
+  is irrevocable. It is used inside a game, but the unmodified GLB is also committed (Git
+  LFS) to the public repository ABSAR07/duskhold and ships in the exported build. CC0
+  allows both; if the QAL governed instead, the public copy could count as the "standalone
+  asset" redistribution it forbids. The owner also accepts this risk (2026-10-01).
 
 Licence re-check (2026-10-01)
   The 2021 pack page https://quaternius.com/packs/ultimateanimatedanimals.html still
