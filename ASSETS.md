@@ -24,12 +24,15 @@ table lists them in the same order.
 What each SHA256 in the table covers (all retrieved 2026-09-29; each entry's `notes` in
 `assets/attribution.json` has the download URL and byte size):
 
-- Kenney Castle Kit, Fantasy Town Kit and Mini Characters: the zip archive as downloaded. Only the files
+- Kenney Castle Kit, Fantasy Town Kit and Mini Characters: the zip archive as downloaded (these three zips
+  and the horse GLB below were fetched with `curl --fail`, no redirects, and each size matched the
+  owner-approved figure exactly; recorded in plan 01-07's summary). Only the files
   listed in each entry's `notes` were extracted into the repository, so the archives themselves are not
   here and the hash cannot be recomputed from the repository. Each pack's `License.txt` (CC0, with the
   Creative Commons Zero link) sits beside its files.
 - GUT 9.7.1: the v9.7.1 source zip. The zip is not in the repository; its contents are vendored under
-  `addons/gut/`, so the hash does not match any file here.
+  `addons/gut/`, so the hash does not match any file here. It was fetched by `tools/bootstrap.py` (plan
+  01-01), not by the `curl` downloads above.
 - Horse: the single GLB downloaded from Poly Pizza (no archive exists), which is the file kept in
   `assets/third_party/quaternius_horse/`, so that hash can be recomputed from the repository.
 - Godot Engine: no SHA256 is recorded (the table shows "n/a"). The editor and export-template archives are
