@@ -5,16 +5,16 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: fixed
-    title: "Horse licence record cites the QAL \"time you obtained\" clause, but the retrieval date falls after the QAL took effect"
+    disposition: open
+    title: "\"Not redistributed as a standalone asset\" is inaccurate for a public repository"
   - id: IN-01
     severity: info
-    disposition: fixed
-    title: "ASSETS.md says every SHA256 is of a downloaded archive, which is not true for the horse or GUT"
+    disposition: open
+    title: "\"How to add an asset\" still describes `sha256` as always \"of the downloaded archive\""
   - id: IN-02
     severity: info
-    disposition: fixed
-    title: "Repeated overlay lookup and null-guard boilerplate"
+    disposition: open
+    title: "The same source page is quoted two ways"
   - id: WR-02
     severity: warning
     disposition: fixed
@@ -87,18 +87,18 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 0
+open: 3
 total: 21
-recorded: 2026-10-01T07:39:08.529Z
+recorded: 2026-10-01T08:04:30.328Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
-| IN-01 | info | fixed | 01-REVIEW-FIX.md |
-| IN-02 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
+| WR-01 | warning | open | - |
+| IN-01 | info | open | - |
+| IN-02 | info | open | - |
 | WR-02 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-03 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-03 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
