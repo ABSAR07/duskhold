@@ -1,64 +1,360 @@
 ---
-status: testing
+status: complete
 phase: 01-foundation-day-loop
-source: [01-VERIFICATION.md]
-started: 2026-09-29T12:10:00Z
-updated: 2026-10-01T08:09:58Z
+source: [01-01-SUMMARY.md, 01-02-SUMMARY.md, 01-03-SUMMARY.md, 01-04-SUMMARY.md, 01-05-SUMMARY.md, 01-06-SUMMARY.md, 01-07-SUMMARY.md, 01-08-SUMMARY.md, 01-09-SUMMARY.md, 01-10-SUMMARY.md, 01-VERIFICATION.md]
+started: 2026-10-01T09:10:51Z
+updated: 2026-10-01T21:50:37Z
 ---
 
 ## Current Test
 
-number: 1
-name: Ride the king with keyboard and with a gamepad (walk, sprint, diagonal, stop) and watch the follow camera
-expected: |
-  Acceleration, turning and camera trail feel responsive and readable; sprint is clearly faster; camera never rotates
-awaiting: user response
+[testing complete]
 
 ## Tests
 
-### 1. Ride the king with keyboard and with a gamepad (walk, sprint, diagonal, stop) and watch the follow camera
-expected: Acceleration, turning and camera trail feel responsive and readable; sprint is clearly faster; camera never rotates
-result: [pending]
+### 1. Boot into the prototype map and ride the king
+expected: The game boots straight into the prototype map. The king rides with WASD / arrow keys / left stick (Shift or RB to sprint) and a fixed follow camera keeps him in view.
+result: pass
 
-### 2. Ride around the whole prototype map and look at the spot markers, plot colours and castle landmark
-expected: Map is readable; the 8 spots are distinguishable; edge-to-edge ride feels like 20-30 s
-result: [pending]
+### 2. Acceleration and turning feel
+expected: The king speeds up smoothly instead of jumping to full speed, and horse and rider turn to face the riding direction; the acceleration and turn rate feel right with keyboard and with a gamepad.
+result: pass
 
-### 3. Ride up to a House and a tower plot and read the world-space spot label; hold, release early, hold to completion, try with too little gold
-expected: Label is legible (the 'House I' title reportedly overlaps its effect line in the spot_label screenshot); coins drip and refund visibly; red cost plus shake when unaffordable
-result: [pending]
+### 3. Follow camera framing
+expected: The camera keeps one fixed angle (the player cannot rotate it), trails slightly behind the king and catches up, and keeps the king readable near the centre of the screen.
+result: issue
+reported: "mostly good, but when the king goes behind a building like behind the castle, his silhouette is not visible. The king disappears behind stuff basically. Is that intentional? / I think we should move the camera a bit further away. Also should have buttons that zoom out or zoom in, to a certain extent"
+severity: major
 
-### 4. Look at the king (horse plus rider) and the House / tower / castle models in the running game
-expected: Models read as a mounted king and as buildings (rider currently in T-pose on an unanimated horse, horse small; cosmetic, Phase 8 art pass)
-result: [pending]
+### 4. Map, plots and building growth
+expected: Riding the whole map: 5 tan House plots near the castle, 3 slate-blue tower plots further out and a castle keep at the centre; a House grows to tier II on a second hold (gold falls by 2, then 3); the far towers are about 10-15 s from the castle; the map is readable.
+result: issue
+reported: "pass. But the building count up time is too short. needs tweaking to make it a biiiit longer"
+severity: minor
 
-### 5. Press F3 (and gamepad Back) in a real window
-expected: Overlay appears with FPS, units, enemies, phase, day, night, gold, buildings and is readable
-result: [pending]
+### 5. King and building models
+expected: The king reads as a crowned rider on a horse (about 2.5 m tall, smaller than a House) that turns to face the way it rides, and the House, tower and castle models look right and match in scale. Known: the rider is in a T-pose on an unanimated horse until the Phase 8 art pass.
+result: pass
 
-### 6. Hold N (and gamepad Y) for 1.5 s, then watch night banner, lighting, dawn payout and return to Day as 'Night 2'. Watch specifically: the gold counter must stay lagged while coins fly, tick up as each coin lands, and be exactly the ledger gold once dawn ends (never stuck low, never ahead of the coins)
-expected: Prompt fills, banner and night lighting show, dawn coins fly from each paying House to the gold counter, '+X gold' appears, day returns with carried-over gold
-result: [pending]
+### 6. Spot label legibility
+expected: Near a spot by day, a label floats above only the nearest spot with the next tier name, its effect and coin icons for the cost that fill as coins land; it turns red when unaffordable, says Max tier at the top tier and shakes on a denied press. It is legible and well placed from the gameplay camera.
+result: pass
 
-### 7. Owner confirmation of the Quaternius horse licence decision (review WR-06 / open review WR-01)
-expected: Owner confirms keeping the 2021 CC0 Poly Pizza copy despite the newer Quaternius Asset License, or replaces it before the itch.io release. Current state: on 2026-10-01 the owner chose to keep the horse and accept the residual risk; the records now give the real basis (CC0 on the author's pack page and Poly Pizza at retrieval, irrevocable dedication). The open review finding WR-01 notes that the 'not redistributed as a standalone asset' sentence is inaccurate because the unmodified GLB is in the public repo and the export; the owner should confirm the decision knowing that
-result: [pending]
+### 7. Coin drip and refund
+expected: Holding the action key at a spot sends coins one at a time from the king into the spot while the HUD gold counts down; releasing early flies them back and restores the full amount. The drip reads as a satisfying one-at-a-time stream.
+result: pass
 
-### 8. Check the start-night prompt on a non-QWERTY keyboard layout (Dvorak or AZERTY): hold the bound physical key's position and read the on-screen prompt
-expected: The prompt names the key by the label printed on that keycap on the player's layout (the default N key on QWERTY reads 'Hold N / (Y) to start Night 1'), not by its US-QWERTY position
-result: [pending]
+### 8. F3 debug overlay in a real window
+expected: F3 (or gamepad Back) shows the overlay in the top-right corner with FPS, phase, day, night, gold, buildings, units and enemies; it is legible, does not clash with the gold label, and a second press hides it.
+result: pass
+verified_by: "Claude scripted real-window run 2026-10-02 at owner's request: F3 shows the top-right panel with FPS 144, Phase, Day, Night, Gold, Buildings, Units, Enemies; Gold/Buildings rows updated after two Space-hold builds; Timer row by night and dawn; second F3 hides; gamepad Back shows and hides; panel clear of the gold label"
 
-### 9. Owner confirmation that the widened CI trigger satisfies DEV-02 'on every push'
-expected: Owner confirms the trigger (push to any branch or tag, plus pull_request and workflow_dispatch). Current state: the trigger is widened, the branch was pushed on 2026-10-01 and push-event run 36831792141 on 4a9b775 is green in all four jobs (lint, test 290/290, export, screenshots 6 of 6). Of the nine commits after 51c8736, three edit licence and checksum documentation (6cdf386, 1784ffe, 1ce2f94) and six are planning docs; all three documentation edits precede 4a9b775. The four commits after 4a9b775 (398dde5, 9a2782a, 2528873, 3fa5e48) are planning docs only and are not pushed, so the green run covers the last non-planning state but not the literal HEAD
-result: [pending]
+### 9. Night and dawn in a real window
+expected: Holding N (or gamepad Y) fills the bar at the bottom over about 1.5 s; the night starts with cool blue light under the 'Night 1 — no enemies yet' banner, then an orange dawn, then the day returns with the prompt reading 'Hold N / (Y) to start Night 2'.
+result: pass
+verified_by: "Claude scripted real-window run 2026-10-02: N hold filled the bar (0.50 at 0.75 s) and started Night 1 at ~1.5 s; blue night under 'Night 1 — no enemies yet'; settled dawn reads orange; day returned with 'Hold N / (Y) to start Night 2'. Note: the payout plays in the first ~0.7 s of dawn while the light is still easing from night"
+
+### 10. Dawn payout
+expected: At dawn, coins fly from each paying House to the gold counter, which ticks up as each lands and ends exactly on the new total; then a '+X gold' total appears and fades. Coin size and timing, the total's placement and the dawn light read well, and the six screenshots in screenshots/ show their scenes.
+result: pass
+verified_by: "Claude scripted real-window run 2026-10-02: two House I paid 2 coins; HUD gold counted 0 -> 1 -> 2 as coins landed while the ledger was already 2; '+2 gold' shown under the gold label then day kept 2 gold"
+
+### 11. Start-night key label on a non-QWERTY layout
+expected: On a Dvorak or AZERTY layout, the start-night prompt names the key by the label printed on that keycap (on QWERTY the default reads 'Hold N / (Y) to start Night 1'), not by its US-QWERTY position.
+result: skipped
+reason: "Owner chose to skip on 2026-10-02: no non-QWERTY layout at hand; the fake-layout resolver seam is unit-tested"
+
+### 12. Simulation and test suite run headless
+expected: The whole simulation is built and exercised without a scene tree, and the full suite runs headless: bash tools/test.sh (Git Bash) passes 290/290, and the CI test job is green on 7ae173b.
+result: pass
+verified_by: "Full suite 290/290 (36 scripts) locally at 7ae173b on 2026-10-01 and in CI run 36835551706 (test job green); test_build_flow builds RunContext without a scene tree"
+
+### 13. CI runs on every push
+expected: Every push to any branch or tag (plus pull requests and manual runs) runs lint, test, export and screenshots in GitHub Actions, and the latest push, 7ae173b (run 36835551706), is green in all four jobs. This trigger satisfies DEV-02 for you.
+result: pass
+verified_by: "ci.yml triggers on every push (any branch or tag) plus pull_request and workflow_dispatch; push run 36835551706 on 7ae173b green in lint, test, export and screenshots; trigger decision delegated by the owner on 2026-10-01"
+
+### 14. Public repo under the approved name
+expected: The repository is public as ABSAR07/duskhold, the name you approved, with only the gsd/phase-01-foundation-day-loop branch pushed and no tags.
+result: pass
+verified_by: "gh repo view: ABSAR07/duskhold PUBLIC; git ls-remote: only refs/heads/gsd/phase-01-foundation-day-loop, no tags (2026-10-01); name approved by the owner at the 01-03 checkpoint"
+
+### 15. Horse licence decision
+expected: You keep the Quaternius horse as CC0 and accept the residual licence risk, including that the unmodified GLB is public in the repo and ships in the build; ASSETS.md, its License.txt and attribution.json record this.
+result: pass
+verified_by: "Owner answered in chat on 2026-10-01: keep the horse and accept the residual licence risk, including the unmodified GLB being public in the repo and shipping in the build; recorded in ASSETS.md, License.txt and attribution.json"
+
+### 16. tools/bootstrap.py refuses to download without --yes (exit 2) and prints the dry-run table; nothing was downloaded before owner approval
+expected: tools/bootstrap.py refuses to download without --yes (exit 2) and prints the dry-run table; nothing was downloaded before owner approval
+result: pass
+source: automated
+coverage_id: 01-01/D1
+
+### 17. Godot 4.7.2-stable installed self-contained with Windows export templates, both archives checksum-verified against official SHA512-SUMS.txt
+expected: Godot 4.7.2-stable installed self-contained with Windows export templates, both archives checksum-verified against official SHA512-SUMS.txt
+result: pass
+source: automated
+coverage_id: 01-01/D2
+
+### 18. Headless GUT 9.7.1 run through tools/test.sh with JUnit XML output; toolchain smoke test passes 2/2
+expected: Headless GUT 9.7.1 run through tools/test.sh with JUnit XML output; toolchain smoke test passes 2/2
+result: pass
+source: automated
+coverage_id: 01-01/D3
+
+### 19. tools/lint.sh runs gdformat --check and gdlint on first-party GDScript only and exits 0
+expected: tools/lint.sh runs gdformat --check and gdlint on first-party GDScript only and exits 0
+result: pass
+source: automated
+coverage_id: 01-01/D4
+
+### 20. Repo hygiene keeps local tooling out of git (.claude/* except CLAUDE.md, .tools/, .godot/, build and screenshots output) with LFS routing for binary assets
+expected: Repo hygiene keeps local tooling out of git (.claude/* except CLAUDE.md, .tools/, .godot/, build and screenshots output) with LFS routing for binary assets
+result: pass
+source: automated
+coverage_id: 01-01/D5
+
+### 21. Hold the action key on the House plot to build tier I through CommandProcessor; HUD gold drops by the tier I cost from house.tres
+expected: Hold the action key on the House plot to build tier I through CommandProcessor; HUD gold drops by the tier I cost from house.tres
+result: pass
+source: automated
+coverage_id: 01-02/D2
+
+### 22. BuildIntent is re-validated on apply: unknown spot, unaffordable, max tier and not-day are rejected with a reason and change nothing; unknown intent rejected
+expected: BuildIntent is re-validated on apply: unknown spot, unaffordable, max tier and not-day are rejected with a reason and change nothing; unknown intent rejected
+result: pass
+source: automated
+coverage_id: 01-02/D3
+
+### 23. Gold is the only currency, changes only via CommandProcessor/Economy, and never goes negative
+expected: Gold is the only currency, changes only via CommandProcessor/Economy, and never goes negative
+result: pass
+source: automated
+coverage_id: 01-02/D4
+
+### 24. Windows export from the command line: bash tools/export.sh produces Duskhold.exe (109,268,480 B) and Duskhold.pck (50,204 B) with no rcedit/missing-template lines and no tests/GUT/tools packed; the release exe boots headless and exits 0
+expected: Windows export from the command line: bash tools/export.sh produces Duskhold.exe (109,268,480 B) and Duskhold.pck (50,204 B) with no rcedit/missing-template lines and no tests/GUT/tools packed; the release exe boots headless and exits 0
+result: pass
+source: automated
+coverage_id: 01-03/D1
+
+### 25. CI workflow with independent lint and test jobs and an export job gated by needs [lint, test]; no path filters; permissions contents read; uploads duskhold-windows
+expected: CI workflow with independent lint and test jobs and an export job gated by needs [lint, test]; no path filters; permissions contents read; uploads duskhold-windows
+result: pass
+source: automated
+coverage_id: 01-03/D2
+
+### 26. Pre-push safety check blocks tooling, generated output and credential-shaped strings across all history and lists author identities
+expected: Pre-push safety check blocks tooling, generated output and credential-shaped strings across all history and lists author identities
+result: pass
+source: automated
+coverage_id: 01-03/D3
+
+### 27. King rides with WASD/arrows/left stick; walk 5.0 m/s, sprint about 1.6x, reaches the first build spot within the walk-time budget
+expected: King rides with WASD/arrows/left stick; walk 5.0 m/s, sprint about 1.6x, reaches the first build spot within the walk-time budget
+result: pass
+source: automated
+coverage_id: 01-04/D1
+
+### 28. Diagonal input is not faster than cardinal; input below the 0.2 deadzone does not move the king
+expected: Diagonal input is not faster than cardinal; input below the 0.2 deadzone does not move the king
+result: pass
+source: automated
+coverage_id: 01-04/D2
+
+### 29. Input Map contract: keyboard + gamepad per gameplay action matching the binding table, no mouse events, build and start_night share no key or button
+expected: Input Map contract: keyboard + gamepad per gameplay action matching the binding table, no mouse events, build and start_night share no key or button
+result: pass
+source: automated
+coverage_id: 01-04/D5
+
+### 30. Prototype map is the 8-spot sandbox (5 House plots, 3 tower plots, castle at the middle, is_sandbox) and validates clean
+expected: Prototype map is the 8-spot sandbox (5 House plots, 3 tower plots, castle at the middle, is_sandbox) and validates clean
+result: pass
+source: automated
+coverage_id: 01-05/D1
+
+### 31. Edge-to-edge ride takes 20 to 30 s at walk speed; starting gold buys two Houses or one tower but not both; tier data (House 3, tower 2) lives in .tres
+expected: Edge-to-edge ride takes 20 to 30 s at walk speed; starting gold buys two Houses or one tower but not both; tier data (House 3, tower 2) lives in .tres
+result: pass
+source: automated
+coverage_id: 01-05/D2
+
+### 32. Spot rules: nearer spot wins, exact tie goes to the earlier spot, distance == radius is in range, empty map yields no focus, unknown or empty id is unknown_spot
+expected: Spot rules: nearer spot wins, exact tie goes to the earlier spot, distance == radius is in range, empty map yields no focus, unknown or empty id is unknown_spot
+result: pass
+source: automated
+coverage_id: 01-05/D3
+
+### 33. Holding at a built House or tower upgrades it tier by tier with each tier's cost; max tier is rejected with max_tier and gold unchanged
+expected: Holding at a built House or tower upgrades it tier by tier with each tier's cost; max tier is rejected with max_tier and gold unchanged
+result: pass
+source: automated
+coverage_id: 01-05/D4
+
+### 34. MapConfig.validate() rejects duplicate ids, dangling building ids, empty tier lists, non-positive costs, negative income and negative gold
+expected: MapConfig.validate() rejects duplicate ids, dangling building ids, empty tier lists, non-positive costs, negative income and negative gold
+result: pass
+source: automated
+coverage_id: 01-05/D5
+
+### 35. Hold is all-or-nothing: early release or leaving range refunds every dripped coin with gold and buildings unchanged; a later hold starts from zero and pays the tier cost once
+expected: Hold is all-or-nothing: early release or leaving range refunds every dripped coin with gold and buildings unchanged; a later hold starts from zero and pays the tier cost once
+result: pass
+source: automated
+coverage_id: 01-06/D1
+
+### 36. Focus is locked to the active spot while holding, a completed hold needs a fresh press, and a hold is refunded if building stops being allowed
+expected: Focus is locked to the active spot while holding, a completed hold needs a fresh press, and a hold is refunded if building stops being allowed
+result: pass
+source: automated
+coverage_id: 01-06/D2
+
+### 37. Unaffordable, max-tier and night presses emit hold_denied exactly once per press, with no hold_started/hold_progress and no gold movement
+expected: Unaffordable, max-tier and night presses emit hold_denied exactly once per press, with no hold_started/hold_progress and no gold movement
+result: pass
+source: automated
+coverage_id: 01-06/D3
+
+### 38. Label content (next-tier name, cost, effect, affordability, Max tier) is computed purely from RunContext data
+expected: Label content (next-tier name, cost, effect, affordability, Max tier) is computed purely from RunContext data
+result: pass
+source: automated
+coverage_id: 01-06/D4
+
+### 39. Every third-party file is logged with source, licence, author, retrieval date and SHA256; the log is test-enforced (CC0-1.0/MIT only, full coverage, sorted, no nested paths)
+expected: Every third-party file is logged with source, licence, author, retrieval date and SHA256; the log is test-enforced (CC0-1.0/MIT only, full coverage, sorted, no nested paths)
+result: pass
+source: automated
+coverage_id: 01-07/D1
+
+### 40. House tiers I-III, tower tiers I-II and the castle center render CC0 model wrapper scenes; taller/bigger per tier; primitive fallback still works
+expected: House tiers I-III, tower tiers I-II and the castle center render CC0 model wrapper scenes; taller/bigger per tier; primitive fallback still works
+result: pass
+source: automated
+coverage_id: 01-07/D2
+
+### 41. Every committed GLB and PNG under assets/third_party/ is an LFS object and no reference-game name appears in game content
+expected: Every committed GLB and PNG under assets/third_party/ is an LFS object and no reference-game name appears in game content
+result: pass
+source: automated
+coverage_id: 01-07/D4
+
+### 42. RunContext exposes unit and enemy counts (0 in Phase 1)
+expected: RunContext exposes unit and enemy counts (0 in Phase 1)
+result: pass
+source: automated
+coverage_id: 01-08/D1
+
+### 43. Overlay model provides Perf/Loop/Agents sections with FPS, phase, gold, buildings, units, enemies and appends registered sections
+expected: Overlay model provides Perf/Loop/Agents sections with FPS, phase, gold, buildings, units, enemies and appends registered sections
+result: pass
+source: automated
+coverage_id: 01-08/D2
+
+### 44. Reading the overlay 200 times never changes gold, phase or buildings and emits no simulation event
+expected: Reading the overlay 200 times never changes gold, phase or buildings and emits no simulation event
+result: pass
+source: automated
+coverage_id: 01-08/D3
+
+### 45. Overlay is hidden by default, toggles on the toggle_debug_overlay action, lists the required fields and refreshes the Buildings row within 0.5 s of a build
+expected: Overlay is hidden by default, toggles on the toggle_debug_overlay action, lists the required fields and refreshes the Buildings row within 0.5 s of a build
+result: pass
+source: automated
+coverage_id: 01-08/D4
+
+### 46. The day ends only through start_night; the loop runs DAY, NIGHT_TRANSITION, NIGHT (placeholder timer), DAWN, then the next DAY, one transition per tick, numbered days and nights
+expected: The day ends only through start_night; the loop runs DAY, NIGHT_TRANSITION, NIGHT (placeholder timer), DAWN, then the next DAY, one transition per tick, numbered days and nights
+result: pass
+source: automated
+coverage_id: 01-09/D1
+
+### 47. validate_build and submit(BuildIntent) return not_day in NIGHT and DAWN with gold and buildings unchanged; a build hold in progress is cancelled when the night starts
+expected: validate_build and submit(BuildIntent) return not_day in NIGHT and DAWN with gold and buildings unchanged; a build hold in progress is cancelled when the night starts
+result: pass
+source: automated
+coverage_id: 01-09/D2
+
+### 48. Dawn pays each House its current tier income once, in MapConfig order; upgraded, tier-equal, tower and empty cases behave as specified
+expected: Dawn pays each House its current tier income once, in MapConfig order; upgraded, tier-equal, tower and empty cases behave as specified
+result: pass
+source: automated
+coverage_id: 01-09/D3
+
+### 49. Unspent gold carries over unchanged across three full cycles with exact expected totals derived from the .tres data; the payout is the only gold change over a night
+expected: Unspent gold carries over unchanged across three full cycles with exact expected totals derived from the .tres data; the payout is the only gold change over a night
+result: pass
+source: automated
+coverage_id: 01-09/D4
+
+### 50. Gold is the only currency in the HUD and its label is always visible
+expected: Gold is the only currency in the HUD and its label is always visible
+result: pass
+source: automated
+coverage_id: 01-09/D5
+
+### 51. Hold-to-confirm input: tap keeps the day and resets the fill, a full hold starts one night, input is ignored outside the day and after a held-through night, banner text and prompt visibility follow the phase
+expected: Hold-to-confirm input: tap keeps the day and resets the fill, a full hold starts one night, input is ignored outside the day and after a held-through night, banner text and prompt visibility follow the phase
+result: pass
+source: automated
+coverage_id: 01-09/D6
+
+### 52. At dawn each paying House sends one coin per gold to the gold counter, the counter lags the ledger while they fly and settles exactly on it, and a '+X gold' total (derived from house.tres) appears and fades
+expected: At dawn each paying House sends one coin per gold to the gold counter, the counter lags the ledger while they fly and settles exactly on it, and a '+X gold' total (derived from house.tres) appears and fades
+result: pass
+source: automated
+coverage_id: 01-10/D1
+
+### 53. A dawn that pays 0 spawns no coins and shows no '+0 gold'
+expected: A dawn that pays 0 spawns no coins and shows no '+0 gold'
+result: pass
+source: automated
+coverage_id: 01-10/D2
+
+### 54. bash tools/screenshot.sh saves six non-empty PNGs locally and in CI; the runner exits 2 under --headless and rejects blank images
+expected: bash tools/screenshot.sh saves six non-empty PNGs locally and in CI; the runner exits 2 under --headless and rejects blank images
+result: pass
+source: automated
+coverage_id: 01-10/D3
+
+### 55. Every push runs lint, test, export and screenshots in CI and the phase is green on origin
+expected: Every push runs lint, test, export and screenshots in CI and the phase is green on origin
+result: pass
+source: automated
+coverage_id: 01-10/D4
 
 ## Summary
 
-total: 9
-passed: 0
-issues: 0
-pending: 9
-skipped: 0
+total: 55
+passed: 52
+issues: 2
+pending: 0
+skipped: 1
 blocked: 0
 
 ## Gaps
+
+- gap_id: G-01-3
+  truth: "The camera keeps one fixed angle (the player cannot rotate it), trails slightly behind the king and catches up, and keeps the king readable near the centre of the screen."
+  status: failed
+  reason: "User reported: mostly good, but when the king goes behind a building like behind the castle, his silhouette is not visible. The king disappears behind stuff basically. Is that intentional? / I think we should move the camera a bit further away. Also should have buttons that zoom out or zoom in, to a certain extent"
+  severity: major
+  test: 3
+  artifacts: []
+  missing: []
+
+- gap_id: G-01-4
+  truth: "Holding the action key at a plot builds or upgrades it over a hold that feels deliberate (map, plots and tier growth otherwise passed)."
+  status: failed
+  reason: "User reported: pass. But the building count up time is too short. needs tweaking to make it a biiiit longer (orchestrator note: coin_drip_interval is 0.2 s per coin in data/tuning/loop_tuning.tres, so House I completes in about 0.4 s)"
+  severity: minor
+  test: 4
+  artifacts: []
+  missing: []
+
+## Deferred Follow-Ups
+
+- test: 4
+  idea: "yes, but a small minimap would be nice"
+  deferred_at: 2026-10-01
