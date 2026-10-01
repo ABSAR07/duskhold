@@ -3,7 +3,7 @@ status: testing
 phase: 01-foundation-day-loop
 source: [01-VERIFICATION.md]
 started: 2026-09-29T12:10:00Z
-updated: 2026-09-30T15:15:51Z
+updated: 2026-10-01T07:22:02Z
 ---
 
 ## Current Test
@@ -41,7 +41,7 @@ expected: Prompt fills, banner and night lighting show, dawn coins fly from each
 result: [pending]
 
 ### 7. Owner decision on the Quaternius horse licence (review WR-06, skipped in review-fix)
-expected: Owner confirms keeping the 2021 CC0 Poly Pizza copy despite the newer Quaternius Asset License, or replaces it before the itch.io release
+expected: Owner confirms keeping the 2021 CC0 Poly Pizza copy despite the newer Quaternius Asset License, or replaces it before the itch.io release. Current state: on 2026-10-01 the keep decision was recorded (ASSETS.md, License.txt, attribution.json) but the owner has not run UAT, and open review finding WR-01 says the recorded reasoning cites a clause that does not favour CC0; the owner should confirm the keep decision on the corrected rationale (CC0 on the author's pack page and Poly Pizza at retrieval, irrevocable dedication, residual risk accepted)
 result: [pending]
 
 ### 8. Check the start-night prompt on a non-QWERTY keyboard layout (Dvorak or AZERTY): hold the bound physical key's position and read the on-screen prompt
@@ -49,7 +49,7 @@ expected: The prompt names the key by the label printed on that keycap on the pl
 result: [pending]
 
 ### 9. Owner decision on CI trigger semantics for DEV-02, then push the branch and confirm CI is green on the final HEAD
-expected: Owner either accepts 'main, master, gsd/** and PRs' as satisfying 'on every push' (record an override) or widens the trigger; after pushing, lint, test, export and screenshots jobs are green on the new HEAD (last green run is 981e4c8, the current origin tip; the local branch is 314 commits ahead)
+expected: Owner confirms the widened trigger (push to any branch or tag, plus pull_request and workflow_dispatch) satisfies 'on every push'. Current state: the trigger is widened (bfe3c97), the branch was pushed on 2026-10-01 (origin tip e6bbb47) and push-event run 36827944700 on e6bbb47 is green in all four jobs (lint, test 290/290, export, screenshots 6 of 6); the commits after e6bbb47 (four when this report was written, plus this report and the UAT file) are planning docs only, not pushed, so the green run covers the last code state but not the literal HEAD
 result: [pending]
 
 ## Summary
