@@ -5,12 +5,12 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: fixed
-    title: "The \"about 4 times/s\" refresh cadence is documented but effectively untested"
+    disposition: open
+    title: "Horse licence record cites the QAL \"time you obtained\" clause, but the retrieval date falls after the QAL took effect"
   - id: IN-01
     severity: info
-    disposition: fixed
-    title: "Required-field check is substring-only and does not check values"
+    disposition: open
+    title: "ASSETS.md says every SHA256 is of a downloaded archive, which is not true for the horse or GUT"
   - id: IN-02
     severity: info
     disposition: fixed
@@ -87,17 +87,17 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 0
+open: 2
 total: 21
-recorded: 2026-09-30T15:11:26.676Z
+recorded: 2026-10-01T07:15:13.468Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
-| IN-01 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
+| WR-01 | warning | open | - |
+| IN-01 | info | open | - |
 | IN-02 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-02 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-03 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
