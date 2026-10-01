@@ -3,7 +3,7 @@ status: testing
 phase: 01-foundation-day-loop
 source: [01-VERIFICATION.md]
 started: 2026-09-29T12:10:00Z
-updated: 2026-10-01T07:22:02Z
+updated: 2026-10-01T08:09:58Z
 ---
 
 ## Current Test
@@ -40,16 +40,16 @@ result: [pending]
 expected: Prompt fills, banner and night lighting show, dawn coins fly from each paying House to the gold counter, '+X gold' appears, day returns with carried-over gold
 result: [pending]
 
-### 7. Owner decision on the Quaternius horse licence (review WR-06, skipped in review-fix)
-expected: Owner confirms keeping the 2021 CC0 Poly Pizza copy despite the newer Quaternius Asset License, or replaces it before the itch.io release. Current state: on 2026-10-01 the keep decision was recorded (ASSETS.md, License.txt, attribution.json) but the owner has not run UAT, and open review finding WR-01 says the recorded reasoning cites a clause that does not favour CC0; the owner should confirm the keep decision on the corrected rationale (CC0 on the author's pack page and Poly Pizza at retrieval, irrevocable dedication, residual risk accepted)
+### 7. Owner confirmation of the Quaternius horse licence decision (review WR-06 / open review WR-01)
+expected: Owner confirms keeping the 2021 CC0 Poly Pizza copy despite the newer Quaternius Asset License, or replaces it before the itch.io release. Current state: on 2026-10-01 the owner chose to keep the horse and accept the residual risk; the records now give the real basis (CC0 on the author's pack page and Poly Pizza at retrieval, irrevocable dedication). The open review finding WR-01 notes that the 'not redistributed as a standalone asset' sentence is inaccurate because the unmodified GLB is in the public repo and the export; the owner should confirm the decision knowing that
 result: [pending]
 
 ### 8. Check the start-night prompt on a non-QWERTY keyboard layout (Dvorak or AZERTY): hold the bound physical key's position and read the on-screen prompt
 expected: The prompt names the key by the label printed on that keycap on the player's layout (the default N key on QWERTY reads 'Hold N / (Y) to start Night 1'), not by its US-QWERTY position
 result: [pending]
 
-### 9. Owner decision on CI trigger semantics for DEV-02, then push the branch and confirm CI is green on the final HEAD
-expected: Owner confirms the widened trigger (push to any branch or tag, plus pull_request and workflow_dispatch) satisfies 'on every push'. Current state: the trigger is widened (bfe3c97), the branch was pushed on 2026-10-01 (origin tip e6bbb47) and push-event run 36827944700 on e6bbb47 is green in all four jobs (lint, test 290/290, export, screenshots 6 of 6); the commits after e6bbb47 (four when this report was written, plus this report and the UAT file) are planning docs only, not pushed, so the green run covers the last code state but not the literal HEAD
+### 9. Owner confirmation that the widened CI trigger satisfies DEV-02 'on every push'
+expected: Owner confirms the trigger (push to any branch or tag, plus pull_request and workflow_dispatch). Current state: the trigger is widened, the branch was pushed on 2026-10-01 and push-event run 36831792141 on 4a9b775 is green in all four jobs (lint, test 290/290, export, screenshots 6 of 6). Of the nine commits after 51c8736, three edit licence and checksum documentation (6cdf386, 1784ffe, 1ce2f94) and six are planning docs; all three documentation edits precede 4a9b775. The four commits after 4a9b775 (398dde5, 9a2782a, 2528873, 3fa5e48) are planning docs only and are not pushed, so the green run covers the last non-planning state but not the literal HEAD
 result: [pending]
 
 ## Summary
