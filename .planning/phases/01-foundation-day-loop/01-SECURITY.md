@@ -50,13 +50,13 @@ created: "2026-09-29"
 | T-01-09 | Tampering | `project.godot` `[input]` | low | mitigate | `test_input_map.gd` fails on any mouse binding in a project action, any missing keyboard/gamepad binding, or binding-table drift; green | closed |
 | T-01-10 | Tampering | `MapConfig` / `.tres` data | low | mitigate | `MapConfig.validate()` reports empty entries, duplicate/empty ids (building ids too since review-fix pass 2, WR-01), empty tier lists and non-positive costs (hardened by review fix IN-02); `BuildingSystem` skips null building/spot entries instead of crashing, and since pass 3 lists a duplicate spot id once (the first definition wins) and skips unknown building ids in dawn income; since pass 4 a duplicate building id also keeps the first definition and `spot_ids()` returns a copy; since pass 5 empty-id spots are skipped, and since pass 6 empty-id buildings too; `test_prototype_map_data.gd` and `test_building_system_data_errors.gd` green | closed |
 | T-01-11 | Tampering | `BuildHoldController` completion after leaving range, phase change or loss of affordability | medium | mitigate | Focus lock on the active spot; every frame cancels if the key is released, the spot is out of `interaction_radius` or `is_build_allowed()` is false; `submit` re-validates at completion; `test_build_hold_refund.gd`, `test_build_denied.gd` green | closed |
-| T-01-12 | Repudiation | `assets/attribution.json` licensing claims | medium | mitigate | `ALLOWED_LICENSES = ["CC0-1.0", "MIT"]` and full-coverage checks in `test_attribution_log.gd`; `License.txt` kept beside each of the 4 third-party asset folders; archive SHA256 on every model entry; source wording quoted in 01-07-SUMMARY; the Quaternius horse licence decision is recorded since 2026-10-01 (kept after a re-check; evidence in `ASSETS.md`, its `License.txt` and the manifest notes) | closed |
+| T-01-12 | Repudiation | `assets/attribution.json` licensing claims | medium | mitigate | `ALLOWED_LICENSES = ["CC0-1.0", "MIT"]` and full-coverage checks in `test_attribution_log.gd`; `License.txt` kept beside each of the 4 third-party asset folders; archive SHA256 on every model entry; source wording quoted in 01-07-SUMMARY; the Quaternius horse licence decision is recorded since 2026-10-01 (kept after a re-check; evidence in `ASSETS.md`, its `License.txt` and the manifest notes). Since review-fix pass 25 all three records state its basis, CC0 on the author's pack page and Poly Pizza at retrieval and an irrevocable earlier dedication, and that the owner accepts the residual risk | closed |
 | T-01-13 | Tampering | IP exposure in game content | medium | mitigate | Plan-scoped check `git grep -il thronefall -- data simulation input presentation ui assets project.godot export_presets.cfg ASSETS.md` is clean; only Kenney/Quaternius sources used | closed |
 | T-01-SC (01-07) | Tampering | CC0 archive downloads | high | mitigate | Owner approved exact URLs and sizes (01-07 Task 2); `curl --fail`; SHA256 recorded per archive in `attribution.json` (4 model entries); only chosen files extracted | closed |
 | T-01-14 | Tampering | `RunManager` transitions and dawn payout | low | mitigate | `start_night()` returns false unless `_phase == DAY`; `test_only_the_run_manager_assigns_the_loop_phase` source-scan test; `CommandProcessor` rejects StartNightIntent outside DAY; `test_run_manager.gd`, `test_build_phase_guard.gd`, `test_loop_gold_carryover.gd` green | closed |
 | T-01-15 | Elevation of Privilege | DebugOverlay in release builds | low | accept | See AR-01 (since pass 3 the read-only test watches all 7 simulation signals, and malformed provider rows are dropped) | closed |
 | T-01-16 | Information Disclosure | `duskhold-screenshots` CI artifact | low | accept | See AR-02 (`retention-days: 7` confirmed in `ci.yml`; since IN-04 the upload runs `if: always()` and also carries `build/screenshot-import.log`) | closed |
-| T-01-17 | Information Disclosure | `git push` of new history | high | mitigate | `bash tools/prepush_check.sh` before every push; re-run 2026-10-01 over all refs before the push of 318 commits (`981e4c8`..`e6bbb47`): PASSED; re-run after it (379 commits on all refs, 1 unpushed): PASSED | closed |
+| T-01-17 | Information Disclosure | `git push` of new history | high | mitigate | `bash tools/prepush_check.sh` before every push; re-run 2026-10-01 over all refs before the push of 318 commits (`981e4c8`..`e6bbb47`): PASSED; before the push of 10 more (`e6bbb47`..`4a9b775`, 388 commits on all refs): PASSED; re-run after it (389, 1 unpushed): PASSED | closed |
 | T-01-SC (01-10) | Tampering | apt packages on the CI runner | low | accept | See AR-03 | closed |
 | T-01-SC (no-install plans) | Tampering | Package installs in 01-02, 01-04, 01-05, 01-06, 01-08, 01-09 | low | accept | See AR-04 | closed |
 
@@ -68,8 +68,8 @@ The plans list T-01-SC seven times; the six identical "this plan installs no pac
 
 ### Observations (non-blocking)
 
-- **T-01-06 / T-01-17: enforcement is procedural.** `.git/hooks/pre-push` only runs Git LFS, so nothing forces `tools/prepush_check.sh` to run before a push. It ran and passed before the 2026-10-01 push of 318 commits, and it passes today with 1 commit unpushed. Optional hardening: call it from the pre-push hook.
-- **T-01-12: residual licence risk.** The allow-list test trusts each entry's declared `license` field. The Quaternius horse is logged as CC0-1.0, based on the 2021 Poly Pizza CC0 statement, while Quaternius now publishes its own Asset License. That was review finding WR-06. The owner kept the horse on 2026-10-01 after a re-check: the 2021 pack page and Poly Pizza still state CC0, and the Quaternius Asset License page says nothing about earlier CC0 releases. The decision is recorded in `ASSETS.md`, the horse's `License.txt` and its manifest notes. Each new asset still needs the same judgment, because the test cannot check a declared licence against its source.
+- **T-01-06 / T-01-17: enforcement is procedural.** `.git/hooks/pre-push` only runs Git LFS, so nothing forces `tools/prepush_check.sh` to run before a push. It ran and passed before both 2026-10-01 pushes (318 commits, then 10), and it passes today with 1 commit unpushed. Optional hardening: call it from the pre-push hook.
+- **T-01-12: residual licence risk.** The allow-list test trusts each entry's declared `license` field. The Quaternius horse is logged as CC0-1.0, based on the 2021 Poly Pizza CC0 statement, while Quaternius now publishes its own Asset License. That was review finding WR-06. The owner kept the horse on 2026-10-01 after a re-check: the 2021 pack page and Poly Pizza still state CC0, and the Quaternius Asset License page says nothing about earlier CC0 releases. The decision is recorded in `ASSETS.md`, the horse's `License.txt` and its manifest notes. Since review-fix pass 25 (review WR-01), those records also say that the newer licence predates the retrieval, that the keep rests on the CC0 statements at retrieval and an irrevocable earlier dedication, and that the owner accepts the residual risk. Each new asset still needs the same judgment, because the test cannot check a declared licence against its source.
 - **T-01-13: out-of-scope mention.** A comment on line 3 of `tools/_common.sh` names the local checkout folder, which contains the reference game's name. `tools/*` is not game content and is excluded from the export (`exclude_filter="tests/*, addons/gut/*, tools/*"`). The owner may still want to reword it before release.
 
 ---
@@ -116,6 +116,7 @@ The plans list T-01-SC seven times; the six identical "this plan installs no pac
 | 2026-09-30 (re-audit 22) | 22 | 22 | 0 | secure-phase orchestrator (State A; re-checked mitigations touched by review-fix pass 23) |
 | 2026-09-30 (re-audit 23) | 22 | 22 | 0 | secure-phase orchestrator (State A; re-checked after review-fix pass 24, test-only) |
 | 2026-10-01 (re-audit 24) | 22 | 22 | 0 | secure-phase orchestrator (State A; re-checked mitigations touched by quick task 261001-0dd: CI trigger, horse licence notes) |
+| 2026-10-01 (re-audit 25) | 22 | 22 | 0 | secure-phase orchestrator (State A; re-checked mitigations touched by review-fix pass 25: licence records, ASSETS.md hash notes) |
 
 ## Security Audit 2026-09-29
 
@@ -530,6 +531,25 @@ Re-checked after quick task 261001-0dd (`622a93b`, `bfe3c97`), which changed the
 - **T-01-08 / T-01-16:** the LFS cache keys, `lfs: false` and `retention-days: 7` are unchanged.
 - **T-01-06 / T-01-17:** `tools/prepush_check.sh` PASSED before the push of 318 commits (`981e4c8`..`e6bbb47`), then again over all 379 commits with 1 unpushed.
 - **CI:** run 36827944700 on `e6bbb47` (push event) is green in all four jobs.
+- **Tests:** full suite 290/290; lint clean.
+
+## Security Audit 2026-10-01 (re-audit after review-fix pass 25)
+
+| Metric | Count |
+|--------|-------|
+| Threats found | 22 |
+| Closed | 22 |
+| Open | 0 |
+
+Re-checked after review-fix pass 25 (`6cdf386`, `1784ffe`, `1ce2f94`). The pass touched only `ASSETS.md`, `assets/attribution.json` (the horse's `notes`) and the horse's `License.txt`; no code, test or workflow file changed.
+- **T-01-12:** a `License.txt` still sits beside all 4 third-party asset folders, and every entry keeps its licence (`CC0-1.0` / `MIT`) and retrieval date. In `attribution.json` only the horse's notes line differs from `f5cfdfe` (1/1 numstat). The three horse records now agree on the basis for keeping it, and say that the owner accepts the residual risk. `ASSETS.md` now says what each SHA256 covers and keeps the confirmed `curl --fail` / no-redirect evidence for the four 01-07 downloads. `test_attribution_log.gd` is green.
+- **T-01-13:** the scoped name check is clean after the `ASSETS.md` edits.
+- **T-01-07 / T-01-08 / T-01-16:** `ci.yml` is unchanged since quick task 261001-0dd:
+  - read-only token, no `pull_request_target`, no secrets context reference;
+  - 17/17 SHA-pinned `actions/*`;
+  - LFS keys and `retention-days: 7` as before.
+- **T-01-06 / T-01-17:** `tools/prepush_check.sh` PASSED before the push of 10 commits (`e6bbb47`..`4a9b775`, 388 on all refs), then again after it (389, 1 unpushed).
+- **CI:** run 36831792141 on `4a9b775` (push event) is green in all four jobs.
 - **Tests:** full suite 290/290; lint clean.
 
 ---
