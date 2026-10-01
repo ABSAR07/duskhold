@@ -18,19 +18,24 @@ Licence evidence (checked 2026-09-29)
   Quaternius's licence page (https://quaternius.com/license.html) now shows the
   "Quaternius Asset License (QAL) v1.0", last updated 8/28/2026. It forbids redistributing
   "the Assets themselves ... as a standalone asset" and says "the version in effect at the
-  time you obtained the Assets governs your use of them". This model was obtained as CC0
-  (Poly Pizza page and the 2021 pack page above), so it is recorded here as CC0-1.0. It is
-  used inside a game and is not redistributed as a standalone asset.
+  time you obtained the Assets governs your use of them". The QAL v1.0 (last updated
+  8/28/2026) predates the 2026-09-29 retrieval, so that clause does not by itself favour
+  CC0. The model is recorded here as CC0-1.0 because the Poly Pizza page and the author's
+  2021 pack page above both stated CC0 when it was retrieved, and an earlier CC0 dedication
+  is irrevocable. It is used inside a game and is not redistributed as a standalone asset.
 
 Licence re-check (2026-10-01)
   The 2021 pack page https://quaternius.com/packs/ultimateanimatedanimals.html still
   states "License: CC0" and links https://creativecommons.org/publicdomain/zero/1.0/
   The Poly Pizza page https://poly.pizza/m/qvTrSG9pZF still states "Public Domain (CC0)".
   The QAL v1.0 page (last updated 8/28/2026) says nothing about assets earlier released
-  under CC0, and the CC0 1.0 waiver is irrevocable.
+  under CC0.
 
 Decision (2026-10-01)
-  The owner keeps this model. It stays recorded as CC0-1.0 in assets/attribution.json
-  and ASSETS.md.
+  The owner keeps this model. The decision rests on the author's own 2021 pack page and the
+  Poly Pizza page both stating CC0 when the model was retrieved (checked 2026-09-29,
+  re-checked 2026-10-01), and on an earlier CC0 dedication being irrevocable; it does not
+  rest on the QAL "time you obtained" clause. The owner accepts the residual licence risk
+  (2026-10-01). It stays recorded as CC0-1.0 in assets/attribution.json and ASSETS.md.
 
 Licence: Creative Commons Zero 1.0 (CC0-1.0), https://creativecommons.org/publicdomain/zero/1.0/

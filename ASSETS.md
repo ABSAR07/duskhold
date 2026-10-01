@@ -36,10 +36,16 @@ asset" and says "the version in effect at the time you obtained the Assets gover
 
 Re-checked on 2026-10-01: https://quaternius.com/packs/ultimateanimatedanimals.html still states "License:
 CC0" and links the CC0 1.0 deed, and https://poly.pizza/m/qvTrSG9pZF still states "Public Domain (CC0)". The QAL
-v1.0 page says nothing about assets earlier released under CC0, and the CC0 1.0 waiver is irrevocable.
+v1.0 page says nothing about assets earlier released under CC0.
 
-Owner decision (2026-10-01): keep the horse, recorded as CC0-1.0. It was obtained under CC0 and is used inside
-a game, not redistributed as a standalone asset. The same evidence is kept in
+The QAL v1.0 (last updated 8/28/2026) predates the 2026-09-29 retrieval, so its "version in effect at the time
+you obtained the Assets" clause does not by itself favour CC0. The keep decision rests on the author's own 2021
+pack page and the Poly Pizza page both stating CC0 when the model was retrieved (checked 2026-09-29, re-checked
+2026-10-01), and on an earlier CC0 dedication being irrevocable. The owner accepts the residual risk
+(2026-10-01).
+
+Owner decision (2026-10-01): keep the horse, recorded as CC0-1.0, on the grounds above. It is used inside a
+game, not redistributed as a standalone asset. The same evidence is kept in
 `assets/third_party/quaternius_horse/License.txt` and in the `quaternius-horse` entry's `notes` in
 `assets/attribution.json`.
 
