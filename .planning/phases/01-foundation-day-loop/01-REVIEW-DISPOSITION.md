@@ -5,11 +5,11 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "Horse licence record cites the QAL \"time you obtained\" clause, but the retrieval date falls after the QAL took effect"
   - id: IN-01
     severity: info
-    disposition: open
+    disposition: fixed
     title: "ASSETS.md says every SHA256 is of a downloaded archive, which is not true for the horse or GUT"
   - id: IN-02
     severity: info
@@ -87,17 +87,17 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 2
+open: 0
 total: 21
-recorded: 2026-10-01T07:15:13.468Z
+recorded: 2026-10-01T07:39:08.529Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
-| IN-01 | info | open | - |
+| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
+| IN-01 | info | fixed | 01-REVIEW-FIX.md |
 | IN-02 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-02 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-03 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
