@@ -1,56 +1,85 @@
 ---
 phase: 01-foundation-day-loop
-reviewed: 2026-10-01T07:15:00Z
+reviewed: 2026-10-01T08:05:00Z
 depth: standard
-files_reviewed: 4
+files_reviewed: 3
 files_reviewed_list:
-  - .github/workflows/ci.yml
   - ASSETS.md
   - assets/attribution.json
   - assets/third_party/quaternius_horse/License.txt
 findings:
   critical: 0
   warning: 1
-  info: 1
-  total: 2
+  info: 2
+  total: 3
 status: issues_found
 ---
 
 # Phase 1: Code Review Report
 
-**Reviewed:** 2026-10-01T07:15:00Z
+**Reviewed:** 2026-10-01T08:05:00Z
 **Depth:** standard
-**Files Reviewed:** 4
+**Files Reviewed:** 3
 **Status:** issues_found
 
 ## Summary
 
-Scope is the change since 8dd458c (quick task 261001-0dd): the CI push trigger lost its branch filter, and the horse licence re-check and keep decision was recorded in ASSETS.md, License.txt and attribution.json.
+Reviewed review-fix pass 25 (commits 6cdf386, 1784ffe, 1ce2f94): the horse licence records and the ASSETS.md
+checksum section. Both prior findings are resolved. The horse records no longer rely on the QAL "time you
+obtained" clause, and ASSETS.md now says what each SHA256 covers.
 
-CI: the workflow change is correct and minimal. `push:` with no filter fires for every branch and tag; permissions, concurrency and jobs are unchanged. Push and pull_request runs use different `github.ref` values (`refs/heads/x` vs `refs/pull/N/merge`), so the concurrency group does not make them cancel each other. Tag pushes are cancellable by a newer push of the same tag, which is harmless. The header comment matches the behaviour. No CI findings.
+Checked against the repo:
+- The horse GLB hashes to `fae7a7ec...ce609` and is 1108124 bytes, matching the table, the manifest `sha256`
+  and the notes.
+- `GUT_ZIP_SHA256` in `tools/bootstrap.py` equals the manifest hash, and `GUT_ZIP_URL` is the GitHub tag zip.
+- 01-07-SUMMARY.md lines 132 and 214 support the `curl --fail` / no-redirect / size-matched claim.
+- The Mini Characters hash and URL match the 01-07 summary.
+- `exclude_filter` in `export_presets.cfg` excludes `addons/gut/*`, matching `ships_in_build: false`.
+- The three files agree with each other on dates, evidence wording and the decision.
 
-Attribution: the horse record is identical across the three files (same dates, same quotes, same decision). The JSON is valid and the entry is still sorted by `id`. The ASSETS.md table row is unchanged, so `test_attribution_log` stays in sync. The only defect is in the reasoning the record gives for keeping the model, plus one older inaccuracy in ASSETS.md.
-
-I did not re-fetch the quaternius.com or poly.pizza pages. The re-check statements ("still states License: CC0", "QAL v1.0 page says nothing about assets earlier released under CC0") are taken from the files as the owner's evidence and are not verified here.
+The keep decision and the risk acceptance are the owner's and are not judged here. One factual claim in the
+rationale does not match the repo (WR-01), and there are two minor wording inconsistencies. I could not
+independently re-fetch the Quaternius and Poly Pizza pages, so the quoted page text is taken as recorded.
 
 ## Warnings
 
-### WR-01: Horse licence record cites the QAL "time you obtained" clause, but the retrieval date falls after the QAL took effect
+### WR-01: "Not redistributed as a standalone asset" is inaccurate for a public repository
 
-**File:** `assets/third_party/quaternius_horse/License.txt:18-23`, `ASSETS.md:29-44`, `assets/attribution.json:96`
-**Issue:** All three records quote the QAL v1.0 sentence "the version in effect at the time you obtained the Assets governs your use of them" and then justify CC0 by saying the model "was obtained as CC0". The same records state that QAL v1.0 was last updated 8/28/2026 and that the horse was retrieved on 2026-09-29, which is a month later. Read literally, the clause points at the QAL, not at the older CC0 terms, because the QAL was already live at retrieval. The CC0 position can still hold on a different ground: the 2021 pack was released under CC0 by its author, and the Poly Pizza and pack pages still state CC0 on the retrieval date. But the records never make that argument. They imply the clause supports the keep decision when it cuts the other way, so a later reader or itch.io reviewer would find the stated reasoning unsound. "The CC0 1.0 waiver is irrevocable" is also only true for a waiver the rights holder actually applied. Here the only evidence is third-party pages (Poly Pizza, and the pack page, which is first party but undated), not a dated copy of the 2021 release.
-**Fix:** Add one sentence to each of the three records that says this openly. For example: "The QAL v1.0 (last updated 8/28/2026) predates the 2026-09-29 retrieval, so the 'time you obtained' clause does not by itself favour CC0. The keep decision rests on the author's own pack page and Poly Pizza page both stating CC0 on the retrieval date, and on the irrevocability of an earlier CC0 dedication (owner accepts this residual risk)." Optionally store a dated archive.org snapshot URL or screenshot of the pack page as durable evidence, and keep the three texts identical so they do not drift.
+**File:** `ASSETS.md:59-60`, `assets/third_party/quaternius_horse/License.txt:25`, `assets/attribution.json:96`
+**Issue:** All three files justify the keep partly with "it is used inside a game, not redistributed as a
+standalone asset". But `assets/third_party/quaternius_horse/horse_animated.glb` is tracked in git (via LFS) as an
+unmodified standalone file, and `origin` is the public repo `ABSAR07/duskhold`. The ASSETS.md table also links the
+original GLB. The QAL clause quoted in the same records forbids redistributing "the Assets themselves ... as a
+standalone asset". Publishing the raw GLB in a public repository is arguably exactly that, so the stated
+mitigation is contradicted by how the repo is published. The exported .pck also ships the GLB, extractable
+unmodified. The owner has accepted the residual risk, but the record should not claim a mitigation that does not
+hold. The other CC0 packs are unaffected, since CC0 allows redistribution.
+**Fix:** Reword the sentence in all three places to state the real position, for example: "It is used inside a
+game, but the unmodified GLB is also committed to the public repository and shipped in the build; the owner
+accepts the residual risk if QAL were held to apply." Leave the CC0-1.0 classification and the keep decision as
+they are.
 
 ## Info
 
-### IN-01: ASSETS.md says every SHA256 is of a downloaded archive, which is not true for the horse or GUT
+### IN-01: "How to add an asset" still describes `sha256` as always "of the downloaded archive"
 
-**File:** `ASSETS.md:22-27`
-**Issue:** "The SHA256 values above are of the archives exactly as downloaded ... The archives were deleted after extracting only the listed files". The horse hash is of the single GLB (no archive; the table cell says "of the GLB itself"), and the GUT hash is of the v9.7.1 source zip, which was not deleted but is vendored under `addons/gut/`. Godot has no SHA256 at all. This predates the change but sits in a file in scope, and it is the evidence section a reviewer would read to audit the hashes.
-**Fix:** Reword to "The SHA256 values for the Kenney packs and GUT are of the archives as downloaded; the horse value is of the GLB itself (no archive exists)", or say "see each entry's `notes` for what the hash covers".
+**File:** `ASSETS.md:76`
+**Issue:** The new section above (lines 22-39) says the horse hash is of a single GLB, GUT's is of a source zip
+that is not in the repo, and Godot has none. Step 4 of the checklist still says `sha256` (of the downloaded
+archive), which is now partly wrong for the horse.
+**Fix:** Change step 4 to "`sha256` (of the downloaded archive, or of the file itself when it was not an
+archive; say which in `notes`)".
+
+### IN-02: The same source page is quoted two ways
+
+**File:** `ASSETS.md:45` and `ASSETS.md:49`; `assets/attribution.json:96`; `assets/third_party/quaternius_horse/License.txt:17` and `:29`
+**Issue:** The 2021 pack page is quoted as `"License CC0"` for the 2026-09-29 check and as `"License: CC0"` for
+the 2026-10-01 re-check, in all three files. A reader may wonder whether the page text changed between checks.
+It looks like one transcription difference, but the records give no way to tell.
+**Fix:** Use the verbatim page text in both places, or add "(punctuation as transcribed)".
 
 ---
 
-_Reviewed: 2026-10-01T07:15:00Z_
+_Reviewed: 2026-10-01T08:05:00Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
