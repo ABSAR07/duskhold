@@ -55,7 +55,7 @@ GUT rows run as `bash tools/test.sh -gselect=<file>`. Threat refs are the plans'
 | 01-02-T1 | 01-02 | 2 | KING-01, BLDG-01, BLDG-03, ECON-01 | T-01-04 | Build applied only after CommandProcessor re-validation | e2e | `test_walking_skeleton.gd` | ✅ | ✅ green |
 | 01-02-T2 | 01-02 | 2 | BLDG-03, ECON-01, DEV-01 | T-01-04 | Gold never goes negative; refused spends change nothing | integration + unit (no scene tree) | `test_build_flow.gd`, `test_economy_gold.gd` | ✅ | ✅ green |
 | 01-03-T1 | 01-03 | 3 | DEV-02 | T-01-06, T-01-07 | Pre-push gate blocks credentials and tool caches; CI token is read-only | script | `bash tools/export.sh` + `build/windows/Duskhold.exe --headless --quit-after 120` + `ci.yml` jobs/permissions assert + `bash tools/prepush_check.sh` | ✅ | ✅ green (re-run 2026-09-29) |
-| 01-03-T3 | 01-03 | 3 | DEV-02 | T-01-17 | Only approved content pushed | CI | `gh run list --workflow ci.yml` conclusion + `duskhold-windows` artifact | ✅ | ✅ green (CI run 36827944700 on `e6bbb47`, a push event on 2026-10-01: lint, test, export and screenshots all green; `duskhold-windows` artifact uploaded) |
+| 01-03-T3 | 01-03 | 3 | DEV-02 | T-01-17 | Only approved content pushed | CI | `gh run list --workflow ci.yml` conclusion + `duskhold-windows` artifact | ✅ | ✅ green (latest: CI run 36831792141 on `4a9b775`, a push event on 2026-10-01: lint, test, export and screenshots all green; the first push run, 36827944700 on `e6bbb47`, was green too) |
 | 01-04-T1 | 01-04 | 3 | KING-01 | T-01-09 | Input Map contract fixed by test | unit | `test_input_map.gd`, `test_king_movement_config.gd` | ✅ | ✅ green |
 | 01-04-T2 | 01-04 | 3 | KING-01, KING-02 | — | N/A | e2e | `test_king_ride.gd` | ✅ | ✅ green |
 | 01-05-T1 | 01-05 | 3 | BLDG-01, BLDG-02 | T-01-10 | `MapConfig.validate()` reports bad map data | unit | `test_prototype_map_data.gd`, `test_build_spot.gd`, `test_build_spot_affordability.gd` | ✅ | ✅ green |
@@ -72,7 +72,7 @@ GUT rows run as `bash tools/test.sh -gselect=<file>`. Threat refs are the plans'
 | 01-09-T3 | 01-09 | 5 | BLDG-06, ECON-01 | — | Start-night needs a fresh deliberate hold | e2e | `test_start_night_hold.gd` | ✅ | ✅ green |
 | 01-10-T1 | 01-10 | 6 | ECON-01, ECON-02 | — | Payout VFX is display-only; HUD settles exactly on ledger gold | e2e | `test_dawn_payout.gd` | ✅ | ✅ green |
 | 01-10-T2 | 01-10 | 6 | DEV-04 | — | Never captures under `--headless` (exit 2); blank frames fail | screenshot + unit | `bash tools/screenshot.sh` (6 PNGs) + headless guard exit 2 + `test_shot_blank_check.gd` | ✅ | ✅ green (re-run 2026-09-29) |
-| 01-10-T3 | 01-10 | 6 | DEV-02, DEV-04 | T-01-16 | Screenshot artifact holds game images only | CI | `ci.yml` `screenshots` job needs `test` + CI run conclusion + artifacts | ✅ | ✅ green (CI run 36827944700 on `e6bbb47`: 6/6 screenshots saved, `duskhold-screenshots` artifact uploaded) |
+| 01-10-T3 | 01-10 | 6 | DEV-02, DEV-04 | T-01-16 | Screenshot artifact holds game images only | CI | `ci.yml` `screenshots` job needs `test` + CI run conclusion + artifacts | ✅ | ✅ green (latest: CI run 36831792141 on `4a9b775`, 6/6 screenshots saved; also 36827944700 on `e6bbb47`) |
 | WR-01 fix | review | — | BLDG-01, ECON-01 | — | One map's binding never reaches another map's views or HUD | e2e | `test_map_binding.gd` | ✅ | ✅ green |
 | CR-01 fix (pass 2) | review | — | ECON-02 | — | Every dawn coin lands inside a short dawn window on a real payout | e2e | `test_dawn_payout.gd` (`test_a_real_payout_lands_every_coin_inside_a_short_dawn_window`) | ✅ | ✅ green |
 | WR-01 fix (pass 2) | review | — | BLDG-01 | T-01-10 | Empty building ids reported; null map entries skipped instead of crashing | unit | `test_prototype_map_data.gd` (2 tests) | ✅ | ✅ green |
@@ -147,6 +147,7 @@ GUT rows run as `bash tools/test.sh -gselect=<file>`. Threat refs are the plans'
 | WR-01 / IN-01 / IN-02 fix (pass 24) | review | — | DEV-03 | — | The e2e overlay suite states what it proves (cadence is pinned by the unit tests) and checks that a hidden overlay stays stale until shown; rows are parsed and checked by value (Phase, Day, Night, Buildings exact; FPS, Gold, Units, Enemies integers); shared spawn/build/wait helpers | e2e | `test_debug_overlay_toggle.gd` (`test_hidden_overlay_does_not_refresh_until_it_is_shown_again`) | ✅ | ✅ green |
 | 261001-0dd-T1 | quick 261001-0dd | — | ART-02 | T-01-12, T-261001-0dd-03, T-261001-0dd-04 | The horse licence re-check (2026-10-01) and the owner's keep decision are recorded in `ASSETS.md`, the horse's `License.txt` and its `attribution.json` notes; only the notes line of the manifest changed, and every file is still logged once under an allow-listed licence | unit | `test_attribution_log.gd` (17/17) | ✅ | ✅ green |
 | 261001-0dd-T2 | quick 261001-0dd | — | DEV-02 | T-01-07, T-261001-0dd-01 | CI runs on every push to any branch or tag, on pull requests and on demand; the token stays read-only, with no `pull_request_target` and no secrets | CI + script | `ci.yml` trigger parse (quick-task verify) + CI run 36827944700 on `e6bbb47` (push event: lint, test 290/290, export, screenshots 6/6) | ✅ | ✅ green |
+| WR-01 / IN-01 fix (pass 25) | review | — | ART-02 | T-01-12 | The three horse licence records state the real basis for keeping it (CC0 on the author's pack page and Poly Pizza at retrieval, an irrevocable earlier dedication, residual risk accepted by the owner on 2026-10-01); ASSETS.md says what each SHA256 covers and keeps the confirmed `curl --fail` download evidence; the manifest still parses and only the horse's `notes` changed | unit | `test_attribution_log.gd` (17/17) | ✅ | ✅ green |
 
 Owner gates with no automated verify by design: 01-01-T2 (toolchain download approval), 01-03-T2 (public repo name), 01-07-T2 (CC0 model download approval). No run of three consecutive tasks lacks automated verification.
 
@@ -168,7 +169,7 @@ Owner gates with no automated verify by design: 01-01-T2 (toolchain download app
 | ECON-07 | `test_loop_gold_carryover` | COVERED |
 | ART-02 | `test_attribution_log` (every third-party file covered by exactly one entry, allow-listed licences, ASSETS.md in sync); the horse licence decision is recorded since 2026-10-01 | COVERED |
 | DEV-01 | Whole suite runs headless from the command line (`tools/test.sh`); `test_build_flow` runs without a scene tree; `test_toolchain_smoke` | COVERED |
-| DEV-02 | `ci.yml` lint/test/export/screenshots jobs on every push to any branch or tag (trigger widened 2026-10-01, quick task 261001-0dd) and on pull requests; the first run under that trigger, 36827944700 on `e6bbb47`, is green; export + launch + pre-push checks re-run locally | COVERED |
+| DEV-02 | `ci.yml` lint/test/export/screenshots jobs on every push to any branch or tag (trigger widened 2026-10-01, quick task 261001-0dd) and on pull requests; the first run under that trigger, 36827944700 on `e6bbb47`, and the latest, 36831792141 on `4a9b775`, are green; export + launch + pre-push checks re-run locally | COVERED |
 | DEV-03 | `test_debug_overlay_readonly`, `test_debug_overlay_providers`, `test_debug_overlay_timed_phases`, `test_debug_overlay_registration`, `test_debug_overlay_toggle` (FPS, phase, gold, buildings, units, enemies; wave-state and pathing rows are Phase 2 scope per ROADMAP SC5) | COVERED (Phase 1 scope) |
 | DEV-04 | `tools/screenshot.sh` six scenes, `test_shot_blank_check`, headless guard, CI `screenshots` job | COVERED |
 
@@ -194,7 +195,7 @@ Owner gates with no automated verify by design: 01-01-T2 (toolchain download app
 | Dawn payout animation and banners | ECON-02, D-12 | Visual check | End the day with the start-night hold; confirm the night banner, then the coins flying to the HUD and the "+X gold" total |
 | Screenshot contents | DEV-04 | Needs someone to look at the images | Open the six captured PNGs (day overview, spot label, build in progress, night banner, dawn payout, overlay on) and confirm each shows its scene |
 | Start-night key label on a non-QWERTY layout | BLDG-06 (start-night input) | Headless Godot cannot switch keyboard layouts; only a fake-layout seam is tested | On a Dvorak or AZERTY desktop, confirm the start-night prompt names the key printed on the keycap |
-| Licence judgment for logged assets | ART-02 | The test proves every file is logged under an allow-listed licence, not that a self-declared licence is right | Judge each new asset's licence on its source's own page before logging it. The Quaternius horse (review finding WR-06) was decided on 2026-10-01: the owner kept it after a re-check (pack page and Poly Pizza still state CC0; the newer Quaternius licence says nothing about earlier CC0 releases), recorded in `ASSETS.md`, `License.txt` and `attribution.json` |
+| Licence judgment for logged assets | ART-02 | The test proves every file is logged under an allow-listed licence, not that a self-declared licence is right | Judge each new asset's licence on its source's own page before logging it. The Quaternius horse (review finding WR-06) was decided on 2026-10-01: the owner kept it after a re-check (pack page and Poly Pizza stated CC0 at retrieval and still do; the newer Quaternius licence predates the retrieval and says nothing about earlier CC0 releases) and accepts the residual risk, recorded in `ASSETS.md`, `License.txt` and `attribution.json` |
 
 ---
 
@@ -742,3 +743,24 @@ Evidence:
 - Full suite 290/290 (36 scripts, 1881 asserts, ~107 s wall); lint clean (72 files).
 - CI run 36827944700 on `e6bbb47`: lint, test, export and screenshots green.
 - `ci.yml` changed only in its trigger block and header comment.
+
+## Validation Audit 2026-10-01 (re-audit after review-fix pass 25)
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Re-audited after the twenty-fifth review-fix pass (3 commits, `6cdf386`, `1784ffe` and `1ce2f94`). It touched only `ASSETS.md`, `assets/attribution.json` (the horse's `notes`) and the horse's `License.txt`. No GDScript, test or workflow file changed. 15/15 requirements are still COVERED.
+
+- **ART-02:**
+  - WR-01: the three licence records now give the real basis for keeping the horse, and record that the owner accepts the residual risk.
+  - IN-01: `ASSETS.md` now says what each SHA256 covers.
+  - `test_attribution_log.gd` passes 17/17. The manual-only licence row records the risk acceptance.
+- **DEV-02:** the branch was pushed again (`e6bbb47`..`4a9b775`, 10 commits). CI run 36831792141 on `4a9b775` (push event) passed all four jobs: lint, test (290/290), export and screenshots (6/6 saved). Rows 01-03-T3 and 01-10-T3 now point at it.
+- **CR-01 guard:** not re-probed this pass. `dawn_payout_vfx.gd` and its tests are unchanged since this morning's probe, which failed 17/18 with the old spacing.
+
+Evidence:
+- Full suite 290/290 (36 scripts) and lint clean (72 files), both run at `4a9b775` (the current HEAD) before the push.
+- CI run 36831792141 on `4a9b775`: lint, test, export and screenshots green.
