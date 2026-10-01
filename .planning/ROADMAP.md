@@ -288,3 +288,13 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 11. Campaign Finale & Boss Nights | 0/TBD | Not started | - |
 | 12. Research Buildings | 0/TBD | Not started | - |
 | 13. Settings & Release | 0/TBD | Not started | - |
+
+## Backlog
+
+### Phase 999.1: Follow-up — Phase 01 deferred UAT follow-up: Test 4 (BACKLOG)
+
+**Goal:** Resolve the UAT checkpoint deferred during Phase 01 verification
+**Source phase:** 01
+**Deferred at:** 2026-10-02 during /gsd-verify-work 01 session completion
+**Follow-ups:**
+- [ ] Test 4: yes, but a small minimap would be nice (deferred 2026-10-01)
