@@ -5,15 +5,15 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "\"Not redistributed as a standalone asset\" is inaccurate for a public repository"
   - id: IN-01
     severity: info
-    disposition: open
+    disposition: fixed
     title: "\"How to add an asset\" still describes `sha256` as always \"of the downloaded archive\""
   - id: IN-02
     severity: info
-    disposition: open
+    disposition: fixed
     title: "The same source page is quoted two ways"
   - id: WR-02
     severity: warning
@@ -87,18 +87,18 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 3
+open: 0
 total: 21
-recorded: 2026-10-01T08:04:30.328Z
+recorded: 2026-10-01T08:16:55.306Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
-| IN-01 | info | open | - |
-| IN-02 | info | open | - |
+| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
+| IN-01 | info | fixed | 01-REVIEW-FIX.md |
+| IN-02 | info | fixed | 01-REVIEW-FIX.md |
 | WR-02 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-03 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-03 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
