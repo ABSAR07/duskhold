@@ -64,9 +64,10 @@ From the first commit, lint, headless GUT tests, scripted screenshot capture and
 
 ### Hold-to-Build Interaction
 - **D-05:** **Coins drip in one by one.**
-  - While the action key is held near an affordable spot, coins fly from the king into the spot at a steady rate (1 coin = 1 gold), so pricier builds take a little longer.
+  - While the action key is held near an affordable spot, coins fly from the king into the spot at a steady rate (1 coin = 1 gold), so pricier builds take a little longer. *(Superseded by the 2026-10-02 amendment below.)*
   - The build or upgrade completes when the last coin lands.
   - Costs use Thronefall-scale small integers (single digits early), so holds stay short.
+  - **Amended 2026-10-02 (owner decision, UAT G-01-58):** the drip no longer runs at a steady rate. The first coins take 0.25 s each, later coins come faster, and a whole hold never lasts longer than 3 s: if coins are still left when 3 s is reached, every remaining coin is paid at once and the build completes. Pricier builds still take longer up to the cap, and the build still completes when the last coin lands. D-06 is unchanged: a hold only starts with the full cost, so the fast-forward is always affordable, and releasing before the cap still refunds every coin. Shipped curve (data, D-09): 2 coins at 0.25 s, then x0.9 per coin, never under 0.08 s, capped at 3.0 s (House I 0.5 s, a 15-coin tier about 2.2 s, a 30-coin tier 3.0 s with its last 6 coins fast-forwarded). Gap plans 01-14 to 01-16.
 - **D-06:** **Refund and reset on early release.**
   - Starting the hold requires the full cost.
   - Letting go early, or leaving the interaction range, refunds every coin already dripped and resets the spot.
@@ -122,7 +123,7 @@ From the first commit, lint, headless GUT tests, scripted screenshot capture and
 - **Build interaction details:**
   - The interaction radius, and picking the nearest spot when several are in range.
   - Whether the king can keep moving while holding. Leaving range must cancel and refund, per D-06.
-  - The coin drip rate: roughly 0.15–0.3 s per coin is the starting point.
+  - The coin drip rate: roughly 0.15–0.3 s per coin is the starting point. Since the D-05 amendment this range bounds the first coin's interval; later coins accelerate and a hold is capped at 3 s.
   - Max-tier behavior: the label shows "Max tier" and holding does nothing.
 - **Numbers:** exact starting gold, costs, House income per tier, tower stats and the payout animation timing, within D-09/D-10. Thronefall's reference values: House 2 gold, paying 1 then 2 gold/night; tower 3 → 5 → 15 (see FEATURES.md).
 - **Default bindings:** default keys and buttons for move, sprint, action (hold), start night (hold) and the debug overlay toggle. There must be no conflict between the build hold and the start-night hold. The rebinding UI is Phase 13.
