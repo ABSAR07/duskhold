@@ -36,8 +36,9 @@ func _send_stick(value: float) -> void:
 	Input.parse_input_event(event)
 
 
-## Holds `action` for `seconds` of physics time and returns the (min, max) zoom sampled each frame.
-func _hold_sampling(rig: CameraRig, action: StringName, seconds: float) -> Vector2:
+## Holds `action` for `seconds` of physics time and returns [lowest, highest] zoom sampled each
+## frame (an Array, not a Vector2, so the values keep double precision).
+func _hold_sampling(rig: CameraRig, action: StringName, seconds: float) -> Array[float]:
 	var lowest: float = rig.get_zoom()
 	var highest: float = rig.get_zoom()
 	Input.action_press(action)
@@ -47,7 +48,7 @@ func _hold_sampling(rig: CameraRig, action: StringName, seconds: float) -> Vecto
 		lowest = minf(lowest, rig.get_zoom())
 		highest = maxf(highest, rig.get_zoom())
 	Input.action_release(action)
-	return Vector2(lowest, highest)
+	return [lowest, highest]
 
 
 func _full_sweep_seconds(rig: CameraRig, from_zoom: float, to_zoom: float) -> float:
@@ -67,9 +68,9 @@ func test_holding_zoom_out_stops_at_zoom_max() -> void:
 	var map_root: MapRoot = await E2eSupport.spawn_map(self)
 	var rig: CameraRig = _rig(map_root)
 	var seconds: float = _full_sweep_seconds(rig, 1.0, rig.zoom_max)
-	var sampled: Vector2 = await _hold_sampling(rig, &"zoom_out", seconds)
+	var sampled: Array[float] = await _hold_sampling(rig, &"zoom_out", seconds)
 	assert_almost_eq(rig.get_zoom(), rig.zoom_max, 0.0001, "it reaches zoom_max")
-	assert_lte(sampled.y, rig.zoom_max, "it never reads above zoom_max")
+	assert_lte(sampled[1], rig.zoom_max, "it never reads above zoom_max")
 
 
 func test_holding_zoom_in_stops_at_zoom_min() -> void:
@@ -77,9 +78,9 @@ func test_holding_zoom_in_stops_at_zoom_min() -> void:
 	var rig: CameraRig = _rig(map_root)
 	await _hold_sampling(rig, &"zoom_out", _full_sweep_seconds(rig, 1.0, rig.zoom_max))
 	var seconds: float = _full_sweep_seconds(rig, rig.zoom_max, rig.zoom_min)
-	var sampled: Vector2 = await _hold_sampling(rig, &"zoom_in", seconds)
+	var sampled: Array[float] = await _hold_sampling(rig, &"zoom_in", seconds)
 	assert_almost_eq(rig.get_zoom(), rig.zoom_min, 0.0001, "it reaches zoom_min")
-	assert_gte(sampled.x, rig.zoom_min, "it never reads below zoom_min")
+	assert_gte(sampled[0], rig.zoom_min, "it never reads below zoom_min")
 
 
 func test_the_camera_stays_on_the_fixed_ray_at_the_effective_offset() -> void:
