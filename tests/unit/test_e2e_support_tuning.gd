@@ -31,9 +31,7 @@ func test_every_other_field_is_the_shipped_value() -> void:
 		shipped.start_night_hold_seconds,
 		"start_night_hold_seconds"
 	)
-	assert_eq(
-		tuning.placeholder_night_seconds, shipped.placeholder_night_seconds, "night seconds"
-	)
+	assert_eq(tuning.placeholder_night_seconds, shipped.placeholder_night_seconds, "night seconds")
 	assert_eq(tuning.dawn_seconds, shipped.dawn_seconds, "dawn_seconds")
 	assert_eq(tuning.coin_drip_steady_coins, shipped.coin_drip_steady_coins, "steady coins")
 	assert_eq(tuning.coin_drip_min_interval, shipped.coin_drip_min_interval, "min interval")

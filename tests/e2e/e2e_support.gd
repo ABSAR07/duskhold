@@ -6,6 +6,7 @@ extends RefCounted
 const MAP_SCENE_PATH := "res://presentation/map/prototype_map.tscn"
 const MOVE_ACTIONS: Array[StringName] = [&"move_left", &"move_right", &"move_forward", &"move_back"]
 const PROTOTYPE_MAP_PATH := "res://data/maps/prototype_map.tres"
+const TUNING_PATH := "res://data/tuning/loop_tuning.tres"
 
 
 ## An isolated deep copy of the shipped prototype map with one building tier repriced and the
@@ -28,6 +29,20 @@ static func map_with_tier_cost(
 		map.starting_gold = starting_gold
 		return map
 	return null
+
+
+## A copy of the shipped tuning with a flat, uncapped drip: every coin takes `seconds_per_coin` and
+## no cap ends the hold early. Tests that slow the drip to watch a hold in progress use this, so
+## they do not depend on the shipped acceleration and cap (D-05 as amended, UAT G-01-58). Tests that
+## measure the shipped pacing must keep using the shipped tuning. LoopTuning holds only scalars, so
+## the copy shares nothing with the cached resource other tests read.
+static func flat_drip_tuning(seconds_per_coin: float) -> LoopTuning:
+	var shipped: LoopTuning = load(TUNING_PATH)
+	var tuning: LoopTuning = shipped.duplicate(true)
+	tuning.coin_drip_interval = seconds_per_coin
+	tuning.coin_drip_decay = 1.0
+	tuning.max_build_hold_seconds = 0.0
+	return tuning
 
 
 ## Instantiates the real prototype map scene, optionally swapping the map data or tuning before

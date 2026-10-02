@@ -5,7 +5,6 @@ extends GutTest
 ## is_build_allowed re-check (T-01-11).
 
 const PROTOTYPE_MAP := "res://data/maps/prototype_map.tres"
-const TUNING := "res://data/tuning/loop_tuning.tres"
 const RICH_GOLD: int = 20
 const SLOW_DRIP_S: float = 1.0
 const WAIT_SLACK_S: float = 3.0
@@ -25,12 +24,6 @@ func _rich_map() -> MapConfig:
 	return map
 
 
-func _tuning_with_interval(interval: float) -> LoopTuning:
-	var tuning: LoopTuning = (load(TUNING) as LoopTuning).duplicate(true)
-	tuning.coin_drip_interval = interval
-	return tuning
-
-
 func _spot_position(map_root: MapRoot, spot_id: StringName) -> Vector3:
 	return map_root.get_context().buildings.get_spot(spot_id).position
 
@@ -47,7 +40,7 @@ func _coins_at_least(hold: BuildHoldController, coins: int) -> bool:
 ## A slow drip so the test can act between coins, standing next to `SPOT`.
 func _slow_hold_scene() -> MapRoot:
 	var map_root: MapRoot = await E2eSupport.spawn_map(
-		self, _rich_map(), _tuning_with_interval(SLOW_DRIP_S)
+		self, _rich_map(), E2eSupport.flat_drip_tuning(SLOW_DRIP_S)
 	)
 	await _stand_at(map_root, SPOT)
 	return map_root
@@ -139,7 +132,7 @@ func test_focus_stays_on_the_active_spot_while_holding() -> void:
 	var anchor: Vector3 = map.spots[0].position
 	map.spots[1].position = anchor + Vector3(3.0, 0.0, 0.0)
 	var map_root: MapRoot = await E2eSupport.spawn_map(
-		self, map, _tuning_with_interval(SLOW_DRIP_S)
+		self, map, E2eSupport.flat_drip_tuning(SLOW_DRIP_S)
 	)
 	var ctx: RunContext = map_root.get_context()
 	var hold: BuildHoldController = map_root.get_build_hold()
