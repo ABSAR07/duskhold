@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 01
 current_phase_name: Foundation & Day Loop
 status: executing
-stopped_at: Completed 01-11-PLAN.md
-last_updated: "2026-10-02T07:03:33.251Z"
+stopped_at: Completed 01-13-PLAN.md
+last_updated: "2026-10-02T07:12:57.429Z"
 last_activity: 2026-10-02
 last_activity_desc: Phase 01 execution started
-state_head: 54cc51ebabb8d6096055b25c4e96259bae4cda31
+state_head: b93e5de37bd544a442676eaed83b9cde6a05db99
 progress:
   total_phases: 13
   completed_phases: 0
   total_plans: 13
-  completed_plans: 11
+  completed_plans: 12
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-28)
 ## Current Position
 
 Phase: 01 (Foundation & Day Loop) — EXECUTING
-Plan: 2 of 13
+Plan: 3 of 13
 Status: Ready to execute
 Last activity: 2026-10-02 — Phase 01 execution started
 
@@ -67,6 +67,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P09 | 20 min | 3 tasks | 23 files |
 | Phase 01 P10 | 19 min | 3 tasks | 10 files |
 | Phase 01 P11 | 11 min | 2 tasks | 7 files |
+| Phase 01 P13 | 7 min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -105,6 +106,7 @@ Recent decisions affecting current work:
 - [Phase 01]: 01-10: dawn payout VFX is display only; HUD readout lags the ledger by coins still in flight (Hud._payout_pending) and settles exactly on Economy gold
 - [Phase 01]: 01-10: screenshot tooling never runs under --headless; runner exits 2 there and exits 1 on blank frames; CI screenshots run under xvfb with the Compatibility renderer
 - [Phase 01]: 01-11: camera default offset (0,20.8,14.3) = 1.3x UAT; zoom 0.7-1.5x via zoom_in/zoom_out (=/- , keypad, right stick); SpotLabel scales by camera distance/16.9 m
+- [Phase 01]: 01-13: coin_drip_interval raised 0.2 -> 0.3 s (top of D-05 range) and coin flight cap 0.18 -> 0.27 s; no hold floor in code, pacing stays linear
 
 ### Pending Todos
 
@@ -136,6 +138,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-02T07:03:33.147Z
-Stopped at: Completed 01-11-PLAN.md
+Last session: 2026-10-02T07:12:57.331Z
+Stopped at: Completed 01-13-PLAN.md
 Resume file: None
