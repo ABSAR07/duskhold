@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 01
 current_phase_name: Foundation & Day Loop
 status: executing
-stopped_at: Completed 01-15-PLAN.md
-last_updated: "2026-10-02T12:51:32.201Z"
+stopped_at: Completed 01-16-PLAN.md
+last_updated: "2026-10-02T13:02:15.434Z"
 last_activity: 2026-10-02
 last_activity_desc: Phase 01 execution started
-state_head: 5f9a31956978834d45d578b85e1ec5fc1902e931
+state_head: 488908f3308c6ee34678f7fc52ac4c96465f8de1
 progress:
   total_phases: 13
   completed_phases: 0
   total_plans: 16
-  completed_plans: 15
+  completed_plans: 16
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-28)
 ## Current Position
 
 Phase: 01 (Foundation & Day Loop) — EXECUTING
-Plan: 3 of 16
+Plan: 4 of 16
 Status: Ready to execute
 Last activity: 2026-10-02 — Phase 01 execution started
 
@@ -71,6 +71,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P12 | 16 min | 2 tasks | 7 files |
 | Phase 01 P14 | 13 min | 3 tasks | 15 files |
 | Phase 01 P15 | 15 min | 2 tasks | 11 files |
+| Phase 01 P16 | 25 min | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -115,6 +116,7 @@ Recent decisions affecting current work:
 - [Phase 01]: 01-14: coin_drip_interval name kept (first/steady interval 0.25 s); curve fields live in loop_tuning.tres per D-09
 - [Phase 01]: 01-15: Same-frame coin groups are staggered from the coins that can still arrive this frame (cost - coins_paid + 1, max 12), so a normal drip is delay 0 and the cap rush fits 0.3 s
 - [Phase 01]: 01-15: Coin flight ceiling derived from LoopTuning.COIN_DRIP_INTERVAL_MAX_S (review IN-02 closed); sandbox deep-copies shipped data and lives under tools/ (export-excluded)
+- [Phase 01]: 01-16: flat_drip_tuning disables the curve with decay 1.0 and cap 0 on a copy of the shipped tuning, so slow-drip tests no longer depend on the shipped acceleration and cap
 
 ### Pending Todos
 
@@ -146,6 +148,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-02T12:51:32.103Z
-Stopped at: Completed 01-15-PLAN.md
+Last session: 2026-10-02T13:02:15.322Z
+Stopped at: Completed 01-16-PLAN.md
 Resume file: None
