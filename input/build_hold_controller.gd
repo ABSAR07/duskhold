@@ -22,6 +22,7 @@ var _active: StringName = &""
 var _cost: int = 0
 var _coins_paid: int = 0
 var _drip_timer: float = 0.0
+var _hold_elapsed: float = 0.0
 var _was_pressed: bool = false
 
 
@@ -44,6 +45,12 @@ func get_coins_paid() -> int:
 
 func is_holding() -> bool:
 	return _active != &""
+
+
+## Seconds of frame delta the active hold has accumulated, 0 when no hold is active. The timing
+## tests stamp coins with it instead of wall-clock time.
+func get_hold_elapsed() -> float:
+	return _hold_elapsed
 
 
 func _process(delta: float) -> void:
@@ -83,6 +90,7 @@ func _try_start_hold() -> void:
 	_cost = _ctx.buildings.next_action_cost(_active)
 	_coins_paid = 0
 	_drip_timer = 0.0
+	_hold_elapsed = 0.0
 	hold_started.emit(_active, _cost)
 
 
@@ -93,6 +101,7 @@ func _advance_hold(delta: float, pressed: bool) -> void:
 		_cancel_hold()
 		return
 	var interval: float = maxf(_ctx.tuning.coin_drip_interval, MIN_DRIP_INTERVAL)
+	_hold_elapsed += delta
 	_drip_timer += delta
 	while _drip_timer >= interval and _coins_paid < _cost:
 		_drip_timer -= interval
@@ -135,3 +144,4 @@ func _reset_hold() -> void:
 	_cost = 0
 	_coins_paid = 0
 	_drip_timer = 0.0
+	_hold_elapsed = 0.0

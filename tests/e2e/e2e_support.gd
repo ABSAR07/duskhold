@@ -5,6 +5,29 @@ extends RefCounted
 
 const MAP_SCENE_PATH := "res://presentation/map/prototype_map.tscn"
 const MOVE_ACTIONS: Array[StringName] = [&"move_left", &"move_right", &"move_forward", &"move_back"]
+const PROTOTYPE_MAP_PATH := "res://data/maps/prototype_map.tres"
+
+
+## An isolated deep copy of the shipped prototype map with one building tier repriced and the
+## starting gold replaced. The shallow `duplicate(true)` copy shares the external house.tres and
+## tower.tres, so an in-place tier edit would leak into the cached resource for every later test in
+## the same GUT process (debugger-verified); `DEEP_DUPLICATE_ALL` copies those sub-resources too.
+## `tier` is 1-based. Null when the building or tier does not exist.
+static func map_with_tier_cost(
+	building_id: StringName, tier: int, cost: int, starting_gold: int
+) -> MapConfig:
+	var shipped: MapConfig = load(PROTOTYPE_MAP_PATH)
+	var map: MapConfig = shipped.duplicate_deep(Resource.DEEP_DUPLICATE_ALL)
+	for building_def: BuildingDef in map.buildings:
+		if building_def.id != building_id:
+			continue
+		var tier_def: BuildingTierDef = building_def.tier_def(tier)
+		if tier_def == null:
+			return null
+		tier_def.cost = cost
+		map.starting_gold = starting_gold
+		return map
+	return null
 
 
 ## Instantiates the real prototype map scene, optionally swapping the map data or tuning before
