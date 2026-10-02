@@ -27,7 +27,7 @@ validated: "2026-09-29"
 | **Full suite command** | `bash tools/test.sh` (headless import pass, then GUT over all three dirs; fails on any first-party parse/load error) |
 | **Single file** | `bash tools/test.sh -gselect=<test_file>.gd` |
 | **Lint** | `bash tools/lint.sh` (gdtoolkit 4.5.0: `gdformat --check` + `gdlint`) |
-| **Measured runtime** | Quick: ~15 s wall (20 scripts, 183 tests). Full: ~96 s wall (36 scripts, 290 tests) |
+| **Measured runtime** | Quick: ~15 s wall (21 scripts, 189 tests). Full: ~120 s wall (40 scripts, 315 tests) |
 
 The `tools/*.sh` wrappers need Git Bash on Windows; they resolve the pinned binary under `.tools/godot/4.7.2-stable/` (D-14).
 
@@ -39,7 +39,7 @@ Screenshots (DEV-04) use a different mode: a real rendering driver (a normal win
 
 - **After every task commit:** Run the quick run command (unit tests, ~14 s)
 - **After every plan wave:** Run the full suite command plus `bash tools/lint.sh`
-- **Before `/gsd-verify-work`:** Full suite green, lint clean, and the six DEV-04 screenshots captured and non-blank
+- **Before `/gsd-verify-work`:** Full suite green, lint clean, and the seven DEV-04 screenshots captured and non-blank (six until gap plan 01-12 added `king_behind_keep`)
 - **Max feedback latency:** 60 seconds per commit (quick run ~14 s). The full suite (~96 s) runs per wave, not per commit.
 
 ---
@@ -148,6 +148,12 @@ GUT rows run as `bash tools/test.sh -gselect=<file>`. Threat refs are the plans'
 | 261001-0dd-T1 | quick 261001-0dd | — | ART-02 | T-01-12, T-261001-0dd-03, T-261001-0dd-04 | The horse licence re-check (2026-10-01) and the owner's keep decision are recorded in `ASSETS.md`, the horse's `License.txt` and its `attribution.json` notes; only the notes line of the manifest changed, and every file is still logged once under an allow-listed licence | unit | `test_attribution_log.gd` (17/17) | ✅ | ✅ green |
 | 261001-0dd-T2 | quick 261001-0dd | — | DEV-02 | T-01-07, T-261001-0dd-01 | CI runs on every push to any branch or tag, on pull requests and on demand; the token stays read-only, with no `pull_request_target` and no secrets | CI + script | `ci.yml` trigger parse (quick-task verify) + CI run 36827944700 on `e6bbb47` (push event: lint, test 290/290, export, screenshots 6/6) | ✅ | ✅ green |
 | WR-01 / IN-01 fix (pass 25) | review | — | ART-02 | T-01-12 | The three horse licence records state the real basis for keeping it (CC0 on the author's pack page and Poly Pizza at retrieval, an irrevocable earlier dedication, residual risk accepted by the owner on 2026-10-01); ASSETS.md says what each SHA256 covers and keeps the confirmed `curl --fail` download evidence; the manifest still parses and only the horse's `notes` changed | unit | `test_attribution_log.gd` (17/17) | ✅ | ✅ green |
+| 01-11-T1 | 01-11 | gap 1 | KING-02 | T-01-18, T-01-19 | `zoom_in`/`zoom_out` on `=`/keypad `+`/right stick up and `-`/keypad `-`/right stick down (physical keys, no mouse, deadzone 0.3); zoom clamped to 0.7x-1.5x and moves only along the fixed offset, so the basis never changes; zoom is presentation-only | e2e + unit | `test_camera_zoom.gd` (11 tests), `test_input_map.gd` (12 tests, extended binding tables, no shared bindings) + region-scoped KING-02 grep gate | ✅ | ✅ green |
+| 01-11-T2 | 01-11 | gap 1 | KING-02 | — | Default camera 1.3x further out on the same angle (offset (0, 20.8, 14.3)); spot labels scale by camera distance / 16.9 m so they keep the UAT-approved on-screen size; follow tests read `get_effective_offset()` | e2e | `test_camera_zoom.gd`, `test_king_ride.gd` (10 tests), `test_spot_label.gd` | ✅ | ✅ green |
+| 01-12-T1 | 01-12 | gap 2 | KING-02 | T-01-20, T-01-21 | `XRaySilhouette` gives the king's surfaces duplicated stencil X-Ray materials (light cyan) without touching the imported GLB materials; hidden parts show as a silhouette, no tint in the open | e2e | `test_king_xray.gd` (5 tests); executor pixel counts 1268 cyan px behind the keep, 0 in the open (Forward+ and Compatibility), 1270 by night | ✅ | ✅ green |
+| 01-12-T2 | 01-12 | gap 2 | DEV-04 | — | Seventh scripted screenshot `king_behind_keep`, whose ready check requires the applied silhouette | screenshot | `bash tools/screenshot.sh` (7 PNGs) + `DUSKHOLD_SCREENSHOT_COMPAT=1 bash tools/screenshot.sh king_behind_keep` | ✅ | ✅ green (local; CI pending the next push) |
+| 01-13-T1 | 01-13 | gap 1 | BLDG-03, BLDG-04 | T-01-22 | `coin_drip_interval` 0.3 s (top of D-05's range) in data and script default; coin flight cap 0.27 s keeps the stream continuous; hold time stays cost x interval with no floor | unit | `test_loop_tuning_contract.gd` (4 tests) + `test_coin_drip.gd`, `test_build_hold_refund.gd` regressions | ✅ | ✅ green |
+| 01-13-T2 | 01-13 | gap 1 | BLDG-03, BLDG-04 | — | A House I hold in the real scene lasts cost x interval coin by coin with the shipped tuning (measured House I 0.61 s, Tower I 1.22 s) | e2e | `test_build_hold_timing.gd` (3 tests) | ✅ | ✅ green |
 
 Owner gates with no automated verify by design: 01-01-T2 (toolchain download approval), 01-03-T2 (public repo name), 01-07-T2 (CC0 model download approval). No run of three consecutive tasks lacks automated verification.
 
@@ -158,7 +164,7 @@ Owner gates with no automated verify by design: 01-01-T2 (toolchain download app
 | Requirement | Automated evidence | Status |
 |-------------|--------------------|--------|
 | KING-01 | `test_input_map`, `test_king_movement_config`, `test_king_ride`, `test_walking_skeleton` | COVERED |
-| KING-02 | `test_king_ride` (detached rig, rotation never changes, settles at offset, trails a jump) | COVERED |
+| KING-02 | `test_king_ride` (detached rig, rotation never changes, settles at the effective offset, trails a jump); `test_camera_zoom` (clamped zoom along the fixed angle, basis unchanged, presentation-only); `test_king_xray` (king silhouette through buildings) | COVERED |
 | BLDG-01 | `test_build_spot`, `test_prototype_map_data`, `test_map_binding` | COVERED |
 | BLDG-02 | `test_build_spot_affordability`, `test_spot_label_model`, `test_spot_label` | COVERED |
 | BLDG-03 | `test_build_flow`, `test_build_hold_refund`, `test_build_denied`, `test_coin_drip`, `test_walking_skeleton` | COVERED |
@@ -171,7 +177,7 @@ Owner gates with no automated verify by design: 01-01-T2 (toolchain download app
 | DEV-01 | Whole suite runs headless from the command line (`tools/test.sh`); `test_build_flow` runs without a scene tree; `test_toolchain_smoke` | COVERED |
 | DEV-02 | `ci.yml` lint/test/export/screenshots jobs on every push to any branch or tag (trigger widened 2026-10-01, quick task 261001-0dd) and on pull requests; the first run under that trigger, 36827944700 on `e6bbb47`, and the latest, 36831792141 on `4a9b775`, are green; export + launch + pre-push checks re-run locally | COVERED |
 | DEV-03 | `test_debug_overlay_readonly`, `test_debug_overlay_providers`, `test_debug_overlay_timed_phases`, `test_debug_overlay_registration`, `test_debug_overlay_toggle` (FPS, phase, gold, buildings, units, enemies; wave-state and pathing rows are Phase 2 scope per ROADMAP SC5) | COVERED (Phase 1 scope) |
-| DEV-04 | `tools/screenshot.sh` six scenes, `test_shot_blank_check`, headless guard, CI `screenshots` job | COVERED |
+| DEV-04 | `tools/screenshot.sh` seven scenes (`king_behind_keep` added by gap plan 01-12), `test_shot_blank_check`, headless guard, CI `screenshots` job | COVERED |
 
 ---
 
@@ -193,7 +199,7 @@ Owner gates with no automated verify by design: 01-01-T2 (toolchain download app
 | Riding feel: walk/sprint speed, turning, camera follow | KING-01, KING-02 | Movement feel can't be unit-tested (speeds, ratio, deadzone and fixed rotation are) | Play the prototype map with keyboard and gamepad; ride edge to edge (~20–30 s at walk speed per D-03); confirm the camera never rotates |
 | Floating spot label, coin drip, denied shake | BLDG-02, BLDG-03, D-07, D-08 | Visual and feel checks | Ride to each spot type; hold to build with enough gold and without; release early to confirm the refund |
 | Dawn payout animation and banners | ECON-02, D-12 | Visual check | End the day with the start-night hold; confirm the night banner, then the coins flying to the HUD and the "+X gold" total |
-| Screenshot contents | DEV-04 | Needs someone to look at the images | Open the six captured PNGs (day overview, spot label, build in progress, night banner, dawn payout, overlay on) and confirm each shows its scene |
+| Screenshot contents | DEV-04 | Needs someone to look at the images | Open the seven captured PNGs (day overview, spot label, build in progress, night banner, dawn payout, overlay on, king behind keep) and confirm each shows its scene |
 | Start-night key label on a non-QWERTY layout | BLDG-06 (start-night input) | Headless Godot cannot switch keyboard layouts; only a fake-layout seam is tested | On a Dvorak or AZERTY desktop, confirm the start-night prompt names the key printed on the keycap |
 | Licence judgment for logged assets | ART-02 | The test proves every file is logged under an allow-listed licence, not that a self-declared licence is right | Judge each new asset's licence on its source's own page before logging it. The Quaternius horse (review finding WR-06) was decided on 2026-10-01: the owner kept it after a re-check (pack page and Poly Pizza stated CC0 at retrieval and still do; the newer Quaternius licence predates the retrieval and says nothing about earlier CC0 releases) and accepts the residual risk, recorded in `ASSETS.md`, `License.txt` and `attribution.json` |
 
@@ -764,3 +770,26 @@ Re-audited after the twenty-fifth review-fix pass (3 commits, `6cdf386`, `1784ff
 Evidence:
 - Full suite 290/290 (36 scripts) and lint clean (72 files), both run at `4a9b775` (the current HEAD) before the push.
 - CI run 36831792141 on `4a9b775`: lint, test, export and screenshots green.
+
+## Validation Audit 2026-10-02 (re-audit after gap-closure plans 01-11 to 01-13)
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Re-audited after the UAT gap-closure plans:
+- 01-11 and 01-12 address G-01-3 (camera framing, zoom and the king hidden behind buildings).
+- 01-13 addresses G-01-4 (build hold too short).
+
+All six tasks have passing automated coverage, and 15/15 requirements are still COVERED. KING-02, BLDG-03, BLDG-04 and DEV-04 gained evidence.
+
+- **Tests:** +25 across 4 new suites (`test_camera_zoom` 11, `test_king_xray` 5, `test_loop_tuning_contract` 4, `test_build_hold_timing` 3) plus 2 new `test_input_map` tests. The follow tests in `test_king_ride` now read the effective offset.
+- **Screenshots:** seven local PNGs, including `king_behind_keep` in Forward+ and Compatibility. CI has not yet run the seventh shot; it runs on the next push.
+- **Manual:** the feel of the new framing, the zoom range, the silhouette look and the 0.3 s hold are re-checked in the UAT re-run (tests 3 and 4).
+
+Evidence:
+- Full suite 315/315 (40 scripts) at `3058974`; lint clean.
+- Unit quick run 189/189 (21 scripts, ~15 s).
+- wave:post gates (schema drift, codebase drift, UI safety) passed after each wave.
