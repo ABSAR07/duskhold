@@ -1,9 +1,9 @@
 ---
-status: complete
+status: diagnosed
 phase: 01-foundation-day-loop
 source: [01-01-SUMMARY.md, 01-02-SUMMARY.md, 01-03-SUMMARY.md, 01-04-SUMMARY.md, 01-05-SUMMARY.md, 01-06-SUMMARY.md, 01-07-SUMMARY.md, 01-08-SUMMARY.md, 01-09-SUMMARY.md, 01-10-SUMMARY.md, 01-VERIFICATION.md]
 started: 2026-10-01T09:10:51Z
-updated: 2026-10-02T18:32:47Z
+updated: 2026-10-02T18:59:58Z
 ---
 
 ## Current Test
@@ -459,8 +459,44 @@ blocked: 0
   reason: "User reported: yeah so i think dont keep 3 seconds as a hard limit, instead I think just keep 0.05s as the minimum time it takes for the coin to load after acceleration"
   severity: minor
   test: 59
-  artifacts: []  # Filled by diagnosis
-  missing: []    # Filled by diagnosis
+  root_cause: "Design change to working behaviour, not a defect: the 3 s hard limit and the 0.08 s per-coin floor are shipped DATA pinned by D-05 (as amended for G-01-58) and by the tests and records written for it. max_build_hold_seconds = 3.0 and coin_drip_min_interval = 0.08 live in both the LoopTuning script defaults (simulation/defs/loop_tuning.gd:27,30) and data/tuning/loop_tuning.tres:10-11; coin_due_seconds (:59-68) clamps every due time to the cap (from coin 25 every remaining coin is paid in the cap frame) and coin_interval (:45-52) floors at 0.08 from coin 13. 'No cap' is already expressible in data (max_build_hold_seconds <= 0, :62) and the controller and coin VFX never read the cap or floor directly, so no runtime logic change is needed. Differential GUT run: shipped 358/358; with floor 0.05 / cap 0 applied in memory 347/358, all 11 failures cap/floor pins (test_loop_tuning_contract 3, test_build_hold_cap 4, test_coin_drip_burst 2, test_hold_pacing_sandbox 1, test_e2e_support_tuning 1). Owner curve (0.25 s start, 2 steady coins, decay 0.9, floor 0.05, no cap): costs 2-6 unchanged (0.500/0.725/0.9275/1.110/1.274 s), 15 2.178 s, 30 2.937 s, 50 3.937 s, 100 6.437 s; floor reached at coin 18; up to 3 coins in the air from about coin 18 (flight clamp 0.12 s vs 0.05 s gaps). Without the cap, coin_due_seconds is O(cost) per call (0.03 ms at 50 coins; the iteration-bound doc at :55-58 becomes false), and endless holds are prevented by positive intervals and finite cost, not the cap (T-01-23 wording)."
+  artifacts:
+    - path: "data/tuning/loop_tuning.tres"
+      issue: "coin_drip_min_interval = 0.08 and max_build_hold_seconds = 3.0 (:10-11)"
+    - path: "simulation/defs/loop_tuning.gd"
+      issue: "script defaults 0.08 / 3.0 (:27,30) must match the .tres (contract test); doc comments state the cap, the numbers and the cap-based iteration bound (:5-8, 18-30, 55-58)"
+    - path: "input/build_hold_controller.gd"
+      issue: "doc comments only describe the cap and fast-forward (:3-5, 96-101); no logic change"
+    - path: "presentation/vfx/coin_drip_vfx.gd"
+      issue: "doc comments only describe the cap rush (:3-9, 112-113); burst stagger and MAX_BURST_COINS still needed for refunds and long frames"
+    - path: "tests/unit/test_loop_tuning_contract.gd"
+      issue: "header :2-5, :12-13; shipped-cap test :88-97 and the cap half of :100-108"
+    - path: "tests/e2e/test_build_hold_cap.gd"
+      issue: "whole suite is about the 3 s cap (30-coin at about 3.0 s, release just before the cap); waits use max_build_hold_seconds + 1.0; two tests pass vacuously with cap 0"
+    - path: "tests/e2e/test_coin_drip_burst.gd"
+      issue: "header, MAX_DRIPS_IN_AIR = 2 derived from the 0.08 floor (3 at 0.05), cap waits and _coins_due_at_the_cap"
+    - path: "tests/e2e/test_hold_pacing_sandbox.gd"
+      issue: "header :2-4 and the big-tiers-hit-the-cap test :51-66"
+    - path: "tests/unit/test_e2e_support_tuning.gd, tests/e2e/e2e_support.gd"
+      issue: "test :43-51 asserts the shipped hold is still capped; flat_drip_tuning doc and cap line :34-44"
+    - path: "tests/unit/test_loop_tuning_curve.gd, tests/unit/test_coin_drip_flight.gd"
+      issue: "curve suite still green on explicit values (optional retarget); flight suite header only :2-5"
+    - path: "tools/sandbox/hold_pacing_sandbox.gd"
+      issue: "doc :3-6 and print :30-38 describe the cap; with cap 0 it would print 'stop at 0.0 s ... rushed in at once'"
+    - path: ".planning/phases/01-foundation-day-loop/01-CONTEXT.md"
+      issue: "D-05 (:70) and Discretion (:126) record the 3 s cap from G-01-58"
+    - path: ".planning/phases/01-foundation-day-loop/01-SECURITY.md"
+      issue: "T-01-22 to T-01-25 (:66-69, :599-611) reference the cap and its bounds"
+    - path: ".planning/phases/01-foundation-day-loop/01-VALIDATION.md"
+      issue: "rows :157-162 and :179 cite the cap and floor evidence"
+  missing:
+    - "Shipped data: coin_drip_min_interval 0.05 and no cap (max_build_hold_seconds 0.0) in loop_tuning.tres and the matching LoopTuning script defaults; keep coin_drip_interval 0.25, coin_drip_steady_coins 2, coin_drip_decay 0.9; no runtime logic change needed"
+    - "Decide the cap field's fate (non-binding): keep it as a dormant '0 or less means no cap' switch with the contract pinning no-cap on purpose (reverses review WR-02's premise), or delete the field and the capped branch (retires T-01-24)"
+    - "Rewrite tests/e2e/test_build_hold_cap.gd as an uncapped long-hold suite: a 30-coin hold drips every coin at its due time (about 2.94 s) with one cost-sized debit, and a late release refunds in full; waits from build_hold_seconds; close review WR-01 with deterministic stepping or a long-frame guard"
+    - "Retarget test_coin_drip_burst to refund and same-frame groups with an airborne bound of ceil(0.12 / floor) = 3; update the contract, sandbox and e2e-support tuning pins (add WR-02's in-range asserts)"
+    - "Fix doc comments in loop_tuning.gd, build_hold_controller.gd, coin_drip_vfx.gd, hold_pacing_sandbox.gd (print text) and e2e_support.gd (closes IN-01); amend D-05 in 01-CONTEXT.md for G-01-59; refresh 01-SECURITY.md T-01-22 to T-01-25 (T-01-23: endless holds are prevented by positive intervals and finite cost) and the 01-VALIDATION.md rows"
+    - "UAT re-check: normal game unchanged (costs up to 6); sandbox 15 coins about 2.2 s, 30 about 2.9 s, 50 about 3.9 s, every coin dripped, up to 3 coins in the air"
+  debug_session: .planning/debug/build-hold-no-cap-min-interval.md
 
 ## Deferred Follow-Ups
 
