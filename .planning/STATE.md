@@ -2,17 +2,17 @@
 gsd_state_version: "1.0"
 current_phase: 01
 current_phase_name: Foundation & Day Loop
-status: verifying
-stopped_at: Completed 01-16-PLAN.md
-last_updated: "2026-10-02T13:02:15.434Z"
-last_activity: 2026-10-02
-last_activity_desc: Gap-closure plans 01-14 to 01-16 complete (UAT gap G-01-58)
-state_head: 488908f3308c6ee34678f7fc52ac4c96465f8de1
+status: executing
+stopped_at: Completed 01-17-PLAN.md
+last_updated: "2026-10-02T20:29:38.446Z"
+last_activity: 2026-10-03
+last_activity_desc: Plan 01-17 complete (UAT gap G-01-59)
+state_head: a8eaba047b90869db52e55fa7eb69905c72c5e20
 progress:
   total_phases: 13
   completed_phases: 0
-  total_plans: 16
-  completed_plans: 16
+  total_plans: 18
+  completed_plans: 17
   percent: 0
 ---
 
@@ -28,9 +28,9 @@ See: .planning/PROJECT.md (updated 2026-09-28)
 ## Current Position
 
 Phase: 01 (Foundation & Day Loop) — EXECUTING
-Plan: 16 of 16
-Status: Phase complete — ready for verification
-Last activity: 2026-10-02 — Gap-closure plans 01-14 to 01-16 complete (UAT gap G-01-58)
+Plan: 17 of 18 complete (next: 01-18)
+Status: Executing gap closure G-01-59 (01-17 done, 01-18 next)
+Last activity: 2026-10-03 — Plan 01-17 complete (uncapped hold, 0.05 s floor, UAT G-01-59)
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -72,6 +72,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P14 | 13 min | 3 tasks | 15 files |
 | Phase 01 P15 | 15 min | 2 tasks | 11 files |
 | Phase 01 P16 | 25 min | 3 tasks | 9 files |
+| Phase 01 P17 | 10 min | 3 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -117,6 +118,8 @@ Recent decisions affecting current work:
 - [Phase 01]: 01-15: Same-frame coin groups are staggered from the coins that can still arrive this frame (cost - coins_paid + 1, max 12), so a normal drip is delay 0 and the cap rush fits 0.3 s
 - [Phase 01]: 01-15: Coin flight ceiling derived from LoopTuning.COIN_DRIP_INTERVAL_MAX_S (review IN-02 closed); sandbox deep-copies shipped data and lives under tools/ (export-excluded)
 - [Phase 01]: 01-16: flat_drip_tuning disables the curve with decay 1.0 and cap 0 on a copy of the shipped tuning, so slow-drip tests no longer depend on the shipped acceleration and cap
+- [Phase 01]: G-01-59: no build hold cap; max_build_hold_seconds kept as a dormant data switch shipped at 0.0, coin floor 0.05 s (D-05 amended again)
+- [Phase 01]: CoinDripVfx.MIN_FLIGHT_SECONDS stays 0.12 s; up to 3 drip coins airborne at the 0.05 s floor, judged at the owner re-check
 
 ### Pending Todos
 
@@ -148,6 +151,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-02T13:02:15.322Z
-Stopped at: Completed 01-16-PLAN.md
+Last session: 2026-10-02T20:29:38.307Z
+Stopped at: Completed 01-17-PLAN.md
 Resume file: None
