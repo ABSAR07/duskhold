@@ -6,8 +6,9 @@ extends Node3D
 ## [zoom_min, zoom_max]. The Camera3D child is aimed once in bind_run and never touched afterwards.
 ## Zooming is presentation only; it never reads or writes the simulation.
 
-## Camera position relative to the king at zoom 1.0. Tunable at the Phase 2 playtest.
-@export var offset: Vector3 = Vector3(0.0, 16.0, 11.0)
+## Camera position relative to the king at zoom 1.0: exactly 1.3x the UAT framing (0, 16, 11) on
+## the same angle, about 25.2 m from the king. Tunable at the Phase 2 playtest.
+@export var offset: Vector3 = Vector3(0.0, 20.8, 14.3)
 ## Follow stiffness; higher trails less. Frame-rate independent via exp().
 @export var follow_sharpness: float = 6.0
 ## Closest zoom, as a multiplier of `offset`.

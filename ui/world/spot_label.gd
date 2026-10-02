@@ -4,6 +4,7 @@ extends Node3D
 ## its cost as coin icons (filling as coins land, red when unaffordable) and its one-line effect.
 ## Visible only for the single focused spot and only while building is allowed (by day). A denied
 ## press shakes it with a brief red outline flash; hold_denied is also the Phase 8 SFX hook (D-08).
+## The label scales with camera distance so it keeps the on-screen size approved at UAT.
 
 const LABEL_HEIGHT: float = 3.2
 ## The camera-to-label distance under the framing the owner approved in UAT test 6 (camera offset
@@ -54,6 +55,13 @@ func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
 	ctx.events.phase_changed.connect(_on_phase_changed)
 	_focused = _hold.get_focused_spot()
 	_refresh()
+
+
+func _process(_delta: float) -> void:
+	var camera: Camera3D = get_viewport().get_camera_3d()
+	if camera != null:
+		var distance: float = camera.global_position.distance_to(global_position)
+		scale = Vector3.ONE * maxf(1.0, distance / LEGIBLE_CAMERA_DISTANCE)
 
 
 func _refresh() -> void:
