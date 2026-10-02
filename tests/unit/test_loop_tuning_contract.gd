@@ -1,19 +1,25 @@
 extends GutTest
-## Data contract for the hold-to-build pace (D-05 as amended by UAT G-01-58, UAT G-01-4). The
-## shipped first interval must stay inside D-05's documented range, a fresh LoopTuning must pace
-## holds like the shipped data on all five pacing fields, no shipped hold may be shorter than
-## 0.5 s or longer than the owner's 3 s cap, and holds must accelerate and never shrink with cost.
+## Data contract for the hold-to-build pace (D-05 as amended by UAT G-01-58 and G-01-59, UAT
+## G-01-4). The shipped first interval must stay inside D-05's documented range, a fresh LoopTuning
+## must pace holds like the shipped data on all five pacing fields, no shipped hold may be shorter
+## than 0.5 s, holds must accelerate down to the owner's floor and never shrink with cost, and the
+## shipped data has no cap on purpose: every coin drips at its own due time (this reverses review
+## WR-02's premise, and the in-range asserts below are the guard WR-02 asked for).
 ## Tier costs are derived from the loaded .tres data, never from literals.
 
 const TUNING := "res://data/tuning/loop_tuning.tres"
 const PROTOTYPE_MAP := "res://data/maps/prototype_map.tres"
 ## UAT G-01-4 judged the 0.4 s House I hold too short; no shipped hold may be shorter than this.
 const MIN_HOLD_S: float = 0.5
-## UAT G-01-58 (owner): a hold never takes longer than 3 s.
-const OWNER_MAX_HOLD_S: float = 3.0
+## UAT G-01-59 (owner): a coin never takes less than this after the acceleration. Retuning it at
+## the Phase 2 playtest (D-09) means updating this pin with the owner.
+const OWNER_FLOOR_S: float = 0.05
 ## Coins looked at when checking that holds accelerate.
 const ACCELERATION_WINDOW: int = 10
-const HUGE_COST: int = 1000
+## A tier far pricier than any shipped one, for the no-cap sum.
+const LONG_COST: int = 100
+## The floor must be reached within this many coins.
+const FLOOR_WINDOW: int = 40
 const EPSILON: float = 0.0001
 
 
@@ -85,27 +91,47 @@ func test_shipped_holds_accelerate() -> void:
 	assert_true(accelerates, "a later coin comes faster than the first")
 
 
-func test_shipped_cap_is_set_and_at_most_the_owner_maximum() -> void:
+func test_shipped_floor_is_the_owners_and_is_reached_and_never_undercut() -> void:
 	var tuning: LoopTuning = _tuning()
-	assert_gt(tuning.max_build_hold_seconds, 0.0, "the shipped hold has a cap")
-	assert_lte(tuning.max_build_hold_seconds, OWNER_MAX_HOLD_S + EPSILON, "no longer than 3 s")
+	var reached: bool = false
+	assert_almost_eq(tuning.coin_drip_min_interval, OWNER_FLOOR_S, EPSILON, "the owner's floor")
+	for coin: int in range(1, FLOOR_WINDOW + 1):
+		if absf(tuning.coin_interval(coin) - OWNER_FLOOR_S) <= EPSILON:
+			reached = true
+	assert_true(reached, "a coin within the first %d takes exactly the floor" % FLOOR_WINDOW)
+	for coin: int in range(1, LONG_COST + 1):
+		assert_gte(
+			tuning.coin_interval(coin), OWNER_FLOOR_S - EPSILON, "coin %d is not under it" % coin
+		)
+
+
+func test_shipped_data_has_no_cap_so_every_coin_drips() -> void:
+	var tuning: LoopTuning = _tuning()
+	var plain_sum_s: float = 0.0
+	for coin: int in range(1, LONG_COST + 1):
+		plain_sum_s += tuning.coin_interval(coin)
+	assert_lte(tuning.max_build_hold_seconds, 0.0, "no cap, on purpose (UAT G-01-59)")
 	assert_almost_eq(
-		tuning.build_hold_seconds(HUGE_COST),
-		tuning.max_build_hold_seconds,
+		tuning.build_hold_seconds(LONG_COST),
+		plain_sum_s,
 		EPSILON,
-		"a huge tier takes exactly the cap"
+		"a %d-coin hold is the plain sum: nothing is fast-forwarded" % LONG_COST
 	)
 
 
-func test_every_shipped_hold_is_capped_and_never_shorter_than_a_cheaper_one() -> void:
+func test_shipped_pacing_fields_are_already_in_range() -> void:
+	var tuning: LoopTuning = _tuning()
+	assert_gt(tuning.coin_drip_decay, 0.0, "decay above 0")
+	assert_lt(tuning.coin_drip_decay, 1.0, "decay below 1")
+	assert_gte(tuning.coin_drip_steady_coins, 1, "at least one steady coin")
+	assert_gt(tuning.coin_drip_min_interval, 0.0, "floor above 0")
+	assert_lte(tuning.coin_drip_min_interval, tuning.coin_drip_interval, "floor within the first")
+
+
+func test_no_shipped_hold_is_shorter_than_a_cheaper_one() -> void:
 	var tuning: LoopTuning = _tuning()
 	var costs: Array[int] = _tier_costs()
 	for cost: int in costs:
-		assert_lte(
-			tuning.build_hold_seconds(cost),
-			tuning.max_build_hold_seconds + EPSILON,
-			"a %d-coin hold is within the cap" % cost
-		)
 		for other: int in costs:
 			if other < cost:
 				assert_gte(
