@@ -2,10 +2,10 @@ class_name LoopTuning
 extends Resource
 ## Feel numbers for the day loop. Tuned at the Phase 2 playtest gate (D-09).
 ##
-## The hold-to-build pace follows D-05 as amended by the owner's UAT G-01-58 decision: the first
-## coins take `coin_drip_interval` (0.25 s) each, later coins come faster, and a whole hold never
-## lasts longer than `max_build_hold_seconds` (3 s). At the cap every remaining coin is paid at
-## once. The helpers below are pure, so tests, tools and the coin VFX share one schedule.
+## The hold-to-build pace follows D-05 as amended by the owner (UAT G-01-58 and G-01-59): the first
+## coins take `coin_drip_interval` each, later coins come faster down to `coin_drip_min_interval`,
+## and every coin drips at its own due time (the shipped data sets no cap). The helpers below are
+## pure, so tests, tools and the coin VFX share one schedule.
 
 ## D-05's documented range for the first coin's interval (seconds), inclusive. The data contract
 ## test and the coin VFX read these instead of keeping their own copies.
@@ -15,19 +15,21 @@ const COIN_DRIP_INTERVAL_MAX_S: float = 0.3
 ## free of time or spin a loop forever.
 const MIN_INTERVAL_S: float = 0.001
 
-## Seconds the first coin and every steady coin take (D-05 as amended, UAT G-01-58: start at
-## 0.25 s). The name is kept so existing overrides still compile.
+## Seconds the first coin and every steady coin take (D-05 as amended, UAT G-01-58). The name is
+## kept so existing overrides still compile.
 @export var coin_drip_interval: float = 0.25
-## Coins paid at the first interval before acceleration starts. Two keeps House I at 0.5 s (the
-## UAT G-01-4 minimum).
+## Coins paid at the first interval before acceleration starts. The shipped count keeps the
+## cheapest House hold at the UAT G-01-4 minimum.
 @export var coin_drip_steady_coins: int = 2
 ## Each coin after the steady ones takes this fraction of the previous one's interval.
 @export var coin_drip_decay: float = 0.9
-## Floor for a coin's interval (seconds) so a long hold's stream stays readable.
-@export var coin_drip_min_interval: float = 0.08
-## Hard cap on a whole hold (seconds). When the hold clock reaches it every remaining coin is paid
-## in that frame and the build completes. 0 or less means no cap.
-@export var max_build_hold_seconds: float = 3.0
+## Floor for a coin's interval (seconds). Once the acceleration reaches it, every later coin takes
+## exactly this long (owner, UAT G-01-59).
+@export var coin_drip_min_interval: float = 0.05
+## Optional cap on a whole hold (seconds). 0 or less, the shipped value since UAT G-01-59, means no
+## cap. A positive value pays every coin still due at the cap in the frame the hold clock reaches
+## it.
+@export var max_build_hold_seconds: float = 0.0
 ## Metres (XZ distance, inclusive) within which the king can interact with a spot.
 @export var interaction_radius: float = 2.5
 ## Seconds the start_night input must be held to end the day (D-11).
@@ -53,9 +55,9 @@ func coin_interval(coin_index: int) -> float:
 
 
 ## Seconds into the hold at which the 1-based coin is paid: the running sum of coin_interval(1..n),
-## clamped to max_build_hold_seconds when that is above 0. 0.0 for coin_index <= 0. Returns the cap
-## as soon as the running sum reaches it, so a call costs at most about cap / floor iterations
-## instead of the coin count.
+## clamped to max_build_hold_seconds when that is above 0. 0.0 for coin_index <= 0. With a cap it
+## returns as soon as the running sum reaches it; without one it sums one interval per coin up to
+## coin_index, which is cheap at realistic costs (plan threat T-01-27).
 func coin_due_seconds(coin_index: int) -> float:
 	if coin_index <= 0:
 		return 0.0
