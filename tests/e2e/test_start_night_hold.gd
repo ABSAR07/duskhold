@@ -248,8 +248,7 @@ func test_a_fresh_run_starts_in_day_lighting_even_after_a_night() -> void:
 func test_a_build_hold_is_cancelled_when_the_night_starts() -> void:
 	var map: MapConfig = (load(PROTOTYPE_MAP) as MapConfig).duplicate(true)
 	map.starting_gold = RICH_GOLD
-	var slow: LoopTuning = _tuning.duplicate(true)
-	slow.coin_drip_interval = SLOW_DRIP_S
+	var slow: LoopTuning = E2eSupport.flat_drip_tuning(SLOW_DRIP_S)
 	var map_root: MapRoot = await E2eSupport.spawn_map(self, map, slow)
 	var ctx: RunContext = map_root.get_context()
 	var hold: BuildHoldController = map_root.get_build_hold()

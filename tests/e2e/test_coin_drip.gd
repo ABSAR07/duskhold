@@ -4,11 +4,12 @@ extends GutTest
 ## restores the full amount. The simulation stays all-or-nothing throughout.
 
 const PROTOTYPE_MAP := "res://data/maps/prototype_map.tres"
-const TUNING := "res://data/tuning/loop_tuning.tres"
 const START_GOLD: int = 10
 const SPOT: StringName = &"house_1"
 const NEAR_OFFSET := Vector3(0.5, 0.0, 0.0)
 const SLOW_DRIP_S: float = 0.8
+## A quick flat pace so the completion case stays short.
+const FAST_DRIP_S: float = 0.2
 const WAIT_SLACK_S: float = 4.0
 const FLIGHT_SETTLE_S: float = 0.4
 const HUD_RESTORE_S: float = 0.5
@@ -22,12 +23,6 @@ func _map_with_gold() -> MapConfig:
 	var map: MapConfig = (load(PROTOTYPE_MAP) as MapConfig).duplicate(true)
 	map.starting_gold = START_GOLD
 	return map
-
-
-func _tuning_with_interval(interval: float) -> LoopTuning:
-	var tuning: LoopTuning = (load(TUNING) as LoopTuning).duplicate(true)
-	tuning.coin_drip_interval = interval
-	return tuning
 
 
 func _vfx(map_root: MapRoot) -> CoinDripVfx:
@@ -46,7 +41,7 @@ func _coins_at_least(hold: BuildHoldController, coins: int) -> bool:
 ## with the king beside it.
 func _upgrade_scene(interval: float) -> MapRoot:
 	var map_root: MapRoot = await E2eSupport.spawn_map(
-		self, _map_with_gold(), _tuning_with_interval(interval)
+		self, _map_with_gold(), E2eSupport.flat_drip_tuning(interval)
 	)
 	var ctx: RunContext = map_root.get_context()
 	assert_eq(ctx.commands.submit(BuildIntent.new(SPOT)), CommandProcessor.OK, "tier I built")
@@ -127,7 +122,7 @@ func test_early_release_flies_the_coins_back_and_restores_the_hud() -> void:
 
 
 func test_after_completion_the_hud_shows_the_new_gold_without_double_subtraction() -> void:
-	var map_root: MapRoot = await _upgrade_scene(0.2)
+	var map_root: MapRoot = await _upgrade_scene(FAST_DRIP_S)
 	var ctx: RunContext = map_root.get_context()
 	var cost: int = ctx.buildings.next_action_cost(SPOT)
 	var gold: int = ctx.economy.get_gold()

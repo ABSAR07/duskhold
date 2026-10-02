@@ -5,7 +5,6 @@ extends GutTest
 
 const PROTOTYPE_MAP := "res://data/maps/prototype_map.tres"
 const POOR_MAP := "res://tests/fixtures/fixture_map_poor.tres"
-const TUNING := "res://data/tuning/loop_tuning.tres"
 const RICH_GOLD: int = 50
 const HOUSE_SPOT: StringName = &"house_1"
 const POOR_SPOT: StringName = &"spot_a"
@@ -30,9 +29,7 @@ func _rich_map() -> MapConfig:
 
 
 func _slow_tuning() -> LoopTuning:
-	var tuning: LoopTuning = (load(TUNING) as LoopTuning).duplicate(true)
-	tuning.coin_drip_interval = SLOW_DRIP_S
-	return tuning
+	return E2eSupport.flat_drip_tuning(SLOW_DRIP_S)
 
 
 func _label(map_root: MapRoot) -> Node3D:
