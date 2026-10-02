@@ -128,6 +128,7 @@ The plans list T-01-SC sixteen times; the twelve identical "this plan installs n
 | 2026-10-01 (re-audit 24) | 22 | 22 | 0 | secure-phase orchestrator (State A; re-checked mitigations touched by quick task 261001-0dd: CI trigger, horse licence notes) |
 | 2026-10-01 (re-audit 25) | 22 | 22 | 0 | secure-phase orchestrator (State A; re-checked mitigations touched by review-fix pass 25: licence records, ASSETS.md hash notes) |
 | 2026-10-02 (re-audit 26) | 27 | 27 | 0 | secure-phase orchestrator (State A; gap plans 01-11 to 01-13 added T-01-18 to T-01-22, verified at L1 grep depth) |
+| 2026-10-02 (re-audit 27) | 31 | 31 | 0 | secure-phase orchestrator (State A; gap plans 01-14 to 01-16 added T-01-23 to T-01-26 and refreshed T-01-22, verified at L1 grep depth; short-circuit, no auditor spawn) |
 
 ## Security Audit 2026-09-29
 
@@ -586,6 +587,31 @@ Verified at ASVS L1 grep depth against the code and tests:
 - **T-01-06 / T-01-17:** `tools/prepush_check.sh` PASSED over all refs (418 commits, 20 unpushed).
 - **CI:** `ci.yml` is unchanged. The seventh screenshot, `king_behind_keep`, first runs in CI on the next push.
 - **Tests:** full suite 315/315; lint clean.
+
+## Security Audit 2026-10-02 (re-audit after gap-closure plans 01-14 to 01-16)
+
+| Metric | Count |
+|--------|-------|
+| Threats found | 31 |
+| Closed | 31 |
+| Open | 0 |
+
+The UAT gap-closure plans for G-01-58 (the accelerating, 3 s-capped build hold) added four threats. All are low severity, and all three plans joined the no-install acceptance (AR-04):
+- 01-14: T-01-23, T-01-24.
+- 01-15: T-01-25, T-01-26.
+- 01-16 changes only test fixtures and records, so it added no runtime surface.
+
+T-01-22 was refreshed for the 0.25 s first interval. None of the plans' SUMMARY files raised a threat flag.
+
+Verified at ASVS L1 grep depth against the code and tests:
+- **T-01-22:** `loop_tuning.tres` and the `LoopTuning` script defaults are equal on all five pacing fields: 0.25 s, 2, 0.9, 0.08 s and 3.0 s. `test_loop_tuning_contract.gd` (6 tests) bounds the first interval, checks the 0.5 s minimum and requires a cap of at most 3 s.
+- **T-01-23:** `coin_interval` clamps every curve field: `maxf` to `MIN_INTERVAL_S`, `maxi(steady, 1)`, decay `clampf` to 0-1, and the floor `clampf` to [`MIN_INTERVAL_S`, first]. So intervals stay positive and never increase. `test_loop_tuning_curve.gd` has 14 tests.
+- **T-01-24:** `_advance_hold` checks release, range and day before any coin is paid, then cancels with a full refund. Completion is the single `commands.submit(BuildIntent)`. `test_build_hold_cap.gd` (6 tests) checks one debit of the full cost and a full refund just before the cap.
+- **T-01-25:** `MAX_BURST_COINS` (12) caps the drawn coins per same-frame group and per refund (`mini`). `launch_stagger` keeps the group inside `BURST_WINDOW_SECONDS` (0.3 s), and every coin tween ends in `queue_free`. `test_coin_drip_burst.gd` has 4 tests.
+- **T-01-26:** the sandbox reprices a `duplicate_deep(Resource.DEEP_DUPLICATE_ALL)` copy. `export_presets.cfg` `exclude_filter` contains `tools/*`. `test_hold_pacing_sandbox.gd` (3 tests) checks the cached `house.tres` is untouched.
+- **T-01-13:** the scoped name check is clean, now extended to `tools/sandbox`.
+- **T-01-06 / T-01-17:** `tools/prepush_check.sh` PASSED over all refs (443 commits, 20 unpushed).
+- **Tests:** full suite 358/358 (46 scripts); lint clean.
 
 ---
 
