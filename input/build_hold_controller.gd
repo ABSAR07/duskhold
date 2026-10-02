@@ -1,6 +1,8 @@
 class_name BuildHoldController
 extends Node
-## Hold-to-build input (D-05/D-06). Coins drip in while the action key is held near a spot.
+## Hold-to-build input (D-05 as amended by UAT G-01-58, and D-06). Coins drip in while the action
+## key is held near a spot: the first coins take 0.25 s each, later ones come faster, and a whole
+## hold never lasts longer than the tuned cap (3 s), where every remaining coin is paid at once.
 ## Hold state is ephemeral and lives only here: no gold moves and nothing is stored on a spot
 ## until the last coin lands, when one BuildIntent goes to the command gate.
 
@@ -13,7 +15,6 @@ signal hold_completed(spot_id: StringName)
 signal hold_denied(spot_id: StringName, reason: StringName)
 
 const ACTION: StringName = &"action_build"
-const MIN_DRIP_INTERVAL: float = 0.001
 
 var _ctx: RunContext
 var _king: King
@@ -21,7 +22,6 @@ var _focused: StringName = &""
 var _active: StringName = &""
 var _cost: int = 0
 var _coins_paid: int = 0
-var _drip_timer: float = 0.0
 var _hold_elapsed: float = 0.0
 var _was_pressed: bool = false
 
@@ -89,22 +89,22 @@ func _try_start_hold() -> void:
 	_active = _focused
 	_cost = _ctx.buildings.next_action_cost(_active)
 	_coins_paid = 0
-	_drip_timer = 0.0
 	_hold_elapsed = 0.0
 	hold_started.emit(_active, _cost)
 
 
-## The day check runs every frame, ahead of any drip, so a coin never lands after building
-## stops being allowed (plan 01-08's night transition relies on this).
+## The release / range / day check runs every frame, ahead of any coin, so a coin never lands after
+## building stops being allowed (plan 01-08's night transition relies on this) and a release on
+## the cap frame still refunds. Each coin is paid once the hold clock reaches its due time
+## (LoopTuning.coin_due_seconds). Every coin due at or past the cap has a due time equal to the
+## cap, so all of them are paid in the frame the cap is reached, with no special fast-forward
+## branch, and the single BuildIntent goes out in that frame.
 func _advance_hold(delta: float, pressed: bool) -> void:
 	if not pressed or not _active_spot_in_range() or not _ctx.run_manager.is_build_allowed():
 		_cancel_hold()
 		return
-	var interval: float = maxf(_ctx.tuning.coin_drip_interval, MIN_DRIP_INTERVAL)
 	_hold_elapsed += delta
-	_drip_timer += delta
-	while _drip_timer >= interval and _coins_paid < _cost:
-		_drip_timer -= interval
+	while _coins_paid < _cost and _hold_elapsed >= _ctx.tuning.coin_due_seconds(_coins_paid + 1):
 		_coins_paid += 1
 		hold_progress.emit(_active, _coins_paid, _cost)
 	if _coins_paid >= _cost:
@@ -143,5 +143,4 @@ func _reset_hold() -> void:
 	_active = &""
 	_cost = 0
 	_coins_paid = 0
-	_drip_timer = 0.0
 	_hold_elapsed = 0.0
