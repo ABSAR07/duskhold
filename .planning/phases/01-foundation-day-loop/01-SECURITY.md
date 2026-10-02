@@ -13,7 +13,7 @@ created: "2026-09-29"
 # Phase 1 — Security
 
 > Per-phase security contract: threat register, accepted risks, and audit trail.
-> Built from the `<threat_model>` blocks of plans 01-01 to 01-10 and the SUMMARY threat flags (all ten report "None" beyond the planned surface). Verified after the code-review fixes.
+> Built from the `<threat_model>` blocks of plans 01-01 to 01-13 (01-11 to 01-13 are the UAT gap-closure plans) and the SUMMARY threat flags (all thirteen report "None" beyond the planned surface). Verified after the code-review fixes.
 
 ---
 
@@ -58,13 +58,18 @@ created: "2026-09-29"
 | T-01-16 | Information Disclosure | `duskhold-screenshots` CI artifact | low | accept | See AR-02 (`retention-days: 7` confirmed in `ci.yml`; since IN-04 the upload runs `if: always()` and also carries `build/screenshot-import.log`) | closed |
 | T-01-17 | Information Disclosure | `git push` of new history | high | mitigate | `bash tools/prepush_check.sh` before every push; re-run 2026-10-01 over all refs before the push of 318 commits (`981e4c8`..`e6bbb47`): PASSED; before the push of 10 more (`e6bbb47`..`4a9b775`, 388 commits on all refs): PASSED; re-run after it (389, 1 unpushed): PASSED | closed |
 | T-01-SC (01-10) | Tampering | apt packages on the CI runner | low | accept | See AR-03 | closed |
-| T-01-SC (no-install plans) | Tampering | Package installs in 01-02, 01-04, 01-05, 01-06, 01-08, 01-09 | low | accept | See AR-04 | closed |
+| T-01-SC (no-install plans) | Tampering | Package installs in 01-02, 01-04, 01-05, 01-06, 01-08, 01-09, 01-11, 01-12, 01-13 | low | accept | See AR-04 | closed |
+| T-01-18 | Tampering | `project.godot` `[input]` `zoom_in` / `zoom_out` | low | mitigate | Physical keys only: `=` / keypad `+` and `-` / keypad `-`, plus right stick Y (axis 3, deadzone 0.3); no mouse event and no button. `test_input_map.gd` pins the exact keys and stick directions, asserts no buttons and no mouse, and `test_no_two_gameplay_actions_share_a_key_button_or_stick_direction` fails on any shared binding; green | closed |
+| T-01-19 | Denial of Service | `CameraRig` zoom | low | mitigate | `_zoom = clampf(_zoom + zoom_input * zoom_speed * delta, zoom_min, zoom_max)` every tick (`camera_rig.gd:47`, range 0.7-1.5); `test_camera_zoom.gd` holds past both limits and asserts the zoom stays in range, the basis never changes, and zooming changes no gold, phase or building and emits no simulation signal; green | closed |
+| T-01-20 | Tampering | `XRaySilhouette.apply_xray` on shared GLB materials | low | mitigate | Each source `BaseMaterial3D` is duplicated, the copy gets `STENCIL_MODE_XRAY`, and it is assigned with `set_surface_override_material` (`xray_silhouette.gd:42-45`), so the imported material is never written; `test_king_xray.gd` asserts every source stays `STENCIL_MODE_DISABLED` and `test_buildings_never_get_the_xray_pass`; green | closed |
+| T-01-21 | Denial of Service | Extra X-Ray render pass | low | accept | See AR-05 | closed |
+| T-01-22 | Tampering | `data/tuning/loop_tuning.tres` `coin_drip_interval` | low | mitigate | Shipped 0.3 s (data and script default agree); `test_loop_tuning_contract.gd` bounds it to D-05's 0.15-0.3 s range and enforces a 0.5 s minimum shortest hold; the refund and command-path tests still prove gold moves only through one BuildIntent per completed hold; green | closed |
 
 *Status: open · closed · open — below high threshold (non-blocking)*
 *Severity: critical > high > medium > low — only open threats at or above workflow.security_block_on count toward threats_open*
 *Disposition: mitigate (implementation required) · accept (documented risk) · transfer (third-party)*
 
-The plans list T-01-SC seven times; the six identical "this plan installs no packages" acceptances are merged into the last row, leaving 22 register rows.
+The plans list T-01-SC ten times; the nine identical "this plan installs no packages" acceptances are merged into one row (gap plans 01-11 to 01-13 joined it on 2026-10-02), and the gap plans added T-01-18 to T-01-22, leaving 27 register rows.
 
 ### Observations (non-blocking)
 
@@ -81,7 +86,8 @@ The plans list T-01-SC seven times; the six identical "this plan installs no pac
 | AR-01 | T-01-15 | The overlay only calls getters. `test_debug_overlay_readonly.gd` shows 200 collects change no state and emit no events. Leaving the F3 / gamepad-Back toggle in Phase 1 release builds therefore gives no gameplay advantage. Revisit gating before the Phase 13 release. | Plan 01-08 threat model (recorded in STATE.md decisions) | 2026-09-29 |
 | AR-02 | T-01-16 | The screenshot artifact holds only the game's own frames of public content in a public repo, with 7-day retention. Since review fix IN-04 it also carries the Godot `--import` log: engine banner and import progress for the public repo's own files on an ephemeral runner, from a job with no secrets. | Plan 01-10 threat model; log added by review-fix pass 2 | 2026-09-29 |
 | AR-03 | T-01-SC (01-10) | apt/Mesa packages come from Ubuntu's signed archive on an ephemeral runner, with no secrets in the job and a read-only token. Nothing is installed on the owner's machine. | Plan 01-10 threat model | 2026-09-29 |
-| AR-04 | T-01-SC (01-02, 01-04, 01-05, 01-06, 01-08, 01-09) | These plans install no packages; the toolchain was pinned and owner-approved in 01-01. | Plan threat models | 2026-09-29 |
+| AR-04 | T-01-SC (01-02, 01-04, 01-05, 01-06, 01-08, 01-09, 01-11, 01-12, 01-13) | These plans install no packages; the toolchain was pinned and owner-approved in 01-01. | Plan threat models | 2026-09-29 |
+| AR-05 | T-01-21 | The X-Ray silhouette adds one unlit, alpha-blended pass over the king's surfaces only (a few draw calls). It was measured on the development GPU only, so the GTX 970 budget is rechecked in the Phase 4 stress test with everything else. | Plan 01-12 threat model (gap closure for UAT G-01-3) | 2026-10-02 |
 
 *Accepted risks do not resurface in future audit runs.*
 
@@ -117,6 +123,7 @@ The plans list T-01-SC seven times; the six identical "this plan installs no pac
 | 2026-09-30 (re-audit 23) | 22 | 22 | 0 | secure-phase orchestrator (State A; re-checked after review-fix pass 24, test-only) |
 | 2026-10-01 (re-audit 24) | 22 | 22 | 0 | secure-phase orchestrator (State A; re-checked mitigations touched by quick task 261001-0dd: CI trigger, horse licence notes) |
 | 2026-10-01 (re-audit 25) | 22 | 22 | 0 | secure-phase orchestrator (State A; re-checked mitigations touched by review-fix pass 25: licence records, ASSETS.md hash notes) |
+| 2026-10-02 (re-audit 26) | 27 | 27 | 0 | secure-phase orchestrator (State A; gap plans 01-11 to 01-13 added T-01-18 to T-01-22, verified at L1 grep depth) |
 
 ## Security Audit 2026-09-29
 
@@ -551,6 +558,30 @@ Re-checked after review-fix pass 25 (`6cdf386`, `1784ffe`, `1ce2f94`). The pass 
 - **T-01-06 / T-01-17:** `tools/prepush_check.sh` PASSED before the push of 10 commits (`e6bbb47`..`4a9b775`, 388 on all refs), then again after it (389, 1 unpushed).
 - **CI:** run 36831792141 on `4a9b775` (push event) is green in all four jobs.
 - **Tests:** full suite 290/290; lint clean.
+
+## Security Audit 2026-10-02 (re-audit after gap-closure plans 01-11 to 01-13)
+
+| Metric | Count |
+|--------|-------|
+| Threats found | 27 |
+| Closed | 27 |
+| Open | 0 |
+
+The UAT gap-closure plans added five threats, all low severity, and joined the no-install acceptance:
+- 01-11 (camera framing and zoom): T-01-18, T-01-19.
+- 01-12 (king X-Ray silhouette): T-01-20, T-01-21.
+- 01-13 (slower coin drip): T-01-22.
+
+Verified at ASVS L1 grep depth against the code and tests:
+- **T-01-18:** the zoom actions use physical keycodes 61 / 4194437 and 45 / 4194435 plus axis 3, with no mouse and no buttons. The extended `test_input_map.gd` checks the binding tables and that no binding is shared.
+- **T-01-19:** a per-tick `clampf` holds the zoom in [0.7, 1.5]. `test_camera_zoom.gd` holds past both limits, checks the basis is unchanged, and checks zooming changes no state and emits no signal.
+- **T-01-20:** the silhouette materials are duplicated copies set through `set_surface_override_material`. `test_king_xray.gd` checks the sources are untouched and that buildings never get the pass.
+- **T-01-21:** accepted as AR-05. The GTX 970 budget is rechecked in the Phase 4 stress test.
+- **T-01-22:** `test_loop_tuning_contract.gd` bounds the shipped 0.3 s interval and checks the 0.5 s minimum hold.
+- **T-01-13:** the scoped name check is clean.
+- **T-01-06 / T-01-17:** `tools/prepush_check.sh` PASSED over all refs (418 commits, 20 unpushed).
+- **CI:** `ci.yml` is unchanged. The seventh screenshot, `king_behind_keep`, first runs in CI on the next push.
+- **Tests:** full suite 315/315; lint clean.
 
 ---
 
