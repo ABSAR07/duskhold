@@ -1,8 +1,8 @@
 class_name BuildHoldController
 extends Node
-## Hold-to-build input (D-05 as amended by UAT G-01-58, and D-06). Coins drip in while the action
-## key is held near a spot: the first coins take 0.25 s each, later ones come faster, and a whole
-## hold never lasts longer than the tuned cap (3 s), where every remaining coin is paid at once.
+## Hold-to-build input (D-05 as amended by UAT G-01-58 and G-01-59, and D-06). Coins drip in while
+## the action key is held near a spot, each at its own due time on the tuned curve (LoopTuning: the
+## first coins at the tuned first interval, later coins faster down to the tuned floor).
 ## Hold state is ephemeral and lives only here: no gold moves and nothing is stored on a spot
 ## until the last coin lands, when one BuildIntent goes to the command gate.
 
@@ -95,10 +95,10 @@ func _try_start_hold() -> void:
 
 ## The release / range / day check runs every frame, ahead of any coin, so a coin never lands after
 ## building stops being allowed (plan 01-08's night transition relies on this) and a release on
-## the cap frame still refunds. Each coin is paid once the hold clock reaches its due time
-## (LoopTuning.coin_due_seconds). Every coin due at or past the cap has a due time equal to the
-## cap, so all of them are paid in the frame the cap is reached, with no special fast-forward
-## branch, and the single BuildIntent goes out in that frame.
+## the completing frame still refunds. Each coin is paid once the hold clock reaches its due time
+## (LoopTuning.coin_due_seconds). A frame long enough to pass several due times pays all of them
+## in that frame, and so would a cap if the tuning ever sets one. Either way the single
+## BuildIntent goes out when the last coin is paid.
 func _advance_hold(delta: float, pressed: bool) -> void:
 	if not pressed or not _active_spot_in_range() or not _ctx.run_manager.is_build_allowed():
 		_cancel_hold()

@@ -1,10 +1,12 @@
 class_name CoinDripVfx
 extends Node3D
-## Makes the hold-to-build payment visible (D-05 as amended by UAT G-01-58, and D-06). Every
-## dripped coin flies from the king into the spot and lands just before the next one leaves, so the
-## stream speeds up with the hold and still reads as one coin at a time. When the 3 s cap pays the
-## remaining coins in one frame, they leave staggered inside BURST_WINDOW_SECONDS and at most
-## MAX_BURST_COINS of them are drawn, so the rush reads as many coins and never floods the scene.
+## Makes the hold-to-build payment visible (D-05 as amended by UAT G-01-58 and G-01-59, and D-06).
+## Every dripped coin flies from the king into the spot and lands just before the next one leaves,
+## so the stream speeds up with the hold and still reads as one coin at a time. At the tuned floor
+## the minimum flight makes a few coins overlap in the air, which reads as the stream speeding up.
+## Coins paid in the same frame (after a long frame or hitch, or at a cap if the tuning ever sets
+## one) leave staggered inside BURST_WINDOW_SECONDS and at most MAX_BURST_COINS of them are drawn,
+## so a group reads as many coins and never floods the scene.
 ## A cancelled hold flies the dripped coins back to the king (D-06). Purely visual: the simulation
 ## only ever sees the single BuildIntent sent when the last coin lands.
 
@@ -109,8 +111,9 @@ func _spot_anchor(spot_id: StringName) -> Vector3:
 	return _ctx.buildings.get_spot(spot_id).position + SPOT_ANCHOR
 
 
-## Each coin flies for 90% of the gap to the next one. Coins paid in the same frame (the cap's
-## fast-forward, or a frame hitch) form one group: staggered, and drawn only up to MAX_BURST_COINS.
+## Each coin flies for 90% of the gap to the next one. Coins paid in the same frame (a long frame
+## or a hitch, or a cap if the tuning sets one) form one group: staggered, and drawn only up to
+## MAX_BURST_COINS.
 func _on_hold_progress(spot_id: StringName, coins_paid: int, cost: int) -> void:
 	var frame: int = Engine.get_process_frames()
 	if frame != _group_frame:
