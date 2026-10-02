@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 01
 current_phase_name: Foundation & Day Loop
 status: executing
-stopped_at: Completed 01-17-PLAN.md
-last_updated: "2026-10-02T20:29:38.446Z"
+stopped_at: Completed 01-18-PLAN.md
+last_updated: "2026-10-02T20:38:44.359Z"
 last_activity: 2026-10-03
-last_activity_desc: Plan 01-17 complete (UAT gap G-01-59)
-state_head: a8eaba047b90869db52e55fa7eb69905c72c5e20
+last_activity_desc: Plan 01-18 complete (UAT gap G-01-59 closing work)
+state_head: 27e01746fbe7cfcc9f5d85e6265eb7a089c18fd4
 progress:
   total_phases: 13
   completed_phases: 0
   total_plans: 18
-  completed_plans: 17
+  completed_plans: 18
   percent: 0
 ---
 
@@ -28,9 +28,9 @@ See: .planning/PROJECT.md (updated 2026-09-28)
 ## Current Position
 
 Phase: 01 (Foundation & Day Loop) — EXECUTING
-Plan: 17 of 18 complete (next: 01-18)
-Status: Executing gap closure G-01-59 (01-17 done, 01-18 next)
-Last activity: 2026-10-03 — Plan 01-17 complete (uncapped hold, 0.05 s floor, UAT G-01-59)
+Plan: 18 of 18 complete (phase ready for verification)
+Status: Gap closure G-01-59 done (01-17, 01-18); owner re-check queued for end-of-phase verify-work
+Last activity: 2026-10-03 — Plan 01-18 complete (uncapped hold docs, real-window check, security/validation records)
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -73,6 +73,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P15 | 15 min | 2 tasks | 11 files |
 | Phase 01 P16 | 25 min | 3 tasks | 9 files |
 | Phase 01 P17 | 10 min | 3 tasks | 14 files |
+| Phase 01 P18 | 7 min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -120,6 +121,7 @@ Recent decisions affecting current work:
 - [Phase 01]: 01-16: flat_drip_tuning disables the curve with decay 1.0 and cap 0 on a copy of the shipped tuning, so slow-drip tests no longer depend on the shipped acceleration and cap
 - [Phase 01]: G-01-59: no build hold cap; max_build_hold_seconds kept as a dormant data switch shipped at 0.0, coin floor 0.05 s (D-05 amended again)
 - [Phase 01]: CoinDripVfx.MIN_FLIGHT_SECONDS stays 0.12 s; up to 3 drip coins airborne at the 0.05 s floor, judged at the owner re-check
+- [Phase 01]: Plan 01-18: T-01-24/T-01-25 rescoped to any frame paying several coins; T-01-27 (uncapped coin_due_seconds) accepted as AR-06
 
 ### Pending Todos
 
@@ -151,6 +153,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-02T20:29:38.307Z
-Stopped at: Completed 01-17-PLAN.md
+Last session: 2026-10-02T20:38:44.211Z
+Stopped at: Completed 01-18-PLAN.md
 Resume file: None
