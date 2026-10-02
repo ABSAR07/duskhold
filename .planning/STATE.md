@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 01
 current_phase_name: Foundation & Day Loop
 status: executing
-stopped_at: Completed 01-14-PLAN.md
-last_updated: "2026-10-02T12:34:47.204Z"
+stopped_at: Completed 01-15-PLAN.md
+last_updated: "2026-10-02T12:51:32.201Z"
 last_activity: 2026-10-02
 last_activity_desc: Phase 01 execution started
-state_head: eb54967ecdda2f23eaea1ccea2d369ae858ae93d
+state_head: 5f9a31956978834d45d578b85e1ec5fc1902e931
 progress:
   total_phases: 13
   completed_phases: 0
   total_plans: 16
-  completed_plans: 14
+  completed_plans: 15
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-28)
 ## Current Position
 
 Phase: 01 (Foundation & Day Loop) — EXECUTING
-Plan: 2 of 16
+Plan: 3 of 16
 Status: Ready to execute
 Last activity: 2026-10-02 — Phase 01 execution started
 
@@ -70,6 +70,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P13 | 7 min | 2 tasks | 7 files |
 | Phase 01 P12 | 16 min | 2 tasks | 7 files |
 | Phase 01 P14 | 13 min | 3 tasks | 15 files |
+| Phase 01 P15 | 15 min | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -112,6 +113,8 @@ Recent decisions affecting current work:
 - [Phase 01]: [01-12]: king silhouette through buildings uses the engine stencil X-Ray preset (light cyan 0.4/0.9/1.0, unshaded) on per-instance duplicated materials via XRaySilhouette; the king only; seventh screenshot king_behind_keep
 - [Phase 01]: 01-14: hold cap fast-forward is implicit (coin due times clamp to the 3 s cap), no affordability branch; D-06 all-or-nothing preserved
 - [Phase 01]: 01-14: coin_drip_interval name kept (first/steady interval 0.25 s); curve fields live in loop_tuning.tres per D-09
+- [Phase 01]: 01-15: Same-frame coin groups are staggered from the coins that can still arrive this frame (cost - coins_paid + 1, max 12), so a normal drip is delay 0 and the cap rush fits 0.3 s
+- [Phase 01]: 01-15: Coin flight ceiling derived from LoopTuning.COIN_DRIP_INTERVAL_MAX_S (review IN-02 closed); sandbox deep-copies shipped data and lives under tools/ (export-excluded)
 
 ### Pending Todos
 
@@ -143,6 +146,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-02T12:34:47.087Z
-Stopped at: Completed 01-14-PLAN.md
+Last session: 2026-10-02T12:51:32.103Z
+Stopped at: Completed 01-15-PLAN.md
 Resume file: None
