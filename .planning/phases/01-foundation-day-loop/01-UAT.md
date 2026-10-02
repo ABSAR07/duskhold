@@ -1,14 +1,18 @@
 ---
-status: diagnosed
+status: testing
 phase: 01-foundation-day-loop
 source: [01-01-SUMMARY.md, 01-02-SUMMARY.md, 01-03-SUMMARY.md, 01-04-SUMMARY.md, 01-05-SUMMARY.md, 01-06-SUMMARY.md, 01-07-SUMMARY.md, 01-08-SUMMARY.md, 01-09-SUMMARY.md, 01-10-SUMMARY.md, 01-VERIFICATION.md]
 started: 2026-10-01T09:10:51Z
-updated: 2026-10-02T11:08:07Z
+updated: 2026-10-02T13:26:19Z
 ---
 
 ## Current Test
 
-[testing complete]
+number: 59
+name: Re-check after gap closure: accelerating, capped build hold
+expected: |
+  (1) Normal game: hold the action key (Space or gamepad A) at a House plot for House I, II and III, and at a tower plot. Expected: the first coin leaves after 0.25 s and the coins then come visibly faster; House I takes about 0.5 s, House III about 1.1 s and a tower about 0.9 s; the stream still reads as one coin at a time. (2) Sandbox (res://tools/sandbox/hold_pacing_sandbox.tscn; House plots cost 15, 30 and 50 coins per tier, with enough starting gold for all three): hold at one House plot three times, and once release just before 3 s. Expected: the 15-coin build takes about 2.2 s with a clearly accelerating stream; the 30-coin build stops at 3.0 s with its last 6 coins rushing in at once; the 50-coin build also stops at 3.0 s with about half its coins rushed in; releasing just before 3 s flies the coins back and builds nothing. Judge whether the 0.25 s start, the acceleration and the 3 s rush feel right. (The label's coin-icon row is very wide at these synthetic sandbox costs; label layout for expensive buildings belongs to a later phase and is not part of this check.)
+awaiting: user response
 
 ## Tests
 
@@ -338,12 +342,16 @@ result: issue
 reported: "this is better. However, I think we should start with 0.25s per coin, and accelerate (since there will be buildings at some point that require e.g. 15 coins or even more). And set a max time limit too so for example set 3 seconds as the maximum time it takes, even if only half the coins are filled, just fast forward to full coin usage if that is possible given the current coins."
 severity: minor
 
+### 59. Re-check after gap closure: accelerating, capped build hold
+expected: (1) Normal game: hold the action key (Space or gamepad A) at a House plot for House I, II and III, and at a tower plot. Expected: the first coin leaves after 0.25 s and the coins then come visibly faster; House I takes about 0.5 s, House III about 1.1 s and a tower about 0.9 s; the stream still reads as one coin at a time. (2) Sandbox (res://tools/sandbox/hold_pacing_sandbox.tscn; House plots cost 15, 30 and 50 coins per tier, with enough starting gold for all three): hold at one House plot three times, and once release just before 3 s. Expected: the 15-coin build takes about 2.2 s with a clearly accelerating stream; the 30-coin build stops at 3.0 s with its last 6 coins rushing in at once; the 50-coin build also stops at 3.0 s with about half its coins rushed in; releasing just before 3 s flies the coins back and builds nothing. Judge whether the 0.25 s start, the acceleration and the 3 s rush feel right. (The label's coin-icon row is very wide at these synthetic sandbox costs; label layout for expensive buildings belongs to a later phase and is not part of this check.)
+result: [pending]
+
 ## Summary
 
-total: 58
+total: 59
 passed: 54
 issues: 3
-pending: 0
+pending: 1
 skipped: 1
 blocked: 0
 
