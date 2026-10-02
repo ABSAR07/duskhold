@@ -2,17 +2,17 @@
 gsd_state_version: "1.0"
 current_phase: 01
 current_phase_name: Foundation & Day Loop
-status: verifying
-stopped_at: Completed 01-10-PLAN.md
-last_updated: "2026-09-30T19:33:01.792Z"
-last_activity: 2026-10-01
+status: executing
+stopped_at: Completed 01-11-PLAN.md
+last_updated: "2026-10-02T07:03:33.251Z"
+last_activity: 2026-10-02
 last_activity_desc: Phase 01 execution started
-state_head: bfe3c972059e5fdf8ae9fd9d0d7bda4147066c55
+state_head: 54cc51ebabb8d6096055b25c4e96259bae4cda31
 progress:
   total_phases: 13
   completed_phases: 0
-  total_plans: 10
-  completed_plans: 10
+  total_plans: 13
+  completed_plans: 11
   percent: 0
 ---
 
@@ -28,9 +28,9 @@ See: .planning/PROJECT.md (updated 2026-09-28)
 ## Current Position
 
 Phase: 01 (Foundation & Day Loop) — EXECUTING
-Plan: 10 of 10
-Status: Phase complete — ready for verification
-Last activity: 2026-10-01 - Completed quick task 261001-0dd: Resolve Phase 1 owner decisions: widen CI to every push (DEV-02) and record the horse licence keep decision (ART-02)
+Plan: 2 of 13
+Status: Ready to execute
+Last activity: 2026-10-02 — Phase 01 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -66,6 +66,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P08 | 5 min | 2 tasks | 7 files |
 | Phase 01 P09 | 20 min | 3 tasks | 23 files |
 | Phase 01 P10 | 19 min | 3 tasks | 10 files |
+| Phase 01 P11 | 11 min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -103,6 +104,7 @@ Recent decisions affecting current work:
 - [Phase 01]: 01-09: Python edits of files with an em dash must use encoding utf-8 on Windows (cp1252 broke the HUD script load) — Avoids invalid-UTF-8 script load errors in later plans
 - [Phase 01]: 01-10: dawn payout VFX is display only; HUD readout lags the ledger by coins still in flight (Hud._payout_pending) and settles exactly on Economy gold
 - [Phase 01]: 01-10: screenshot tooling never runs under --headless; runner exits 2 there and exits 1 on blank frames; CI screenshots run under xvfb with the Compatibility renderer
+- [Phase 01]: 01-11: camera default offset (0,20.8,14.3) = 1.3x UAT; zoom 0.7-1.5x via zoom_in/zoom_out (=/- , keypad, right stick); SpotLabel scales by camera distance/16.9 m
 
 ### Pending Todos
 
@@ -134,6 +136,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-29T11:24:51.878Z
-Stopped at: Completed 01-10-PLAN.md
+Last session: 2026-10-02T07:03:33.147Z
+Stopped at: Completed 01-11-PLAN.md
 Resume file: None
