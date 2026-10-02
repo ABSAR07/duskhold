@@ -15,7 +15,10 @@ const BANNER_WAIT_S: float = 1.3
 const OVERLAY_WAIT_S: float = 0.6
 const DAWN_COIN_WAIT_S: float = 0.45
 const DAWN_TIMEOUT_S: float = 10.0
-const HOLD_INTERVALS: float = 2.5
+## build_in_progress catches the hold with this many coins paid and the next one still flying.
+const SHOT_COINS_PAID: int = 2
+## How far into the gap to the next coin the shot is taken (0.5 is mid-flight).
+const MID_GAP_FRACTION: float = 0.5
 const PRESS_FRAMES: int = 2
 
 const DAY_OVERVIEW := &"day_overview"
@@ -84,8 +87,15 @@ static func _build_in_progress(runner: Node, map_root: MapRoot) -> bool:
 	var ctx: RunContext = map_root.get_context()
 	await _stand_beside(runner, map_root, &"tower_1")
 	Input.action_press(&"action_build")
-	await _wait(runner, HOLD_INTERVALS * ctx.tuning.coin_drip_interval)
-	return map_root.get_build_hold().get_coins_paid() > 0
+	await _wait(
+		runner,
+		(
+			ctx.tuning.coin_due_seconds(SHOT_COINS_PAID)
+			+ MID_GAP_FRACTION * ctx.tuning.coin_interval(SHOT_COINS_PAID + 1)
+		)
+	)
+	var hold: BuildHoldController = map_root.get_build_hold()
+	return hold.get_coins_paid() > 0 and hold.is_holding()
 
 
 static func _night_banner(runner: Node, map_root: MapRoot) -> bool:
