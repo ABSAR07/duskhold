@@ -27,7 +27,7 @@ validated: "2026-09-29"
 | **Full suite command** | `bash tools/test.sh` (headless import pass, then GUT over all three dirs; fails on any first-party parse/load error) |
 | **Single file** | `bash tools/test.sh -gselect=<test_file>.gd` |
 | **Lint** | `bash tools/lint.sh` (gdtoolkit 4.5.0: `gdformat --check` + `gdlint`) |
-| **Measured runtime** | Quick: ~15 s wall (21 scripts, 189 tests). Full: ~120 s wall (40 scripts, 315 tests) |
+| **Measured runtime** | Quick: ~16 s wall (24 scripts, 218 tests). Full: ~145 s wall (46 scripts, 358 tests) |
 
 The `tools/*.sh` wrappers need Git Bash on Windows; they resolve the pinned binary under `.tools/godot/4.7.2-stable/` (D-14).
 
@@ -176,7 +176,7 @@ Owner gates with no automated verify by design: 01-01-T2 (toolchain download app
 | BLDG-01 | `test_build_spot`, `test_prototype_map_data`, `test_map_binding` | COVERED |
 | BLDG-02 | `test_build_spot_affordability`, `test_spot_label_model`, `test_spot_label` | COVERED |
 | BLDG-03 | `test_build_flow`, `test_build_hold_refund`, `test_build_denied`, `test_coin_drip`, `test_walking_skeleton`, `test_build_hold_cap`, `test_build_hold_timing`, `test_loop_tuning_curve`, `test_loop_tuning_contract`, `test_coin_drip_burst`, `test_coin_drip_flight` | COVERED |
-| BLDG-04 | `test_upgrade_flow`, `test_upgrade_at_spot`, `test_spot_label_model`, `test_build_hold_timing` | COVERED |
+| BLDG-04 | `test_upgrade_flow`, `test_upgrade_at_spot`, `test_spot_label_model`, `test_build_hold_timing`, `test_build_hold_cap` (the hold path builds and upgrades share ends at the 3 s cap with one debit, exercised on a 30-coin tier I) | COVERED |
 | BLDG-06 | `test_build_phase_guard`, `test_run_manager` | COVERED |
 | ECON-01 | `test_economy_gold`, HUD `GoldLabel` asserts in `test_coin_drip` and `test_dawn_payout` | COVERED |
 | ECON-02 | `test_dawn_income`, `test_dawn_payout` | COVERED |
@@ -185,7 +185,7 @@ Owner gates with no automated verify by design: 01-01-T2 (toolchain download app
 | DEV-01 | Whole suite runs headless from the command line (`tools/test.sh`); `test_build_flow` runs without a scene tree; `test_toolchain_smoke` | COVERED |
 | DEV-02 | `ci.yml` lint/test/export/screenshots jobs on every push to any branch or tag (trigger widened 2026-10-01, quick task 261001-0dd) and on pull requests; the first run under that trigger, 36827944700 on `e6bbb47`, and the latest, 36831792141 on `4a9b775`, are green; export + launch + pre-push checks re-run locally | COVERED |
 | DEV-03 | `test_debug_overlay_readonly`, `test_debug_overlay_providers`, `test_debug_overlay_timed_phases`, `test_debug_overlay_registration`, `test_debug_overlay_toggle` (FPS, phase, gold, buildings, units, enemies; wave-state and pathing rows are Phase 2 scope per ROADMAP SC5) | COVERED (Phase 1 scope) |
-| DEV-04 | `tools/screenshot.sh` seven scenes (`king_behind_keep` added by gap plan 01-12), `test_shot_blank_check`, headless guard, CI `screenshots` job | COVERED |
+| DEV-04 | `tools/screenshot.sh` seven scenes (`king_behind_keep` added by gap plan 01-12; `build_in_progress` timed on the hold curve since gap plan 01-15), `test_shot_blank_check`, headless guard, CI `screenshots` job | COVERED |
 
 ---
 
@@ -801,3 +801,40 @@ Evidence:
 - Full suite 315/315 (40 scripts) at `3058974`; lint clean.
 - Unit quick run 189/189 (21 scripts, ~15 s).
 - wave:post gates (schema drift, codebase drift, UI safety) passed after each wave.
+
+## Validation Audit 2026-10-02 (re-audit after gap-closure plans 01-14 to 01-16)
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Re-audited after the UAT gap-closure plans for G-01-58 (the build hold had no upper bound). They do three things:
+- 01-14 replaced the constant drip with the accelerating hold that is capped at 3 s.
+- 01-15 makes the coin stream follow the curve and shows the cap rush.
+- 01-16 moves the slow-drip fixtures onto one flat-pace helper and refreshes the records.
+
+All eight tasks have passing automated coverage, and 15/15 requirements are still COVERED. BLDG-03, BLDG-04 and DEV-04 gained evidence.
+
+- **Tests:** +43, from 315 to 358, across 6 new suites:
+
+  | Suite | Tests |
+  |-------|-------|
+  | `test_build_hold_cap` | 6 |
+  | `test_loop_tuning_curve` | 14 |
+  | `test_coin_drip_flight` | 9 |
+  | `test_coin_drip_burst` | 4 |
+  | `test_hold_pacing_sandbox` | 3 |
+  | `test_e2e_support_tuning` | 4 |
+
+  Rewritten or extended suites: `test_loop_tuning_contract` (6), `test_build_hold_timing` (4, on the hold clock), and the refund, coin-drip, spot-label and night-start suites, which now use the flat helper.
+- **Counts:** every count in the per-task map matches the JUnit results.
+- **Superseded rows:** 01-13-T1 and 01-13-T2 are marked as superseded by 01-14. They stay green under the rewritten tests.
+- **Screenshot:** `build_in_progress` was recaptured locally on the curve-timed wait. Checked by eye: Gold 28, two of four label coins filled, and a coin in flight by the king. CI runs it on the next push.
+- **Manual:** the owner's feel check of the 0.25 s start, the acceleration and the 3 s rush (01-15 Task 2 human-check, in the normal game and in `tools/sandbox/hold_pacing_sandbox.tscn`) is queued for the end-of-phase UAT. It replaces the 0.3 s hold check from the previous audit.
+
+Evidence:
+- Full suite 358/358 (46 scripts, ~144 s) at `3f49754`; lint clean (84 files).
+- Unit quick run 218/218 (24 scripts, ~16 s).
+- wave:post gates (schema drift, codebase drift, UI safety) passed after each of the three waves.
