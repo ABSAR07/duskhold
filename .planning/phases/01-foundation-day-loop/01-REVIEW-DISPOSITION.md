@@ -6,26 +6,26 @@ findings:
   - id: WR-01
     severity: warning
     disposition: open
-    title: "New scene tests still assume no single frame is longer than a few hundred milliseconds"
+    title: "The \"helper is uncapped\" test cannot fail, so the cap guard in `flat_drip_tuning` is unpinned"
   - id: WR-02
     severity: warning
     disposition: open
-    title: "A cap of zero silently removes the hold cap, and the shipped data is only guarded for the cap"
+    title: "A shipped-data test asserts a property the design deliberately does not hold at the floor"
   - id: IN-01
     severity: info
     disposition: open
-    title: "Hard-coded pacing numbers in comments will drift from the data (D-09)"
+    title: "Tautological ceiling test, and a constant referenced only by tests (open from the previous IN-02)"
   - id: IN-02
     severity: info
     disposition: open
-    title: "Tautological and redundant test assertions"
+    title: "Delayed burst and refund coins sit visible and stacked before they launch (open from the previous IN-03)"
   - id: IN-03
     severity: info
     disposition: open
-    title: "Delayed burst and refund coins are visible, stacked, before they launch"
+    title: "The sandbox's starting gold covers one plot's upgrade chain, but the map has five House plots"
   - id: IN-04
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Duplicated scaffolding and literals across the new tests and sandbox test"
   - id: WR-03
     severity: warning
@@ -87,9 +87,9 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 6
+open: 5
 total: 21
-recorded: 2026-10-02T13:18:08.683Z
+recorded: 2026-10-02T20:51:54.909Z
 ---
 
 # Phase 01: Code Review Disposition
@@ -101,7 +101,7 @@ recorded: 2026-10-02T13:18:08.683Z
 | IN-01 | info | open | - |
 | IN-02 | info | open | - |
 | IN-03 | info | open | - |
-| IN-04 | info | open | - |
+| IN-04 | info | fixed | plan 01-17 Tasks 1 and 3 (E2eSupport.stand_at_spot, derived sandbox gold); confirmed closed by the 2026-10-02 re-review (not in the current review) |
 | WR-03 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-05 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-04 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
