@@ -1,7 +1,8 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="PackedScene" path="res://assets/third_party/quaternius_horse/horse_animated.glb" id="1_horse"]
 [ext_resource type="PackedScene" path="res://assets/third_party/kenney_mini_characters/models/character-male-b.glb" id="2_rider"]
+[ext_resource type="Script" path="res://presentation/vfx/xray_silhouette.gd" id="3_xray"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_crown"]
 albedo_color = Color(1, 0.82, 0.25, 1)
@@ -26,3 +27,7 @@ transform = Transform3D(1.6, 0, 0, 0, 1.6, 0, 0, 0, 1.6, 0, 1.4, 0.15)
 [node name="Crown" type="MeshInstance3D" parent="Rider"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.72, 0)
 mesh = SubResource("CylinderMesh_crown")
+
+[node name="XRay" type="Node" parent="."]
+script = ExtResource("3_xray")
+stencil_color = Color(0.4, 0.9, 1, 1)
