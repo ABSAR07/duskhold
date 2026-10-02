@@ -122,7 +122,7 @@ func test_holding_again_after_a_cancel_pays_the_tier_cost_exactly_once() -> void
 
 	watch_signals(hold)
 	await E2eSupport.hold_action_seconds(
-		self, &"action_build", float(cost) * ctx.tuning.coin_drip_interval + 0.5
+		self, &"action_build", ctx.tuning.build_hold_seconds(cost) + 0.5
 	)
 	await wait_process_frames(2)
 	assert_signal_emitted_with_parameters(hold, "hold_started", [SPOT, cost])

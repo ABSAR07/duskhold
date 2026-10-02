@@ -121,7 +121,7 @@ func test_shown_overlay_refreshes_the_buildings_row_after_a_build() -> void:
 	)
 	assert_true(arrived, "the king rode into range of the House plot")
 	var cost: int = ctx.buildings.next_action_cost(spot_id)
-	var hold_seconds: float = float(cost) * ctx.tuning.coin_drip_interval + 0.5
+	var hold_seconds: float = ctx.tuning.build_hold_seconds(cost) + 0.5
 	await E2eSupport.hold_action_seconds(self, &"action_build", hold_seconds)
 	assert_eq(ctx.buildings.current_tier(spot_id), 1, "the House was built through the input path")
 

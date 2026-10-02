@@ -30,7 +30,7 @@ func test_ride_to_house_plot_and_hold_builds_it() -> void:
 	var arrived: bool = await E2eSupport.ride_until_focused(self, map_root, spot_id, RIDE_TIMEOUT_S)
 	assert_true(arrived, "the king rode into range of the House plot")
 
-	var hold_seconds: float = float(cost) * ctx.tuning.coin_drip_interval + 0.5
+	var hold_seconds: float = ctx.tuning.build_hold_seconds(cost) + 0.5
 	await E2eSupport.hold_action_seconds(self, &"action_build", hold_seconds)
 	await wait_process_frames(2)
 

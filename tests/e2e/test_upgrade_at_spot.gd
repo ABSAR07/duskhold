@@ -20,7 +20,7 @@ func _spawn_map() -> MapRoot:
 
 
 func _hold_seconds_for(ctx: RunContext, cost: int) -> float:
-	return float(cost) * ctx.tuning.coin_drip_interval + HOLD_SLACK_S
+	return ctx.tuning.build_hold_seconds(cost) + HOLD_SLACK_S
 
 
 func _body_mesh(view: Node3D) -> Mesh:

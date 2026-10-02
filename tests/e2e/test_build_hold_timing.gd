@@ -1,89 +1,151 @@
 extends GutTest
-## UAT G-01-4 on the real scene: a House I hold with the shipped map and tuning (no overrides)
-## lasts its full cost x coin_drip_interval, one coin per interval. Guards against a too-short
-## tuning value and against any timing bug (a double-counted delta, a reset timer).
+## UAT G-01-4 and G-01-58 on the real scene: holds with the shipped map and tuning (no overrides)
+## pay each coin at its due time on the accelerating curve (D-05 as amended). Every measurement
+## is on the hold's own clock (the frame deltas the controller accumulates), never wall-clock
+## time, so these assertions hold on any frame timing and a frame hitch cannot make them flake
+## (review WR-01). Only the wait timeouts use real time.
 
-const SPOT: StringName = &"house_1"
+const HOUSE_SPOT: StringName = &"house_1"
+const TOWER_SPOT: StringName = &"tower_1"
 ## Sits well inside interaction_radius of a plot.
 const NEAR_OFFSET := Vector3(0.5, 0.0, 0.0)
-## A hold may complete at most this much sooner than cost x interval (frame-boundary slack).
-const EARLY_TOLERANCE_S: float = 0.02
-## A hold may complete at most this much later than cost x interval.
-const LATE_TOLERANCE_S: float = 0.5
-## Allowed jitter of one gap between consecutive coins (frame granularity).
-const GAP_TOLERANCE_S: float = 0.05
+const EPSILON: float = 0.0001
+## Real-time slack on top of the expected hold length while waiting for the build.
+const LATE_SLACK_S: float = 0.5
 ## UAT G-01-4 judged a 0.4 s House I hold too short.
 const MIN_HOLD_S: float = 0.5
 
-var _coin_times_s: Array[float] = []
+var _ctx: RunContext
+var _hold: BuildHoldController
+var _spot_id: StringName = &""
+var _cost: int = 0
+var _coin_numbers: Array[int] = []
+var _coin_stamps_s: Array[float] = []
+var _coin_deltas_s: Array[float] = []
+var _coin_frame_clocks_s: Array[float] = []
+var _frame_clock_s: float = 0.0
+var _clock_running: bool = false
+var _frame_hook_connected: bool = false
+
+
+func before_each() -> void:
+	_coin_numbers.clear()
+	_coin_stamps_s.clear()
+	_coin_deltas_s.clear()
+	_coin_frame_clocks_s.clear()
+	_frame_clock_s = 0.0
+	_clock_running = false
 
 
 func after_each() -> void:
 	E2eSupport.release_all_actions()
+	if _frame_hook_connected and get_tree().process_frame.is_connected(_on_process_frame):
+		get_tree().process_frame.disconnect(_on_process_frame)
+	_frame_hook_connected = false
 
 
-func _on_hold_progress(_spot_id: StringName, _coins_paid: int, _cost: int) -> void:
-	_coin_times_s.append(float(Time.get_ticks_usec()) / 1_000_000.0)
+## process_frame fires before the nodes' _process, so on each frame this adds the same delta the
+## controller adds to its hold clock.
+func _on_process_frame() -> void:
+	if _clock_running:
+		_frame_clock_s += get_process_delta_time()
 
 
-func _tier_built(ctx: RunContext) -> bool:
-	return ctx.buildings.current_tier(SPOT) == 1
+func _on_hold_started(_spot_id: StringName, _hold_cost: int) -> void:
+	_frame_clock_s = 0.0
+	_clock_running = true
 
 
-func _focused(hold: BuildHoldController) -> bool:
-	return hold.get_focused_spot() == SPOT
+func _on_hold_progress(_spot: StringName, coins_paid: int, _hold_cost: int) -> void:
+	_coin_numbers.append(coins_paid)
+	_coin_stamps_s.append(_hold.get_hold_elapsed())
+	_coin_deltas_s.append(get_process_delta_time())
+	_coin_frame_clocks_s.append(_frame_clock_s)
 
 
-## Stands the king beside the House plot, holds the action key until tier I stands, and returns
-## { "ctx": RunContext, "cost": int, "started_s": float, "finished_s": float, "built": bool }.
-func _measure_house_hold() -> Dictionary:
-	_coin_times_s.clear()
+func _focused() -> bool:
+	return _hold.get_focused_spot() == _spot_id
+
+
+func _tier_built() -> bool:
+	return _ctx.buildings.current_tier(_spot_id) == 1
+
+
+## Stands the king beside the plot, holds the action key until tier I stands and lets go. Fills
+## the coin arrays and returns whether the build completed in time.
+func _measure_hold(spot_id: StringName) -> bool:
+	_spot_id = spot_id
 	var map_root: MapRoot = await E2eSupport.spawn_map(self)
-	var ctx: RunContext = map_root.get_context()
-	var hold: BuildHoldController = map_root.get_build_hold()
-	var cost: int = ctx.buildings.next_action_cost(SPOT)
-	E2eSupport.teleport_king(map_root, ctx.buildings.get_spot(SPOT).position + NEAR_OFFSET)
-	await E2eSupport.wait_until(self, _focused.bind(hold), 1.0)
-	hold.hold_progress.connect(_on_hold_progress)
+	_ctx = map_root.get_context()
+	_hold = map_root.get_build_hold()
+	_cost = _ctx.buildings.next_action_cost(spot_id)
+	assert_gte(_ctx.economy.get_gold(), _cost, "the starting gold covers the first tier")
+	E2eSupport.teleport_king(map_root, _ctx.buildings.get_spot(spot_id).position + NEAR_OFFSET)
+	await E2eSupport.wait_until(self, _focused, 1.0)
+	_hold.hold_started.connect(_on_hold_started)
+	_hold.hold_progress.connect(_on_hold_progress)
+	get_tree().process_frame.connect(_on_process_frame)
+	_frame_hook_connected = true
 
-	var started_s: float = float(Time.get_ticks_usec()) / 1_000_000.0
 	Input.action_press(&"action_build")
-	var timeout_s: float = float(cost) * ctx.tuning.coin_drip_interval + LATE_TOLERANCE_S
-	var built: bool = await E2eSupport.wait_until(self, _tier_built.bind(ctx), timeout_s)
-	var finished_s: float = float(Time.get_ticks_usec()) / 1_000_000.0
+	var built: bool = await E2eSupport.wait_until(
+		self, _tier_built, _ctx.tuning.build_hold_seconds(_cost) + LATE_SLACK_S
+	)
 	Input.action_release(&"action_build")
-	return {
-		"ctx": ctx, "cost": cost, "started_s": started_s, "finished_s": finished_s, "built": built
-	}
+	return built
 
 
-func test_house_one_hold_lasts_cost_times_the_drip_interval() -> void:
-	var run: Dictionary = await _measure_house_hold()
-	var ctx: RunContext = run["ctx"]
-	var expected_s: float = float(run["cost"]) * ctx.tuning.coin_drip_interval
-	var held_s: float = float(run["finished_s"]) - float(run["started_s"])
-
-	assert_true(run["built"], "the House I hold completed and built tier I")
-	assert_gte(held_s, expected_s - EARLY_TOLERANCE_S, "the hold is not cut short")
-	assert_lte(held_s, expected_s + LATE_TOLERANCE_S, "the hold is not dragged out")
+func _last_stamp_s() -> float:
+	return _coin_stamps_s[_coin_stamps_s.size() - 1]
 
 
-func test_coins_drip_one_per_interval() -> void:
-	var run: Dictionary = await _measure_house_hold()
-	var ctx: RunContext = run["ctx"]
-	var interval: float = ctx.tuning.coin_drip_interval
+func _last_delta_s() -> float:
+	return _coin_deltas_s[_coin_deltas_s.size() - 1]
 
-	assert_eq(_coin_times_s.size(), int(run["cost"]), "one hold_progress per coin")
-	for i: int in range(1, _coin_times_s.size()):
-		assert_almost_eq(
-			_coin_times_s[i] - _coin_times_s[i - 1],
-			interval,
-			GAP_TOLERANCE_S,
-			"gap before coin %d is one drip interval" % (i + 1)
+
+func test_house_one_hold_ends_when_its_last_coin_is_due() -> void:
+	var built: bool = await _measure_hold(HOUSE_SPOT)
+	assert_true(built, "the House I hold completed and built tier I")
+	assert_eq(_coin_stamps_s.size(), _cost, "one hold_progress per coin")
+	if _coin_stamps_s.is_empty():
+		return
+	var expected_s: float = _ctx.tuning.build_hold_seconds(_cost)
+
+	assert_gte(_last_stamp_s(), expected_s - EPSILON, "the hold is not cut short")
+	assert_lte(_last_stamp_s(), expected_s + _last_delta_s() + EPSILON, "or dragged out")
+
+
+func test_each_tower_coin_is_paid_at_its_due_time() -> void:
+	var built: bool = await _measure_hold(TOWER_SPOT)
+	assert_true(built, "the Tower I hold completed and built tier I")
+	assert_eq(_coin_numbers.size(), _cost, "exactly one hold_progress per coin")
+	for i: int in _coin_numbers.size():
+		var coin: int = _coin_numbers[i]
+		var due_s: float = _ctx.tuning.coin_due_seconds(coin)
+		assert_eq(coin, i + 1, "coins run 1..cost in order")
+		assert_gte(_coin_stamps_s[i], due_s - EPSILON, "coin %d is not paid early" % coin)
+		assert_lte(
+			_coin_stamps_s[i],
+			due_s + _coin_deltas_s[i] + EPSILON,
+			"coin %d is paid within one frame of its due time" % coin
 		)
 
 
-func test_house_one_hold_is_at_least_the_minimum() -> void:
-	var run: Dictionary = await _measure_house_hold()
-	var held_s: float = float(run["finished_s"]) - float(run["started_s"])
-	assert_gte(held_s, MIN_HOLD_S, "a House I hold is a deliberate moment")
+func test_the_hold_clock_equals_the_summed_frame_deltas() -> void:
+	var built: bool = await _measure_hold(TOWER_SPOT)
+	assert_true(built, "the Tower I hold completed")
+	for i: int in _coin_stamps_s.size():
+		assert_almost_eq(
+			_coin_stamps_s[i],
+			_coin_frame_clocks_s[i],
+			EPSILON,
+			"at coin %d no frame delta was lost or counted twice" % _coin_numbers[i]
+		)
+
+
+func test_house_one_hold_lasts_at_least_the_minimum() -> void:
+	var built: bool = await _measure_hold(HOUSE_SPOT)
+	assert_true(built, "the House I hold completed")
+	if _coin_stamps_s.is_empty():
+		return
+	assert_gte(_last_stamp_s(), MIN_HOLD_S - EPSILON, "a House I hold is a deliberate moment")
