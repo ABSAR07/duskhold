@@ -1,18 +1,14 @@
 ---
-status: testing
+status: complete
 phase: 01-foundation-day-loop
 source: [01-01-SUMMARY.md, 01-02-SUMMARY.md, 01-03-SUMMARY.md, 01-04-SUMMARY.md, 01-05-SUMMARY.md, 01-06-SUMMARY.md, 01-07-SUMMARY.md, 01-08-SUMMARY.md, 01-09-SUMMARY.md, 01-10-SUMMARY.md, 01-VERIFICATION.md]
 started: 2026-10-01T09:10:51Z
-updated: 2026-10-02T13:26:19Z
+updated: 2026-10-02T18:32:47Z
 ---
 
 ## Current Test
 
-number: 59
-name: Re-check after gap closure: accelerating, capped build hold
-expected: |
-  (1) Normal game: hold the action key (Space or gamepad A) at a House plot for House I, II and III, and at a tower plot. Expected: the first coin leaves after 0.25 s and the coins then come visibly faster; House I takes about 0.5 s, House III about 1.1 s and a tower about 0.9 s; the stream still reads as one coin at a time. (2) Sandbox (res://tools/sandbox/hold_pacing_sandbox.tscn; House plots cost 15, 30 and 50 coins per tier, with enough starting gold for all three): hold at one House plot three times, and once release just before 3 s. Expected: the 15-coin build takes about 2.2 s with a clearly accelerating stream; the 30-coin build stops at 3.0 s with its last 6 coins rushing in at once; the 50-coin build also stops at 3.0 s with about half its coins rushed in; releasing just before 3 s flies the coins back and builds nothing. Judge whether the 0.25 s start, the acceleration and the 3 s rush feel right. (The label's coin-icon row is very wide at these synthetic sandbox costs; label layout for expensive buildings belongs to a later phase and is not part of this check.)
-awaiting: user response
+[testing complete]
 
 ## Tests
 
@@ -344,14 +340,17 @@ severity: minor
 
 ### 59. Re-check after gap closure: accelerating, capped build hold
 expected: (1) Normal game: hold the action key (Space or gamepad A) at a House plot for House I, II and III, and at a tower plot. Expected: the first coin leaves after 0.25 s and the coins then come visibly faster; House I takes about 0.5 s, House III about 1.1 s and a tower about 0.9 s; the stream still reads as one coin at a time. (2) Sandbox (res://tools/sandbox/hold_pacing_sandbox.tscn; House plots cost 15, 30 and 50 coins per tier, with enough starting gold for all three): hold at one House plot three times, and once release just before 3 s. Expected: the 15-coin build takes about 2.2 s with a clearly accelerating stream; the 30-coin build stops at 3.0 s with its last 6 coins rushing in at once; the 50-coin build also stops at 3.0 s with about half its coins rushed in; releasing just before 3 s flies the coins back and builds nothing. Judge whether the 0.25 s start, the acceleration and the 3 s rush feel right. (The label's coin-icon row is very wide at these synthetic sandbox costs; label layout for expensive buildings belongs to a later phase and is not part of this check.)
-result: [pending]
+result: issue
+reported: "yeah so i think dont keep 3 seconds as a hard limit, instead I think just keep 0.05s as the minimum time it takes for the coin to load after acceleration"
+severity: minor
+self_check: "Claude scripted real-window run 2026-10-02 (pinned Godot, Forward+): first coin 0.25 s; House I/II/III 0.50/0.73/1.11 s, Tower I/II 0.93/1.28 s, one coin in the air at a time; sandbox 15-coin 2.21 s, 30-coin 3.01 s (24 dripped + 6 rushed), 50-coin 3.01 s (24 + 26 rushed); release at 2.90 s on the 30-coin tier refunded 23 coins, gold and tier unchanged. Observed: the rush coins are hidden in stills (they launch inside the king model and fly 0.12 s to spot + 3.0 m, inside a built House whose roof is 3.14 m)"
 
 ## Summary
 
 total: 59
 passed: 54
-issues: 3
-pending: 1
+issues: 4
+pending: 0
 skipped: 1
 blocked: 0
 
@@ -416,7 +415,9 @@ blocked: 0
 
 - gap_id: G-01-58
   truth: "Hold the action key at a House plot (House I, then II and III) and at a tower plot, and release early once. Expected: At 0.3 s per coin the hold (House I about 0.6 s, tower I about 1.2 s) feels 'a bit longer' and deliberate without dragging; the coin stream still reads as one coin at a time"
-  status: failed
+  status: resolved
+  resolved_by: [01-14-PLAN.md, 01-15-PLAN.md, 01-16-PLAN.md]
+  resolved_at: 2026-10-02
   reason: "User reported: this is better. However, I think we should start with 0.25s per coin, and accelerate (since there will be buildings at some point that require e.g. 15 coins or even more). And set a max time limit too so for example set 3 seconds as the maximum time it takes, even if only half the coins are filled, just fast forward to full coin usage if that is possible given the current coins."
   severity: minor
   test: 58
@@ -451,6 +452,15 @@ blocked: 0
     - "Tests: rewrite test_loop_tuning_contract and test_build_hold_timing against the helpers using accumulated delta, not wall clock (closes review WR-01); add e2e for a 30-coin tier completing at ~3.0 s with cost progress signals and one gold debit, plus a release just before the cap refunding in full; switch cost x interval waits to the shared helper; build modified maps with duplicate_deep(Resource.DEEP_DUPLICATE_ALL) because MapConfig.duplicate(true) shares the external tower.tres"
     - "Update tools/screenshot/shot_scenarios.gd waits to the helper; amend D-05 in 01-CONTEXT.md; refresh 01-SECURITY.md T-01-22 and 01-VALIDATION.md rows; then re-check the feel in a real window"
   debug_session: .planning/debug/build-hold-pacing-curve.md
+
+- gap_id: G-01-59
+  truth: "The build hold starts at 0.25 s per coin and accelerates so expensive buildings do not drag, with a pacing the owner judges right in a real window (normal game and the 15/30/50-coin sandbox)"
+  status: failed
+  reason: "User reported: yeah so i think dont keep 3 seconds as a hard limit, instead I think just keep 0.05s as the minimum time it takes for the coin to load after acceleration"
+  severity: minor
+  test: 59
+  artifacts: []  # Filled by diagnosis
+  missing: []    # Filled by diagnosis
 
 ## Deferred Follow-Ups
 
