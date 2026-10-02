@@ -27,7 +27,7 @@ validated: "2026-09-29"
 | **Full suite command** | `bash tools/test.sh` (headless import pass, then GUT over all three dirs; fails on any first-party parse/load error) |
 | **Single file** | `bash tools/test.sh -gselect=<test_file>.gd` |
 | **Lint** | `bash tools/lint.sh` (gdtoolkit 4.5.0: `gdformat --check` + `gdlint`) |
-| **Measured runtime** | Quick: ~16 s wall (24 scripts, 218 tests). Full: ~145 s wall (46 scripts, 358 tests) |
+| **Measured runtime** | Quick: ~17 s wall (24 scripts, 222 tests). Full: ~137 s GUT time (46 scripts, 363 tests) |
 
 The `tools/*.sh` wrappers need Git Bash on Windows; they resolve the pinned binary under `.tools/godot/4.7.2-stable/` (D-14).
 
@@ -154,11 +154,11 @@ GUT rows run as `bash tools/test.sh -gselect=<file>`. Threat refs are the plans'
 | 01-12-T2 | 01-12 | gap 2 | DEV-04 | — | Seventh scripted screenshot `king_behind_keep`, whose ready check requires the applied silhouette | screenshot | `bash tools/screenshot.sh` (7 PNGs) + `DUSKHOLD_SCREENSHOT_COMPAT=1 bash tools/screenshot.sh king_behind_keep` | ✅ | ✅ green (local; CI pending the next push) |
 | 01-13-T1 | 01-13 | gap 1 | BLDG-03, BLDG-04 | T-01-22 | `coin_drip_interval` 0.3 s (top of D-05's range) in data and script default; coin flight cap 0.27 s keeps the stream continuous; hold time stays cost x interval with no floor (pacing model superseded by 01-14; `test_loop_tuning_contract` and `test_build_hold_timing` rewritten for the accelerating, capped hold) | unit | `test_loop_tuning_contract.gd` (4 tests) + `test_coin_drip.gd`, `test_build_hold_refund.gd` regressions | ✅ | ✅ green |
 | 01-13-T2 | 01-13 | gap 1 | BLDG-03, BLDG-04 | — | A House I hold in the real scene lasts cost x interval coin by coin with the shipped tuning (measured House I 0.61 s, Tower I 1.22 s) (pacing model superseded by 01-14; `test_loop_tuning_contract` and `test_build_hold_timing` rewritten for the accelerating, capped hold) | e2e | `test_build_hold_timing.gd` (3 tests) | ✅ | ✅ green |
-| 01-14-T1 | 01-14 | gap 1 | BLDG-03, BLDG-04 | T-01-23, T-01-24 | Tracer: a 30-coin hold completes at the 3 s cap in the real scene, the remaining coins are paid in one frame with one `BuildIntent` and one debit; a release just before the cap refunds everything; the repriced tier never leaks into the cached map (cap superseded by 01-17, UAT G-01-59: no cap; `test_build_hold_cap.gd` renamed to `test_build_hold_long.gd` and rewritten) | e2e | `test_build_hold_cap.gd` (6 tests) | ✅ | ✅ green |
+| 01-14-T1 | 01-14 | gap 1 | BLDG-03, BLDG-04 | T-01-23, T-01-24 | Tracer: a 30-coin hold completes at the 3 s cap in the real scene, the remaining coins are paid in one frame with one `BuildIntent` and one debit; a release just before the cap refunds everything; the repriced tier never leaks into the cached map (cap superseded by 01-17, UAT G-01-59: no cap; `test_build_hold_cap.gd` renamed to `test_build_hold_long.gd` and rewritten) | e2e | `test_build_hold_cap.gd` (6 tests), renamed to `test_build_hold_long.gd` by 01-17 (see 01-17-T1) | ✅ (renamed) | ✅ green |
 | 01-14-T2 | 01-14 | gap 1 | BLDG-03, BLDG-04 | T-01-23 | Curve math sanitised (intervals positive and never increasing); shipped data held to D-05's first-interval range, the 0.5 s minimum hold and a cap of at most 3 s; D-05 amendment recorded in 01-CONTEXT (cap and 0.08 s floor superseded by 01-17, UAT G-01-59: no cap, 0.05 s floor) | unit | `test_loop_tuning_curve.gd` (14 tests), `test_loop_tuning_contract.gd` (6 tests) | ✅ | ✅ green |
 | 01-14-T3 | 01-14 | gap 1 | BLDG-03, BLDG-04 | — | Real-scene hold timing measured on the hold clock (the sum of frame deltas), not wall-clock time, so a frame hitch cannot fail it (review WR-01 closed); every hold wait uses `build_hold_seconds` | e2e | `test_build_hold_timing.gd` (4 tests) | ✅ | ✅ green |
 | 01-15-T1 | 01-15 | gap 2 | BLDG-03, BLDG-04 | T-01-25 | Each coin flies for 90% of the gap to the next, with the ceiling derived from `LoopTuning.COIN_DRIP_INTERVAL_MAX_S` (review IN-02 closed); the cap rush is staggered and draws at most 12 coins, all freed after the window plus the flight (cap superseded by 01-17, UAT G-01-59: burst groups now come from long frames and refunds) | unit + e2e | `test_coin_drip_flight.gd` (9 tests), `test_coin_drip_burst.gd` (4 tests), `test_coin_drip.gd` | ✅ | ✅ green |
-| 01-15-T2 | 01-15 | gap 2 | DEV-04, BLDG-03 | T-01-26 | `build_in_progress` screenshot timed on the curve (`coin_due_seconds`); hold-pacing sandbox reprices the House on a deep copy and never ships (`tools/*` excluded from the export) (0.08 s floor and cap rush superseded by 01-17, UAT G-01-59: 0.05 s floor, no cap) | screenshot + e2e | `bash tools/screenshot.sh build_in_progress`, `test_hold_pacing_sandbox.gd` (3 tests); owner feel check of the pace and rush is still queued for the end of the phase | ✅ | ✅ green (owner feel check pending) |
+| 01-15-T2 | 01-15 | gap 2 | DEV-04, BLDG-03 | T-01-26 | `build_in_progress` screenshot timed on the curve (`coin_due_seconds`); hold-pacing sandbox reprices the House on a deep copy and never ships (`tools/*` excluded from the export) (0.08 s floor and cap rush superseded by 01-17, UAT G-01-59: 0.05 s floor, no cap) | screenshot + e2e | `bash tools/screenshot.sh build_in_progress`, `test_hold_pacing_sandbox.gd` (3 tests); the owner's feel check ran at UAT test 59 on 2026-10-02 and led to G-01-59 (plans 01-17 and 01-18); the re-check is queued under 01-18-T1 | ✅ | ✅ green |
 | 01-16-T1 | 01-16 | gap 3 | BLDG-03, DEV-01 | — | `E2eSupport.flat_drip_tuning` gives a flat, uncapped pace on a copy of the shipped tuning, otherwise shipped, never touching the cached resource; the refund suite uses it | unit + integration | `test_e2e_support_tuning.gd` (4 tests), `test_build_hold_refund.gd` | ✅ | ✅ green |
 | 01-16-T2 | 01-16 | gap 3 | BLDG-03, DEV-01 | — | Coin, label and night-start suites build their slow fixtures with the flat helper; `test_coin_drip` has no bare pace literal (`FAST_DRIP_S`) | e2e | `test_coin_drip.gd`, `test_spot_label.gd`, `test_start_night_hold.gd` (whole suite `bash tools/test.sh`, 358/358) | ✅ | ✅ green |
 | 01-16-T3 | 01-16 | gap 3 | BLDG-03, DEV-01 | T-01-22 to T-01-26 | Docs task: the security register and this map describe the accelerating, capped hold as built | docs | grep checks of the 01-16 Task 3 `<verify>` (T-01-23 to T-01-26, `01-01 to 01-16`, `01-14-T1`, `01-15-T2`, `01-16-T3`, `superseded by 01-14`, `test_build_hold_cap`) | ✅ | ✅ green |
@@ -843,3 +843,27 @@ Evidence:
 - Full suite 358/358 (46 scripts, ~144 s) at `3f49754`; lint clean (84 files).
 - Unit quick run 218/218 (24 scripts, ~16 s).
 - wave:post gates (schema drift, codebase drift, UI safety) passed after each of the three waves.
+
+## Validation Audit 2026-10-03 (re-audit after gap-closure plans 01-17 and 01-18)
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Re-audited after the UAT gap-closure plans for G-01-59, the owner's decision to remove the 3 s cap and use a 0.05 s floor after the acceleration:
+- 01-17 ships the uncapped curve with the 0.05 s floor in data. The cap stays as a dormant switch. It moves every test that pinned the old cap or floor, and the long-hold and burst suites now step the controller deterministically.
+- 01-18 updates the controller and coin VFX comments, checks the sandbox in a real window and refreshes the records.
+
+All five tasks have passing automated coverage, and 15/15 requirements are still COVERED. BLDG-03 and BLDG-04 now point at `test_build_hold_long`.
+
+- **Tests:** +5, from 358 to 363. `test_build_hold_cap` (6) was renamed to `test_build_hold_long` (6) and rewritten as an uncapped, stepped suite. Other count changes: `test_loop_tuning_curve` 14 → 15, `test_loop_tuning_contract` 6 → 8, `test_coin_drip_burst` 4 → 5, `test_coin_drip_flight` 9 → 10. `test_hold_pacing_sandbox` (3), `test_e2e_support_tuning` (4) and `test_build_hold_timing` (4) were retargeted at the same counts.
+- **Counts:** every count in the per-task map matches the JUnit results of the post-merge full run.
+- **Superseded rows:** 01-14-T1, 01-14-T2, 01-15-T1 and 01-15-T2 are marked as superseded by 01-17. 01-14-T1 now names the renamed suite. 01-15-T2 records that the owner's feel check ran (UAT test 59).
+- **Manual:** the owner's re-check of the uncapped pace is queued for the end-of-phase UAT (01-18 human-check, in the normal game and in `tools/sandbox/hold_pacing_sandbox.tscn`). It asks whether "0.05 s" meant the gap between coins (as built) or the flight time. The 01-18 real-window self-check measured the sandbox's 15, 30 and 50 coins at 2.178, 2.942 and 3.938 s, with at most 3 coins in the air.
+
+Evidence:
+- Full suite 363/363 (46 scripts, ~137 s GUT time) at `c0c6e74`; lint clean (84 files).
+- Unit quick run 222/222 (24 scripts, ~17 s wall).
+- wave:post gates (schema drift, codebase drift, UI safety) passed after each of the two waves.
