@@ -63,7 +63,5 @@ func test_coin_flight_keeps_the_stream_unbroken_at_the_shipped_interval() -> voi
 		"the flight cap does not cut the coin flight short of 90% of the interval"
 	)
 	assert_lt(
-		CoinDripVfx.MAX_FLIGHT_SECONDS,
-		interval,
-		"each coin lands before the next one leaves"
+		CoinDripVfx.MAX_FLIGHT_SECONDS, interval, "each coin lands before the next one leaves"
 	)

@@ -10,7 +10,9 @@ const COIN_COLOR := Color(1.0, 0.8, 0.2)
 const COIN_EMISSION_ENERGY: float = 1.2
 const KING_ANCHOR := Vector3(0.0, 1.5, 0.0)
 const SPOT_ANCHOR := Vector3(0.0, 3.0, 0.0)
-const MAX_FLIGHT_SECONDS: float = 0.18
+## Flight cap. At the shipped 0.3 s drip interval the flight is 0.27 s, still 90% of the interval
+## (FLIGHT_FRACTION_OF_INTERVAL), so coins land one at a time with no visible gap between them.
+const MAX_FLIGHT_SECONDS: float = 0.27
 ## A coin must land before the next one leaves, so the stream reads as one coin at a time.
 const FLIGHT_FRACTION_OF_INTERVAL: float = 0.9
 const REFUND_STAGGER_SECONDS: float = 0.04
