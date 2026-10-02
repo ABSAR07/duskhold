@@ -135,13 +135,15 @@ func test_camera_settles_at_the_rig_offset_when_the_king_stands_still() -> void:
 	assert_not_null(rig, "the map has a CameraRig")
 	if rig == null:
 		return
-	var offset: Vector3 = rig.offset
+	var offset: Vector3 = rig.get_effective_offset()
 	var camera: Camera3D = get_viewport().get_camera_3d()
 	await wait_seconds(1.0)
 	var king_xz: Vector2 = _xz(map_root.get_king().global_position)
 	var expected: Vector2 = king_xz + Vector2(offset.x, offset.z)
 	var actual: Vector2 = _xz(camera.global_position)
-	assert_lt(actual.distance_to(expected), CAMERA_XZ_TOLERANCE, "camera is at king + offset")
+	assert_lt(
+		actual.distance_to(expected), CAMERA_XZ_TOLERANCE, "camera is at king + effective offset"
+	)
 
 
 func test_camera_trails_a_sudden_king_jump_and_then_catches_up() -> void:
@@ -150,7 +152,7 @@ func test_camera_trails_a_sudden_king_jump_and_then_catches_up() -> void:
 	assert_not_null(rig, "the map has a CameraRig")
 	if rig == null:
 		return
-	var offset: Vector3 = rig.offset
+	var offset: Vector3 = rig.get_effective_offset()
 	var camera: Camera3D = get_viewport().get_camera_3d()
 	var king: King = map_root.get_king()
 	E2eSupport.teleport_king(map_root, king.global_position + Vector3(TELEPORT_DISTANCE, 0, 0))
