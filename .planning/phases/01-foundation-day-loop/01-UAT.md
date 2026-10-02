@@ -1,9 +1,9 @@
 ---
-status: complete
+status: diagnosed
 phase: 01-foundation-day-loop
 source: [01-01-SUMMARY.md, 01-02-SUMMARY.md, 01-03-SUMMARY.md, 01-04-SUMMARY.md, 01-05-SUMMARY.md, 01-06-SUMMARY.md, 01-07-SUMMARY.md, 01-08-SUMMARY.md, 01-09-SUMMARY.md, 01-10-SUMMARY.md, 01-VERIFICATION.md]
 started: 2026-10-01T09:10:51Z
-updated: 2026-10-02T10:55:41Z
+updated: 2026-10-02T11:08:07Z
 ---
 
 ## Current Test
@@ -412,8 +412,37 @@ blocked: 0
   reason: "User reported: this is better. However, I think we should start with 0.25s per coin, and accelerate (since there will be buildings at some point that require e.g. 15 coins or even more). And set a max time limit too so for example set 3 seconds as the maximum time it takes, even if only half the coins are filled, just fast forward to full coin usage if that is possible given the current coins."
   severity: minor
   test: 58
-  artifacts: []
-  missing: []
+  root_cause: "Design gap, not a defect: the build hold is a linear fixed-interval drip with no acceleration and no cap. (1) Code: input/build_hold_controller.gd:91-102 (_advance_hold) uses one constant interval = coin_drip_interval for every coin, pays a coin each time _drip_timer crosses it, completes only at coins_paid >= cost; no elapsed-hold clock, no per-coin interval, no cap (the while loop cannot express a changing interval). (2) Data: LoopTuning has a single pacing field coin_drip_interval = 0.3 (simulation/defs/loop_tuning.gd:5-7, data/tuning/loop_tuning.tres:7). (3) Locked decision D-05 (01-CONTEXT.md:66-69) specified a steady rate. Measured in the real scene: House I 0.614 s, House II 0.911 s, House III 1.511 s, Tower I 1.217 s (= cost x 0.3); a 30-coin tier 9.014 s, a 15-coin tier would be 4.5 s. Fast-forward at the cap is always affordable today: a hold starts only when validate_build passes the full-cost check (command_processor.gd:30-40, D-06), gold is debited once at completion via Economy.try_spend (command_processor.gd:62), and the only other gold change is the dawn payout; a failed completion already cancels with a full refund (_finish_hold :114-122), so no new gold check is needed and a partial stop-at-affordable would break D-06."
+  artifacts:
+    - path: "input/build_hold_controller.gd"
+      issue: "fixed-interval drip loop at :91-102 and :133-137; no elapsed-hold clock, no per-coin interval, no 3 s cap"
+    - path: "simulation/defs/loop_tuning.gd"
+      issue: "single pacing field coin_drip_interval (0.3); no start/decay/floor/cap fields or shared duration helpers"
+    - path: "data/tuning/loop_tuning.tres"
+      issue: "coin_drip_interval = 0.3 only"
+    - path: "presentation/vfx/coin_drip_vfx.gd"
+      issue: "flight = min(0.27, interval x 0.9) from the constant interval (:57-58); same-frame bursts not staggered (:81-83), so a fast-forward reads as one coin; MAX_FLIGHT_SECONDS literal (review IN-02)"
+    - path: "tests/unit/test_loop_tuning_contract.gd"
+      issue: "encodes cost x interval >= 0.5 and the MAX_FLIGHT contract (:47-67)"
+    - path: "tests/e2e/test_build_hold_timing.gd"
+      issue: "asserts hold == cost x interval and equal gaps (:51,63,74); wall-clock stamps with tight tolerances (review WR-01)"
+    - path: "tests/e2e/test_walking_skeleton.gd, tests/e2e/test_upgrade_at_spot.gd, tests/e2e/test_debug_overlay_toggle.gd, tests/e2e/test_build_hold_refund.gd"
+      issue: "waits computed as cost x interval + slack"
+    - path: "tests/e2e/test_build_hold_refund.gd, tests/e2e/test_coin_drip.gd, tests/e2e/test_spot_label.gd, tests/e2e/test_start_night_hold.gd"
+      issue: "override coin_drip_interval with a slow flat value (test_coin_drip.gd also has a literal 0.2 at :130)"
+    - path: "tools/screenshot/shot_scenarios.gd"
+      issue: "waits 2.5 x interval (:18,87); formula no longer means a fixed number of coins"
+    - path: ".planning/phases/01-foundation-day-loop/01-CONTEXT.md"
+      issue: "D-05 says a steady rate; needs an amendment recording the owner UAT decision"
+  missing:
+    - "Owner-requested pacing: first coin interval 0.25 s, intervals then shrink (acceleration), and a hard 3.0 s cap on total hold time; at the cap every remaining coin is paid at once and the build completes (always affordable today because a hold only starts when the full cost is affordable, D-06)"
+    - "Suggested curve (non-binding): interval(k) = 0.25 s for the first 2 coins, then max(0.08, 0.25 x 0.90^(k-2)); coin n due at min(T(n), 3.0); holds: cost 2 0.500 s, 3 0.725, 4 0.927, 5 1.110, 6 1.274, 10 1.781, 15 2.205, 30 3.000 (24 dripped + 6 fast-forwarded); keeps House I at the 0.5 s minimum contract"
+    - "Tuning in data: LoopTuning + loop_tuning.tres fields for first interval (keep the name coin_drip_interval = 0.25), steady coins 2, decay 0.90, min interval 0.08, max hold 3.0; pure deterministic helpers on LoopTuning (coin_interval(k), coin_due_seconds(n), build_hold_seconds(cost)) shared by controller, VFX, tests and screenshots"
+    - "Controller: accumulate _hold_elapsed from frame delta and pay coins while _hold_elapsed >= coin_due_seconds(_coins_paid + 1), so the cap fast-forward falls out with no special branch; keep the release/range/day checks ahead of the drip so a release on the cap frame still refunds; still exactly one BuildIntent per hold"
+    - "Coin VFX: flight time from the next interval, clamp(0.9 x interval, ~0.12, ~0.27) so the start still reads one coin at a time; stagger coins emitted in the same frame (window-limited, like DawnPayoutVfx.launch_stagger) so a fast-forward burst is visible; replace the MAX_FLIGHT_SECONDS literal (review IN-02)"
+    - "Tests: rewrite test_loop_tuning_contract and test_build_hold_timing against the helpers using accumulated delta, not wall clock (closes review WR-01); add e2e for a 30-coin tier completing at ~3.0 s with cost progress signals and one gold debit, plus a release just before the cap refunding in full; switch cost x interval waits to the shared helper; build modified maps with duplicate_deep(Resource.DEEP_DUPLICATE_ALL) because MapConfig.duplicate(true) shares the external tower.tres"
+    - "Update tools/screenshot/shot_scenarios.gd waits to the helper; amend D-05 in 01-CONTEXT.md; refresh 01-SECURITY.md T-01-22 and 01-VALIDATION.md rows; then re-check the feel in a real window"
+  debug_session: .planning/debug/build-hold-pacing-curve.md
 
 ## Deferred Follow-Ups
 
