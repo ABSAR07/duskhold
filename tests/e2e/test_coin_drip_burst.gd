@@ -1,24 +1,26 @@
 extends GutTest
-## UAT G-01-58 (D-05 as amended) on the real scene: when the 3 s cap pays the remaining coins in
-## one frame, the coin VFX launches them staggered inside a short window and draws at most
-## MAX_BURST_COINS of them, so the rush reads as many coins and never floods the scene (T-01-25).
-## A normal drip still launches at once. Expectations come from the shipped tuning and VFX
-## constants.
+## UAT G-01-59 (D-05 amended again) on the real scene: coins paid in one frame (a long frame) or
+## flown back by a refund are launched staggered inside a short window and drawn at most
+## MAX_BURST_COINS at a time, so a group reads as many coins and never floods the scene (T-01-25).
+## A normal drip still launches at once. The hold controller is stepped by fixed deltas
+## (E2eSupport.begin_stepped_hold and step_hold), so counts are asserted right after a step, before
+## any frame length can free a coin first (review WR-01 closed by stepping). Expectations come from
+## the shipped tuning and VFX constants.
 
 const SPOT: StringName = &"house_1"
 const HOUSE: StringName = &"house"
-const NEAR_OFFSET := Vector3(0.5, 0.0, 0.0)
 const GOLD_MARGIN: int = 10
 const PRICEY_COST: int = 30
 const HUGE_COST: int = 60
-const CAP_WAIT_SLACK_S: float = 1.0
+## Coins a single long frame pays in the staggered-group test.
+const LONG_FRAME_COINS: int = 6
 const CLEANUP_SLACK_S: float = 0.2
+## Hold-clock step for the release frame of the refund test.
+const RELEASE_STEP_S: float = 1.0 / 64.0
 const EPSILON: float = 0.0001
-## At the 0.08 s interval floor with the 0.12 s minimum flight, at most two drip coins are airborne
-## when the cap frame arrives.
-const MAX_DRIPS_IN_AIR: int = 2
 
 var _ctx: RunContext
+var _hold: BuildHoldController
 var _map_root: MapRoot
 var _vfx: CoinDripVfx
 
@@ -27,59 +29,39 @@ func after_each() -> void:
 	E2eSupport.release_all_actions()
 
 
-func _focused() -> bool:
-	return _map_root.get_build_hold().get_focused_spot() == SPOT
-
-
-func _tier_built() -> bool:
-	return _ctx.buildings.current_tier(SPOT) == 1
-
-
-func _one_coin_paid() -> bool:
-	return _map_root.get_build_hold().get_coins_paid() >= 1
-
-
-func _stand_at_plot(map: MapConfig) -> void:
+## Spawns the shipped scene (with House I repriced to `cost`, or unchanged for a cost of 0), stands
+## the king beside house_1, and starts a stepped hold whose clock is still zero.
+func _begin_hold(cost: int) -> void:
+	var map: MapConfig = null
+	if cost > 0:
+		map = E2eSupport.map_with_tier_cost(HOUSE, 1, cost, cost + GOLD_MARGIN)
 	_map_root = await E2eSupport.spawn_map(self, map)
 	_ctx = _map_root.get_context()
+	_hold = _map_root.get_build_hold()
 	_vfx = _map_root.find_child("CoinDripVfx", true, false) as CoinDripVfx
-	var plot: Vector3 = _ctx.buildings.get_spot(SPOT).position
-	E2eSupport.teleport_king(_map_root, plot + NEAR_OFFSET)
-	await E2eSupport.wait_until(self, _focused, 1.0)
-
-
-## Builds House I of the given cost by holding to the cap, and returns right after it stands.
-func _hold_until_built(cost: int) -> void:
-	await _stand_at_plot(E2eSupport.map_with_tier_cost(HOUSE, 1, cost, cost + GOLD_MARGIN))
-	Input.action_press(&"action_build")
-	await E2eSupport.wait_until(
-		self, _tier_built, _ctx.tuning.max_build_hold_seconds + CAP_WAIT_SLACK_S
-	)
-	Input.action_release(&"action_build")
-
-
-## How many of the first `cost` coins share the cap's due time.
-func _coins_due_at_the_cap(cost: int) -> int:
-	var count: int = 0
-	for coin: int in range(1, cost + 1):
-		if _ctx.tuning.coin_due_seconds(coin) >= _ctx.tuning.max_build_hold_seconds - EPSILON:
-			count += 1
-	return count
-
-
-func test_the_cap_rush_is_staggered_inside_the_burst_window() -> void:
-	await _hold_until_built(PRICEY_COST)
+	var focused: bool = await E2eSupport.stand_at_spot(self, _map_root, SPOT)
+	assert_true(focused, "the king is in range of house_1")
 	assert_not_null(_vfx, "the map has a CoinDripVfx")
+	watch_signals(_hold)
+	await E2eSupport.begin_stepped_hold(self, _hold)
+
+
+func _cleanup_wait_s() -> float:
+	return CoinDripVfx.BURST_WINDOW_SECONDS + CoinDripVfx.MAX_FLIGHT_SECONDS + CLEANUP_SLACK_S
+
+
+func test_a_long_frame_group_is_staggered_inside_the_burst_window() -> void:
+	await _begin_hold(PRICEY_COST)
 	if _vfx == null:
 		return
+	await E2eSupport.step_hold(self, _hold, _ctx.tuning.coin_due_seconds(LONG_FRAME_COINS))
 	var delays: Array[float] = _vfx.get_last_burst_delays()
-	var expected: int = mini(_coins_due_at_the_cap(PRICEY_COST), CoinDripVfx.MAX_BURST_COINS)
 
-	assert_gte(delays.size(), expected, "every rushed coin up to the visual cap is launched")
-	assert_lte(delays.size(), CoinDripVfx.MAX_BURST_COINS, "never more than the visual cap")
+	assert_eq(_hold.get_coins_paid(), LONG_FRAME_COINS, "one long frame paid the due coins")
+	assert_eq(delays.size(), LONG_FRAME_COINS, "every coin of the group is launched")
 	if delays.is_empty():
 		return
-	assert_eq(delays[0], 0.0, "the first rushed coin leaves at once")
+	assert_eq(delays[0], 0.0, "the first coin of the group leaves at once")
 	for index: int in range(1, delays.size()):
 		assert_gt(
 			delays[index], delays[index - 1], "coin %d leaves after coin %d" % [index, index - 1]
@@ -87,49 +69,62 @@ func test_the_cap_rush_is_staggered_inside_the_burst_window() -> void:
 	assert_lte(
 		delays[delays.size() - 1], CoinDripVfx.BURST_WINDOW_SECONDS + EPSILON, "inside the window"
 	)
-	assert_gte(_vfx.live_coin_count(), delays.size(), "the rushed coins are all in the scene")
+	assert_eq(_vfx.live_coin_count(), LONG_FRAME_COINS, "the whole group is in the scene")
 
 
-func test_a_huge_rush_draws_only_the_visual_cap() -> void:
-	await _hold_until_built(HUGE_COST)
-	assert_not_null(_vfx, "the map has a CoinDripVfx")
+func test_a_huge_long_frame_draws_only_the_visual_cap() -> void:
+	await _begin_hold(HUGE_COST)
 	if _vfx == null:
 		return
+	await E2eSupport.step_hold(self, _hold, _ctx.tuning.build_hold_seconds(HUGE_COST))
 
+	assert_eq(_ctx.buildings.current_tier(SPOT), 1, "one frame paid and built the tier")
 	assert_eq(
-		_vfx.get_last_burst_delays().size(), CoinDripVfx.MAX_BURST_COINS, "a 36-coin rush draws 12"
+		_vfx.get_last_burst_delays().size(), CoinDripVfx.MAX_BURST_COINS, "a 60-coin group draws 12"
 	)
-	assert_lte(
-		_vfx.live_coin_count(),
-		CoinDripVfx.MAX_BURST_COINS + MAX_DRIPS_IN_AIR,
-		"the scene holds the capped rush plus the last drip coins"
-	)
+	assert_eq(_vfx.live_coin_count(), CoinDripVfx.MAX_BURST_COINS, "and only 12 are in the scene")
 
 
-func test_every_burst_coin_is_freed_after_the_window_and_the_flight() -> void:
-	await _hold_until_built(PRICEY_COST)
-	assert_not_null(_vfx, "the map has a CoinDripVfx")
+func test_every_group_coin_is_freed_after_the_window_and_the_flight() -> void:
+	await _begin_hold(HUGE_COST)
 	if _vfx == null:
 		return
+	await E2eSupport.step_hold(self, _hold, _ctx.tuning.build_hold_seconds(HUGE_COST))
 
-	await wait_seconds(
-		CoinDripVfx.BURST_WINDOW_SECONDS + CoinDripVfx.MAX_FLIGHT_SECONDS + CLEANUP_SLACK_S
+	await wait_seconds(_cleanup_wait_s())
+
+	assert_eq(_vfx.live_coin_count(), 0, "no group coin is left behind")
+
+
+func test_a_refund_flies_back_the_visual_cap_of_coins_and_frees_them() -> void:
+	await _begin_hold(PRICEY_COST)
+	if _vfx == null:
+		return
+	var almost: int = PRICEY_COST - 1
+	await E2eSupport.step_hold(self, _hold, _ctx.tuning.coin_due_seconds(almost))
+	assert_eq(_hold.get_coins_paid(), almost, "29 coins were paid")
+	await wait_seconds(_cleanup_wait_s())
+	assert_eq(_vfx.live_coin_count(), 0, "the dripped coins have landed")
+
+	Input.action_release(BuildHoldController.ACTION)
+	await E2eSupport.step_hold(self, _hold, RELEASE_STEP_S)
+
+	assert_signal_emitted_with_parameters(_hold, "hold_cancelled", [SPOT, almost])
+	assert_eq(
+		_vfx.live_coin_count(), CoinDripVfx.MAX_BURST_COINS, "the refund draws at most 12 coins"
 	)
-
-	assert_eq(_vfx.live_coin_count(), 0, "no burst coin is left behind")
+	await wait_seconds(_cleanup_wait_s())
+	assert_eq(_vfx.live_coin_count(), 0, "the refunded coins are freed")
 
 
 func test_a_normal_drip_launches_immediately() -> void:
-	await _stand_at_plot(null)
-	assert_not_null(_vfx, "the map has a CoinDripVfx")
+	await _begin_hold(0)
 	if _vfx == null:
 		return
-
-	Input.action_press(&"action_build")
-	var paid: bool = await E2eSupport.wait_until(self, _one_coin_paid, CAP_WAIT_SLACK_S)
-
-	assert_true(paid, "the first coin dripped")
+	await E2eSupport.step_hold(self, _hold, _ctx.tuning.coin_due_seconds(1))
 	var delays: Array[float] = _vfx.get_last_burst_delays()
+
+	assert_eq(_hold.get_coins_paid(), 1, "the first coin dripped")
 	assert_eq(delays.size(), 1, "a normal drip is a group of one")
 	if delays.size() == 1:
 		assert_eq(delays[0], 0.0, "and it launches without delay")

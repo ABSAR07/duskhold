@@ -1,7 +1,8 @@
 extends GutTest
 ## The slow-drip fixtures of the scene tests build their tuning with E2eSupport.flat_drip_tuning,
-## so retuning the shipped acceleration or cap (D-05 as amended, UAT G-01-58) cannot change what
-## those tests observe. This pins the helper: flat, uncapped, otherwise shipped, and a copy.
+## so retuning the shipped acceleration or any cap a later retune might set (D-05 as amended, UAT
+## G-01-58 and G-01-59) cannot change what those tests observe. This pins the helper: flat,
+## uncapped, otherwise shipped, and a copy.
 
 const SHIPPED_PATH := "res://data/tuning/loop_tuning.tres"
 const PACE_S: float = 1.0
@@ -48,4 +49,4 @@ func test_the_helper_hands_out_a_copy_and_leaves_the_shipped_tuning_alone() -> v
 	assert_eq(shipped.max_build_hold_seconds, cap_before, "shipped cap untouched")
 	assert_eq(shipped.coin_drip_interval, interval_before, "shipped first interval untouched")
 	assert_lt(shipped.coin_drip_decay, 1.0, "the shipped hold still accelerates")
-	assert_gt(shipped.max_build_hold_seconds, 0.0, "the shipped hold is still capped")
+	assert_ne(shipped.coin_drip_interval, PACE_S, "the helper's pace differs, so a write shows")

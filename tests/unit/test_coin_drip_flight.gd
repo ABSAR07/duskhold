@@ -1,8 +1,10 @@
 extends GutTest
-## UAT G-01-58 (D-05 as amended): the coin stream follows the accelerating hold. A coin flies for
-## 90% of the gap to the next coin, so on every shipped build the coins still arrive one at a time,
-## and the coins the 3 s cap pays in one frame leave staggered inside a short window. The flight
-## ceiling is derived from LoopTuning's D-05 bound (review IN-02). Pure math, no scene tree.
+## UAT G-01-59 (D-05 amended again): the coin stream follows the accelerating, uncapped hold. A coin
+## flies for 90% of the gap to the next coin, so on every shipped build the coins still arrive one
+## at a time. Coins paid in one frame (a long frame) or flown back by a refund leave staggered
+## inside a short window. The airborne bound is derived from the minimum flight and the shipped
+## floor, and the flight ceiling from LoopTuning's D-05 bound (review IN-02). Pure math, no scene
+## tree.
 
 const TUNING := "res://data/tuning/loop_tuning.tres"
 const PROTOTYPE_MAP := "res://data/maps/prototype_map.tres"
@@ -11,6 +13,8 @@ const FIXTURE_GAP_S: float = 0.2
 const TINY_GAP_S: float = 0.01
 const HUGE_GAP_S: float = 5.0
 const STAGGER_GROUP_SIZES: Array[int] = [2, 6, 12, 26, 100]
+## A hold far longer than any shipped tier, to look at the stream on the floor.
+const LONG_COST: int = 100
 
 
 func _tuning() -> LoopTuning:
@@ -107,3 +111,27 @@ func test_a_pair_is_staggered_by_the_pair_gap() -> void:
 	assert_almost_eq(
 		CoinDripVfx.launch_stagger(2), CoinDripVfx.STAGGER_SECONDS, EPSILON, "two coins, one gap"
 	)
+
+
+## Coin k launches when it is paid (coin_due_seconds(k)) and flies for the flight that matches the
+## gap to coin k + 1. 0.12 s minimum flights against 0.05 s gaps keep up to 3 coins in the air at
+## the floor, so the bound is the minimum flight divided by the shipped floor, rounded up.
+func test_at_most_the_derived_number_of_drip_coins_are_airborne_at_once() -> void:
+	var tuning: LoopTuning = _tuning()
+	var bound: int = ceili(CoinDripVfx.MIN_FLIGHT_SECONDS / tuning.coin_drip_min_interval)
+	var launches_s: Array[float] = []
+	var lands_s: Array[float] = []
+	for coin: int in range(1, LONG_COST + 1):
+		var launch_s: float = tuning.coin_due_seconds(coin)
+		launches_s.append(launch_s)
+		lands_s.append(launch_s + CoinDripVfx.flight_seconds_for(tuning.coin_interval(coin + 1)))
+	var most: int = 0
+	for k: int in launches_s.size():
+		var airborne: int = 0
+		for j: int in range(k + 1):
+			if lands_s[j] > launches_s[k]:
+				airborne += 1
+		most = maxi(most, airborne)
+
+	assert_lte(most, bound, "no more than %d coins in the air at any launch" % bound)
+	assert_gt(most, 1, "the stream really overlaps at the floor, so the bound is not vacuous")
