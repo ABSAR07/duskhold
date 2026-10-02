@@ -1,14 +1,18 @@
 ---
-status: diagnosed
+status: testing
 phase: 01-foundation-day-loop
 source: [01-01-SUMMARY.md, 01-02-SUMMARY.md, 01-03-SUMMARY.md, 01-04-SUMMARY.md, 01-05-SUMMARY.md, 01-06-SUMMARY.md, 01-07-SUMMARY.md, 01-08-SUMMARY.md, 01-09-SUMMARY.md, 01-10-SUMMARY.md, 01-VERIFICATION.md]
 started: 2026-10-01T09:10:51Z
-updated: 2026-10-02T18:59:58Z
+updated: 2026-10-02T21:00:09Z
 ---
 
 ## Current Test
 
-[testing complete]
+number: 60
+name: Re-check after gap closure: uncapped build hold with a 0.05 s floor
+expected: |
+  (1) Normal game: hold the action key (Space or gamepad A) at a House plot for House I, II and III, and at a tower plot. Expected: unchanged since test 59. The first coin leaves after 0.25 s and the coins then come faster; House I takes about 0.5 s, House III about 1.1 s and a tower about 0.9 s, one coin at a time. (2) Sandbox (res://tools/sandbox/hold_pacing_sandbox.tscn; House plots cost 15, 30 and 50 coins per tier, with enough starting gold for one plot's three tiers): hold at one House plot three times; on the 50-coin tier let go once at about 3.5 s, then hold it again. Expected: the 15-coin build takes about 2.2 s, the 30-coin build about 2.9 s and the 50-coin build about 3.9 s. There is no time limit any more: every coin drips in on its own and nothing is fast-forwarded. After the acceleration a coin comes every 0.05 s, so up to 3 coins are in the air at once. Letting go early flies the coins back (at most 12 are drawn) and builds nothing. Judge whether the pace feels right, and say whether your "0.05 s" meant the gap between coins (as built) or how long each coin takes to fly (each flight still lasts at least 0.12 s so a coin stays visible). (The label's coin-icon row is very wide at these synthetic sandbox costs; label layout for expensive buildings belongs to a later phase and is not part of this check.)
+awaiting: user response
 
 ## Tests
 
@@ -345,12 +349,16 @@ reported: "yeah so i think dont keep 3 seconds as a hard limit, instead I think 
 severity: minor
 self_check: "Claude scripted real-window run 2026-10-02 (pinned Godot, Forward+): first coin 0.25 s; House I/II/III 0.50/0.73/1.11 s, Tower I/II 0.93/1.28 s, one coin in the air at a time; sandbox 15-coin 2.21 s, 30-coin 3.01 s (24 dripped + 6 rushed), 50-coin 3.01 s (24 + 26 rushed); release at 2.90 s on the 30-coin tier refunded 23 coins, gold and tier unchanged. Observed: the rush coins are hidden in stills (they launch inside the king model and fly 0.12 s to spot + 3.0 m, inside a built House whose roof is 3.14 m)"
 
+### 60. Re-check after gap closure: uncapped build hold with a 0.05 s floor
+expected: (1) Normal game: hold the action key (Space or gamepad A) at a House plot for House I, II and III, and at a tower plot. Expected: unchanged since test 59. The first coin leaves after 0.25 s and the coins then come faster; House I takes about 0.5 s, House III about 1.1 s and a tower about 0.9 s, one coin at a time. (2) Sandbox (res://tools/sandbox/hold_pacing_sandbox.tscn; House plots cost 15, 30 and 50 coins per tier, with enough starting gold for one plot's three tiers): hold at one House plot three times; on the 50-coin tier let go once at about 3.5 s, then hold it again. Expected: the 15-coin build takes about 2.2 s, the 30-coin build about 2.9 s and the 50-coin build about 3.9 s. There is no time limit any more: every coin drips in on its own and nothing is fast-forwarded. After the acceleration a coin comes every 0.05 s, so up to 3 coins are in the air at once. Letting go early flies the coins back (at most 12 are drawn) and builds nothing. Judge whether the pace feels right, and say whether your "0.05 s" meant the gap between coins (as built) or how long each coin takes to fly (each flight still lasts at least 0.12 s so a coin stays visible). (The label's coin-icon row is very wide at these synthetic sandbox costs; label layout for expensive buildings belongs to a later phase and is not part of this check.)
+result: [pending]
+
 ## Summary
 
-total: 59
+total: 60
 passed: 54
 issues: 4
-pending: 0
+pending: 1
 skipped: 1
 blocked: 0
 
