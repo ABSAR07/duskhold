@@ -1,9 +1,9 @@
 class_name HoldPacingSandbox
 extends Node
-## A real-window sandbox for judging the hold-to-build pace (UAT G-01-58). It starts the prototype
-## map with House tiers that cost 15, 30 and 50 coins, so the accelerating stream, the 3 s cap and
-## the cap's coin rush can be felt (no shipped building costs more than 6 coins yet). The shipped
-## map and building data are never changed: the repricing happens on a deep copy.
+## A real-window sandbox for judging the hold-to-build pace (UAT G-01-58 and G-01-59). It starts the
+## prototype map with House tiers that cost 15, 30 and 50 coins, so the accelerating stream down to
+## the tuned floor can be felt with every coin dripping (no shipped building costs more than 6 coins
+## yet). The shipped map and building data are never changed: the repricing happens on a deep copy.
 ##
 ## Launch from Git Bash in the repo root:
 ##   bash tools/godot.sh --path . res://tools/sandbox/hold_pacing_sandbox.tscn
@@ -27,15 +27,7 @@ func _ready() -> void:
 	_map_root = scene.instantiate()
 	_map_root.map_config = config
 	add_child(_map_root)
-	print(
-		(
-			(
-				"hold pacing sandbox: House plots cost %s coins per tier; holds accelerate and stop at "
-				+ "%s s, and the coins still unpaid then are rushed in at once"
-			)
-			% [SANDBOX_HOUSE_COSTS, _map_root.get_context().tuning.max_build_hold_seconds]
-		)
-	)
+	print(_startup_line(_map_root.get_context().tuning))
 
 
 func get_map_root() -> MapRoot:
@@ -67,3 +59,18 @@ func _sandbox_map() -> MapConfig:
 		return config
 	push_error("sandbox: the map has no House building")
 	return null
+
+
+## What the owner will feel: the per-tier costs, the floor the stream accelerates to, and how long
+## each tier's full hold takes.
+func _startup_line(tuning: LoopTuning) -> String:
+	var holds: PackedStringArray = PackedStringArray()
+	for cost: int in SANDBOX_HOUSE_COSTS:
+		holds.append("%.2f" % tuning.build_hold_seconds(cost))
+	return (
+		(
+			"hold pacing sandbox: House plots cost %s coins per tier; coins accelerate to one every "
+			+ "%s s and every coin drips, so full holds take %s s"
+		)
+		% [SANDBOX_HOUSE_COSTS, tuning.coin_drip_min_interval, " / ".join(holds)]
+	)
