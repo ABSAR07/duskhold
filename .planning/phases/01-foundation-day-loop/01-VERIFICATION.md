@@ -1,6 +1,6 @@
 ---
 phase: 01-foundation-day-loop
-verified: 2026-10-01T08:08:30Z
+verified: 2026-10-02T07:48:00Z
 status: human_needed
 score: 5/5 must-haves verified
 covered_files:
@@ -25,36 +25,58 @@ covered_files:
   - ".planning/phases/01-foundation-day-loop/01-09-SUMMARY.md"
   - ".planning/phases/01-foundation-day-loop/01-10-PLAN.md"
   - ".planning/phases/01-foundation-day-loop/01-10-SUMMARY.md"
+  - ".planning/phases/01-foundation-day-loop/01-11-PLAN.md"
+  - ".planning/phases/01-foundation-day-loop/01-11-SUMMARY.md"
+  - ".planning/phases/01-foundation-day-loop/01-12-PLAN.md"
+  - ".planning/phases/01-foundation-day-loop/01-12-SUMMARY.md"
+  - ".planning/phases/01-foundation-day-loop/01-13-PLAN.md"
+  - ".planning/phases/01-foundation-day-loop/01-13-SUMMARY.md"
   - "ASSETS.md"
   - "assets/attribution.json"
   - "assets/third_party/quaternius_horse/License.txt"
+  - "data/tuning/loop_tuning.tres"
   - "export_presets.cfg"
   - "input/build_hold_controller.gd"
   - "input/start_night_hold_controller.gd"
   - "presentation/buildings/building_views.gd"
+  - "presentation/camera/camera_rig.gd"
+  - "presentation/king/king_model.tscn"
   - "presentation/map/map_root.gd"
+  - "presentation/vfx/coin_drip_vfx.gd"
+  - "presentation/vfx/xray_silhouette.gd"
   - "project.godot"
   - "simulation/buildings/building_system.gd"
   - "simulation/commands/command_processor.gd"
+  - "simulation/defs/loop_tuning.gd"
   - "simulation/defs/map_config.gd"
   - "simulation/run/run_manager.gd"
+  - "tests/e2e/test_build_hold_timing.gd"
+  - "tests/e2e/test_camera_zoom.gd"
   - "tests/e2e/test_debug_overlay_toggle.gd"
+  - "tests/e2e/test_king_ride.gd"
+  - "tests/e2e/test_king_xray.gd"
   - "tests/unit/test_debug_overlay_registration.gd"
+  - "tests/unit/test_input_map.gd"
+  - "tests/unit/test_loop_tuning_contract.gd"
   - "tools/lint.sh"
   - "tools/screenshot.sh"
+  - "tools/screenshot/shot_scenarios.gd"
   - "tools/test.sh"
   - "ui/hud/dawn_payout_vfx.gd"
   - "ui/hud/hud.gd"
   - "ui/overlay/debug_overlay.gd"
   - "ui/overlay/debug_overlay.tscn"
   - "ui/overlay/debug_overlay_model.gd"
-covered_digest: "v2:sha256:13531c553308b89c553bf4dc3e6e52634b873861690808115833f1966bf17623"
+  - "ui/world/spot_label.gd"
+covered_digest: "v2:sha256:1bc07bbe717d6e4e73262a8bbdd85f9c64162c31d11de69a19bd633ae89b8f23"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
   previous_status: human_needed
   previous_score: 5/5
-  gaps_closed: []
+  gaps_closed:
+    - "G-01-3 (UAT test 3, major): king hidden behind buildings, camera too close, no zoom (plans 01-11 and 01-12)"
+    - "G-01-4 (UAT test 4, minor): build hold too short (plan 01-13)"
   gaps_remaining: []
   regressions: []
 deferred:
@@ -62,66 +84,51 @@ deferred:
     addressed_in: "Phase 2"
     evidence: "ROADMAP Phase 1 SC5: 'wave state and enemy paths join it once nights have enemies in Phase 2'; Phase 2 SC3 requires 'the debug overlay shows live enemy counts, wave state, and enemy paths'"
 advisory:
-  - finding: "Horse licence record (review WR-01, OPEN): the three records (ASSETS.md, License.txt, attribution.json notes) say the horse is 'used inside a game, not redistributed as a standalone asset'. The unmodified horse_animated.glb is tracked (Git LFS, `git check-attr filter` = lfs) in the public repo ABSAR07/duskhold and ships in the Windows export (export_presets.cfg `exclude_filter` is only 'tests/*, addons/gut/*, tools/*'), so the sentence is inaccurate for the repository and the build. The keep decision itself rests on the CC0 statements on the author's pack page and Poly Pizza at retrieval and on the irrevocability of an earlier CC0 dedication, which the records now state correctly (fixed in 6cdf386)."
+  - finding: "Gap-plan code and everything after 7ae173b is not pushed, so CI has not yet run the new tests or the seventh screenshot"
     category: other
-    reason: "Not a must-have failure: the horse is in the attribution log (ART-02 holds) and a licence verdict is a legal judgment I cannot make. It is a documentation-soundness warning on an owner-accepted risk. Confirmed in the tree. 01-REVIEW-FIX.md belongs to the previous review (pass 25) and does not cover it; 01-REVIEW-DISPOSITION.md records open: 3."
-    evidence_status: "files read; git ls-files, git check-attr, export_presets.cfg; the reviewer's statements that the pack and Poly Pizza pages still state CC0 are not independently re-fetched by me"
-  - finding: "ASSETS.md 'How to add an asset' step 4 (line 76, review IN-01, OPEN) still calls `sha256` the hash 'of the downloaded archive'"
+    reason: "origin/gsd/phase-01-foundation-day-loop is at 7ae173b (green run 36835551706, four jobs). HEAD fe3dc81 is 24 commits ahead. `git diff 7ae173b HEAD -- .github` is empty, so the workflow is unchanged, but the 315-test suite and `Saved 7 of 7 screenshots` have only run locally. Not a must-have failure; a push will confirm."
+    evidence_status: "git ls-remote, git rev-list --count 7ae173b..HEAD = 24, gh run list, git diff --stat on .github"
+  - finding: "Open review findings WR-01 and WR-02 (01-REVIEW.md, ledger open: 6): test robustness of the new tests"
     category: other
-    reason: "Documentation accuracy only. The 'Archive checksums and download evidence' section (fixed in 1784ffe and 1ce2f94) now correctly says what each SHA256 covers; step 4 was not updated to match (the horse hash is of the GLB, GUT's is of the source zip). The log hashes are correct and test_attribution_log passes."
-    evidence_status: "ASSETS.md line 76 read against the table and the checksum section"
-  - finding: "The same source page is quoted two ways (review IN-02, OPEN): 'License CC0' (ASSETS.md line 45, License.txt, 2026-09-29 evidence) versus 'License: CC0' (ASSETS.md line 49, License.txt re-check, 2026-10-01)"
+    reason: "WR-01: test_build_hold_timing measures a _process-driven hold with wall-clock stamps and tight tolerances, so it could flake on a slow CI runner. WR-02: test_buildings_never_get_the_xray_pass discards the build results and could pass without checking any house. Both passed in this pass's full run; neither makes a truth false. They are OPEN, not addressed. 01-REVIEW-FIX.md belongs to the previous review."
+    evidence_status: "01-REVIEW.md lines 66-112 and 01-REVIEW-DISPOSITION.md ledger (open: 6) read; test run 315/315"
+  - finding: "Open review findings IN-01 to IN-04: CameraRig zoom exports not validated; MAX_FLIGHT_SECONDS is a redundant second source of truth; king_behind_keep never asserts the king is occluded; horse License.txt dates a 2026-10-01 statement under a 2026-09-29 heading"
     category: other
-    reason: "Confirmed in the tree. Cosmetic: the two quotes are not marked as a transcription difference, so a reader could take them for evidence the page changed."
-    evidence_status: "ASSETS.md lines 44-49 and License.txt read"
+    reason: "Info-level, OPEN. The occlusion in the scripted shot was checked by me visually (cyan silhouette over the keep roof) but the scenario itself does not assert it."
+    evidence_status: "01-REVIEW.md read; king_behind_keep.png viewed"
+  - finding: "Horse licence risk is owner-accepted; the unmodified horse GLB is public in the repo (Git LFS) and ships in the export"
+    category: other
+    reason: "The earlier WR-01 wording defect is fixed in f84de3b: ASSETS.md lines 65-66 and License.txt lines 27-28 now say the unmodified GLB is in the public repo and the build, and that the owner accepts the risk (2026-10-01). `git check-attr filter` = lfs; export_presets.cfg exclude_filter is only 'tests/*, addons/gut/*, tools/*'. A licence verdict is a legal judgment I cannot make; the owner accepted it, so it is not a human item."
+    evidence_status: "git log 3fa5e48..HEAD on ASSETS.md/assets, grep of the three records, git ls-files, git check-attr"
   - finding: "Phase is Mode: mvp but its goal is not in 'As a..., I want to..., so that...' form"
     category: other
     reason: "MVP narrowing could not be applied; verified as standard goal-backward against the roadmap contract."
     evidence_status: "ROADMAP.md Phase 1 goal text"
 human_verification:
-  - test: "Ride the king with keyboard and with a gamepad (walk, sprint, diagonal, stop) and watch the follow camera"
-    expected: "Acceleration, turning and camera trail feel responsive and readable; sprint is clearly faster; camera never rotates"
-    why_human: "Game feel cannot be judged from tests; the tests only prove speeds, ratio, deadzone and fixed camera rotation"
-  - test: "Ride around the whole prototype map and look at the spot markers, plot colours and castle landmark"
-    expected: "Map is readable; the 8 spots are distinguishable; edge-to-edge ride feels like 20-30 s"
-    why_human: "Visual readability"
-  - test: "Ride up to a House and a tower plot and read the world-space spot label; hold, release early, hold to completion, try with too little gold"
-    expected: "Label is legible (the 'House I' title reportedly overlaps its effect line in the spot_label screenshot); coins drip and refund visibly; red cost plus shake when unaffordable"
-    why_human: "Label layout and coin-drip feel are visual/UX judgments"
-  - test: "Look at the king (horse plus rider) and the House / tower / castle models in the running game"
-    expected: "Models read as a mounted king and as buildings (rider currently in T-pose on an unanimated horse, horse small; cosmetic, Phase 8 art pass)"
-    why_human: "Model look"
-  - test: "Press F3 (and gamepad Back) in a real window"
-    expected: "Overlay appears with FPS, units, enemies, phase, day, night, gold, buildings and is readable"
-    why_human: "Overlay look in a real window (logic is covered by tests)"
-  - test: "Hold N (and gamepad Y) for 1.5 s, then watch night banner, lighting, dawn payout and return to Day as 'Night 2'. Watch specifically: the gold counter must stay lagged while coins fly, tick up as each coin lands, and be exactly the ledger gold once dawn ends (never stuck low, never ahead of the coins)"
-    expected: "Prompt fills, banner and night lighting show, dawn coins fly from each paying House to the gold counter, '+X gold' appears, day returns with carried-over gold"
-    why_human: "Timing, lighting mood and VFX feel. Known observation: the dawn_payout capture looks mostly night-coloured because the 1.0 s lighting ease outlasts the 0.6 s coin flight. The landing margin (last coin scheduled 0.15 s before dawn ends) is covered by tests, but only a human can judge the on-screen feel and that the prompt and banner appear and disappear at the right moments in a real run"
-  - test: "Owner confirmation of the Quaternius horse licence decision (review WR-06 / open review WR-01)"
-    expected: "Owner confirms keeping the 2021 CC0 Poly Pizza copy despite the newer Quaternius Asset License, or replaces it before the itch.io release. Current state: on 2026-10-01 the owner chose to keep the horse and accept the residual risk; the records now give the real basis (CC0 on the author's pack page and Poly Pizza at retrieval, irrevocable dedication). The open review finding WR-01 notes that the 'not redistributed as a standalone asset' sentence is inaccurate because the unmodified GLB is in the public repo and the export; the owner should confirm the decision knowing that"
-    why_human: "Legal/licence risk against the project's CC0-only constraint; owner decision, already given in chat on 2026-10-01 but not recorded through UAT"
-  - test: "Check the start-night prompt on a non-QWERTY keyboard layout (Dvorak or AZERTY): hold the bound physical key's position and read the on-screen prompt"
-    expected: "The prompt names the key by the label printed on that keycap on the player's layout (the default N key on QWERTY reads 'Hold N / (Y) to start Night 1'), not by its US-QWERTY position"
-    why_human: "The prompt names the key via DisplayServer.keyboard_get_label_from_physical (ui/hud/hud.gd), which is unavailable headless; only a fake-layout resolver seam is unit-tested"
-  - test: "Owner confirmation that the widened CI trigger satisfies DEV-02 'on every push'"
-    expected: "Owner confirms the trigger (push to any branch or tag, plus pull_request and workflow_dispatch). Current state: the trigger is widened, the branch was pushed on 2026-10-01 and push-event run 36831792141 on 4a9b775 is green in all four jobs (lint, test 290/290, export, screenshots 6 of 6). Of the nine commits after 51c8736, three edit licence and checksum documentation (6cdf386, 1784ffe, 1ce2f94) and six are planning docs; all three documentation edits precede 4a9b775. The four commits after 4a9b775 (398dde5, 9a2782a, 2528873, 3fa5e48) are planning docs only and are not pushed, so the green run covers the last non-planning state but not the literal HEAD"
-    why_human: "Owner policy decision; the owner delegated the CI trigger on 2026-10-01 but has not confirmed it through UAT"
+  - test: "Ride the king around the map at the new default camera distance, then hold the zoom keys (- and =, or keypad - and +, or right stick down and up) through the whole range"
+    expected: "At spawn the castle and first ring of House plots frame comfortably around a king who is still readable at about 25 m; the zoom range (0.7x to 1.5x, 0.6 units/s) feels right and the king is neither too small zoomed out nor too close zoomed in"
+    why_human: "Framing and zoom feel are the owner's judgment (UAT test 3 was a feel complaint). Scripted runs already prove: default is exactly 1.3x the UAT offset on the same angle, clamps at 0.7x and 1.5x, angle never changes, real key and stick events move it, deadzone, simulation untouched, spot labels keep their size (test_camera_zoom 11 tests, test_king_ride 10 tests, test_input_map 12 tests)"
+  - test: "Ride behind the castle keep (and a House) and look at the king in a real window, by day and by night"
+    expected: "The hidden part of the king shows as a flat light-cyan silhouette over the building, reads as 'the king is here', and is not distracting or ugly (the rider/horse silhouette looks thin and stalk-like from above in the king_behind_keep capture)"
+    why_human: "Whether the silhouette look is acceptable is aesthetic. Already covered: stencil X-Ray set on every king surface, shared materials untouched, buildings do not get the pass, king in the open unchanged (test_king_xray 5 tests), and the king_behind_keep screenshot, viewed by me, shows the cyan silhouette through the keep roof"
+  - test: "Hold the action key at a House plot (House I, then II and III) and at a tower plot, and release early once"
+    expected: "At 0.3 s per coin the hold (House I about 0.6 s, tower I about 1.2 s) feels 'a bit longer' and deliberate without dragging; the coin stream still reads as one coin at a time"
+    why_human: "Hold feel is the owner's judgment (UAT test 4). Already covered: tuning data and script default are 0.3, flight cap 0.27 s, House I hold lasts cost x interval in the real scene, every shipped hold is at least 0.5 s, early release refunds everything (test_loop_tuning_contract 4 tests, test_build_hold_timing 3 tests)"
 ---
 
 # Phase 1: Foundation & Day Loop Verification Report
 
 **Phase Goal:** A Godot 4.7.2 project where, on the prototype map, the player rides the king by day and spends scarce gold on Houses and a basic tower, earning income from one day to the next. From the first commit, the agent can lint, test, screenshot, and export the game headlessly on every push.
-**Verified:** 2026-10-01T08:08:30Z
-**Status:** human_needed (every automated check passes and no must-have fails; what remains is feel and visual judgment, a non-QWERTY layout check, and owner confirmation of the horse licence and CI trigger decisions)
-**Re-verification:** Yes. The previous report (2026-10-01T07:19:49Z) was stale because covered files changed. Every verdict below was regenerated from the current tree at HEAD 3fa5e48; none was copied.
+**Verified:** 2026-10-02T07:48:00Z
+**Status:** human_needed (every automated check passes and no must-have fails; what remains is owner feel and look judgment of the three UAT-gap fixes)
+**Re-verification:** Yes, after UAT gap closure. The previous report (2026-10-01T08:08:30Z) was stale because covered files changed. Every verdict below was regenerated from the current tree at HEAD fe3dc81; none was copied.
 
 ## Change audit since the previous report
 
-`git rev-list --count 51c8736..HEAD` is 9. `git diff --stat 51c8736 HEAD -- . ':!.planning'` touches exactly three files: `ASSETS.md`, `assets/attribution.json` (horse `notes`, one line) and `assets/third_party/quaternius_horse/License.txt`. No game code, test, tool, `project.godot` or workflow file changed, so the behavioural evidence stands; I re-ran it anyway (below). The only working-tree modification is `.planning/config.json`.
-
-- 6cdf386: the three horse records now give the real basis for keeping the horse as CC0 (author's 2021 pack page and Poly Pizza both stated CC0 at retrieval; an earlier CC0 dedication is irrevocable) and record that the owner accepts the residual risk. They also state that the QAL v1.0 date precedes the retrieval, so the "time you obtained" clause does not favour CC0.
-- 1784ffe and 1ce2f94: the ASSETS.md "Archive checksums and download evidence" section says what each SHA256 covers (read; correct against the table rows) and keeps the `curl --fail` evidence for the plan 01-07 downloads.
-- The remaining six commits are planning docs (REVIEW-FIX, ledger, VALIDATION, SECURITY, a new REVIEW and its ledger).
+- UAT (`01-UAT.md`, status `diagnosed`, 55 tests: 52 pass, 1 skipped, 2 issues). The two issues are G-01-3 (camera) and G-01-4 (hold length). Plans 01-11, 01-12 and 01-13 carry `gap_closure: true` and the matching `gap_ids`; all three have SUMMARYs. The skipped test is the non-QWERTY key label: the owner chose to skip it on 2026-10-02 with a stated reason, so it is no longer an open human item (the fake-layout resolver seam is unit-tested).
+- `git diff --stat 7ae173b HEAD -- . ':!.planning'` touches 21 files: camera rig, spot label, X-Ray script and king model, coin drip VFX, loop tuning (data and script), `project.godot` (two actions), screenshot scenario and wrapper, and the new and extended tests. `.github`, `assets`, `ASSETS.md` and `export_presets.cfg` are unchanged since 7ae173b.
+- Review-fix pass 26 (f84de3b, 49fb595, 70f4030) edited horse-licence and checksum documentation only.
+- The only working-tree modification is `.planning/config.json`.
 
 ## Goal Achievement
 
@@ -129,17 +136,25 @@ human_verification:
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 | During the day the player rides the mounted king (WASD / stick, sprint) under a following isometric-style camera; near each fixed spot sees what can be built and its gold cost | VERIFIED (feel: human) | `project.godot` `[input]` defines move, `sprint`, `action_build`, `start_night`, `toggle_debug_overlay`. King, camera-rig and spot-label tests pass in this pass's full run (290/290). CI `overlay_on.png` from run 36831792141 (downloaded and viewed) shows the mounted king (rider in T-pose on a small horse), the castle, two empty build plots, HUD `Gold: 30`. |
-| 2 | Holding the action key near a spot, with a visible progress indicator, builds a House or basic tower, or upgrades it after showing the next tier cost and effect; only when affordable, only on build spots, never at night | VERIFIED | `command_processor.gd` `validate_build` (read) checks `is_build_allowed()` (NOT_DAY), then UNKNOWN_SPOT, then MAX_TIER, then CANNOT_AFFORD; `_submit_build` calls `try_spend` before `apply_next_tier` and emits `command_rejected` otherwise. `run_manager.is_build_allowed()` is `_phase == RunPhase.DAY`. Build, upgrade, affordability, range, NOT_DAY and refund tests pass in the full run. |
-| 3 | Gold is the only currency and always on the HUD; ending the day through the placeholder transition leads to dawn where each House pays tier-scaled income and unspent gold carries over | VERIFIED | `run_manager._apply_dawn_payout` (read) grants the summed per-spot income via `_economy.grant(total)` when positive and emits `dawn_payout(total, per_spot)`; nothing resets gold. CI `dawn_payout.png` (viewed) shows two built Houses, gold coins in flight and the lagged HUD `Gold: 23`. Dawn income, payout VFX, HUD lag release, carryover and start-night hold tests pass. |
-| 4 | From the command line and in CI on every push: lint plus headless GUT cover economy, building rules, transitions; scripted scenes export screenshots; CI produces a Windows export | VERIFIED | Local: `bash tools/lint.sh` exit 0 (72 files unchanged, no problems); `bash tools/test.sh` run once, exit 0 (36 scripts, 290/290, 1881 asserts, 92.1 s). Trigger: `ci.yml` `on:` is `push:` (no filter), `pull_request:`, `workflow_dispatch:` (read, lines 12-15). Remote: `gh run view 36831792141` shows event `push`, head 4a9b775, conclusion success; jobs test, lint, export and screenshots all success; its log shows `Tests 290`, `Passing Tests 290`, `Asserts 1881` and `Saved 6 of 6 screenshots`; artifacts `duskhold-windows` (39.8 MB), `duskhold-screenshots` and `gut-results` are unexpired. `git ls-remote --heads origin` returns 4a9b775 for the phase branch. |
-| 5 | A key toggles a debug overlay with FPS, unit/enemy counts and loop state; every third-party asset is in the attribution log | VERIFIED | CI `overlay_on.png` (viewed) shows Perf (FPS), Loop (Phase DAY, Day 1, Night 0, Gold 30, Buildings 0) and Agents (Units 0, Enemies 0); low FPS is a software-render artifact. Overlay toggle, cadence, registration and bind tests pass in the 290/290 run. `assets/attribution.json` and `ASSETS.md` list the engine, GUT, three Kenney packs and the Quaternius horse; `test_attribution_log` passes. Wave state and enemy paths are deferred to Phase 2 by the roadmap's own wording. |
+| 1 | During the day the player rides the mounted king (WASD / stick, sprint) under a following isometric-style camera; near each fixed spot sees what can be built and its gold cost | VERIFIED (feel: human) | `presentation/camera/camera_rig.gd` read: `offset = (0, 20.8, 14.3)` = exactly 1.3x the UAT (0, 16, 11) on the same angle; `look_at` is called only in `bind_run`; `_physics_process` reads `Input.get_axis(zoom_in, zoom_out)`, clamps `_zoom` to [0.7, 1.5] and lerps the rig toward king + `get_effective_offset()`. `project.godot` defines `zoom_in` (= , keypad +, right stick up) and `zoom_out` (- , keypad -, right stick down), keyboard and `InputEventJoypadMotion` axis 3 only, no mouse. `ui/world/spot_label.gd` scales labels by camera distance over `LEGIBLE_CAMERA_DISTANCE` 16.9 (never below 1.0) so the approved on-screen size holds. King, camera-zoom, input-map and label tests pass in the 315/315 run. `king_behind_keep.png` and `day_overview.png` (both viewed) show the king, castle, HUD `Gold: 23` and plots at the new framing. |
+| 2 | Holding the action key near a spot, with a visible progress indicator, builds a House or basic tower, or upgrades it after showing the next tier cost and effect; only when affordable, only on build spots, never at night | VERIFIED | Unchanged code path from the prior pass (`command_processor.gd` `validate_build` checks NOT_DAY, UNKNOWN_SPOT, MAX_TIER, CANNOT_AFFORD; `try_spend` before `apply_next_tier`). `input/build_hold_controller.gd` line 95 drips one coin per `maxf(coin_drip_interval, MIN_DRIP_INTERVAL)`; `data/tuning/loop_tuning.tres` and the `simulation/defs/loop_tuning.gd` default both read 0.3; `coin_drip_vfx.gd` caps flight at `MAX_FLIGHT_SECONDS = 0.27` (0.9 x 0.3). Build, upgrade, affordability, range, NOT_DAY, refund, hold-timing and tuning-contract tests pass (test_build_hold_timing 3, test_loop_tuning_contract 4). |
+| 3 | Gold is the only currency and always on the HUD; ending the day through the placeholder transition leads to dawn where each House pays tier-scaled income and unspent gold carries over | VERIFIED | `run_manager` dawn payout, HUD lag and carryover unchanged since the prior verification and covered by the dawn income, payout VFX, HUD lag release, carryover and start-night hold tests in the full run. `dawn_payout.png` regenerated locally (7 of 7). UAT tests 9 and 10 (scripted real-window run, 2026-10-02) show two House I paying 2 coins and the HUD counting 0 -> 1 -> 2 as coins landed. |
+| 4 | From the command line and in CI on every push: lint plus headless GUT cover economy, building rules, transitions; scripted scenes export screenshots; CI produces a Windows export | VERIFIED (new code not yet CI-run, see Advisory) | Local: `bash tools/lint.sh` exit 0 (77 files unchanged, no problems); `bash tools/test.sh` run once, exit 0, 40 scripts, 315/315, 2095 asserts, 117 s; `bash tools/screenshot.sh` exit 0, `Saved 7 of 7 screenshots` (day_overview, spot_label, build_in_progress, night_banner, dawn_payout, overlay_on, king_behind_keep). CI: `ci.yml` unchanged since 7ae173b; trigger is push (any branch or tag), pull_request, workflow_dispatch; run 36835551706 on 7ae173b is success in all four jobs. That run predates the gap-plan code, so CI has not run the 315 tests or the seventh shot. `tools/screenshot.sh` and `ALL_SHOTS` in `shot_scenarios.gd` both list seven shots, and `ci.yml` runs `bash tools/screenshot.sh` with no hard-coded count. |
+| 5 | A key toggles a debug overlay with FPS, unit/enemy counts and loop state; every third-party asset is in the attribution log | VERIFIED | Overlay files, toggle, cadence and registration tests unchanged and passing; `overlay_on.png` regenerated; UAT test 8 verified in a real window. `assets/attribution.json` and `ASSETS.md` list the engine, GUT, three Kenney packs and the Quaternius horse; `test_attribution_log` passes. No new third-party asset was added by the gap plans. Wave state and enemy paths are deferred to Phase 2 by the roadmap's own wording. |
 
 **Score:** 5/5 truths verified, 0 behavior-unverified.
 
-Behavior-dependent invariants (phase gating, refund on cancel, gold never negative, dawn payout landing inside the window, HUD lag release, carryover, start-night prompt follows rebinds, snapshot isolation, payout clamp, overlay registration and cadence) each have a named GUT test inside the 290/290 run. Only the real `DisplayServer.keyboard_get_label_from_physical` call cannot run headless and stays a human item.
+### Gap-plan must-haves (plans 01-11, 01-12, 01-13)
 
-Coincidental-reliance check: no truth holds on an undeclared precondition, unenforced ordering or fixture-only setup; `coincidental_reliance_items` is empty.
+| Must-have | Status | Evidence |
+|-----------|--------|----------|
+| Default camera 1.3x farther on the same angle | VERIFIED | 20.8/16 = 14.3/11 = 1.3 in `camera_rig.gd`; `test_king_ride` follow tests use `get_effective_offset()`; `test_camera_zoom` asserts the default framing |
+| Clamped keyboard and gamepad zoom, no mouse, angle fixed, bindings shared with no other action | VERIFIED | `project.godot` zoom bindings read; `test_input_map` (12 tests) and `test_camera_zoom` (11 tests) pass, including real key and stick events and deadzone |
+| Spot labels keep approved on-screen size at default and fully zoomed out | VERIFIED | `spot_label.gd` `_process` scale; label-size test in `test_camera_zoom` |
+| Zoom is presentation only | VERIFIED | `camera_rig.gd` never references the simulation or command layer; simulation-untouched test passes |
+| Hidden part of the king drawn as an unlit cyan silhouette; king unchanged in the open; only the king, shared materials untouched | VERIFIED (look: human) | `xray_silhouette.gd` duplicates each BaseMaterial3D surface, sets `STENCIL_MODE_XRAY` and `stencil_color`, applies via `set_surface_override_material`; `king_model.tscn` has the `XRay` child as last node; `test_king_xray` (5 tests) pass; `king_behind_keep.png` viewed |
+| Seventh screenshot `king_behind_keep` captured locally and in CI, fails if the silhouette is not set up | VERIFIED locally; CI not yet run | scenario returns false when `get_applied_count() <= 0`; local 7 of 7 saved. See Advisory (IN-03: it does not assert occlusion) |
+| Coin drip 0.3 s; House I 0.6 s, tower I 1.2 s; flight 0.27 s; proportional, refund on early release; every hold >= 0.5 s | VERIFIED | tuning data and default 0.3, cap 0.27; `test_loop_tuning_contract` and `test_build_hold_timing` pass |
 
 ### Deferred Items
 
@@ -147,93 +162,101 @@ Coincidental-reliance check: no truth holds on an undeclared precondition, unenf
 |---|------|-------------|----------|
 | 1 | Overlay wave state and pathing info (full REQUIREMENTS DEV-03 wording) | Phase 2 | Phase 2 SC3: "the debug overlay shows live enemy counts, wave state, and enemy paths" |
 
-### Advisory (not must-have failures)
-
-The current 01-REVIEW.md (commit 2528873) has 3 OPEN findings, recorded `open: 3` in 01-REVIEW-DISPOSITION.md. None is addressed: 01-REVIEW-FIX.md belongs to the previous review (pass 25) and the IDs WR-01 and IN-01 are reused for different findings. I confirmed all three against the tree (see the `advisory` frontmatter):
-
-- WR-01 (warning): the three horse records say the model is "not redistributed as a standalone asset", but `horse_animated.glb` is tracked via Git LFS in the public repo and ships in the export (`exclude_filter="tests/*, addons/gut/*, tools/*"`).
-- IN-01 (info): ASSETS.md line 76 still says `sha256` is "of the downloaded archive".
-- IN-02 (info): the 2021 pack page is quoted "License CC0" and "License: CC0" without noting a transcription difference.
-
-None fails a roadmap success criterion or a requirement: every asset is in the log and the logged hashes are correct. They are surfaced because the owner's licence confirmation (UAT item 7) depends on the horse record. The reviewer's statements that the pack and Poly Pizza pages still state CC0 are not independently re-fetched by me.
-
 ### Required Artifacts
 
-Plan frontmatter artifacts were verified in earlier passes for all ten plans (all present, none stub). No file under `simulation/`, `presentation/`, `input/`, `ui/`, `tools/`, `tests/`, `project.godot` or `.github/` changed since the last report; I re-read the load-bearing ones (command_processor, run_manager, ci.yml, export_presets.cfg, attribution docs) and the full suite exercises the rest: 290/290.
+| Artifact | Expected | Status | Details |
+| -------- | -------- | ------ | ------- |
+| `presentation/camera/camera_rig.gd` | Fixed-angle follow rig, clamped zoom, 1.3x default | VERIFIED | Substantive, instanced by the map, bound via `bind_run`, driven by real input actions |
+| `project.godot` | `zoom_in` / `zoom_out` actions | VERIFIED | Keyboard + stick only |
+| `ui/world/spot_label.gd` | Distance compensation | VERIFIED | Uses `get_viewport().get_camera_3d()` |
+| `presentation/vfx/xray_silhouette.gd` (+ `.uid`) | Stencil X-Ray on every king surface | VERIFIED | Wired through `king_model.tscn` `XRay` node |
+| `presentation/king/king_model.tscn` | XRay node | VERIFIED | Last child, `stencil_color` set |
+| `presentation/vfx/coin_drip_vfx.gd`, `data/tuning/loop_tuning.tres`, `simulation/defs/loop_tuning.gd` | 0.3 s drip, 0.27 s flight cap | VERIFIED | Values read |
+| `tools/screenshot/shot_scenarios.gd`, `tools/screenshot.sh` | Seven-shot list | VERIFIED | 7 of 7 saved |
+| New tests (`test_camera_zoom`, `test_king_xray`, `test_build_hold_timing`, `test_loop_tuning_contract`) and `.uid` files | Real-scene proofs | VERIFIED | Present, tracked, 11 + 5 + 3 + 4 tests pass |
 
 ### Key Link Verification
 
-| From | To | Via | Status |
-|------|----|-----|--------|
-| build_hold_controller | command_processor | `submit(BuildIntent)` | WIRED (unchanged; covered by tests) |
-| command_processor | economy / building_system | `try_spend`, `apply_next_tier` (read) | WIRED |
-| start_night_hold_controller | command_processor | `submit(StartNightIntent)` -> `start_night()` (read) | WIRED |
-| run_manager | economy | dawn payout `grant` (read) | WIRED |
-| hud | dawn_payout_vfx / run_manager | `payout_started`, `coin_landed`, `phase_changed` | WIRED (dawn_payout.png shows lagged counter) |
-| debug_overlay | debug_overlay_model | `bind_run` / `_refresh` | WIRED (overlay_on.png) |
-| ci.yml | tools/*.sh, bootstrap.py | same wrappers as local | WIRED (run 36831792141 green) |
+| From | To | Via | Status | Details |
+| ---- | -- | --- | ------ | ------- |
+| `camera_rig.gd` | `project.godot` | `Input.get_axis(&"zoom_in", &"zoom_out")` | WIRED | Actions exist; real-event test moves the camera |
+| `test_king_ride.gd` | `camera_rig.gd` | `get_effective_offset()` | WIRED | |
+| `spot_label.gd` | active Camera3D | `get_camera_3d()` distance scale | WIRED | |
+| `king_model.tscn` | `xray_silhouette.gd` | `XRay` child script | WIRED | |
+| `xray_silhouette.gd` | king MeshInstance3D surfaces | `set_surface_override_material` | WIRED | |
+| `shot_scenarios.gd` | `xray_silhouette.gd` | `get_applied_count()` | WIRED | |
+| `build_hold_controller.gd` | `loop_tuning.tres` | `coin_drip_interval` | WIRED | |
+| `coin_drip_vfx.gd` | `loop_tuning.tres` | `_flight_seconds()` | WIRED | |
 
 ### Data-Flow Trace (Level 4)
 
-| Artifact | Data | Source | Real data | Status |
-|----------|------|--------|-----------|--------|
-| HUD gold label | economy gold minus in-flight coins minus payout lag | `Economy.get_gold()`, `payout_started`, `coin_landed` | Yes (`dawn_payout.png`: Gold 23 with coins in flight) | FLOWING |
-| Dawn payout "+X gold" | per_spot sum | `SimEvents.dawn_payout` from `RunManager._apply_dawn_payout` (the label sum equals the granted sum) | Yes | FLOWING |
-| Start-night prompt | phase, night number | `RunManager.get_phase()` | Yes (`overlay_on.png`: "Hold N / (Y) to start Night 1") | FLOWING |
-| Debug overlay | FPS, phase, day, night, gold, buildings, agent counts | Engine + RunContext (units/enemies honestly 0 until Phase 2) | Yes | FLOWING |
+| Artifact | Data Variable | Source | Produces Real Data | Status |
+| -------- | ------------- | ------ | ------------------ | ------ |
+| Camera rig | `_zoom` | `Input.get_axis` each physics tick | Yes | FLOWING |
+| Spot label scale | camera distance | live `Camera3D` position | Yes | FLOWING |
+| X-Ray silhouette | surface materials | king's imported GLB meshes at runtime | Yes (`get_applied_count() > 0`) | FLOWING |
+| Coin drip | `coin_drip_interval` | `loop_tuning.tres` via `ctx.tuning` | Yes | FLOWING |
 
 ### Behavioral Spot-Checks
 
 | Behavior | Command | Result | Status |
-|----------|---------|--------|--------|
-| Full headless GUT suite (run once) | `bash tools/test.sh` | 36 scripts, 290/290, 1881 asserts, 92.1 s, exit 0 | PASS |
-| Lint and format | `bash tools/lint.sh` | 72 files unchanged, no problems, exit 0 | PASS |
-| Debt markers | grep `TBD\|FIXME\|XXX\|TODO\|HACK` over simulation, presentation, ui, input, tools, tests, data, .github | no matches | PASS |
-| Remote CI on pushed tip | `gh run view 36831792141`; artifacts API | push event, 4a9b775, success; four jobs green; test 290/290; 6 of 6 screenshots; 3 artifacts unexpired | PASS |
-| Screenshots | downloaded `duskhold-screenshots` (scratchpad, outside the repo); viewed `overlay_on.png` and `dawn_payout.png` | six PNGs; both viewed are real renders of the running game | PASS |
-| Remote branch tip | `git ls-remote --heads origin` | 4a9b775 | PASS |
-
-I did not re-run `tools/screenshot.sh` or `tools/export.sh` locally; the CI run on 4a9b775 produced both outputs. No Godot process was left running and the working tree holds only the pre-existing `.planning/config.json` modification (build output is git-ignored).
+| -------- | ------- | ------ | ------ |
+| Lint | `bash tools/lint.sh` | exit 0, 77 files unchanged, no problems | PASS |
+| Full suite (run once) | `bash tools/test.sh` | exit 0, 40 scripts, 315/315, 2095 asserts | PASS |
+| Gap-plan test scripts | JUnit `gut-junit.xml` | zoom 11, xray 5, hold timing 3, tuning contract 4, input map 12, king ride 10, 0 failures | PASS |
+| Seven scripted screenshots | `bash tools/screenshot.sh` | exit 0, `Saved 7 of 7 screenshots` | PASS |
+| Silhouette visible | Read `screenshots/king_behind_keep.png` | cyan king silhouette over the keep roof | PASS |
 
 ### Probe Execution
 
-No `probe-*.sh` scripts are declared by any PLAN or present; SKIPPED.
+Step 7c: SKIPPED. No phase plan declares a `probe-*.sh`, and `scripts/*/tests/probe-*.sh` does not exist; the verification entry points are `tools/lint.sh`, `tools/test.sh` and `tools/screenshot.sh`, run above.
 
 ### Requirements Coverage
 
-The union of `requirements:` across the ten PLAN frontmatters is ART-02, BLDG-01, BLDG-02, BLDG-03, BLDG-04, BLDG-06, DEV-01, DEV-02, DEV-03, DEV-04, ECON-01, ECON-02, ECON-07, KING-01, KING-02: exactly the 15 IDs given for this verification. All 15 are `[x]` and `Phase 1 | Complete` in REQUIREMENTS.md. No orphaned Phase 1 requirements; BLDG-05 belongs to Phase 5.
+All 15 phase IDs appear in REQUIREMENTS.md as Phase 1 / Complete and in at least one plan's `requirements:` field. No orphaned Phase 1 requirement.
 
-| Requirement | Source Plan(s) | Status | Evidence |
-|-------------|----------------|--------|----------|
-| KING-01 | 01-02, 01-04 | SATISFIED | input map in project.godot; king ride tests |
-| KING-02 | 01-04 | SATISFIED | fixed-offset camera rig tests |
-| BLDG-01 | 01-02, 01-05 | SATISFIED | `validate_build` UNKNOWN_SPOT for any non-spot id |
-| BLDG-02 | 01-05, 01-06 | SATISFIED | spot label model and world label tests |
-| BLDG-03 | 01-02, 01-06 | SATISFIED | hold controller, coin drip, refund tests |
-| BLDG-04 | 01-05 | SATISFIED | upgrade flow and MAX_TIER rejection tests |
-| BLDG-06 | 01-09 | SATISFIED | `is_build_allowed()` DAY-only; NOT_DAY rejection tests |
-| ECON-01 | 01-02, 01-09 | SATISFIED | HUD gold label; gold never negative |
-| ECON-02 | 01-09, 01-10 | SATISFIED | `_apply_dawn_payout` and tier-scaled income tests |
-| ECON-07 | 01-09 | SATISFIED | no gold reset at dawn or day start; carryover test |
-| ART-02 | 01-07 | SATISFIED (horse documentation flagged open, see Advisory; owner confirmation pending) | attribution.json, ASSETS.md, `test_attribution_log` |
-| DEV-01 | 01-01, 01-02 | SATISFIED | headless RunContext, 290 tests |
-| DEV-02 | 01-01, 01-03, 01-10 | SATISFIED | unfiltered `push:` trigger; push-event run green on 4a9b775 |
-| DEV-03 | 01-08 | SATISFIED for Phase 1 scope | overlay tests, `overlay_on.png`; wave/pathing deferred to Phase 2 |
-| DEV-04 | 01-10 | SATISFIED | screenshot.sh, CI job, 6 of 6 PNGs |
+| Requirement | Source Plan | Description | Status | Evidence |
+| ----------- | ----------- | ----------- | ------ | -------- |
+| KING-01 | 01-02, 01-04 | Move the mounted king with WASD / left stick, sprint | SATISFIED | input map, king ride tests |
+| KING-02 | 01-04, 01-11, 01-12 | Camera follows the king from a fixed isometric-style angle | SATISFIED | rig fixed `look_at`, zoom only along the offset direction, X-Ray keeps the king visible; feel is a human item |
+| BLDG-01 | 01-02, 01-05 | Fixed build spots; buildings only on spots | SATISFIED | validate_build UNKNOWN_SPOT tests |
+| BLDG-02 | 01-05, 01-06 | Near a spot by day, see what can be built and its cost | SATISFIED | spot label and its scale compensation |
+| BLDG-03 | 01-02, 01-06, 01-13 | Build by holding the action key, with visible progress, if affordable | SATISFIED | hold controller at 0.3 s per coin; timing tests |
+| BLDG-04 | 01-05, 01-13 | Upgrade the same way, showing next tier cost and effect | SATISFIED | tier tests, label model |
+| BLDG-06 | 01-09 | Build and upgrade only by day | SATISFIED | NOT_DAY validation |
+| ECON-01 | 01-02, 01-09 | Gold is the only currency; HUD shows it | SATISFIED | HUD, economy tests |
+| ECON-02 | 01-09, 01-10 | House pays flat income each dawn that rises with tier | SATISFIED | dawn income tests |
+| ECON-07 | 01-09 | Unspent gold carries over | SATISFIED | carryover tests |
+| ART-02 | 01-07 | Third-party assets in an attribution log | SATISFIED | `ASSETS.md`, `attribution.json`, `test_attribution_log` |
+| DEV-01 | 01-01, 01-02 | Headless simulation and GUT tests from the CLI | SATISFIED | 315/315 headless |
+| DEV-02 | 01-01, 01-03, 01-10 | CI lint and tests on every push, Windows export | SATISFIED | run 36835551706 green; trigger read; new code not yet pushed (Advisory) |
+| DEV-03 | 01-08 | Toggleable debug overlay | SATISFIED (wave state and pathing deferred to Phase 2) | overlay tests, `overlay_on.png`, UAT test 8 |
+| DEV-04 | 01-10, 01-12 | Automated screenshot capture of scripted scenes | SATISFIED | 7 of 7 locally |
 
 ### Anti-Patterns Found
 
-No debt markers in source, tests, tools or workflow. No stubs, hollow props or static-return data paths in the files I read. Open review findings: WR-01 (warning), IN-01 and IN-02 (info), all documentation soundness (see Advisory).
+TBD/FIXME/XXX grep on the gap-plan source and test files: no matches. No stubs: the camera rig, X-Ray script, coin drip and tuning are all substantive and wired. Open review findings WR-01, WR-02, IN-01 to IN-04 are test-robustness and doc items (see Advisory); none is a blocker.
+
+| File | Line | Pattern | Severity | Impact |
+| ---- | ---- | ------- | -------- | ------ |
+| `tests/e2e/test_build_hold_timing.gd` | - | wall-clock stamps with tight tolerances (review WR-01, OPEN) | Warning | possible CI flake; passed locally |
+| `tests/e2e/test_king_xray.gd` | - | discarded build results (review WR-02, OPEN) | Warning | the test could pass vacuously; the silhouette itself is proven by the other tests and the screenshot |
 
 ### Human Verification Required
 
-See the `human_verification` list in the frontmatter: 9 items, matching 01-UAT.md by position. Items 7 and 9 have refreshed `expected:` text recording the 2026-10-01 owner decisions and the current CI state; 01-UAT.md still has 9 pending items and the owner has not run it.
+Only the owner's feel and look judgments strictly need a human (the frontmatter lists them in full):
+
+1. **Camera framing and zoom range** at the new 1.3x default and the 0.7x to 1.5x range.
+2. **Look of the king silhouette** through the keep and Houses, by day and night.
+3. **Feel of the 0.3 s per-coin build hold.**
+
+Everything else is covered by scripted evidence (tests, real-window UAT runs and screenshots). The non-QWERTY label check was skipped by the owner on 2026-10-02 and the horse licence and CI trigger decisions were accepted by the owner, so none of them is raised again.
 
 ### Gaps Summary
 
-No must-have gaps. Every ROADMAP success criterion is backed by source I read, a full passing suite I ran (290/290, lint clean), and a green push-event CI run on 4a9b775 whose log and artifacts I inspected; no commit after it changes a non-planning file (the three non-planning commits precede 4a9b775). Status stays `human_needed` because riding feel, map and label readability, model look, overlay look, night/dawn VFX and HUD-lag feel, the non-QWERTY key label, and the owner's confirmation of the horse licence and CI trigger decisions cannot be verified programmatically. Three review findings remain open and are not fixed by this verification.
+No gaps. Both UAT issues are closed in code, by named tests and by the screenshot. The remaining risk is that the gap-plan code has not been pushed, so CI has not yet exercised the 315 tests or the seventh screenshot.
 
 ---
 
-_Verified: 2026-10-01T08:08:30Z_
+_Verified: 2026-10-02T07:48:00Z_
 _Verifier: Claude (gsd-verifier)_

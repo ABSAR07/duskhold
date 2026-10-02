@@ -1,14 +1,18 @@
 ---
-status: diagnosed
+status: testing
 phase: 01-foundation-day-loop
 source: [01-01-SUMMARY.md, 01-02-SUMMARY.md, 01-03-SUMMARY.md, 01-04-SUMMARY.md, 01-05-SUMMARY.md, 01-06-SUMMARY.md, 01-07-SUMMARY.md, 01-08-SUMMARY.md, 01-09-SUMMARY.md, 01-10-SUMMARY.md, 01-VERIFICATION.md]
 started: 2026-10-01T09:10:51Z
-updated: 2026-10-01T22:08:02Z
+updated: 2026-10-02T07:49:48Z
 ---
 
 ## Current Test
 
-[testing complete]
+number: 56
+name: Re-check after gap closure: camera framing and zoom
+expected: |
+  Ride the king around the map at the new default camera distance, then hold the zoom keys (- and =, or keypad - and +, or right stick down and up) through the whole range. Expected: At spawn the castle and first ring of House plots frame comfortably around a king who is still readable at about 25 m; the zoom range (0.7x to 1.5x, 0.6 units/s) feels right and the king is neither too small zoomed out nor too close zoomed in
+awaiting: user response
 
 ## Tests
 
@@ -324,12 +328,24 @@ result: pass
 source: automated
 coverage_id: 01-10/D4
 
+### 56. Re-check after gap closure: camera framing and zoom
+expected: Ride the king around the map at the new default camera distance, then hold the zoom keys (- and =, or keypad - and +, or right stick down and up) through the whole range. Expected: At spawn the castle and first ring of House plots frame comfortably around a king who is still readable at about 25 m; the zoom range (0.7x to 1.5x, 0.6 units/s) feels right and the king is neither too small zoomed out nor too close zoomed in
+result: [pending]
+
+### 57. Re-check after gap closure: king silhouette behind buildings
+expected: Ride behind the castle keep (and a House) and look at the king in a real window, by day and by night. Expected: The hidden part of the king shows as a flat light-cyan silhouette over the building, reads as 'the king is here', and is not distracting or ugly (the rider/horse silhouette looks thin and stalk-like from above in the king_behind_keep capture)
+result: [pending]
+
+### 58. Re-check after gap closure: build hold length
+expected: Hold the action key at a House plot (House I, then II and III) and at a tower plot, and release early once. Expected: At 0.3 s per coin the hold (House I about 0.6 s, tower I about 1.2 s) feels 'a bit longer' and deliberate without dragging; the coin stream still reads as one coin at a time
+result: [pending]
+
 ## Summary
 
-total: 55
+total: 58
 passed: 52
 issues: 2
-pending: 0
+pending: 3
 skipped: 1
 blocked: 0
 
