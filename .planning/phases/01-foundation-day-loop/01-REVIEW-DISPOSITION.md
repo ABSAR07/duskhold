@@ -5,32 +5,32 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: fixed
-    title: "\"Not redistributed as a standalone asset\" is inaccurate for a public repository"
-  - id: IN-01
-    severity: info
-    disposition: fixed
-    title: "\"How to add an asset\" still describes `sha256` as always \"of the downloaded archive\""
-  - id: IN-02
-    severity: info
-    disposition: fixed
-    title: "The same source page is quoted two ways"
+    disposition: open
+    title: "Hold-timing test measures physics-rate behaviour with wall-clock stamps and tight tolerances"
   - id: WR-02
     severity: warning
-    disposition: fixed
-    title: "The \"refreshes about 4 times/s\" contract has no upper-bound or cadence test"
+    disposition: open
+    title: "`test_buildings_never_get_the_xray_pass` can pass without checking any house"
+  - id: IN-01
+    severity: info
+    disposition: open
+    title: "`CameraRig` zoom exports are not validated"
+  - id: IN-02
+    severity: info
+    disposition: open
+    title: "`MAX_FLIGHT_SECONDS` is now a redundant second source of truth"
   - id: IN-03
     severity: info
-    disposition: fixed
-    title: "Pending sections are held forever if the overlay is never bound"
+    disposition: open
+    title: "`king_behind_keep` scenario never verifies the king is actually occluded"
+  - id: IN-04
+    severity: info
+    disposition: open
+    title: "Horse `License.txt` puts a 2026-10-01 statement under a 2026-09-29 heading and records a guess"
   - id: WR-03
     severity: warning
     disposition: fixed
     title: "`test_a_new_tuning_copy_shares_no_resource_with_the_cached_tuning` cannot fail today"
-  - id: IN-04
-    severity: info
-    disposition: fixed
-    title: "`register_section` raises a script error if the `lifetime_owner` is already freed"
   - id: IN-05
     severity: info
     disposition: fixed
@@ -87,22 +87,22 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 0
+open: 6
 total: 21
-recorded: 2026-10-01T08:16:55.306Z
+recorded: 2026-10-02T07:42:21.313Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
-| IN-01 | info | fixed | 01-REVIEW-FIX.md |
-| IN-02 | info | fixed | 01-REVIEW-FIX.md |
-| WR-02 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
-| IN-03 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
+| WR-01 | warning | open | - |
+| WR-02 | warning | open | - |
+| IN-01 | info | open | - |
+| IN-02 | info | open | - |
+| IN-03 | info | open | - |
+| IN-04 | info | open | - |
 | WR-03 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
-| IN-04 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-05 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-04 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-05 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
