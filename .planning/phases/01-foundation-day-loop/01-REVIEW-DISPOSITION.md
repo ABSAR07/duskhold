@@ -6,27 +6,27 @@ findings:
   - id: WR-01
     severity: warning
     disposition: open
-    title: "Hold-timing test measures physics-rate behaviour with wall-clock stamps and tight tolerances"
+    title: "New scene tests still assume no single frame is longer than a few hundred milliseconds"
   - id: WR-02
     severity: warning
     disposition: open
-    title: "`test_buildings_never_get_the_xray_pass` can pass without checking any house"
+    title: "A cap of zero silently removes the hold cap, and the shipped data is only guarded for the cap"
   - id: IN-01
     severity: info
     disposition: open
-    title: "`CameraRig` zoom exports are not validated"
+    title: "Hard-coded pacing numbers in comments will drift from the data (D-09)"
   - id: IN-02
     severity: info
     disposition: open
-    title: "`MAX_FLIGHT_SECONDS` is now a redundant second source of truth"
+    title: "Tautological and redundant test assertions"
   - id: IN-03
     severity: info
     disposition: open
-    title: "`king_behind_keep` scenario never verifies the king is actually occluded"
+    title: "Delayed burst and refund coins are visible, stacked, before they launch"
   - id: IN-04
     severity: info
     disposition: open
-    title: "Horse `License.txt` puts a 2026-10-01 statement under a 2026-09-29 heading and records a guess"
+    title: "Duplicated scaffolding and literals across the new tests and sandbox test"
   - id: WR-03
     severity: warning
     disposition: fixed
@@ -89,7 +89,7 @@ findings:
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
 open: 6
 total: 21
-recorded: 2026-10-02T07:42:21.313Z
+recorded: 2026-10-02T13:18:08.683Z
 ---
 
 # Phase 01: Code Review Disposition
