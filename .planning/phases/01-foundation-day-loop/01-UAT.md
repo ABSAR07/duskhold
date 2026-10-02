@@ -1,18 +1,14 @@
 ---
-status: testing
+status: complete
 phase: 01-foundation-day-loop
 source: [01-01-SUMMARY.md, 01-02-SUMMARY.md, 01-03-SUMMARY.md, 01-04-SUMMARY.md, 01-05-SUMMARY.md, 01-06-SUMMARY.md, 01-07-SUMMARY.md, 01-08-SUMMARY.md, 01-09-SUMMARY.md, 01-10-SUMMARY.md, 01-VERIFICATION.md]
 started: 2026-10-01T09:10:51Z
-updated: 2026-10-02T07:49:48Z
+updated: 2026-10-02T10:55:41Z
 ---
 
 ## Current Test
 
-number: 56
-name: Re-check after gap closure: camera framing and zoom
-expected: |
-  Ride the king around the map at the new default camera distance, then hold the zoom keys (- and =, or keypad - and +, or right stick down and up) through the whole range. Expected: At spawn the castle and first ring of House plots frame comfortably around a king who is still readable at about 25 m; the zoom range (0.7x to 1.5x, 0.6 units/s) feels right and the king is neither too small zoomed out nor too close zoomed in
-awaiting: user response
+[testing complete]
 
 ## Tests
 
@@ -330,22 +326,24 @@ coverage_id: 01-10/D4
 
 ### 56. Re-check after gap closure: camera framing and zoom
 expected: Ride the king around the map at the new default camera distance, then hold the zoom keys (- and =, or keypad - and +, or right stick down and up) through the whole range. Expected: At spawn the castle and first ring of House plots frame comfortably around a king who is still readable at about 25 m; the zoom range (0.7x to 1.5x, 0.6 units/s) feels right and the king is neither too small zoomed out nor too close zoomed in
-result: [pending]
+result: pass
 
 ### 57. Re-check after gap closure: king silhouette behind buildings
 expected: Ride behind the castle keep (and a House) and look at the king in a real window, by day and by night. Expected: The hidden part of the king shows as a flat light-cyan silhouette over the building, reads as 'the king is here', and is not distracting or ugly (the rider/horse silhouette looks thin and stalk-like from above in the king_behind_keep capture)
-result: [pending]
+result: pass
 
 ### 58. Re-check after gap closure: build hold length
 expected: Hold the action key at a House plot (House I, then II and III) and at a tower plot, and release early once. Expected: At 0.3 s per coin the hold (House I about 0.6 s, tower I about 1.2 s) feels 'a bit longer' and deliberate without dragging; the coin stream still reads as one coin at a time
-result: [pending]
+result: issue
+reported: "this is better. However, I think we should start with 0.25s per coin, and accelerate (since there will be buildings at some point that require e.g. 15 coins or even more). And set a max time limit too so for example set 3 seconds as the maximum time it takes, even if only half the coins are filled, just fast forward to full coin usage if that is possible given the current coins."
+severity: minor
 
 ## Summary
 
 total: 58
-passed: 52
-issues: 2
-pending: 3
+passed: 54
+issues: 3
+pending: 0
 skipped: 1
 blocked: 0
 
@@ -353,7 +351,9 @@ blocked: 0
 
 - gap_id: G-01-3
   truth: "The camera keeps one fixed angle (the player cannot rotate it), trails slightly behind the king and catches up, and keeps the king readable near the centre of the screen."
-  status: failed
+  status: resolved
+  resolved_by: [01-11-PLAN.md, 01-12-PLAN.md]
+  resolved_at: 2026-10-02
   reason: "User reported: mostly good, but when the king goes behind a building like behind the castle, his silhouette is not visible. The king disappears behind stuff basically. Is that intentional? / I think we should move the camera a bit further away. Also should have buttons that zoom out or zoom in, to a certain extent"
   severity: major
   test: 3
@@ -384,7 +384,9 @@ blocked: 0
 
 - gap_id: G-01-4
   truth: "Holding the action key at a plot builds or upgrades it over a hold that feels deliberate (map, plots and tier growth otherwise passed)."
-  status: failed
+  status: resolved
+  resolved_by: 01-13-PLAN.md
+  resolved_at: 2026-10-02
   reason: "User reported: pass. But the building count up time is too short. needs tweaking to make it a biiiit longer (orchestrator note: coin_drip_interval is 0.2 s per coin in data/tuning/loop_tuning.tres, so House I completes in about 0.4 s)"
   severity: minor
   test: 4
@@ -403,6 +405,15 @@ blocked: 0
     - "Optionally raise the coin flight cap (MAX_FLIGHT_SECONDS 0.18 -> about 0.27) so coins still fly for about 90% of each interval"
     - "Tests that compute waits from the live value scale automatically; check test_build_hold_refund 3.0 s timeouts and the screenshot HOLD_INTERVALS still hold"
   debug_session: .planning/debug/build-hold-too-short.md
+
+- gap_id: G-01-58
+  truth: "Hold the action key at a House plot (House I, then II and III) and at a tower plot, and release early once. Expected: At 0.3 s per coin the hold (House I about 0.6 s, tower I about 1.2 s) feels 'a bit longer' and deliberate without dragging; the coin stream still reads as one coin at a time"
+  status: failed
+  reason: "User reported: this is better. However, I think we should start with 0.25s per coin, and accelerate (since there will be buildings at some point that require e.g. 15 coins or even more). And set a max time limit too so for example set 3 seconds as the maximum time it takes, even if only half the coins are filled, just fast forward to full coin usage if that is possible given the current coins."
+  severity: minor
+  test: 58
+  artifacts: []
+  missing: []
 
 ## Deferred Follow-Ups
 
