@@ -1,33 +1,39 @@
 ---
 phase: 01-foundation-day-loop
-reviewed: 2026-10-02T07:42:00Z
+reviewed: 2026-10-02T13:15:07Z
 depth: standard
-files_reviewed: 24
+files_reviewed: 30
 files_reviewed_list:
-  - ASSETS.md
-  - assets/attribution.json
-  - assets/third_party/quaternius_horse/License.txt
   - data/tuning/loop_tuning.tres
-  - presentation/camera/camera_rig.gd
-  - presentation/king/king_model.tscn
+  - input/build_hold_controller.gd
   - presentation/vfx/coin_drip_vfx.gd
-  - presentation/vfx/xray_silhouette.gd
-  - presentation/vfx/xray_silhouette.gd.uid
-  - project.godot
   - simulation/defs/loop_tuning.gd
+  - tests/e2e/e2e_support.gd
+  - tests/e2e/test_build_hold_cap.gd
+  - tests/e2e/test_build_hold_cap.gd.uid
   - tests/e2e/test_build_hold_timing.gd
-  - tests/e2e/test_build_hold_timing.gd.uid
-  - tests/e2e/test_camera_zoom.gd
-  - tests/e2e/test_camera_zoom.gd.uid
-  - tests/e2e/test_king_ride.gd
-  - tests/e2e/test_king_xray.gd
-  - tests/e2e/test_king_xray.gd.uid
-  - tests/unit/test_input_map.gd
+  - tests/e2e/test_coin_drip.gd
+  - tests/e2e/test_coin_drip_burst.gd
+  - tests/e2e/test_coin_drip_burst.gd.uid
+  - tests/e2e/test_debug_overlay_toggle.gd
+  - tests/e2e/test_hold_pacing_sandbox.gd
+  - tests/e2e/test_hold_pacing_sandbox.gd.uid
+  - tests/e2e/test_spot_label.gd
+  - tests/e2e/test_start_night_hold.gd
+  - tests/e2e/test_upgrade_at_spot.gd
+  - tests/e2e/test_walking_skeleton.gd
+  - tests/integration/test_build_hold_refund.gd
+  - tests/unit/test_coin_drip_flight.gd
+  - tests/unit/test_coin_drip_flight.gd.uid
+  - tests/unit/test_e2e_support_tuning.gd
+  - tests/unit/test_e2e_support_tuning.gd.uid
   - tests/unit/test_loop_tuning_contract.gd
-  - tests/unit/test_loop_tuning_contract.gd.uid
-  - tools/screenshot.sh
+  - tests/unit/test_loop_tuning_curve.gd
+  - tests/unit/test_loop_tuning_curve.gd.uid
+  - tools/sandbox/hold_pacing_sandbox.gd
+  - tools/sandbox/hold_pacing_sandbox.gd.uid
+  - tools/sandbox/hold_pacing_sandbox.tscn
   - tools/screenshot/shot_scenarios.gd
-  - ui/world/spot_label.gd
 findings:
   critical: 0
   warning: 2
@@ -36,129 +42,155 @@ findings:
 status: issues_found
 ---
 
-# Phase 1: Code Review Report
+# Phase 1: Code Review Report (gap-closure plans 01-14 to 01-16, G-01-58)
 
-**Reviewed:** 2026-10-02T07:42:00Z
+**Reviewed:** 2026-10-02T13:15:07Z
 **Depth:** standard
-**Files Reviewed:** 24
-**Status:** issues_found
+**Files Reviewed:** 30
 
 ## Summary
 
-Reviewed the pass-26 documentation fixes (horse licence records, ASSETS.md) and the three UAT gap-closure
-plans (01-11 zoom and framing, 01-12 X-Ray silhouette, 01-13 drip interval).
+I reviewed the diff `fe3dc81..HEAD` for the accelerating, capped build hold: the controller, the pure
+schedule helpers in `LoopTuning`, the coin VFX, the tuning data, the test fixtures and the sandbox.
+I traced the hold loop by hand, including the arithmetic of the owner table, and also re-ran
+`tools/lint.sh` (clean, 84 files). I found no production defects in the hold logic.
 
-No correctness or security defects in the shipped code. Checked specifically:
+Checked and found correct:
 
-- **KING-02.** `look_at` is called only in `CameraRig.bind_run`. Zoom scales `offset` along its fixed direction, and `Input.get_axis(zoom_in, zoom_out)` has the right sign. Stick up gives -1 and moves the camera closer.
-- **Input Map.** Both new actions have keyboard (physical keycodes), keypad and right-stick bindings, no mouse binding and no shared binding. The keycode values 61, 45, 4194437 and 4194435 are `KEY_EQUAL`, `KEY_MINUS`, `KEY_KP_ADD` and `KEY_KP_SUBTRACT`.
-- **Presentation only.** Zoom touches no simulation state.
-- **X-Ray.** It duplicates the active material and writes it as a surface override. The shared imported material is never mutated, and the test proves it.
-- **Label scale.** The 16.9 m constant is correct arithmetic: sqrt(12.8^2 + 11^2 + 0.5^2) = 16.88.
-- **Flight cap.** The 0.27 s cap equals 0.9 x 0.3 s, so coins still land before the next one leaves.
-- **Screenshot.** The `king_behind_keep` capture shows the cyan silhouette through the keep roof.
-- **Licence docs.** The repository, LFS and public-repo statements match `git remote` and `git lfs ls-files`.
+- `coin_due_seconds` is monotonic. Every coin whose running sum reaches the cap returns exactly the
+  cap, so one `_hold_elapsed >= due` comparison pays them all in the cap frame. The
+  `LoopTuning.coin_due_seconds` loop is bounded by about cap / floor iterations.
+- The release, range and day checks run before any coin in `_advance_hold`, so a release on the cap
+  frame still refunds (D-06). The single `BuildIntent` goes out once, on the finish frame.
+- The sanitising in `coin_interval` guards the zero, negative, decay-above-one and floor-above-first
+  cases. The curve numbers (0.5, 0.725, 0.9275, ..., 2.2055 s, coin 24 last before the cap) match
+  hand arithmetic.
+- The new `.gd.uid` files are all present and tracked. The `tools/*` export exclusion covers the
+  sandbox.
 
-The remaining findings are test-reliability and maintainability items. Two warnings, four info.
+Verification of the two review claims:
+
+- **WR-01 (hold timing on the hold clock): confirmed closed.** `test_build_hold_timing.gd` stamps
+  coins with `BuildHoldController.get_hold_elapsed()`, never wall time. It also cross-checks that
+  clock against an independent `process_frame` accumulator. Real time now only bounds the
+  `wait_until` timeouts.
+- **IN-02 (flight ceiling derived, not duplicated): confirmed closed.** `MAX_FLIGHT_SECONDS` is
+  `FLIGHT_FRACTION_OF_INTERVAL * LoopTuning.COIN_DRIP_INTERVAL_MAX_S`. No `0.27` literal remains.
+  It derives from D-05's documented upper bound, not from the live tuned interval. That is
+  consistent with the contract test that pins the shipped interval inside that range.
+
+The remaining findings are test robustness and maintainability, not behaviour bugs.
 
 ## Warnings
 
-### WR-01: Hold-timing test measures physics-rate behaviour with wall-clock stamps and tight tolerances
+### WR-01: New scene tests still assume no single frame is longer than a few hundred milliseconds
 
-**File:** `tests/e2e/test_build_hold_timing.gd:15-17, 22-24, 71-84`
-**Issue:** `BuildHoldController` advances in `_process(delta)` with the real, variable frame delta, and
-its `while _drip_timer >= interval` loop emits every overdue coin in the same frame. The test stamps each
-`hold_progress` with `Time.get_ticks_usec()`. After any frame hitch longer than about 50 ms (CI
-contention, GC, first-use allocation), two things can happen:
+**File:** `tests/e2e/test_build_hold_cap.gd:147-170`, `tests/e2e/test_coin_drip_burst.gd:307-320`
+**Issue:** WR-01 removed wall-clock measurement from the timing test, but these new tests keep an
+implicit dependence on frame length.
 
-- Consecutive coins get nearly identical timestamps, so a gap of about 0 s fails `GAP_TOLERANCE_S`
-  (0.05 s) in `test_coins_drip_one_per_interval`.
-- The whole hold can complete more than `EARLY_TOLERANCE_S` (0.02 s) sooner than the wall-clock
-  `cost x interval` in `test_house_one_hold_lasts_cost_times_the_drip_interval`.
+- `test_releasing_just_before_the_cap_refunds_everything` polls `_clock_reached(cap - 0.3)` once per
+  frame, then releases. If a single frame has a delta of 0.3 s or more, the hold clock jumps from
+  below cap - 0.3 straight past the cap. The controller then completes and builds, and the test
+  fails on `hold_completed` or `paid < PRICEY_COST`. A 300 ms stall is plausible on a loaded CI
+  runner (shader compile, GC, antivirus), and the stall would be the test's fault, not the game's.
+- `test_a_normal_drip_launches_immediately` asserts the group is exactly one coin. A frame delta of
+  0.25 s or more after the first frame of the hold pays two coins in one frame, and the group size
+  becomes 2.
+- `test_a_huge_rush_draws_only_the_visual_cap` bounds `live_coin_count()` by `MAX_BURST_COINS + 2`.
+  The `2` rests on the 0.08 s floor and the 0.12 s minimum flight at 60 fps frame granularity, not
+  on the code.
 
-The tolerances are a bit over one frame (16.7 ms), so the suite is correct only while no frame stalls.
-It passes today (315/315), but it is a latent flake that will show up on a slow runner.
+**Fix:** Make each test self-checking against the observed frame. For the release test, read the
+last frame delta and skip with `pending` or re-run when `delta > RELEASE_BEFORE_CAP_S`. Better, drop
+the poll and drive the controller deterministically by calling `_process(delta)` in fixed steps on
+the controller (the hold clock is frame-delta based, so this is exact). For the group-size test,
+assert `delays[0] == 0.0 and delays.size() <= 2`, or compare against the number of coins paid in
+that frame (`_hold.get_coins_paid()`).
 
-**Fix:** Make the assertions independent of frame hitches. For example:
+### WR-02: A cap of zero silently removes the hold cap, and the shipped data is only guarded for the cap
 
-- Record the accumulated `delta` instead of wall time. Connect to `get_tree().process_frame` and sum
-  `get_process_delta_time()`, or stamp each coin with the engine process time.
-- Assert the invariant directly: the Nth coin is never emitted before `N x interval` of accumulated
-  frame time, and the total count equals the cost.
-- Or widen `EARLY_TOLERANCE_S` and `GAP_TOLERANCE_S` to a fraction of `coin_drip_interval`
-  (for example 0.5 x) and keep the `MIN_HOLD_S` contract in the unit test, which is deterministic.
+**File:** `simulation/defs/loop_tuning.gd:28-30, 44-53, 62-67`
+**Issue:** `max_build_hold_seconds <= 0` means "no cap". A mistyped `0` or a lost field in
+`loop_tuning.tres` therefore reintroduces gap G-01-58 (an unbounded hold) with no error or warning.
+The contract test `test_shipped_cap_is_set_and_at_most_the_owner_maximum` does guard the shipped
+value. Nothing guards the other sanitised fields: `coin_drip_decay`, `coin_drip_min_interval` and
+`coin_drip_steady_coins` are clamped silently. A shipped decay of `1.5` or a floor above the first
+interval would pass every test except the incidental acceleration check, and would flatten the curve
+without any signal. There are also no `@export_range` hints, so the inspector accepts nonsense
+values.
 
-### WR-02: `test_buildings_never_get_the_xray_pass` can pass without checking any house
+**Fix:** Add contract assertions that the shipped data is already in the sane range, so sanitising
+is never what makes it valid:
 
-**File:** `tests/e2e/test_king_xray.gd:88-108`
-**Issue:** The three `ctx.commands.submit(BuildIntent.new(spot_id))` results are discarded, and the
-only guards are "CastleCenter exists" and `checked > 0`. The castle alone satisfies both. If the
-submits are rejected (gold, phase, a changed spot id) and no house view exists, the test passes
-without ever checking a house, so it cannot catch an X-Ray pass leaking onto the building models it
-exists to protect. The header comment ("buildings must not show through each other") overstates what
-is asserted.
-
-**Fix:** Assert each submit returned `CommandProcessor.OK` and that the views node has a child per
-built spot before iterating:
 ```gdscript
-for spot_id: StringName in HOUSE_SPOTS:
-	assert_eq(ctx.commands.submit(BuildIntent.new(spot_id)), CommandProcessor.OK, str(spot_id))
-await wait_process_frames(1)
-for spot_id: StringName in HOUSE_SPOTS:
-	assert_not_null(views.get_node_or_null(String(spot_id)), "%s has a view" % spot_id)
+func test_shipped_pacing_fields_are_already_in_range() -> void:
+	var tuning: LoopTuning = _tuning()
+	assert_gt(tuning.coin_drip_decay, 0.0)
+	assert_lt(tuning.coin_drip_decay, 1.0)
+	assert_gte(tuning.coin_drip_steady_coins, 1)
+	assert_gt(tuning.coin_drip_min_interval, 0.0)
+	assert_lte(tuning.coin_drip_min_interval, tuning.coin_drip_interval)
 ```
-(Use the real view-node naming the views use.)
+
+Optionally add `@export_range` hints on the five pacing fields.
 
 ## Info
 
-### IN-01: `CameraRig` zoom exports are not validated
+### IN-01: Hard-coded pacing numbers in comments will drift from the data (D-09)
 
-**File:** `presentation/camera/camera_rig.gd:15-19, 29, 47`
-**Issue:** `zoom_min`, `zoom_max` and `zoom_speed` are plain `@export`s. A tuning mistake of
-`zoom_min <= 0` puts the rig on or inside the king, and `look_at` with a zero-length direction errors.
-`zoom_min > zoom_max` makes `clampf` ill-defined. Both are only reachable by editing the scene, so
-this is low risk.
-**Fix:** In `bind_run`, `assert(zoom_min > 0.0 and zoom_min <= zoom_max)` or use
-`@export_range(0.1, 1.0)` and `@export_range(1.0, 3.0)`.
+**File:** `input/build_hold_controller.gd:4-5`, `presentation/vfx/coin_drip_vfx.gd:3-6, 32-33`,
+`simulation/defs/loop_tuning.gd:5-8`
+**Issue:** The doc comments state "0.25 s", "3 s" and "0.08 s" as facts. D-09 puts these numbers in
+`loop_tuning.tres` precisely so they can be retuned at the playtest gate. After a retune these
+comments become wrong with no test to flag them.
+**Fix:** Say "the tuned first interval" and "the tuned cap" in comments, and keep the numbers only
+in the `.tres` and the tuning doc.
 
-### IN-02: `MAX_FLIGHT_SECONDS` is now a redundant second source of truth
+### IN-02: Tautological and redundant test assertions
 
-**File:** `presentation/vfx/coin_drip_vfx.gd:13-18, 58`
-**Issue:** At the shipped 0.3 s interval, `0.9 x interval` equals `MAX_FLIGHT_SECONDS` (0.27), and 0.3 s
-is also the top of D-05's range (enforced by `test_loop_tuning_contract`). The cap can therefore never
-bind for any legal interval. It is a magic number that must be hand-edited whenever the interval is
-re-tuned, which is exactly what plan 01-13 had to do. The contract test guards it, but only after the
-fact.
-**Fix:** Drop the cap and use `interval * FLIGHT_FRACTION_OF_INTERVAL`. If a hard cap is wanted, derive
-it from the D-05 maximum rather than a separate literal.
-
-### IN-03: `king_behind_keep` scenario never verifies the king is actually occluded
-
-**File:** `tools/screenshot/shot_scenarios.gd:8-10, 126-136`
-**Issue:** `BEHIND_KEEP_OFFSET = (0, 0, -5)` encodes the keep's footprint and the camera angle in a
-literal, and the comment records a "1.4 m past the far wall" figure that is not read from the map. The
-scenario returns true whenever the XRay node exists and `get_applied_count() > 0`. If the keep model,
-camera offset or zoom default changes, the shot silently stops showing the occluded case while still
-exiting 0. The current capture is correct.
-**Fix:** Derive the position from the keep's footprint, or check occlusion (for example a
-`PhysicsRayQuery` from `camera.global_position` to the king that hits a building collider). Fail the
-shot if no occluder is hit.
-
-### IN-04: Horse `License.txt` puts a 2026-10-01 statement under a 2026-09-29 heading and records a guess
-
-**File:** `assets/third_party/quaternius_horse/License.txt:21-28, 36-39`
+**File:** `tests/unit/test_coin_drip_flight.gd:200-206`, `tests/e2e/test_build_hold_timing.gd:140-148`
 **Issue:**
-- The new sentence "The owner also accepts this risk (2026-10-01)" sits inside the "Licence evidence
-  (checked 2026-09-29)" section. The file's dated structure is now inconsistent.
-- The re-check note asserts that the colon "may have" come from a web-to-markdown fetch and that
-  "neither quote has been altered". Both are unverifiable statements in an evidentiary licence record.
-  They are harmless, since both quotes name CC0, but they read as speculation.
 
-**Fix:** Move the owner-acceptance sentence under the "Decision (2026-10-01)" heading, where it is
-already stated. Reduce the note to the verifiable fact: "the quote differs by a colon; both name CC0".
+- `test_the_ceiling_is_derived_from_the_d05_bound` asserts that a constant equals the expression it
+  is defined as, so it can never fail. It does not guard IN-02. The real guard is that no literal
+  exists, which a test cannot see.
+- `test_house_one_hold_lasts_at_least_the_minimum` repeats what
+  `test_shortest_shipped_hold_is_at_least_the_minimum` in the contract test already pins from the
+  data, and the last-coin stamp it uses is the controller's own bookkeeping.
+
+**Fix:** Replace the first with a behavioural check, for example that `flight_seconds_for(0.3)`
+returns `0.9 * 0.3` and that a gap above `COIN_DRIP_INTERVAL_MAX_S` is clamped. Drop or merge the
+second. Also note that `LoopTuning.COIN_DRIP_INTERVAL_MIN_S` is only referenced by tests.
+
+### IN-03: Delayed burst and refund coins are visible, stacked, before they launch
+
+**File:** `presentation/vfx/coin_drip_vfx.gd:92-102, 126-141`
+**Issue:** `_spawn_coin` adds the coin at its start position immediately, and `_fly` then waits
+`tween_interval(delay)` (up to `BURST_WINDOW_SECONDS` = 0.3 s). The delayed coins therefore sit
+visible and stacked at the king (burst) or at the spot (refund) until their turn, which defeats part
+of the staggered, one-by-one read that the stagger is for. The refund path had the same behaviour
+before this change, so this is inherited, but the burst makes it more visible (up to 12 coins).
+**Fix:** Set `coin.visible = false` when `delay > 0.0` and add
+`tween.tween_callback(coin.set_visible.bind(true))` after the interval. The count semantics of
+`live_coin_count()` are unchanged.
+
+### IN-04: Duplicated scaffolding and literals across the new tests and sandbox test
+
+**File:** `tests/e2e/test_build_hold_cap.gd:47-72`, `tests/e2e/test_coin_drip_burst.gd:215-233`,
+`tests/e2e/test_hold_pacing_sandbox.gd:78-79`
+**Issue:**
+
+- `_focused`, `_tier_built` and the "stand at the plot" setup are copied between the cap and burst
+  tests, and `PRICEY_COST`, `GOLD_MARGIN`, `NEAR_OFFSET` and `SPOT` are redeclared in each.
+- The sandbox test re-types `15, 30, 50` and `15 + 30 + 50 + 5` instead of reading
+  `HoldPacingSandbox.SANDBOX_HOUSE_COSTS` and `GOLD_MARGIN`. This is deliberate as a pin, but the
+  gold figure is derived and can drift out of step when the sandbox constants change.
+**Fix:** Move the stand-at-plot helper into `E2eSupport`. Compute `EXPECTED_GOLD` from the
+sandbox's own constants, keeping `EXPECTED_COSTS` as the literal pin.
 
 ---
 
-_Reviewed: 2026-10-02T07:42:00Z_
+_Reviewed: 2026-10-02T13:15:07Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
