@@ -617,6 +617,29 @@ Verified at ASVS L1 grep depth against the code and tests:
 
 ---
 
+## Security Audit 2026-10-03 (re-audit after gap-closure plans 01-17 and 01-18)
+
+| Metric | Count |
+|--------|-------|
+| Threats found | 32 |
+| Closed | 32 |
+| Open | 0 |
+
+The UAT gap-closure plans for G-01-59 (no hold cap, a 0.05 s floor after the acceleration) added one threat, T-01-27. It is low severity and accepted as AR-06. Both plans joined the no-install acceptance (AR-04). 01-18 changes only doc comments and records, so it added no runtime surface. T-01-22 to T-01-25 were refreshed for the uncapped hold. Neither plan's SUMMARY raised a threat flag.
+
+Verified at ASVS L1 grep depth against the code and tests:
+- **T-01-22:** `loop_tuning.tres` and the `LoopTuning` script defaults are equal on all five pacing fields: 0.25 s, 2, 0.9, 0.05 s and 0 (no cap). `test_loop_tuning_contract.gd` (8 tests) bounds the first interval to D-05's range, checks the 0.5 s minimum, and pins the 0.05 s floor and no cap (UAT G-01-59).
+- **T-01-23:** `coin_interval` still clamps every curve field: `maxf` to `MIN_INTERVAL_S`, decay `clampf` to 0-1, and the floor `clampf` to [`MIN_INTERVAL_S`, first]. No hold is instant, and none is endless, because every interval is positive and a tier's cost is finite. The cap is only taken when `max_build_hold_seconds > 0`, so the shipped 0 leaves it dormant. `test_loop_tuning_curve.gd` has 15 tests.
+- **T-01-24:** `_advance_hold` still checks release, range and day before any coin, and cancels with a full refund. Completion is the single `commands.submit(BuildIntent)` in `_finish_hold`. `test_build_hold_long.gd` (6 tests, renamed from `test_build_hold_cap.gd`) steps the controller. It checks that a long step paying all 30 coins debits the full cost once, that every coin drips at its own due time, and that a release after 29 coins refunds all 29.
+- **T-01-25:** `MAX_BURST_COINS` (12) and `BURST_WINDOW_SECONDS` (0.3 s) are unchanged in `coin_drip_vfx.gd`. `test_coin_drip_burst.gd` (5 tests) checks that the long-frame groups and a 29-coin refund each draw at most 12 coins, all freed. `test_coin_drip_flight.gd` (10 tests) bounds the coins in the air to 3 on the shipped curve.
+- **T-01-26:** unchanged. The sandbox reprices a deep copy, `export_presets.cfg` `exclude_filter` still contains `tools/*`, and `test_hold_pacing_sandbox.gd` (3 tests) is green.
+- **T-01-27:** accepted. AR-06 documents the O(coins paid) per-frame `coin_due_seconds` sum and when to revisit it.
+- **T-01-13:** the scoped name check is clean, including `tools/sandbox`.
+- **T-01-06 / T-01-17:** `tools/prepush_check.sh` PASSED over all refs (462 commits, 39 unpushed). There is one author identity.
+- **Tests:** full suite 363/363 (46 scripts) at `c0c6e74`; lint clean.
+
+---
+
 ## Sign-Off
 
 - [x] All threats have a disposition (mitigate / accept / transfer)
