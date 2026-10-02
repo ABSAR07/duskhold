@@ -6,6 +6,10 @@ extends Node3D
 ## press shakes it with a brief red outline flash; hold_denied is also the Phase 8 SFX hook (D-08).
 
 const LABEL_HEIGHT: float = 3.2
+## The camera-to-label distance under the framing the owner approved in UAT test 6 (camera offset
+## (0, 16, 11), label LABEL_HEIGHT above the spot, king 0.5 m beside it: the square root of
+## 12.8 squared plus 11 squared plus 0.5 squared, about 16.9 m). Farther cameras scale the label up.
+const LEGIBLE_CAMERA_DISTANCE: float = 16.9
 const UNAFFORDABLE_COLOR := Color(1.0, 0.25, 0.25)
 const NORMAL_COLOR := Color(1.0, 1.0, 1.0)
 const PAID_COIN_COLOR := Color(1.0, 0.8, 0.2)

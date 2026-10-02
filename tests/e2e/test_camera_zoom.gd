@@ -10,6 +10,14 @@ const POSITION_TOLERANCE: float = 0.1
 const SUB_DEADZONE_STICK: float = 0.2
 const FULL_STICK: float = 1.0
 const INPUT_FRAMES: int = 6
+const UAT_OFFSET := Vector3(0.0, 16.0, 11.0)
+const MIN_DEFAULT_DISTANCE_RATIO: float = 1.25
+const MAX_DEFAULT_DISTANCE_RATIO: float = 1.5
+const BESIDE_SPOT := Vector3(0.5, 0.0, 0.0)
+const CAMERA_SETTLE_S: float = 1.2
+const LABEL_SCALE_TOLERANCE: float = 0.02
+const TITLE_HEIGHT_TOLERANCE: float = 0.1
+const LABEL_SPOT := &"house_3"
 
 
 func after_each() -> void:
@@ -151,3 +159,64 @@ func test_zooming_changes_no_gold_phase_or_building_and_emits_no_signal() -> voi
 		assert_eq(ctx.buildings.current_tier(spot_id), tiers[spot_id], "tier of %s" % spot_id)
 	for signal_name: String in SimSignals.ALL:
 		assert_signal_not_emitted(ctx.events, signal_name)
+
+
+func _stand_beside_label_spot(map_root: MapRoot) -> SpotLabel:
+	var spot: Vector3 = map_root.get_context().buildings.get_spot(LABEL_SPOT).position
+	E2eSupport.teleport_king(map_root, spot + BESIDE_SPOT)
+	await wait_seconds(CAMERA_SETTLE_S)
+	return map_root.get_node("SpotLabel") as SpotLabel
+
+
+func _expected_label_scale(label: SpotLabel) -> float:
+	var camera: Camera3D = get_viewport().get_camera_3d()
+	var distance: float = camera.global_position.distance_to(label.global_position)
+	return maxf(1.0, distance / SpotLabel.LEGIBLE_CAMERA_DISTANCE)
+
+
+## Pixel height of one metre-scaled-by-the-label's-scale at the Title, as the player sees it.
+func _title_height_px(label: SpotLabel) -> float:
+	var camera: Camera3D = get_viewport().get_camera_3d()
+	var title: Label3D = label.get_node("%Title") as Label3D
+	var base: Vector2 = camera.unproject_position(title.global_position)
+	var top: Vector3 = title.global_position + camera.global_basis.y * label.scale.y
+	return base.distance_to(camera.unproject_position(top))
+
+
+func test_the_default_offset_keeps_the_approved_angle_and_sits_further_out() -> void:
+	var map_root: MapRoot = await E2eSupport.spawn_map(self)
+	var rig: CameraRig = _rig(map_root)
+	assert_lt(
+		rig.offset.normalized().distance_to(UAT_OFFSET.normalized()), RAY_TOLERANCE, "same angle"
+	)
+	var ratio: float = rig.offset.length() / UAT_OFFSET.length()
+	assert_gte(ratio, MIN_DEFAULT_DISTANCE_RATIO, "at least 1.25x the UAT distance")
+	assert_lte(ratio, MAX_DEFAULT_DISTANCE_RATIO, "at most 1.5x the UAT distance")
+	assert_lt(rig.zoom_min, 1.0, "zoom can go closer than the default")
+	assert_gt(rig.zoom_max, 1.0, "zoom can go farther than the default")
+
+
+func test_the_spot_label_scale_follows_the_camera_distance() -> void:
+	var map_root: MapRoot = await E2eSupport.spawn_map(self)
+	var rig: CameraRig = _rig(map_root)
+	var label: SpotLabel = await _stand_beside_label_spot(map_root)
+	assert_true(label.visible, "the label shows beside the spot")
+	assert_almost_eq(label.scale.x, _expected_label_scale(label), LABEL_SCALE_TOLERANCE, "default")
+	await _hold_sampling(rig, &"zoom_out", _full_sweep_seconds(rig, 1.0, rig.zoom_max))
+	await wait_seconds(SETTLE_S)
+	assert_almost_eq(
+		label.scale.x, _expected_label_scale(label), LABEL_SCALE_TOLERANCE, "zoomed out"
+	)
+	assert_gte(label.scale.x, 1.0, "never below the approved size")
+
+
+func test_the_title_keeps_its_on_screen_height_when_zoomed_all_the_way_out() -> void:
+	var map_root: MapRoot = await E2eSupport.spawn_map(self)
+	var rig: CameraRig = _rig(map_root)
+	var label: SpotLabel = await _stand_beside_label_spot(map_root)
+	var default_px: float = _title_height_px(label)
+	await _hold_sampling(rig, &"zoom_out", _full_sweep_seconds(rig, 1.0, rig.zoom_max))
+	await wait_seconds(SETTLE_S)
+	var zoomed_px: float = _title_height_px(label)
+	assert_gt(default_px, 0.0, "the title is on screen")
+	assert_almost_eq(zoomed_px, default_px, default_px * TITLE_HEIGHT_TOLERANCE, "within 10%")
