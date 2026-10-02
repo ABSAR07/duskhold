@@ -5,6 +5,9 @@ extends RefCounted
 ## never by writing simulation state directly.
 
 const NEAR_OFFSET := Vector3(0.5, 0.0, 0.0)
+## The camera looks toward -Z, so this puts the king 1.4 m past the keep's far wall, where UAT
+## found him hidden.
+const BEHIND_KEEP_OFFSET := Vector3(0.0, 0.0, -5.0)
 const CAMERA_SETTLE_S: float = 1.2
 const OVERVIEW_WAIT_S: float = 0.8
 const LABEL_WAIT_S: float = 0.6
@@ -21,8 +24,15 @@ const BUILD_IN_PROGRESS := &"build_in_progress"
 const NIGHT_BANNER := &"night_banner"
 const DAWN_PAYOUT := &"dawn_payout"
 const OVERLAY_ON := &"overlay_on"
+const KING_BEHIND_KEEP := &"king_behind_keep"
 const ALL_SHOTS: Array[StringName] = [
-	DAY_OVERVIEW, SPOT_LABEL, BUILD_IN_PROGRESS, NIGHT_BANNER, DAWN_PAYOUT, OVERLAY_ON
+	DAY_OVERVIEW,
+	SPOT_LABEL,
+	BUILD_IN_PROGRESS,
+	NIGHT_BANNER,
+	DAWN_PAYOUT,
+	OVERLAY_ON,
+	KING_BEHIND_KEEP
 ]
 
 
@@ -41,6 +51,8 @@ static func run(shot_name: StringName, runner: Node, map_root: MapRoot) -> bool:
 			return await _dawn_payout(runner, map_root)
 		OVERLAY_ON:
 			return await _overlay_on(runner, map_root)
+		KING_BEHIND_KEEP:
+			return await _king_behind_keep(runner, map_root)
 	printerr("unknown shot %s (known: %s)" % [shot_name, ALL_SHOTS])
 	return false
 
@@ -109,6 +121,19 @@ static func _overlay_on(runner: Node, map_root: MapRoot) -> bool:
 	await _wait(runner, OVERLAY_WAIT_S)
 	var overlay: DebugOverlay = map_root.get_node_or_null("HUD/DebugOverlay") as DebugOverlay
 	return overlay != null and overlay.is_overlay_visible()
+
+
+## The king stands where the castle keep hides him. The shot is only worth taking if his X-Ray
+## silhouette is set up, so the scenario fails (exit 1) when it is not.
+static func _king_behind_keep(runner: Node, map_root: MapRoot) -> bool:
+	var ctx: RunContext = map_root.get_context()
+	map_root.get_king().global_position = ctx.map.castle_position + BEHIND_KEEP_OFFSET
+	await _wait(runner, CAMERA_SETTLE_S)
+	var xray: XRaySilhouette = map_root.get_king().find_child("XRay", true, false) as XRaySilhouette
+	if xray == null or xray.get_applied_count() <= 0:
+		printerr("the king has no X-Ray silhouette set up")
+		return false
+	return true
 
 
 static func _build_two_houses(ctx: RunContext) -> bool:
