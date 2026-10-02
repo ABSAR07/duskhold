@@ -7,6 +7,10 @@ const MAP_SCENE_PATH := "res://presentation/map/prototype_map.tscn"
 const MOVE_ACTIONS: Array[StringName] = [&"move_left", &"move_right", &"move_forward", &"move_back"]
 const PROTOTYPE_MAP_PATH := "res://data/maps/prototype_map.tres"
 const TUNING_PATH := "res://data/tuning/loop_tuning.tres"
+## Where `stand_at_spot` puts the king relative to a plot: well inside interaction_radius.
+const NEAR_SPOT_OFFSET := Vector3(0.5, 0.0, 0.0)
+## Real-time wait (seconds) for the hold controller to focus a spot after a teleport.
+const FOCUS_TIMEOUT_S: float = 1.0
 
 
 ## An isolated deep copy of the shipped prototype map with one building tier repriced and the
@@ -33,9 +37,10 @@ static func map_with_tier_cost(
 
 ## A copy of the shipped tuning with a flat, uncapped drip: every coin takes `seconds_per_coin` and
 ## no cap ends the hold early. Tests that slow the drip to watch a hold in progress use this, so
-## they do not depend on the shipped acceleration and cap (D-05 as amended, UAT G-01-58). Tests that
-## measure the shipped pacing must keep using the shipped tuning. LoopTuning holds only scalars, so
-## the copy shares nothing with the cached resource other tests read.
+## they depend neither on the shipped acceleration nor on any cap a later retune might set (D-05 as
+## amended, UAT G-01-58 and G-01-59). Tests that measure the shipped pacing must keep using the
+## shipped tuning. LoopTuning holds only scalars, so the copy shares nothing with the cached
+## resource other tests read.
 static func flat_drip_tuning(seconds_per_coin: float) -> LoopTuning:
 	var shipped: LoopTuning = load(TUNING_PATH)
 	var tuning: LoopTuning = shipped.duplicate(true)
@@ -80,6 +85,37 @@ static func release_all_actions() -> void:
 ## Places the king instantly, without going through movement.
 static func teleport_king(map_root: MapRoot, pos: Vector3) -> void:
 	map_root.get_king().global_position = pos
+
+
+## Teleports the king beside a build spot and waits (up to FOCUS_TIMEOUT_S of real time) until the
+## map's hold controller focuses it. True if the spot got focus.
+static func stand_at_spot(test: GutTest, map_root: MapRoot, spot_id: StringName) -> bool:
+	var plot: Vector3 = map_root.get_context().buildings.get_spot(spot_id).position
+	teleport_king(map_root, plot + NEAR_SPOT_OFFSET)
+	var hold: BuildHoldController = map_root.get_build_hold()
+	var focused: Callable = func() -> bool: return hold.get_focused_spot() == spot_id
+	return await wait_until(test, focused, FOCUS_TIMEOUT_S)
+
+
+## Takes the hold controller's clock away from the engine and starts a hold: stops its own
+## processing, presses the build action, then steps it once by zero so the fresh press starts the
+## hold in a frame of its own. From here on only `step_hold` moves the hold clock, so every
+## assertion on coin timing is exact whatever the engine's frame length (review WR-01). Call it
+## after `stand_at_spot` and after connecting or watching the hold's signals.
+static func begin_stepped_hold(test: GutTest, hold: BuildHoldController) -> void:
+	hold.set_process(false)
+	Input.action_press(BuildHoldController.ACTION)
+	await step_hold(test, hold, 0.0)
+
+
+## Advances a hold controller whose own processing is off by exactly `delta_s`: waits one engine
+## frame, then calls its `_process` once and returns straight away. The wait gives every step its
+## own engine frame, because CoinDripVfx groups coins by process frame. Returning right after the
+## step lets the caller assert on exactly what that step did before any engine time passes. The
+## precedent for calling `_process` directly is test_walking_skeleton.gd.
+static func step_hold(test: GutTest, hold: BuildHoldController, delta_s: float) -> void:
+	await test.wait_process_frames(1)
+	hold._process(delta_s)
 
 
 ## Presses the move actions toward the spot and polls until the hold controller focuses it.
