@@ -2,17 +2,17 @@
 gsd_state_version: "1.0"
 current_phase: 01
 current_phase_name: Foundation & Day Loop
-status: verifying
-stopped_at: Completed 01-12-PLAN.md
-last_updated: "2026-10-02T07:29:47.315Z"
+status: executing
+stopped_at: Completed 01-14-PLAN.md
+last_updated: "2026-10-02T12:34:47.204Z"
 last_activity: 2026-10-02
-last_activity_desc: Gap-closure plans 01-11 to 01-13 complete (UAT gaps G-01-3, G-01-4)
-state_head: 9d2c0244e34092a31b1e833cba1328c5d220780a
+last_activity_desc: Phase 01 execution started
+state_head: eb54967ecdda2f23eaea1ccea2d369ae858ae93d
 progress:
   total_phases: 13
   completed_phases: 0
-  total_plans: 13
-  completed_plans: 13
+  total_plans: 16
+  completed_plans: 14
   percent: 0
 ---
 
@@ -28,9 +28,9 @@ See: .planning/PROJECT.md (updated 2026-09-28)
 ## Current Position
 
 Phase: 01 (Foundation & Day Loop) — EXECUTING
-Plan: 13 of 13
-Status: Phase complete — ready for verification
-Last activity: 2026-10-02 — Gap-closure plans 01-11 to 01-13 complete (UAT gaps G-01-3, G-01-4)
+Plan: 2 of 16
+Status: Ready to execute
+Last activity: 2026-10-02 — Phase 01 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -69,6 +69,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P11 | 11 min | 2 tasks | 7 files |
 | Phase 01 P13 | 7 min | 2 tasks | 7 files |
 | Phase 01 P12 | 16 min | 2 tasks | 7 files |
+| Phase 01 P14 | 13 min | 3 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -109,6 +110,8 @@ Recent decisions affecting current work:
 - [Phase 01]: 01-11: camera default offset (0,20.8,14.3) = 1.3x UAT; zoom 0.7-1.5x via zoom_in/zoom_out (=/- , keypad, right stick); SpotLabel scales by camera distance/16.9 m
 - [Phase 01]: 01-13: coin_drip_interval raised 0.2 -> 0.3 s (top of D-05 range) and coin flight cap 0.18 -> 0.27 s; no hold floor in code, pacing stays linear
 - [Phase 01]: [01-12]: king silhouette through buildings uses the engine stencil X-Ray preset (light cyan 0.4/0.9/1.0, unshaded) on per-instance duplicated materials via XRaySilhouette; the king only; seventh screenshot king_behind_keep
+- [Phase 01]: 01-14: hold cap fast-forward is implicit (coin due times clamp to the 3 s cap), no affordability branch; D-06 all-or-nothing preserved
+- [Phase 01]: 01-14: coin_drip_interval name kept (first/steady interval 0.25 s); curve fields live in loop_tuning.tres per D-09
 
 ### Pending Todos
 
@@ -140,6 +143,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-02T07:29:47.208Z
-Stopped at: Completed 01-12-PLAN.md
+Last session: 2026-10-02T12:34:47.087Z
+Stopped at: Completed 01-14-PLAN.md
 Resume file: None

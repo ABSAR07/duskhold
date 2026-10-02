@@ -56,7 +56,7 @@ Decimal phases appear between their surrounding integers in numeric order.
      - CI produces a Windows export
   5. A key toggles a debug overlay showing FPS, unit/enemy counts, and the current loop state (wave state and enemy paths join it once nights have enemies in Phase 2). Every third-party asset used so far is recorded in the repository's license/attribution log.
 
-**Plans**: 13/16 plans executed
+**Plans**: 14/16 plans executed
 **UI hint**: yes
 
 Plans:
@@ -88,7 +88,7 @@ Plans:
 - [x] 01-13: Slower coin drip (0.3 s per coin) for more deliberate build holds (G-01-4)
 
 **Gap closure (UAT re-check 2026-10-02)** *(wave 1: 01-14; wave 2: 01-15, after 01-14; wave 3: 01-16, after 01-14 and 01-15)*
-- [ ] 01-14: Accelerating build hold (0.25 s first coin, faster after, 3 s cap that pays the remaining coins at once), curve helpers in data, hitch-proof timing tests, D-05 amended (G-01-58)
+- [x] 01-14: Accelerating build hold (0.25 s first coin, faster after, 3 s cap that pays the remaining coins at once), curve helpers in data, hitch-proof timing tests, D-05 amended (G-01-58)
 - [ ] 01-15: Coin stream follows the curve and shows the cap rush, curve-timed build screenshot, real-window hold-pacing sandbox and owner feel check (G-01-58)
 - [ ] 01-16: Slow-drip tests on one flat-pace helper; security and validation records updated (G-01-58)
 
@@ -285,7 +285,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Day Loop | 13/16 | In Progress|  |
+| 1. Foundation & Day Loop | 14/16 | In Progress|  |
 | 2. Night Defense & Playtest Gate | 0/TBD | Not started | - |
 | 3. King Combat & Troops | 0/TBD | Not started | - |
 | 4. Crowd-Scale Battles & Walls | 0/TBD | Not started | - |
