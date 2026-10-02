@@ -56,7 +56,7 @@ Decimal phases appear between their surrounding integers in numeric order.
      - CI produces a Windows export
   5. A key toggles a debug overlay showing FPS, unit/enemy counts, and the current loop state (wave state and enemy paths join it once nights have enemies in Phase 2). Every third-party asset used so far is recorded in the repository's license/attribution log.
 
-**Plans**: 12/13 plans executed
+**Plans**: 13/13 plans executed
 **UI hint**: yes
 
 Plans:
@@ -84,7 +84,7 @@ Plans:
 
 **Gap closure (UAT 2026-10-02)** *(wave 1: 01-11, 01-13; wave 2: 01-12, after 01-11)*
 - [x] 01-11: Camera 1.3x further out on the same fixed angle, clamped keyboard/gamepad zoom, spot labels that keep their size (G-01-3)
-- [ ] 01-12: King shows as a light-cyan silhouette behind buildings, plus a king_behind_keep screenshot (G-01-3)
+- [x] 01-12: King shows as a light-cyan silhouette behind buildings, plus a king_behind_keep screenshot (G-01-3)
 - [x] 01-13: Slower coin drip (0.3 s per coin) for more deliberate build holds (G-01-4)
 
 ### Phase 2: Night Defense & Playtest Gate
@@ -280,7 +280,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Day Loop | 12/13 | In Progress|  |
+| 1. Foundation & Day Loop | 13/13 | In Progress|  |
 | 2. Night Defense & Playtest Gate | 0/TBD | Not started | - |
 | 3. King Combat & Troops | 0/TBD | Not started | - |
 | 4. Crowd-Scale Battles & Walls | 0/TBD | Not started | - |
