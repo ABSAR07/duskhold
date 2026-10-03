@@ -4,10 +4,10 @@ current_phase: 2
 current_phase_name: Night Defense & Playtest Gate
 status: planning
 stopped_at: Phase 01 complete, ready to plan Phase 2
-last_updated: "2026-10-03T07:23:26.970Z"
+last_updated: "2026-10-03T10:48:20.435Z"
 last_activity: 2026-10-03
 last_activity_desc: Phase 01 complete, transitioned to Phase 2
-state_head: 11a0c80b4f4f81d6524d0e71a57adb95157a5013
+state_head: 8872ebc00eb3c8704af69704bbfe52aa34c6a8bb
 progress:
   total_phases: 13
   completed_phases: 1
@@ -128,9 +128,9 @@ Recent decisions affecting current work:
 None yet.
 
 ### Blockers/Concerns
-- [Phase 1]: Five open code-review findings (2 warnings, 3 info) in tests and the hold-pacing sandbox only; see 01-REVIEW.md
-- [Phase 1]: On upgrades the drip coins fly into the already-built model and are hidden; the label coin row shows the pace (seen at UAT 59 and 60, not yet logged as a task)
 
+- [Phase 1]: Four open info-level code-review findings (a misleading coin VFX comment, a cosmetic aim drift of delayed refund coins, a sandbox test that cannot catch an in-place tuning change, a silent sandbox failure path); see 01-REVIEW.md
+- [Phase 1]: On upgrades the drip coins fly into the already-built model and are hidden; the label coin row shows the pace (seen at UAT 59 and 60, not yet logged as a task)
 - [Phase 2]: King respawn rules (timer, location) are a design decision because the sources don't document them; settle them in Phase 2's discuss-phase
 - [Phase 2]: Determinism (DEV-05) has to cover every night system added in Phase 2 (spawning, targeting, combat, destruction), so seeded-RNG and fixed-step rules should be fixed before combat code is written
 - [Phase 4]: Research flag: validate MultiMesh + NavigationServer3D avoidance vs flow fields empirically on Godot 4.7; decide GTX 970-class measurement method
@@ -154,6 +154,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-03T07:23:48.000Z
+Last session: 2026-10-03T10:49:09.000Z
 Stopped at: Phase 01 complete, ready to plan Phase 2
 Resume file: None
