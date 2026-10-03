@@ -12,6 +12,8 @@ const EPSILON: float = 0.0001
 const FIXTURE_GAP_S: float = 0.2
 const TINY_GAP_S: float = 0.01
 const HUGE_GAP_S: float = 5.0
+## D-05: 90% of the slowest allowed first interval (0.3 s), written out on purpose.
+const D05_CEILING_S: float = 0.27
 const STAGGER_GROUP_SIZES: Array[int] = [2, 6, 12, 26, 100]
 ## A hold far longer than any shipped tier, to look at the stream on the floor.
 const LONG_COST: int = 100
@@ -50,20 +52,18 @@ func test_a_tiny_zero_or_negative_gap_flies_for_the_minimum() -> void:
 
 
 func test_a_huge_gap_flies_for_the_ceiling() -> void:
-	assert_eq(
+	assert_almost_eq(
 		CoinDripVfx.flight_seconds_for(HUGE_GAP_S),
-		CoinDripVfx.MAX_FLIGHT_SECONDS,
+		D05_CEILING_S,
+		EPSILON,
 		"a slow drip never flies longer than the ceiling"
 	)
 
 
-func test_the_ceiling_is_derived_from_the_d05_bound() -> void:
-	assert_almost_eq(
-		CoinDripVfx.MAX_FLIGHT_SECONDS,
-		CoinDripVfx.FLIGHT_FRACTION_OF_INTERVAL * LoopTuning.COIN_DRIP_INTERVAL_MAX_S,
-		EPSILON,
-		"no hand-edited flight number (review IN-02)"
-	)
+## The ceiling is pinned to D-05's number as a literal (90% of the slowest 0.3 s first interval),
+## so a wrong constant cannot hide behind its own definition (review IN-01).
+func test_the_ceiling_is_the_d05_number() -> void:
+	assert_almost_eq(CoinDripVfx.MAX_FLIGHT_SECONDS, D05_CEILING_S, EPSILON, "0.9 * 0.3 s")
 
 
 ## True at any cost for the gaps above the minimum-flight break-even. Below it MIN_FLIGHT_SECONDS
