@@ -3,6 +3,22 @@ phase: 01
 review: 01-REVIEW.md
 titles: json
 findings:
+  - id: IN-01
+    severity: info
+    disposition: open
+    title: "Class doc says the BuildIntent is sent when the last coin lands, but it is sent when the last coin is paid (launched)"
+  - id: IN-02
+    severity: info
+    disposition: open
+    title: "Delayed coins fly to or from positions captured at event time"
+  - id: IN-03
+    severity: info
+    disposition: open
+    title: "Sandbox test compares the context's tuning to the cached shipped resource, so it cannot detect an in-place mutation"
+  - id: IN-04
+    severity: info
+    disposition: open
+    title: "Sandbox fails silently in the window when the map has no or a mis-tiered House"
   - id: WR-01
     severity: warning
     disposition: fixed
@@ -11,22 +27,6 @@ findings:
     severity: warning
     disposition: fixed
     title: "A shipped-data test asserts a property the design deliberately does not hold at the floor"
-  - id: IN-01
-    severity: info
-    disposition: fixed
-    title: "Tautological ceiling test, and a constant referenced only by tests (open from the previous IN-02)"
-  - id: IN-02
-    severity: info
-    disposition: fixed
-    title: "Delayed burst and refund coins sit visible and stacked before they launch (open from the previous IN-03)"
-  - id: IN-03
-    severity: info
-    disposition: fixed
-    title: "The sandbox's starting gold covers one plot's upgrade chain, but the map has five House plots"
-  - id: IN-04
-    severity: info
-    disposition: fixed
-    title: "Duplicated scaffolding and literals across the new tests and sandbox test"
   - id: WR-03
     severity: warning
     disposition: fixed
@@ -87,21 +87,21 @@ findings:
     severity: warning
     disposition: fixed
     title: "CI actions are pinned to mutable major tags, and the LFS cache key omits pointer verification"
-open: 0
+open: 4
 total: 21
-recorded: 2026-10-03T07:44:26.123Z
+recorded: 2026-10-03T10:37:23.957Z
 ---
 
 # Phase 01: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | fixed | 01-REVIEW-FIX.md |
-| WR-02 | warning | fixed | 01-REVIEW-FIX.md |
-| IN-01 | info | fixed | 01-REVIEW-FIX.md |
-| IN-02 | info | fixed | 01-REVIEW-FIX.md |
-| IN-03 | info | fixed | 01-REVIEW-FIX.md |
-| IN-04 | info | fixed | plan 01-17 Tasks 1 and 3 (E2eSupport.stand_at_spot, derived sandbox gold); confirmed closed by the 2026-10-02 re-review (not in the current review) |
+| IN-01 | info | open | - |
+| IN-02 | info | open | - |
+| IN-03 | info | open | - |
+| IN-04 | info | open | - |
+| WR-01 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
+| WR-02 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-03 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | IN-05 | info | fixed | 01-REVIEW-FIX.md (not in the current review) |
 | WR-04 | warning | fixed | 01-REVIEW-FIX.md (not in the current review) |
