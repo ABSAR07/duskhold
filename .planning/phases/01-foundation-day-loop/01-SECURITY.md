@@ -640,6 +640,26 @@ Verified at ASVS L1 grep depth against the code and tests:
 
 ---
 
+## Security Audit 2026-10-03 (re-audit after review-fix pass 26)
+
+| Metric | Count |
+|--------|-------|
+| Threats found | 32 |
+| Closed | 32 |
+| Open | 0 |
+
+Re-checked after review-fix pass 26 (`c3d2411`, `bf554d0`, `40710e3`, `3a6825b`, `afc393b`) and the three guard tests the validation audit added (`6975168`). Since the last audit only seven files changed: `coin_drip_vfx.gd` (4 lines), the sandbox script, the e2e helper and four test suites. No threat was added, and the fix report raises no threat flag.
+
+Verified at ASVS L1 grep depth against the code and tests:
+- **T-01-25:** the IN-02 fix only hides a coin while it waits for its launch delay and shows it when it launches. `MAX_BURST_COINS` (12) still bounds a same-frame group (`index >= MAX_BURST_COINS`) and a refund (`mini(coins_refunded, MAX_BURST_COINS)`), `BURST_WINDOW_SECONDS` is unchanged, and every coin's tween still ends in `queue_free`. `test_coin_drip_burst.gd` (8 tests) still checks the 12-coin cap and that every coin is freed, and now also that every hidden coin is shown before it is freed.
+- **T-01-26:** the sandbox still reprices a `duplicate_deep(Resource.DEEP_DUPLICATE_ALL)` copy. Its starting gold now covers every House plot (480), which changes only the copy. `export_presets.cfg` `exclude_filter` still contains `tools/*`, and `test_hold_pacing_sandbox.gd` (3 tests) still asserts the cached tier is untouched.
+- **T-01-22 / T-01-23:** the shipped tuning, the `LoopTuning` script and their contract tests are unchanged. `E2eSupport.flat_drip_tuning` now accepts a base tuning. It works on a `duplicate(true)` copy, and `test_e2e_support_tuning.gd` (5 tests) checks the base is left untouched. This is test-only code that never ships (`tests/*` is in the export `exclude_filter`).
+- **T-01-13:** the scoped name check is clean, including `tools/sandbox`.
+- **T-01-06 / T-01-17:** `tools/prepush_check.sh` PASSED over all refs (479 commits, 56 unpushed). There is one author identity.
+- **Tests:** full suite 367/367 (46 scripts) at `6975168`; lint clean.
+
+---
+
 ## Sign-Off
 
 - [x] All threats have a disposition (mitigate / accept / transfer)
