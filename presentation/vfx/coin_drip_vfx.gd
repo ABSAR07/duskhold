@@ -102,7 +102,11 @@ func _spawn_coin(from: Vector3) -> MeshInstance3D:
 func _fly(coin: MeshInstance3D, to: Vector3, delay: float, flight_seconds: float) -> void:
 	var tween: Tween = coin.create_tween()
 	if delay > 0.0:
+		# A coin waiting for its turn stays hidden, so a same-frame group or a refund is not drawn
+		# as a stack on the king or the spot (review IN-02). Timing and counts are unchanged.
+		coin.visible = false
 		tween.tween_interval(delay)
+		tween.tween_callback(coin.set_visible.bind(true))
 	tween.tween_property(coin, "global_position", to, flight_seconds)
 	tween.tween_callback(coin.queue_free)
 
