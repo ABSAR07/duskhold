@@ -3,7 +3,7 @@ status: complete
 phase: 01-foundation-day-loop
 source: [01-01-SUMMARY.md, 01-02-SUMMARY.md, 01-03-SUMMARY.md, 01-04-SUMMARY.md, 01-05-SUMMARY.md, 01-06-SUMMARY.md, 01-07-SUMMARY.md, 01-08-SUMMARY.md, 01-09-SUMMARY.md, 01-10-SUMMARY.md, 01-VERIFICATION.md]
 started: 2026-10-01T09:10:51Z
-updated: 2026-10-03T07:19:23Z
+updated: 2026-10-03T07:22:56Z
 ---
 
 ## Current Test
@@ -22,13 +22,15 @@ result: pass
 
 ### 3. Follow camera framing
 expected: The camera keeps one fixed angle (the player cannot rotate it), trails slightly behind the king and catches up, and keeps the king readable near the centre of the screen.
-result: issue
+result: pass
+superseded_note: "Originally recorded as an issue (gap G-01-3, resolved by plans 01-11 and 01-12); re-check tests 56 and 57 passed. Marked pass on 2026-10-03 with owner approval"
 reported: "mostly good, but when the king goes behind a building like behind the castle, his silhouette is not visible. The king disappears behind stuff basically. Is that intentional? / I think we should move the camera a bit further away. Also should have buttons that zoom out or zoom in, to a certain extent"
 severity: major
 
 ### 4. Map, plots and building growth
 expected: Riding the whole map: 5 tan House plots near the castle, 3 slate-blue tower plots further out and a castle keep at the centre; a House grows to tier II on a second hold (gold falls by 2, then 3); the far towers are about 10-15 s from the castle; the map is readable.
-result: issue
+result: pass
+superseded_note: "Originally recorded as an issue (gap G-01-4, build hold too short); re-check tests 58 to 60 followed and test 60 passed. Marked pass on 2026-10-03 with owner approval"
 reported: "pass. But the building count up time is too short. needs tweaking to make it a biiiit longer"
 severity: minor
 
@@ -62,7 +64,7 @@ verified_by: "Claude scripted real-window run 2026-10-02: two House I paid 2 coi
 ### 11. Start-night key label on a non-QWERTY layout
 expected: On a Dvorak or AZERTY layout, the start-night prompt names the key by the label printed on that keycap (on QWERTY the default reads 'Hold N / (Y) to start Night 1'), not by its US-QWERTY position.
 result: skipped
-reason: "Owner chose to skip on 2026-10-02: no non-QWERTY layout at hand; the fake-layout resolver seam is unit-tested"
+reason: "Deferred follow-up: owner chose to skip on 2026-10-02: no non-QWERTY layout at hand; the fake-layout resolver seam is unit-tested"
 
 ### 12. Simulation and test suite run headless
 expected: The whole simulation is built and exercised without a scene tree, and the full suite runs headless: bash tools/test.sh (Git Bash) passes 290/290, and the CI test job is green on 7ae173b.
@@ -334,13 +336,15 @@ result: pass
 
 ### 58. Re-check after gap closure: build hold length
 expected: Hold the action key at a House plot (House I, then II and III) and at a tower plot, and release early once. Expected: At 0.3 s per coin the hold (House I about 0.6 s, tower I about 1.2 s) feels 'a bit longer' and deliberate without dragging; the coin stream still reads as one coin at a time
-result: issue
+result: pass
+superseded_note: "Originally recorded as an issue (gap G-01-58, resolved by plans 01-14 to 01-16); the follow-on re-check test 60 passed. Marked pass on 2026-10-03 with owner approval"
 reported: "this is better. However, I think we should start with 0.25s per coin, and accelerate (since there will be buildings at some point that require e.g. 15 coins or even more). And set a max time limit too so for example set 3 seconds as the maximum time it takes, even if only half the coins are filled, just fast forward to full coin usage if that is possible given the current coins."
 severity: minor
 
 ### 59. Re-check after gap closure: accelerating, capped build hold
 expected: (1) Normal game: hold the action key (Space or gamepad A) at a House plot for House I, II and III, and at a tower plot. Expected: the first coin leaves after 0.25 s and the coins then come visibly faster; House I takes about 0.5 s, House III about 1.1 s and a tower about 0.9 s; the stream still reads as one coin at a time. (2) Sandbox (res://tools/sandbox/hold_pacing_sandbox.tscn; House plots cost 15, 30 and 50 coins per tier, with enough starting gold for all three): hold at one House plot three times, and once release just before 3 s. Expected: the 15-coin build takes about 2.2 s with a clearly accelerating stream; the 30-coin build stops at 3.0 s with its last 6 coins rushing in at once; the 50-coin build also stops at 3.0 s with about half its coins rushed in; releasing just before 3 s flies the coins back and builds nothing. Judge whether the 0.25 s start, the acceleration and the 3 s rush feel right. (The label's coin-icon row is very wide at these synthetic sandbox costs; label layout for expensive buildings belongs to a later phase and is not part of this check.)
-result: issue
+result: pass
+superseded_note: "Originally recorded as an issue (gap G-01-59, resolved by plans 01-17 and 01-18); re-check test 60 passed. Marked pass on 2026-10-03 with owner approval"
 reported: "yeah so i think dont keep 3 seconds as a hard limit, instead I think just keep 0.05s as the minimum time it takes for the coin to load after acceleration"
 severity: minor
 self_check: "Claude scripted real-window run 2026-10-02 (pinned Godot, Forward+): first coin 0.25 s; House I/II/III 0.50/0.73/1.11 s, Tower I/II 0.93/1.28 s, one coin in the air at a time; sandbox 15-coin 2.21 s, 30-coin 3.01 s (24 dripped + 6 rushed), 50-coin 3.01 s (24 + 26 rushed); release at 2.90 s on the 30-coin tier refunded 23 coins, gold and tier unchanged. Observed: the rush coins are hidden in stills (they launch inside the king model and fly 0.12 s to spot + 3.0 m, inside a built House whose roof is 3.14 m)"
@@ -354,8 +358,8 @@ self_check: "Claude scripted real-window run 2026-10-03 (pinned Godot 4.7.2, For
 ## Summary
 
 total: 60
-passed: 55
-issues: 4
+passed: 59
+issues: 0
 pending: 0
 skipped: 1
 blocked: 0
@@ -511,3 +515,7 @@ blocked: 0
 - test: 4
   idea: "yes, but a small minimap would be nice"
   deferred_at: 2026-10-01
+
+- test: 11
+  idea: "Check the start-night key label by hand on a non-QWERTY (Dvorak or AZERTY) layout"
+  deferred_at: 2026-10-03
