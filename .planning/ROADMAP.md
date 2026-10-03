@@ -108,8 +108,40 @@ Plans:
   3. From the command line and in CI, a seeded scripted night replays with identical results, and headless GUT tests cover waves, combat, and loop transitions (day → night → dawn, loss, win). During nights, the debug overlay shows live enemy counts, wave state, and enemy paths.
   4. Human playtest gate: the owner plays the prototype map through several full runs and either signs off that gold trade-offs feel meaningful and nights feel tense and readable, or records the tuning/feel fixes that must land before later phases begin. No meta-progression work is scheduled until this sign-off.
 
-**Plans**: TBD
+**Plans**: 11 plans
 **UI hint**: yes
+
+Plans:
+**Wave 1**
+- [ ] 02-01: Tracer — one seeded night end to end on the fixed 30 Hz step behind the determinism guards; event recorder, scripted bot and in-process replay digest
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 02-02: Eight real nights on the prototype map, every Phase 1 suite moved onto a waveless copy, night data validation and contract pins
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 02-03: Enemies target the king and the castle; king knockout and respawn countdown (6/10/14/15 s); hurt-only health bars and the ghost king
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 02-04: Buildings take damage and fall to rubble until dawn
+- [ ] 02-08: Spawn telegraph markers, night preview and banner, untimed-day regression; Wave/King/Paths overlay sections and the enemy-path gizmo
+
+**Wave 5** *(blocked on 02-04)*
+- [ ] 02-05: Towers and skirmishers shoot visible projectiles; the king's slash; enemy hit flashes and health bars
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 02-06: Free dawn rebuild, full repair, no income from rebuilt buildings and the crossed-out coin
+
+**Wave 7** *(blocked on Wave 6 completion)*
+- [ ] 02-07: Loss the instant the castle falls, victory after night 8, run stats, the loss beat and the results screen
+
+**Wave 8** *(blocked on 02-07 and 02-08)*
+- [ ] 02-09: Replay CLI and wrapper, frozen smoke golden, CI replay step, push and the cross-platform golden
+
+**Wave 9** *(blocked on Wave 8 completion)*
+- [ ] 02-10: Playtest strategies and balance report; D-10/D-04 tuning pass; 02-BALANCE-REPORT.md
+
+**Wave 10** *(blocked on Wave 9 completion)*
+- [ ] 02-11: Fifteen scripted screenshots with a readability review, final green CI, a launch-checked export and the owner's playtest gate packet
 
 ### Phase 3: King Combat & Troops
 
@@ -290,7 +322,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Day Loop | 18/18 | Complete    | 2026-10-03 |
-| 2. Night Defense & Playtest Gate | 0/TBD | Not started | - |
+| 2. Night Defense & Playtest Gate | 0/11 | Not started | - |
 | 3. King Combat & Troops | 0/TBD | Not started | - |
 | 4. Crowd-Scale Battles & Walls | 0/TBD | Not started | - |
 | 5. Castle Center & Economy Depth | 0/TBD | Not started | - |
