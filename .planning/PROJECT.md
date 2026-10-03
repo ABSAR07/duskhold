@@ -12,7 +12,12 @@ The day/night build-then-defend loop must feel as tight and satisfying as Throne
 
 ### Validated
 
-(None yet — ship to validate)
+- ✓ King is the only builder: ride to a build spot and hold the action key to build or upgrade (accelerating coin drip, refund on early release) — Phase 1
+- ✓ Fixed, pre-placed build spots per map (prototype sandbox map) — Phase 1
+- ✓ Mounted king movement with WASD / left stick and sprint, fixed follow camera with zoom — Phase 1 (combat follows in Phase 2)
+- ✓ Gold as the single currency, with House income paid at dawn and unspent gold carried over — Phase 1 (other economic buildings follow later)
+- ✓ Deliberately triggered night and dawn payout loop, with an enemy-free placeholder night — Phase 1 (wave defense follows in Phase 2)
+- ✓ Agent-verification tooling: headless GUT suite, lint, CI with Windows export and screenshots, debug overlay, CC0 asset log — Phase 1
 
 ### Active
 
@@ -28,11 +33,9 @@ Full, testable list with REQ-IDs: `.planning/REQUIREMENTS.md`. Summary:
 **King (player avatar)**
 - [ ] Mounted king moves with WASD / left stick and fights directly (weapon passive auto-attack + active ability)
 - [ ] King can be knocked out and respawns after a delay (does not end the run)
-- [ ] King is the only builder: ride to a build spot and hold the action key to build/upgrade (Thronefall style)
 
 **Economy & building**
 - [ ] Single currency (gold); economic buildings (House, Gold Mine, Mill + Fields, Fishing Harbor, Shrine) pay at dawn with distinct income curves
-- [ ] Fixed, pre-placed build spots per map
 - [ ] Full-depth branching upgrades (pick 1-of-N per tier) for Castle Center, Towers, and military buildings
 - [ ] Walls/barricades and multiple tower specializations
 - [ ] Blacksmith and Royal Forge multi-day research with global buffs
@@ -115,12 +118,13 @@ Full, testable list with REQ-IDs: `.planning/REQUIREMENTS.md`. Summary:
 | v1 = 5-map campaign with large meta content (5 weapons, 30+ perks, 10+ mutators) and full-depth upgrade trees | Owner wants full system depth and breadth in v1 | — Pending |
 | All optional buildings in v1, including Blacksmith/Royal Forge | Owner choice; research flags research buildings as the safest cut if scope pressure hits | — Pending |
 | Boss nights on maps 3, 4 and 5 | Owner choice; research warns about boss difficulty cliffs — tune carefully | — Pending |
-| Thronefall-style controls: ride up + hold action key to build; hotkeys for units; keyboard + gamepad; mouse for menus only | Research flagged click-to-build as the #1 design risk (removes travel cost and king-centric camera); owner chose to stay true to Thronefall | — Pending |
+| Thronefall-style controls: ride up + hold action key to build; hotkeys for units; keyboard + gamepad; mouse for menus only | Research flagged click-to-build as the #1 design risk (removes travel cost and king-centric camera); owner chose to stay true to Thronefall | ✓ Good — build hold validated in Phase 1 UAT |
 | Player level (XP from map runs) instead of separate per-map levels | Matches Thronefall's actual progression model | — Pending |
 | Low-poly 3D, CC0 asset packs | Matches Thronefall's look; zero cost; fast cohesive visuals | — Pending |
 | SFX only in v1 | Core feedback matters most; music can be added later | — Pending |
-| Godot 4.7.2-stable + GDScript | Text-based scenes/resources + headless CLI best suit AI-agent-driven development; MIT license; verified latest stable (2026-08-18) | — Pending |
+| Godot 4.7.2-stable + GDScript | Text-based scenes/resources + headless CLI best suit AI-agent-driven development; MIT license; verified latest stable (2026-08-18) | ✓ Good — Phase 1 shipped on it (363 headless tests, CI export) |
 | Codename "Duskhold" | Placeholder; must not reuse Thronefall branding | — Pending |
+| Build hold pacing: first coin after 0.25 s, accelerating (decay 0.9) to one coin every 0.05 s, no time cap, all-or-nothing refund | Owner feel checks in Phase 1 UAT (tests 58 to 60); expensive buildings must not drag, and nothing is fast-forwarded | ✓ Good — Phase 1 |
 
 ## Evolution
 
@@ -140,4 +144,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-29 after documenting the controls change across planning docs*
+*Last updated: 2026-10-03 after Phase 1*

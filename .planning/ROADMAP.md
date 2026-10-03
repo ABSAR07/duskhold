@@ -24,7 +24,7 @@ Sequencing rules this roadmap honors:
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation & Day Loop** - Godot project with headless test/lint/CI/screenshot/debug tooling, plus a playable day of riding, building, upgrading, and earning gold on the prototype map
+- [x] **Phase 1: Foundation & Day Loop** - Godot project with headless test/lint/CI/screenshot/debug tooling, plus a playable day of riding, building, upgrading, and earning gold on the prototype map (completed 2026-10-03)
 - [ ] **Phase 2: Night Defense & Playtest Gate** - Telegraphed nights, combat, king knockout, dawn rebuild and income, win/loss, and seeded replays; ends in a human playtest gate
 - [ ] **Phase 3: King Combat & Troops** - Barracks and Archery Range squads with hold/follow hotkeys, king active ability, full HUD, keyboard + gamepad
 - [ ] **Phase 4: Crowd-Scale Battles & Walls** - Walls and barricades, jam-free pathing, and hundreds of units/enemies/projectiles at 60 fps
@@ -56,7 +56,7 @@ Decimal phases appear between their surrounding integers in numeric order.
      - CI produces a Windows export
   5. A key toggles a debug overlay showing FPS, unit/enemy counts, and the current loop state (wave state and enemy paths join it once nights have enemies in Phase 2). Every third-party asset used so far is recorded in the repository's license/attribution log.
 
-**Plans**: 18/18 plans executed
+**Plans**: 18/18 plans complete
 **UI hint**: yes
 
 Plans:
@@ -289,7 +289,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Day Loop | 18/18 | In Progress|  |
+| 1. Foundation & Day Loop | 18/18 | Complete    | 2026-10-03 |
 | 2. Night Defense & Playtest Gate | 0/TBD | Not started | - |
 | 3. King Combat & Troops | 0/TBD | Not started | - |
 | 4. Crowd-Scale Battles & Walls | 0/TBD | Not started | - |
