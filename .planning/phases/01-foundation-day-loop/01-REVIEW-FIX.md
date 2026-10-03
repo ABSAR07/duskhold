@@ -1,70 +1,61 @@
 ---
 phase: 01-foundation-day-loop
-fixed_at: 2026-10-01T08:16:05Z
+fixed_at: 2026-10-03T07:40:46Z
 review_path: .planning/phases/01-foundation-day-loop/01-REVIEW.md
 iteration: 1
-findings_in_scope: 3
-fixed: 3
+findings_in_scope: 5
+fixed: 5
 skipped: 0
 status: all_fixed
 ---
 
-# Phase 1: Code Review Fix Report
+# Phase 01: Code Review Fix Report
 
-**Fixed at:** 2026-10-01T08:16:05Z
+**Fixed at:** 2026-10-03T07:40:46Z
 **Source review:** .planning/phases/01-foundation-day-loop/01-REVIEW.md
-**Iteration:** 1 (review-fix pass 26)
+**Iteration:** 1
 
 **Summary:**
-- Findings in scope: 3
-- Fixed: 3
+- Findings in scope: 5
+- Fixed: 5
 - Skipped: 0
 
-All three findings were documentation fixes. Only the `quaternius-horse` entry's `notes` in
-`assets/attribution.json` changed; no other field and no ASSETS.md table row was touched. All three files remain
-pure ASCII.
-
-**Verification:** run in the main checkout (not an isolated worktree; the orchestrator's run was sequential and
-the tests need the main checkout's Godot import cache and `addons/gut`). `bash tools/test.sh
--gselect=test_attribution_log.gd` passed 17/17 after each fix. The full suite `bash tools/test.sh` passed
-290/290 (36 scripts) after the last commit. No Godot process was left running. The pre-existing uncommitted
-change to `.planning/config.json` was left alone and never staged.
+Verification ran in the main checkout (no worktree; the pinned engine is in git-ignored `.tools/`). Final state: `bash tools/test.sh` 364/364 passing (363 plus the new WR-01 test), `bash tools/lint.sh` green (84 files, no problems). No Godot process left running.
 
 ## Fixed Issues
 
-### WR-01: "Not redistributed as a standalone asset" is inaccurate for a public repository
+### WR-01: The "helper is uncapped" test cannot fail, so the cap guard in `flat_drip_tuning` is unpinned
 
-**Files modified:** `ASSETS.md`, `assets/attribution.json`, `assets/third_party/quaternius_horse/License.txt`
-**Commit:** f84de3b
-**Applied fix:** Replaced the "used inside a game, not redistributed as a standalone asset" wording in all three
-records with the accurate position. The unmodified GLB is also committed (Git LFS) to the public repository
-ABSAR07/duskhold and ships in the exported build. CC0 allows both. If the Quaternius Asset License governed
-instead, the public copy could count as the "standalone asset" redistribution it forbids. The owner also accepts
-this risk (2026-10-01). The owner's two decisions (keep the horse and accept the licence risk; accept the
-public, unmodified GLB) were made on 2026-10-01 and are recorded as the owner's, not the fixer's. All quoted
-source wording, dates, the CC0-1.0 classification and the keep decision were left as they were.
-**Status:** fixed (wording of a record, no logic; no human verification needed beyond the owner's own decisions)
+**Files modified:** `tests/e2e/e2e_support.gd`, `tests/unit/test_e2e_support_tuning.gd`
+**Commit:** c3d2411
+**Applied fix:** `flat_drip_tuning` takes an optional `base: LoopTuning = null` (defaults to the shipped tuning). New test `test_a_long_hold_is_not_capped_even_from_a_capped_base` feeds a base with `max_build_hold_seconds = 1.0` and asserts the cap is cleared, the hold is the flat sum, and the base is left untouched.
 
-### IN-01: "How to add an asset" still describes `sha256` as always "of the downloaded archive"
+### WR-02: A shipped-data test asserts a property the design deliberately does not hold at the floor
 
-**Files modified:** `ASSETS.md`
-**Commit:** 49fb595
-**Applied fix:** Step 4 now reads "`sha256` (of the downloaded archive, or of the file itself when there is no
-archive; say which in `notes`, see "Archive checksums and download evidence" above)".
+**Files modified:** `tests/unit/test_coin_drip_flight.gd`
+**Commit:** bf554d0
+**Applied fix:** The test (renamed `..._above_the_break_even_...`) only asserts flight < gap for gaps above `MIN_FLIGHT_SECONDS / FLIGHT_FRACTION_OF_INTERVAL`, counts checked gaps so it is not vacuous, and the file header now states that overlap at the floor is intended (the airborne-bound test covers it).
 
-### IN-02: The same source page is quoted two ways
+### IN-01: Tautological ceiling test, and a constant referenced only by tests (open from the previous IN-02)
 
-**Files modified:** `ASSETS.md`, `assets/attribution.json`, `assets/third_party/quaternius_horse/License.txt`
-**Commit:** 70f4030
-**Applied fix:** Following the orchestrator's instruction not to fetch any external site and not to rewrite
-either quote, left both quotes ("License CC0" for 2026-09-29, "License: CC0" for 2026-10-01) verbatim and added
-a short note beside them in all three records. The note says they are the same licence line transcribed on
-different dates, that the 2026-10-01 re-check came from a web-to-markdown fetch which may have added the colon,
-and that both name CC0. Neither record can establish whether the colon is page text or formatting, and the note
-does not claim to.
+**Files modified:** `tests/unit/test_coin_drip_flight.gd`
+**Commit:** 40710e3
+**Applied fix:** Added a literal `D05_CEILING_S = 0.27` (0.9 x 0.3 s). `test_the_ceiling_is_the_d05_number` and `test_a_huge_gap_flies_for_the_ceiling` both compare against that literal instead of the constant's own definition. `COIN_DRIP_INTERVAL_MIN_S` was left in place: it is the documented D-05 range bound read by the contract test, and removing it is outside the review's fix.
+
+### IN-02: Delayed burst and refund coins sit visible and stacked before they launch (open from the previous IN-03)
+
+**Files modified:** `presentation/vfx/coin_drip_vfx.gd`
+**Commit:** 3a6825b
+**Applied fix:** In `_fly`, when `delay > 0.0` the coin is hidden, then made visible by a `tween_callback` right after the interval. Delays, flight, coin counts and `live_coin_count()` are unchanged; the existing burst/refund tests stay green (full suite 364/364). Fixed: requires human verification of the look in a real window (not visually checked).
+
+### IN-03: The sandbox's starting gold covers one plot's upgrade chain, but the map has five House plots
+
+**Files modified:** `tools/sandbox/hold_pacing_sandbox.gd`, `tests/e2e/test_hold_pacing_sandbox.gd`
+**Commit:** afc393b
+**Applied fix:** New `HoldPacingSandbox.house_plot_count(config)`; starting gold is `chain_total * house_plot_count + GOLD_MARGIN`. The sandbox test derives the expected gold from the map's House spots and asserts several plots exist.
 
 ---
 
-_Fixed: 2026-10-01T08:16:05Z_
+_Fixed: 
 _Fixer: Claude (gsd-code-fixer)_
 _Iteration: 1_
