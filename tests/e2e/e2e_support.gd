@@ -40,10 +40,11 @@ static func map_with_tier_cost(
 ## they depend neither on the shipped acceleration nor on any cap a later retune might set (D-05 as
 ## amended, UAT G-01-58 and G-01-59). Tests that measure the shipped pacing must keep using the
 ## shipped tuning. LoopTuning holds only scalars, so the copy shares nothing with the cached
-## resource other tests read.
-static func flat_drip_tuning(seconds_per_coin: float) -> LoopTuning:
-	var shipped: LoopTuning = load(TUNING_PATH)
-	var tuning: LoopTuning = shipped.duplicate(true)
+## resource other tests read. `base` replaces the shipped tuning as the copy's source, so a test can
+## prove the cap is cleared even from a capped tuning (review WR-01).
+static func flat_drip_tuning(seconds_per_coin: float, base: LoopTuning = null) -> LoopTuning:
+	var source: LoopTuning = base if base != null else load(TUNING_PATH)
+	var tuning: LoopTuning = source.duplicate(true)
 	tuning.coin_drip_interval = seconds_per_coin
 	tuning.coin_drip_decay = 1.0
 	tuning.max_build_hold_seconds = 0.0

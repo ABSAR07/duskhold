@@ -23,6 +23,17 @@ func test_a_long_hold_is_not_capped() -> void:
 	)
 
 
+func test_a_long_hold_is_not_capped_even_from_a_capped_base() -> void:
+	var capped: LoopTuning = LoopTuning.new()
+	capped.max_build_hold_seconds = 1.0
+	var tuning: LoopTuning = E2eSupport.flat_drip_tuning(PACE_S, capped)
+	assert_eq(tuning.max_build_hold_seconds, 0.0, "the cap is cleared")
+	assert_almost_eq(
+		tuning.build_hold_seconds(COST_CHECKED), PACE_S * COST_CHECKED, 0.0001, "ten coins, ten s"
+	)
+	assert_eq(capped.max_build_hold_seconds, 1.0, "the base is left alone")
+
+
 func test_every_other_field_is_the_shipped_value() -> void:
 	var shipped: LoopTuning = load(SHIPPED_PATH)
 	var tuning: LoopTuning = E2eSupport.flat_drip_tuning(PACE_S)
