@@ -1,8 +1,8 @@
 extends GutTest
 ## The hold-pacing sandbox (tools/sandbox) is the owner's real-window way to feel the accelerating,
 ## uncapped hold where every coin drips (UAT G-01-58 and G-01-59). This keeps it loading with House
-## tiers of 15, 30 and 50 coins, enough gold for all three, the shipped tuning, and the shipped
-## House data untouched.
+## tiers of 15, 30 and 50 coins, enough gold for all three on every House plot, the shipped
+## tuning, and the shipped House data untouched.
 
 const SANDBOX_SCENE := "res://tools/sandbox/hold_pacing_sandbox.tscn"
 const HOUSE_PATH := "res://data/buildings/house.tres"
@@ -11,13 +11,17 @@ const EXPECTED_COSTS: Array[int] = [15, 30, 50]
 const SHIPPED_TUNING_PATH := "res://data/tuning/loop_tuning.tres"
 
 
-## Gold the sandbox is expected to start with: every tier's cost plus its margin, derived from the
-## sandbox's own constants (review IN-04).
-func _expected_gold() -> int:
-	var total: int = HoldPacingSandbox.GOLD_MARGIN
+## Gold the sandbox is expected to start with: every tier's cost on every House plot plus its
+## margin, derived from the sandbox's constants and the map's spots (review IN-04, IN-03).
+func _expected_gold(map: MapConfig) -> int:
+	var chain: int = 0
 	for cost: int in HoldPacingSandbox.SANDBOX_HOUSE_COSTS:
-		total += cost
-	return total
+		chain += cost
+	var plots: int = 0
+	for spot: BuildSpotDef in map.spots:
+		if spot.building_id == HOUSE:
+			plots += 1
+	return chain * plots + HoldPacingSandbox.GOLD_MARGIN
 
 
 func _house_costs(house: BuildingDef) -> Array[int]:
@@ -55,7 +59,14 @@ func test_the_sandbox_starts_the_map_with_the_expensive_house_tiers() -> void:
 	if house == null:
 		return
 	assert_eq(_house_costs(house), EXPECTED_COSTS, "House tiers cost 15, 30 and 50")
-	assert_eq(ctx.economy.get_gold(), _expected_gold(), "gold covers all three tiers plus a margin")
+	assert_gt(
+		_expected_gold(ctx.map), 100, "the map has several House plots, so one chain is not it"
+	)
+	assert_eq(
+		ctx.economy.get_gold(),
+		_expected_gold(ctx.map),
+		"gold covers all three tiers on every House plot plus a margin"
+	)
 
 
 func test_the_sandbox_uses_the_shipped_tuning_so_every_coin_drips() -> void:
