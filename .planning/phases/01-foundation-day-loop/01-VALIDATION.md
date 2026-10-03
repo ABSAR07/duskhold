@@ -27,7 +27,7 @@ validated: "2026-09-29"
 | **Full suite command** | `bash tools/test.sh` (headless import pass, then GUT over all three dirs; fails on any first-party parse/load error) |
 | **Single file** | `bash tools/test.sh -gselect=<test_file>.gd` |
 | **Lint** | `bash tools/lint.sh` (gdtoolkit 4.5.0: `gdformat --check` + `gdlint`) |
-| **Measured runtime** | Quick: ~17 s wall (24 scripts, 222 tests). Full: ~137 s GUT time (46 scripts, 363 tests) |
+| **Measured runtime** | Quick: ~16 s wall (24 scripts, 223 tests). Full: ~134 s GUT time (46 scripts, 367 tests) |
 
 The `tools/*.sh` wrappers need Git Bash on Windows; they resolve the pinned binary under `.tools/godot/4.7.2-stable/` (D-14).
 
@@ -165,8 +165,12 @@ GUT rows run as `bash tools/test.sh -gselect=<file>`. Threat refs are the plans'
 | 01-17-T1 | 01-17 | gap 1 | BLDG-03, BLDG-04 | T-01-24, T-01-27 | Tracer: with the shipped tuning (no cap) every coin of a 30-coin hold drips at its own due time, never two in one step, completing at about 2.94 s with one `BuildIntent` and one debit; one long frame pays all due coins and completes with one debit; a release after 29 coins refunds all 29; review WR-01 closed (stepped controller, no wall-clock) | e2e | `test_build_hold_long.gd` (6 tests) | ✅ | ✅ green |
 | 01-17-T2 | 01-17 | gap 1 | BLDG-03, BLDG-04 | T-01-22, T-01-23 | Owner's G-01-59 curve pinned (House I 0.5 s, Tower I 0.93 s, floor 0.05 s reached at coin 18); shipped data held to no cap and the 0.05 s floor; the cap mode stays a tested dormant switch; review WR-02 resolved (in-range asserts); D-05 amendment recorded in 01-CONTEXT | unit | `test_loop_tuning_curve.gd` (15 tests), `test_loop_tuning_contract.gd` (8 tests) | ✅ | ✅ green |
 | 01-17-T3 | 01-17 | gap 1 | BLDG-03 | T-01-25, T-01-26 | Coin groups come from long frames and refunds (6-coin group staggered, 60-coin group and 29-coin refund draw 12, all freed); at most 3 drip coins in the air on the shipped curve; sandbox and helper pins follow the uncapped hold; review IN-04 closed (`E2eSupport.stand_at_spot`, derived sandbox gold) | unit + e2e | `test_coin_drip_burst.gd` (5 tests), `test_coin_drip_flight.gd` (10 tests), `test_hold_pacing_sandbox.gd` (3 tests), `test_e2e_support_tuning.gd` (4 tests); whole suite `bash tools/test.sh`, 363/363 | ✅ | ✅ green |
-| 01-18-T1 | 01-18 | gap 2 | BLDG-03, BLDG-04 | — | Tracer: the controller and coin VFX doc comments describe the uncapped, due-time drip and state no seconds (review IN-01 closed); no code line changed; the sandbox was driven in a real window (15/30/50 coins at 2.178 / 2.942 / 3.938 s, one coin per frame, at most 3 coins in the air); owner re-check of G-01-59 queued for the end of the phase | unit + e2e + real window | whole suite `bash tools/test.sh` (363/363) plus the comment gate of the 01-18 Task 1 `<verify>`; owner re-check pending | ✅ | ✅ green (owner re-check pending) |
+| 01-18-T1 | 01-18 | gap 2 | BLDG-03, BLDG-04 | — | Tracer: the controller and coin VFX doc comments describe the uncapped, due-time drip and state no seconds (review IN-01 closed); no code line changed; the sandbox was driven in a real window (15/30/50 coins at 2.178 / 2.942 / 3.938 s, one coin per frame, at most 3 coins in the air); the owner re-check of G-01-59 passed at UAT test 60 on 2026-10-03 | unit + e2e + real window | whole suite `bash tools/test.sh` (363/363) plus the comment gate of the 01-18 Task 1 `<verify>`; owner re-check passed (UAT test 60) | ✅ | ✅ green |
 | 01-18-T2 | 01-18 | gap 2 | BLDG-03, BLDG-04 | T-01-22 to T-01-25, T-01-27 | Docs task: the security register (T-01-22 to T-01-25 refreshed, T-01-27 and AR-06 added) and this map describe the uncapped hold with the 0.05 s floor as built | docs | grep checks of the 01-18 Task 2 `<verify>` (T-01-27, AR-06, `01-01 to 01-18`, `test_build_hold_long`, `01-17-T1`, `01-17-T3`, `01-18-T2`, `superseded by 01-17`) | ✅ | ✅ green |
+| WR-01 fix (pass 26) | review | — | BLDG-03, DEV-01 | — | `E2eSupport.flat_drip_tuning` clears the hold cap whatever base tuning it is given: a base capped at 1 s still gives the flat, uncapped sum, and the base is left untouched (fails 1/5 with the helper's cap line removed, orchestrator-probed) | unit | `test_e2e_support_tuning.gd` (5 tests; `test_a_long_hold_is_not_capped_even_from_a_capped_base`) | ✅ | ✅ green |
+| WR-02 / IN-01 fix (pass 26) | review | — | BLDG-03 | T-01-25 | A coin lands before the next one leaves for every shipped gap above the minimum-flight break-even (overlap at the floor is intended and covered by the airborne bound); the flight ceiling is pinned to the D-05 literal 0.27 s, not to its own definition (both fail under orchestrator mutation probes) | unit | `test_coin_drip_flight.gd` (10 tests; `test_every_shipped_coin_above_the_break_even_lands_before_the_next_one_leaves`, `test_the_ceiling_is_the_d05_number`, `test_a_huge_gap_flies_for_the_ceiling`) | ✅ | ✅ green |
+| IN-02 fix (pass 26) | review | — | BLDG-03 | T-01-25 | A coin that waits for its launch delay (a same-frame group or a refund) is hidden and is shown when it launches, so no stack is drawn on the king or the spot; a coin with no delay is drawn at once; counts and timing are unchanged | e2e + real window | `test_coin_drip_burst.gd` (8 tests; three added by the 2026-10-03 audit: `test_a_normal_drip_coin_is_drawn_at_once`, `test_a_long_frame_group_hides_the_coins_that_wait`, `test_refund_coins_wait_hidden_and_are_shown_when_they_launch`); refund on an empty sandbox plot driven in a real window | ✅ | ✅ green |
+| IN-03 fix (pass 26) | review | — | BLDG-03 | T-01-26 | The hold-pacing sandbox starts with enough gold for the 15/30/50 chain on every House plot of the map (480 on the prototype map's five plots), derived from the map's spots (fails 1/3 with the old one-plot formula, orchestrator-probed) | e2e | `test_hold_pacing_sandbox.gd` (3 tests; `test_the_sandbox_starts_the_map_with_the_expensive_house_tiers`) | ✅ | ✅ green |
 
 Owner gates with no automated verify by design: 01-01-T2 (toolchain download approval), 01-03-T2 (public repo name), 01-07-T2 (CC0 model download approval). No run of three consecutive tasks lacks automated verification.
 
@@ -867,3 +871,27 @@ Evidence:
 - Full suite 363/363 (46 scripts, ~137 s GUT time) at `c0c6e74`; lint clean (84 files).
 - Unit quick run 222/222 (24 scripts, ~17 s wall).
 - wave:post gates (schema drift, codebase drift, UI safety) passed after each of the two waves.
+
+## Validation Audit 2026-10-03 (re-audit after review-fix pass 26)
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 1 |
+| Resolved | 1 |
+| Escalated | 0 |
+
+Re-audited after the twenty-sixth review-fix pass (5 commits, `c3d2411`, `bf554d0`, `40710e3`, `3a6825b` and `afc393b`), which closed the five findings of the 2026-10-02 review. It touched one presentation file (`coin_drip_vfx.gd`), the sandbox script, the e2e helper and three test suites. 15/15 requirements are still COVERED.
+
+- **Gap (IN-02):** the fix hides a coin while it waits for its launch delay, and it shipped without a test. With `coin.visible = false` deleted, `test_coin_drip_burst` (5/5) and `test_coin_drip` (4/4) stayed green. The auditor added three tests to `test_coin_drip_burst.gd` (now 8); the orchestrator tightened them to share one helper. They fail 2/8 with the hide removed and 1/8 with the show callback removed.
+- **Mutation probes (orchestrator):** the other four fixes are guarded.
+  - WR-01: with the helper's cap line removed, `test_e2e_support_tuning` fails 1/5 (the new capped-base test).
+  - WR-02: with the flight fraction at 1.1, `test_coin_drip_flight` fails 3/10, including the rewritten break-even test.
+  - IN-01: with `COIN_DRIP_INTERVAL_MAX_S` at 0.4, the two ceiling tests fail (2/10).
+  - IN-03: with the gold formula back to one plot's chain, `test_hold_pacing_sandbox` fails 1/3.
+- **Tests:** +4, from 363 to 367. `test_e2e_support_tuning` 4 → 5 (fix pass) and `test_coin_drip_burst` 5 → 8 (this audit). `test_coin_drip_flight` (10) and `test_hold_pacing_sandbox` (3) changed at the same counts.
+- **Real window (orchestrator):** a refund of 13 paid coins on an empty sandbox plot drew 12 coins. Eleven started hidden and appeared one at a time, about every 0.03 s; no stack was drawn (at most one coin was visible at the spot, in the frame it launched), and all the gold came back (480).
+- **Manual:** the owner's re-check of the uncapped pace is done. UAT test 60 passed on 2026-10-03 on the orchestrator's scripted real-window run, with the owner's go-ahead. Row 01-18-T1 records it.
+
+Evidence:
+- Full suite 367/367 (46 scripts, ~134 s GUT time) on `afc393b` plus the three new tests; lint clean (84 files).
+- Unit quick run 223/223 (24 scripts, ~16 s wall).
