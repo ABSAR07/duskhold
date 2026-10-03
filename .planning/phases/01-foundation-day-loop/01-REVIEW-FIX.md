@@ -56,6 +56,6 @@ Verification ran in the main checkout (no worktree; the pinned engine is in git-
 
 ---
 
-_Fixed: 
+_Fixed: 2026-10-03T07:40:46Z_
 _Fixer: Claude (gsd-code-fixer)_
 _Iteration: 1_
