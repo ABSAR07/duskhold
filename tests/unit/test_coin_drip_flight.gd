@@ -1,10 +1,10 @@
 extends GutTest
 ## UAT G-01-59 (D-05 amended again): the coin stream follows the accelerating, uncapped hold. A coin
-## flies for 90% of the gap to the next coin, so on every shipped build the coins still arrive one
-## at a time. Coins paid in one frame (a long frame) or flown back by a refund leave staggered
-## inside a short window. The airborne bound is derived from the minimum flight and the shipped
-## floor, and the flight ceiling from LoopTuning's D-05 bound (review IN-02). Pure math, no scene
-## tree.
+## flies for 90% of the gap to the next coin, so while the gap is above the minimum-flight
+## break-even the coins arrive one at a time; below it (the floor) they overlap by design. Coins
+## paid in one frame (a long frame) or flown back by a refund leave staggered inside a short
+## window. The airborne bound is derived from the minimum flight and the shipped floor, and the
+## flight ceiling from LoopTuning's D-05 bound (review IN-02). Pure math, no scene tree.
 
 const TUNING := "res://data/tuning/loop_tuning.tres"
 const PROTOTYPE_MAP := "res://data/maps/prototype_map.tres"
@@ -66,18 +66,28 @@ func test_the_ceiling_is_derived_from_the_d05_bound() -> void:
 	)
 
 
-func test_every_shipped_coin_lands_before_the_next_one_leaves() -> void:
+## True at any cost for the gaps above the minimum-flight break-even. Below it MIN_FLIGHT_SECONDS
+## lifts the flight past the gap, and that overlap at the floor is intended (the airborne-bound test
+## covers it), so those coins are not asserted here.
+func test_every_shipped_coin_above_the_break_even_lands_before_the_next_one_leaves() -> void:
 	var tuning: LoopTuning = _tuning()
 	var costs: Array[int] = _tier_costs()
+	var break_even_s: float = (
+		CoinDripVfx.MIN_FLIGHT_SECONDS / CoinDripVfx.FLIGHT_FRACTION_OF_INTERVAL
+	)
+	var checked: int = 0
 	assert_gt(costs.size(), 0, "the shipped map has tiers")
 	for cost: int in costs:
 		for coin: int in range(1, cost):
 			var gap_s: float = tuning.coin_interval(coin + 1)
-			assert_lt(
-				CoinDripVfx.flight_seconds_for(gap_s),
-				gap_s,
-				"coin %d of a %d-coin tier lands before coin %d leaves" % [coin, cost, coin + 1]
-			)
+			if gap_s > break_even_s:
+				checked += 1
+				assert_lt(
+					CoinDripVfx.flight_seconds_for(gap_s),
+					gap_s,
+					"coin %d of a %d-coin tier lands before coin %d leaves" % [coin, cost, coin + 1]
+				)
+	assert_gt(checked, 0, "some shipped gaps are above the break-even, so the loop is not vacuous")
 
 
 func test_the_first_coin_leaves_no_visible_gap() -> void:
