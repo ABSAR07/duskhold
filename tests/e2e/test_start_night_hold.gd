@@ -11,7 +11,7 @@ const WAIT_SLACK_S: float = 3.0
 const HOUSE_SPOT: StringName = &"house_1"
 const PAYING_SPOT: StringName = &"house_2"
 const NEAR_OFFSET := Vector3(0.5, 0.0, 0.0)
-const NIGHT_BANNER := "Night 1 — no enemies yet"
+const NIGHT_BANNER := "Night 1"
 ## The tuned hold and the tap length of the early-release test: the tap is under 10% of the hold.
 const SLOW_HOLD_S: float = 6.0
 const TAP_S: float = 0.4
