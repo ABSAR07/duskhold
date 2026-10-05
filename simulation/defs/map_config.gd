@@ -108,24 +108,34 @@ func _validate_night_data() -> PackedStringArray:
 		if enemy == null:
 			errors.append("an enemy entry is empty")
 			continue
-		if enemy.id == &"" or enemy_ids.has(enemy.id):
-			errors.append("enemy id '%s' is empty or duplicated" % enemy.id)
+		if enemy.id == &"":
+			errors.append("an enemy has an empty id")
+		if enemy_ids.has(enemy.id):
+			errors.append("duplicate enemy id '%s'" % enemy.id)
 		enemy_ids[enemy.id] = true
 		if enemy.max_health <= 0:
 			errors.append("enemy '%s' max_health is %d" % [enemy.id, enemy.max_health])
+		if enemy.move_speed <= 0.0:
+			errors.append("enemy '%s' move_speed is %s" % [enemy.id, enemy.move_speed])
+		if enemy.attack_interval <= 0.0:
+			errors.append("enemy '%s' attack_interval is %s" % [enemy.id, enemy.attack_interval])
 	var spawn_ids: Dictionary = {}
 	for spawn_point: SpawnPointDef in spawn_points:
 		if spawn_point == null:
 			errors.append("a spawn point entry is empty")
 			continue
-		if spawn_point.id == &"" or spawn_ids.has(spawn_point.id):
-			errors.append("spawn point id '%s' is empty or duplicated" % spawn_point.id)
+		if spawn_point.id == &"":
+			errors.append("a spawn point has an empty id")
+		if spawn_ids.has(spawn_point.id):
+			errors.append("duplicate spawn point id '%s'" % spawn_point.id)
 		spawn_ids[spawn_point.id] = true
 	for index: int in range(nights.size()):
 		errors.append_array(_validate_night(index + 1, nights[index], enemy_ids, spawn_ids))
 	return errors
 
 
+## The errors of one night (1-based). A night that totals no enemy is reported once: when its
+## groups are missing, or when every group is already reported for its own count.
 func _validate_night(
 	night_number: int, night: NightDef, enemy_ids: Dictionary, spawn_ids: Dictionary
 ) -> PackedStringArray:
@@ -134,19 +144,30 @@ func _validate_night(
 		errors.append("night %d is empty" % night_number)
 		return errors
 	var total: int = 0
-	for group: SpawnGroupDef in night.groups:
+	for index: int in range(night.groups.size()):
+		var group: SpawnGroupDef = night.groups[index]
+		var label: String = "night %d group %d" % [night_number, index + 1]
 		if group == null:
-			errors.append("night %d has an empty group" % night_number)
+			errors.append("%s is empty" % label)
 			continue
 		if not spawn_ids.has(group.spawn_point_id):
-			errors.append(
-				"night %d uses unknown spawn point '%s'" % [night_number, group.spawn_point_id]
-			)
+			errors.append("%s uses unknown spawn point '%s'" % [label, group.spawn_point_id])
 		if not enemy_ids.has(group.enemy_id):
-			errors.append("night %d uses unknown enemy '%s'" % [night_number, group.enemy_id])
-		if group.count <= 0 or group.start_delay_seconds < 0.0 or group.interval_seconds < 0.0:
-			errors.append("night %d has a group with a bad count or delay" % night_number)
+			errors.append("%s uses unknown enemy '%s'" % [label, group.enemy_id])
+		if group.count <= 0:
+			errors.append("%s has count %d" % [label, group.count])
+		if group.start_delay_seconds < 0.0:
+			errors.append("%s has a negative start_delay_seconds" % label)
+		if group.interval_seconds < 0.0:
+			errors.append("%s has a negative interval_seconds" % label)
 		total += maxi(group.count, 0)
-	if total <= 0:
-		errors.append("night %d spawns no enemy" % night_number)
+	if total <= 0 and errors.is_empty():
+		errors.append("night %d has no enemies" % night_number)
+	if total > MAX_ENEMIES_PER_NIGHT:
+		errors.append(
+			(
+				"night %d has %d enemies, more than the %d allowed"
+				% [night_number, total, MAX_ENEMIES_PER_NIGHT]
+			)
+		)
 	return errors
