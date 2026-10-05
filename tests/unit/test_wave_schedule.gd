@@ -118,3 +118,69 @@ func test_the_preview_adds_up_to_the_schedule_the_night_will_play() -> void:
 			WaveSchedule.new(map, night_number).total_count(),
 			"night %d: the telegraphed enemies are the enemies that spawn" % night_number
 		)
+
+
+## A night of `group_count` groups that each ask for `per_group` grunts from the west road, on a
+## copy of the shipped map. The spawn point and enemy are real, so no group is skipped.
+func _crowded_night(group_count: int, per_group: int) -> MapConfig:
+	var map: MapConfig = _shipped()
+	map.night_def(1).groups.clear()
+	for _index: int in range(group_count):
+		map.night_def(1).groups.append(_group(WEST, per_group))
+	return map
+
+
+func _previewed(map: MapConfig, night_number: int) -> int:
+	var previewed: int = 0
+	for count: int in WaveSchedule.preview_counts(map, night_number).values():
+		previewed += count
+	return previewed
+
+
+func test_one_oversized_group_never_spawns_more_than_a_night_may_hold() -> void:
+	var map: MapConfig = _crowded_night(1, MapConfig.MAX_ENEMIES_PER_NIGHT * 5)
+
+	var schedule: WaveSchedule = WaveSchedule.new(map, 1)
+
+	assert_eq(
+		schedule.total_count(),
+		MapConfig.MAX_ENEMIES_PER_NIGHT,
+		"a group asking for far more spawns exactly the night limit"
+	)
+
+
+func test_many_oversized_groups_together_stay_inside_the_night_limit() -> void:
+	var map: MapConfig = _crowded_night(20, 500)
+
+	var schedule: WaveSchedule = WaveSchedule.new(map, 1)
+
+	assert_lte(
+		schedule.total_count(),
+		MapConfig.MAX_ENEMIES_PER_NIGHT,
+		"twenty groups of five hundred cannot spawn ten thousand enemies"
+	)
+	assert_gt(schedule.total_count(), 0, "the night is capped, not emptied")
+
+
+func test_the_night_limit_is_shared_out_in_group_order() -> void:
+	var limit: int = MapConfig.MAX_ENEMIES_PER_NIGHT
+	var map: MapConfig = _crowded_night(2, limit - 10)
+
+	var schedule: WaveSchedule = WaveSchedule.new(map, 1)
+
+	assert_eq(schedule.total_count(), limit, "the first group fills most, the second the rest")
+	var from_second: int = 0
+	for entry: WaveSchedule.Entry in schedule.take_due(1000000):
+		if entry.group_index == 1:
+			from_second += 1
+	assert_eq(from_second, 10, "the second group gets only what the first left over")
+
+
+func test_the_preview_agrees_with_a_capped_schedule() -> void:
+	var map: MapConfig = _crowded_night(20, 500)
+
+	assert_eq(
+		_previewed(map, 1),
+		WaveSchedule.new(map, 1).total_count(),
+		"the telegraph shows the enemies the capped night will actually bring"
+	)
