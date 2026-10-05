@@ -35,6 +35,9 @@ const BUILDING_BAR_WIDTH: float = 2.0
 const COLLAPSE_SINK_DEPTH: float = 0.6
 const COLLAPSE_SQUASH_SCALE := Vector3(1.12, 0.04, 1.12)
 const BAR_NODE_NAME := "HealthBar"
+## A rebuilt building grows up from the ground over this long, from this flat scale.
+const RISE_SECONDS: float = 0.4
+const RISE_START_SCALE := Vector3(1.0, 0.05, 1.0)
 
 ## Model lookup; assign before bind_run. A null catalog means primitives everywhere.
 @export var catalog: BuildingViewCatalog = DEFAULT_CATALOG
@@ -53,6 +56,7 @@ func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 	ctx.events.building_built.connect(_on_building_built)
 	ctx.events.building_damaged.connect(_on_building_damaged)
 	ctx.events.building_destroyed.connect(_on_building_destroyed)
+	ctx.events.buildings_rebuilt.connect(_on_buildings_rebuilt)
 
 
 ## The castle's health bar: hidden at full health, shown once the castle is hurt (D-12 rule).
@@ -141,6 +145,29 @@ func _marker_color(building_id: StringName) -> Color:
 
 
 func _on_building_built(spot_id: StringName, building_id: StringName, new_tier: int) -> void:
+	_place_building(spot_id, building_id, new_tier)
+
+
+## Dawn (LOOP-04): the rubble of every rebuilt building is replaced by its model at the tier it had,
+## which grows up from the ground. Then every bar is read again, because the dawn repair made the
+## survivors and the castle whole without a damage event to say so.
+func _on_buildings_rebuilt(spot_ids: Array) -> void:
+	for spot_id: StringName in spot_ids:
+		var instance: BuildingInstance = _ctx.buildings.get_instance(spot_id)
+		if instance == null:
+			continue
+		var view: Node3D = _place_building(spot_id, instance.building_id, instance.tier)
+		view.scale = RISE_START_SCALE
+		create_tween().tween_property(view, "scale", Vector3.ONE, RISE_SECONDS)
+	for spot_id: StringName in _bars:
+		var bar: HealthBar3D = _bars[spot_id]
+		bar.set_health(_ctx.buildings.health_of(spot_id), _ctx.buildings.max_health_of(spot_id))
+	_castle_bar.set_health(_ctx.castle.get_health(), _ctx.castle.get_max_health())
+
+
+## Puts the model of `building_id` at `new_tier` on the plot in place of whatever the spot showed
+## (an older tier, or rubble), with a fresh bar, and returns it.
+func _place_building(spot_id: StringName, building_id: StringName, new_tier: int) -> Node3D:
 	var old_view: Node3D = get_view(spot_id)
 	if old_view != null:
 		remove_child(old_view)
@@ -154,6 +181,7 @@ func _on_building_built(spot_id: StringName, building_id: StringName, new_tier: 
 	view.position = _ctx.buildings.get_spot(spot_id).position
 	_views[spot_id] = view
 	_attach_bar(view, spot_id)
+	return view
 
 
 ## One hurt-only bar above the building's model, told the building's current health.
@@ -186,7 +214,7 @@ func _on_building_damaged(spot_id: StringName, _amount: int, hp: int, max_hp: in
 
 
 ## The building sinks and squashes away while rubble takes its place on the plot (D-12). The
-## fallen building keeps no bar. Plan 02-06 swaps the rubble back for a model at dawn.
+## fallen building keeps no bar. The dawn rebuild swaps the rubble back for a model.
 func _on_building_destroyed(spot_id: StringName, building_id: StringName, tier: int) -> void:
 	_bars.erase(spot_id)
 	var fallen: Node3D = get_view(spot_id)

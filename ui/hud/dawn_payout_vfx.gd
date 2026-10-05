@@ -64,7 +64,7 @@ func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 	if _ctx != null:
 		return
 	_ctx = ctx
-	_coin_texture = _make_coin_texture()
+	_coin_texture = make_coin_texture()
 	if ctx.tuning.dawn_seconds <= TRIP_SECONDS:
 		push_warning(
 			(
@@ -129,7 +129,9 @@ func get_launch_tweens() -> Array[Tween]:
 	return waiting
 
 
-func _make_coin_texture() -> GradientTexture2D:
+## The gold coin disc every dawn coin wears. Public and static so the crossed-out coin over a
+## rebuilt House (DawnNoIncomeMarker) is the same coin.
+static func make_coin_texture() -> GradientTexture2D:
 	# Gold in the middle, a darker rim, then transparent so the square texture reads as a disc.
 	var gradient: Gradient = Gradient.new()
 	gradient.offsets = PackedFloat32Array([0.0, COIN_RIM_START, COIN_RIM_END])
@@ -315,17 +317,25 @@ func _launch_coin(spot_id: StringName, generation: int, share: int) -> void:
 ## behind it, or the run is not bound yet. Public so a test can call it without reaching for a
 ## private member.
 func start_point(spot_id: StringName) -> Vector2:
-	if _ctx == null:
-		return get_viewport_rect().size * 0.5
-	var camera: Camera3D = get_viewport().get_camera_3d()
-	var spot: BuildSpotDef = _ctx.buildings.get_spot(spot_id)
+	return DawnPayoutVfx.spot_screen_point(_ctx, get_viewport(), spot_id)
+
+
+## Where the plot's coin anchor appears on screen in `viewport`; the middle of the screen when `ctx`
+## is null, the viewport has no camera, the spot is unknown or its anchor is behind the camera. The
+## one projection both the flying coins and the crossed-out coins use.
+static func spot_screen_point(ctx: RunContext, viewport: Viewport, spot_id: StringName) -> Vector2:
+	var middle: Vector2 = viewport.get_visible_rect().size * 0.5
+	if ctx == null:
+		return middle
+	var camera: Camera3D = viewport.get_camera_3d()
+	var spot: BuildSpotDef = ctx.buildings.get_spot(spot_id)
 	if camera == null or spot == null:
-		return get_viewport_rect().size * 0.5
+		return middle
 	var world_pos: Vector3 = spot.position + SPOT_ANCHOR
 	# unproject_position mirrors a point behind the camera onto the screen, so it needs the
 	# fallback too.
 	if camera.is_position_behind(world_pos):
-		return get_viewport_rect().size * 0.5
+		return middle
 	return camera.unproject_position(world_pos)
 
 

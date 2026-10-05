@@ -3,7 +3,7 @@ extends Node3D
 ## What a destroyed building leaves on its plot until dawn (D-12): a few low grey-brown slabs laid
 ## out from a fixed pattern (no randomness) and a one-shot puff of dust while they settle.
 ## Primitives only, so no asset needs a licence entry. Presentation only: it is told to collapse
-## and never reads or writes the simulation. Plan 02-06 swaps it back for the model at dawn.
+## and never reads or writes the simulation. BuildingViews swaps it back for the model at dawn.
 
 ## Seconds the slabs take to settle and the building above them to sink away.
 const COLLAPSE_SECONDS: float = 0.45
