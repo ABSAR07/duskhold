@@ -64,8 +64,13 @@ func test_a_stalled_frame_advances_the_simulation_by_at_most_the_clamp() -> void
 
 	map_root._process(100.0)
 
+	# The fixed step turns the clamped 0.25 s into whole steps; a leftover fraction from the frames
+	# before may add one more, so the advance is the clamp give or take one step.
 	assert_almost_eq(
-		ctx.run_manager.get_elapsed() - before, MapRoot.MAX_SIM_STEP, 0.0001, "one stall, one clamp"
+		ctx.run_manager.get_elapsed() - before,
+		SimClock.MAX_ADVANCE_SECONDS,
+		SimClock.STEP,
+		"one stall, one clamp"
 	)
 	assert_eq(
 		ctx.run_manager.get_phase(),

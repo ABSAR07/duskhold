@@ -17,3 +17,17 @@ signal night_started(night_number: int)
 signal dawn_payout(total: int, per_spot: Dictionary)
 ## A new day began; `day_number` is 2 for the first day after a night.
 signal day_started(day_number: int)
+## An enemy of the night appeared at its spawn point.
+signal enemy_spawned(enemy_id: int, def_id: StringName, pos: Vector2)
+## An enemy lost `amount` hit points and has `hp` left.
+signal enemy_damaged(enemy_id: int, amount: int, hp: int)
+## An enemy died and was removed; `killer_kind` is the attacker kind that landed the last hit.
+signal enemy_died(enemy_id: int, def_id: StringName, pos: Vector2, killer_kind: StringName)
+## An attacker started an attack; `flight_ticks` is 0 for a hit that lands this tick.
+signal attack_fired(
+	attacker_kind: StringName,
+	attacker_id: int,
+	target_kind: StringName,
+	target_id: int,
+	flight_ticks: int
+)

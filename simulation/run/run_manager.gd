@@ -4,7 +4,8 @@ extends RefCounted
 ## The loop is DAY -> NIGHT_TRANSITION -> NIGHT -> DAWN -> DAY. It leaves DAY only through
 ## `start_night` (the deliberate hold-to-confirm input, D-11) and makes at most one phase change
 ## per `tick`. Phase 2 fills the same NIGHT and DAWN states with real waves instead of replacing
-## them: only `_night_should_end` and `_apply_dawn_payout` change.
+## them: `_night_should_end` now owns the body of LOOP-03 (a night ends when the NightSim reports it
+## cleared), and a map with no authored nights keeps the Phase 1 timed night.
 
 enum RunPhase { DAY, NIGHT_TRANSITION, NIGHT, DAWN }
 
@@ -12,6 +13,7 @@ var _events: SimEvents
 var _economy: Economy
 var _buildings: BuildingSystem
 var _tuning: LoopTuning
+var _night: NightSim
 var _phase: RunPhase = RunPhase.DAY
 var _elapsed: float = 0.0
 var _phase_elapsed: float = 0.0
@@ -20,12 +22,17 @@ var _night_number: int = 0
 
 
 func _init(
-	events: SimEvents, economy: Economy, buildings: BuildingSystem, tuning: LoopTuning
+	events: SimEvents,
+	economy: Economy,
+	buildings: BuildingSystem,
+	tuning: LoopTuning,
+	night: NightSim = null
 ) -> void:
 	_events = events
 	_economy = economy
 	_buildings = buildings
 	_tuning = tuning
+	_night = night
 
 
 func get_phase() -> RunPhase:
@@ -61,14 +68,16 @@ func get_phase_time_remaining() -> float:
 	return 0.0
 
 
-## Ends the day. Only legal from DAY; returns false and changes nothing otherwise. Phase 1 has no
-## waves to spawn, so NIGHT_TRANSITION passes through to NIGHT within the same call.
+## Ends the day. Only legal from DAY; returns false and changes nothing otherwise. The night's
+## waves are loaded here, so NIGHT_TRANSITION passes through to NIGHT within the same call.
 func start_night() -> bool:
 	if _phase != RunPhase.DAY:
 		return false
 	_night_number += 1
 	_change_phase(RunPhase.NIGHT_TRANSITION)
 	_change_phase(RunPhase.NIGHT)
+	if _night != null:
+		_night.begin_night(_night_number)
 	_events.night_started.emit(_night_number)
 	return true
 
@@ -88,14 +97,18 @@ func tick(delta: float) -> void:
 				_enter_day()
 
 
-## Phase 1 night is an enemy-free placeholder timer (D-12). Phase 2 replaces this one body with
-## "every enemy is dead" (LOOP-03).
+## LOOP-03: on a map with authored nights the night ends only when every group has finished
+## spawning and every enemy is dead. A waveless map keeps the Phase 1 enemy-free timed night (D-12).
 func _night_should_end() -> bool:
+	if _night != null and _night.has_authored_nights():
+		return _night.is_cleared()
 	return _phase_elapsed >= _tuning.placeholder_night_seconds
 
 
 func _enter_dawn() -> void:
 	_change_phase(RunPhase.DAWN)
+	if _night != null:
+		_night.end_night()
 	_apply_dawn_payout()
 
 

@@ -14,4 +14,8 @@ const ALL: Array[String] = [
 	"night_started",
 	"dawn_payout",
 	"day_started",
+	"enemy_spawned",
+	"enemy_damaged",
+	"enemy_died",
+	"attack_fired",
 ]

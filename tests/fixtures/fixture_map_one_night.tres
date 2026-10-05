@@ -1,0 +1,71 @@
+[gd_resource type="Resource" script_class="MapConfig" load_steps=16 format=3]
+
+[ext_resource type="Script" path="res://simulation/defs/map_config.gd" id="1_map"]
+[ext_resource type="Script" path="res://simulation/defs/build_spot_def.gd" id="2_spot"]
+[ext_resource type="Script" path="res://simulation/defs/building_def.gd" id="3_bdef"]
+[ext_resource type="Script" path="res://simulation/defs/spawn_point_def.gd" id="4_spawn"]
+[ext_resource type="Script" path="res://simulation/defs/spawn_group_def.gd" id="5_group"]
+[ext_resource type="Script" path="res://simulation/defs/night_def.gd" id="6_night"]
+[ext_resource type="Script" path="res://simulation/defs/enemy_def.gd" id="7_enemy"]
+[ext_resource type="Resource" path="res://data/buildings/house.tres" id="8_house"]
+[ext_resource type="Resource" path="res://data/buildings/tower.tres" id="9_tower"]
+[ext_resource type="Resource" path="res://data/enemies/grunt.tres" id="10_grunt"]
+
+[sub_resource type="Resource" id="Resource_house_1"]
+script = ExtResource("2_spot")
+id = &"house_1"
+position = Vector3(-9, 0, 9)
+building_id = &"house"
+
+[sub_resource type="Resource" id="Resource_tower_1"]
+script = ExtResource("2_spot")
+id = &"tower_1"
+position = Vector3(-20, 0, 4)
+building_id = &"tower"
+
+[sub_resource type="Resource" id="Resource_west"]
+script = ExtResource("4_spawn")
+id = &"west"
+display_name = "West"
+position = Vector3(-30, 0, 0)
+scatter_radius = 2.0
+
+[sub_resource type="Resource" id="Resource_group_1"]
+script = ExtResource("5_group")
+spawn_point_id = &"west"
+enemy_id = &"grunt"
+count = 3
+start_delay_seconds = 0.5
+interval_seconds = 1.0
+
+[sub_resource type="Resource" id="Resource_group_2"]
+script = ExtResource("5_group")
+spawn_point_id = &"west"
+enemy_id = &"grunt"
+count = 4
+start_delay_seconds = 0.5
+interval_seconds = 1.0
+
+[sub_resource type="Resource" id="Resource_night_1"]
+script = ExtResource("6_night")
+groups = Array[ExtResource("5_group")]([SubResource("Resource_group_1")])
+
+[sub_resource type="Resource" id="Resource_night_2"]
+script = ExtResource("6_night")
+groups = Array[ExtResource("5_group")]([SubResource("Resource_group_2")])
+
+[resource]
+script = ExtResource("1_map")
+id = &"fixture_one_night"
+display_name = "Fixture One Night"
+is_sandbox = true
+starting_gold = 0
+king_spawn = Vector3(0, 0, 7)
+castle_position = Vector3(0, 0, 0)
+buildings = Array[ExtResource("3_bdef")]([ExtResource("8_house"), ExtResource("9_tower")])
+spots = Array[ExtResource("2_spot")]([SubResource("Resource_house_1"), SubResource("Resource_tower_1")])
+enemies = Array[ExtResource("7_enemy")]([ExtResource("10_grunt")])
+spawn_points = Array[ExtResource("4_spawn")]([SubResource("Resource_west")])
+nights = Array[ExtResource("6_night")]([SubResource("Resource_night_1"), SubResource("Resource_night_2")])
+castle_max_health = 40
+castle_radius = 3.5
