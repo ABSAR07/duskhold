@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 02
 current_phase_name: Night Defense & Playtest Gate
 status: executing
-stopped_at: Completed 02-09-PLAN.md
-last_updated: "2026-10-05T12:13:45.222Z"
+stopped_at: Completed 02-10-PLAN.md
+last_updated: "2026-10-05T13:45:27.930Z"
 last_activity: 2026-10-05
 last_activity_desc: Phase 02 execution started
-state_head: "0b6692917125a864789b8905b0e94bf243d47fd5"
+state_head: 943b9c9832b32b831edf0beb3168b029a25f091d
 progress:
   total_phases: 13
   completed_phases: 1
   total_plans: 29
-  completed_plans: 27
+  completed_plans: 28
   percent: 8
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-03)
 ## Current Position
 
 Phase: 02 (Night Defense & Playtest Gate) — EXECUTING
-Plan: 10 of 11
+Plan: 11 of 11
 Status: Ready to execute
 Last activity: 2026-10-05 — Phase 02 execution started
 
@@ -83,6 +83,7 @@ Progress: [█░░░░░░░░░] 8%
 | Phase 02 P06 | 45 min | 2 tasks | 15 files |
 | Phase 02 P07 | 80 min | 2 tasks | 28 files |
 | Phase 02 P09 | 28 min | 2 tasks | 10 files |
+| Phase 02 P10 | 81 min | 2 tasks | 17 files |
 
 ## Accumulated Context
 
@@ -154,6 +155,9 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-07: WON and LOST are terminal; the last authored night wins with no last dawn payout, and loss beats a same-step win by ordering (end_run_in_defeat before RunManager.tick)
 - [Phase 02]: 02-07: ui_accept, ui_left and ui_right are bound explicitly in project.godot (keyboard plus gamepad) because the built-in ui_accept had no gamepad button in this build
 - [Phase 02]: 02-09: smoke replay runs on frozen self-contained fixtures so data retunes never move its golden; Linux matched the Windows digest so no per-platform key was added
+- [Phase 02]: 02-10: tuned only combat data (king 50 hp / 5 dmg / 0.7 s, castle 70, Houses 12/18/24, tower I 50 hp 3 dmg 0.8 s range 9, tower II 70 hp 6 dmg 0.7 s range 10.5); balanced wins 10 of 10, greedy_economy 0 of 10 with median loss night 4
+- [Phase 02]: 02-10: the bot telegraph preference reorders only the first build of each unbuilt tower plot; balanced opens with three Houses because a tower-first opening leaves a run with no income
+- [Phase 02]: 02-10: full_idle replay keeps its name for CI but plays the balanced bot (wins in 6244 ticks); the smoke golden is unchanged
 
 ### Pending Todos
 
@@ -186,6 +190,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-05T12:13:44.685Z
-Stopped at: Completed 02-09-PLAN.md
+Last session: 2026-10-05T13:45:27.472Z
+Stopped at: Completed 02-10-PLAN.md
 Resume file: None

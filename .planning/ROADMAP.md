@@ -108,7 +108,7 @@ Plans:
   3. From the command line and in CI, a seeded scripted night replays with identical results, and headless GUT tests cover waves, combat, and loop transitions (day → night → dawn, loss, win). During nights, the debug overlay shows live enemy counts, wave state, and enemy paths.
   4. Human playtest gate: the owner plays the prototype map through several full runs and either signs off that gold trade-offs feel meaningful and nights feel tense and readable, or records the tuning/feel fixes that must land before later phases begin. No meta-progression work is scheduled until this sign-off.
 
-**Plans**: 9/11 plans executed
+**Plans**: 10/11 plans executed
 **UI hint**: yes
 
 Plans:
@@ -138,7 +138,7 @@ Plans:
 - [x] 02-09: Replay CLI and wrapper, frozen smoke golden, CI replay step, push and the cross-platform golden
 
 **Wave 9** *(blocked on Wave 8 completion)*
-- [ ] 02-10: Playtest strategies and balance report; D-10/D-04 tuning pass; 02-BALANCE-REPORT.md
+- [x] 02-10: Playtest strategies and balance report; D-10/D-04 tuning pass; 02-BALANCE-REPORT.md
 
 **Wave 10** *(blocked on Wave 9 completion)*
 - [ ] 02-11: Fifteen scripted screenshots with a readability review, final green CI, a launch-checked export and the owner's playtest gate packet
@@ -322,7 +322,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Day Loop | 18/18 | Complete    | 2026-10-03 |
-| 2. Night Defense & Playtest Gate | 9/11 | In Progress|  |
+| 2. Night Defense & Playtest Gate | 10/11 | In Progress|  |
 | 3. King Combat & Troops | 0/TBD | Not started | - |
 | 4. Crowd-Scale Battles & Walls | 0/TBD | Not started | - |
 | 5. Castle Center & Economy Depth | 0/TBD | Not started | - |
