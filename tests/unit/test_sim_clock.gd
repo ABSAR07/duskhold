@@ -32,6 +32,19 @@ func test_data_seconds_convert_to_whole_ticks_once() -> void:
 	assert_almost_eq(SimClock.seconds(30), 1.0, 0.000001, "30 ticks last a second")
 
 
+func test_a_projectile_flight_takes_distance_over_speed_in_whole_ticks() -> void:
+	assert_eq(SimClock.flight_ticks(14.0, 14.0), 30, "one second of flight is 30 ticks")
+	assert_eq(SimClock.flight_ticks(7.0, 14.0), 15, "half a second is 15 ticks")
+	assert_eq(SimClock.flight_ticks(0.1, 14.0), 1, "a short hop still takes a tick")
+	assert_eq(SimClock.flight_ticks(14.00001, 14.0), 30, "the same slack as ticks() applies")
+	assert_eq(SimClock.flight_ticks(15.0, 14.0), 33, "a partial tick rounds up")
+
+
+func test_a_melee_or_unarmed_flight_is_zero_ticks() -> void:
+	assert_eq(SimClock.flight_ticks(5.0, 0.0), 0, "speed 0 means the hit lands at once")
+	assert_eq(SimClock.flight_ticks(5.0, -3.0), 0, "a negative speed is the same as none")
+
+
 func test_sixty_frames_of_a_sixtieth_run_exactly_thirty_steps() -> void:
 	var ctx: RunContext = _context()
 	var frames: Array[float] = []

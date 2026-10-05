@@ -23,6 +23,11 @@ static func ticks(duration: float) -> int:
 	return maxi(ceili(duration / STEP - TICK_ROUNDING_SLACK), 1)
 
 
+## RED-phase shell for the projectile flight time; the GREEN commit fills it in.
+static func flight_ticks(_distance: float, _speed: float) -> int:
+	return 0
+
+
 ## Seconds a whole number of ticks lasts.
 static func seconds(tick_count: int) -> float:
 	return float(tick_count) * STEP
