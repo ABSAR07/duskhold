@@ -5,15 +5,15 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "MapConfig.validate() cannot catch enemy data that makes a night impossible to end, and a real night has no clock"
   - id: WR-02
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "The per-night enemy cap is advisory only; at runtime it is not enforced"
   - id: WR-03
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "The action key is also the menu accept key, so mashing it at the end of a run restarts the game"
   - id: IN-01
     severity: info
@@ -39,18 +39,18 @@ findings:
     severity: info
     disposition: open
     title: "Screenshot job worst-case time equals the job timeout"
-open: 9
+open: 6
 total: 9
-recorded: 2026-10-05T15:15:29.439Z
+recorded: 2026-10-05T16:08:39.442Z
 ---
 
 # Phase 02: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
-| WR-02 | warning | open | - |
-| WR-03 | warning | open | - |
+| WR-01 | warning | fixed | 02-REVIEW-FIX.md |
+| WR-02 | warning | fixed | 02-REVIEW-FIX.md |
+| WR-03 | warning | fixed | 02-REVIEW-FIX.md |
 | IN-01 | info | open | - |
 | IN-02 | info | open | - |
 | IN-03 | info | open | - |
