@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 02
 current_phase_name: Night Defense & Playtest Gate
 status: executing
-stopped_at: Completed 02-02-PLAN.md
-last_updated: "2026-10-05T07:18:49.030Z"
+stopped_at: Completed 02-03-PLAN.md
+last_updated: "2026-10-05T08:10:53.844Z"
 last_activity: 2026-10-05
 last_activity_desc: Phase 02 execution started
-state_head: fdab2a404e1052d4562d1db731a912a95c7a0258
+state_head: 05bc97a5c3d706ea72f9a6e809f5e4f18490330a
 progress:
   total_phases: 13
   completed_phases: 1
   total_plans: 29
-  completed_plans: 20
+  completed_plans: 21
   percent: 8
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-03)
 ## Current Position
 
 Phase: 02 (Night Defense & Playtest Gate) — EXECUTING
-Plan: 3 of 11
+Plan: 4 of 11
 Status: Ready to execute
 Last activity: 2026-10-05 — Phase 02 execution started
 
@@ -76,6 +76,7 @@ Progress: [█░░░░░░░░░] 8%
 | Phase 01 P18 | 7 min | 2 tasks | 4 files |
 | Phase 02 P01 | 19 min | 2 tasks | 56 files |
 | Phase 02 P02 | 20 min | 2 tasks | 19 files |
+| Phase 02 P03 | 43 min | 3 tasks | 31 files |
 
 ## Accumulated Context
 
@@ -130,6 +131,9 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-02: night ramp is the RESEARCH starter (5 to 33 enemies over 1,1,2,2,2,3,3,3 spawn points); contract tests pin structure only so 02-10 can retune
 - [Phase 02]: 02-02: E2eSupport.spawn_map with no map runs the waveless prototype; night tests pass shipped_prototype_map() explicitly
 - [Phase 02]: 02-02: MapConfig.validate() reports a zero-total night only when no finer error explains it; per-night cap 300 sits below the runtime per-group cap 500
+- [Phase 02]: 02-03: castle_damaged and king_damaged report points actually lost (clamped overkill reports less than the swing)
+- [Phase 02]: 02-03: enemy target priority is keep king inside leash, king inside aggro, keep valid, castle inside aggro, none; evaluated when invalid or on the (tick + id) % rescan_ticks tick; a destroyed castle makes the enemy field stand still
+- [Phase 02]: 02-03: the king respawn countdown is whole ticks from loop_tuning.tres (6, 10, 14, 15, 15 s, cap pinned at 15); a night clearing while he is down restores him at king_spawn at dawn with king_respawned once
 
 ### Pending Todos
 
@@ -162,6 +166,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-05T07:18:48.405Z
-Stopped at: Completed 02-02-PLAN.md
+Last session: 2026-10-05T08:10:53.368Z
+Stopped at: Completed 02-03-PLAN.md
 Resume file: None
