@@ -69,12 +69,12 @@ const _TOWERS_FIRST: Array[StringName] = [
 	&"house_3",
 ]
 const _BALANCED: Array[StringName] = [
-	&"tower_1",
 	&"house_1",
-	&"tower_2",
 	&"house_2",
-	&"tower_3",
 	&"house_3",
+	&"tower_1",
+	&"tower_2",
+	&"tower_3",
 	&"tower_1",
 	&"house_4",
 	&"tower_2",
@@ -83,6 +83,8 @@ const _BALANCED: Array[StringName] = [
 	&"house_1",
 	&"house_2",
 	&"house_3",
+	&"house_4",
+	&"house_5",
 ]
 
 

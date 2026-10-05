@@ -6,8 +6,10 @@ extends RefCounted
 ##   smoke      - self-contained fixture data (tests/fixtures/fixture_*_replay_smoke.tres). Its
 ##                golden digest lives in tests/golden/smoke.json and moves only when the
 ##                simulation rules change, never when data/ is retuned.
-##   full_idle  - the shipped prototype map, tuning and king with an idle king; no golden, because
-##                balance retunes change it. Two runs in one process must agree.
+##   full_idle  - the shipped prototype map, tuning and king played through all eight nights by the
+##                balanced bot (the name is kept for CI; the king no longer idles, because an idle
+##                king loses on night 1). No golden, because balance retunes change it. Two runs in
+##                one process must agree.
 ## tools/ is excluded from the export.
 
 const NAMES: Array[StringName] = [&"smoke", &"full_idle"]
@@ -29,21 +31,6 @@ const FULL_MAP := "res://data/maps/prototype_map.tres"
 const FULL_KING := "res://data/king/king.tres"
 const FULL_TUNING := "res://data/tuning/loop_tuning.tres"
 const FULL_MAX_TICKS: int = 40000
-const FULL_BUILD_ORDER: Array[StringName] = [
-	&"house_1",
-	&"tower_1",
-	&"house_2",
-	&"tower_2",
-	&"house_3",
-	&"house_4",
-	&"tower_3",
-	&"house_5",
-	&"house_1",
-	&"house_2",
-	&"tower_1",
-	&"tower_2",
-	&"tower_3",
-]
 
 
 ## True for a name on the allowlist.
@@ -108,9 +95,7 @@ static func _run_smoke(run_seed: int) -> Dictionary:
 
 
 static func _run_full_idle(run_seed: int) -> Dictionary:
-	var bot: PlaytestBot = PlaytestBot.new()
-	bot.build_order = FULL_BUILD_ORDER.duplicate()
-	bot.king_mode = PlaytestBot.KING_IDLE_AT_CASTLE
+	var bot: PlaytestBot = PlaytestStrategies.make(&"balanced")
 	var map: MapConfig = load(FULL_MAP)
 	var tuning: LoopTuning = load(FULL_TUNING)
 	var king: KingDef = load(FULL_KING)

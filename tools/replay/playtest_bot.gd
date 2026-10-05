@@ -56,9 +56,10 @@ func _build(ctx: RunContext) -> void:
 			return
 
 
-## Once per day: among the not yet built entries, the tower entries keep their places in the order
-## but are refilled so those on a road the coming night uses come first. The relative order inside
-## each of the two groups is kept, so a tower's upgrade never moves ahead of its first build.
+## Once per day: among the not yet built entries, the first entry of each unbuilt tower plot keeps
+## its place in the order but the plots are refilled so those on a road the coming night uses come
+## first. The relative order inside each of the two groups is kept. Upgrade entries stay where they
+## are: moving them would only delay the first towers on the roads the telegraph has not shown yet.
 func _prioritise_telegraphed_towers(ctx: RunContext) -> void:
 	var coming_night: int = ctx.run_manager.get_night_number() + 1
 	if _ordered_for_night == coming_night:
@@ -68,9 +69,13 @@ func _prioritise_telegraphed_towers(ctx: RunContext) -> void:
 	var slots: Array[int] = []
 	var on_road: Array[StringName] = []
 	var elsewhere: Array[StringName] = []
+	var seen: Dictionary = {}
 	for index: int in range(_cursor, build_order.size()):
 		var spot_id: StringName = build_order[index]
-		if not _is_tower_plot(ctx, spot_id):
+		if seen.has(spot_id):
+			continue
+		seen[spot_id] = true
+		if not _is_tower_plot(ctx, spot_id) or ctx.buildings.current_tier(spot_id) > 0:
 			continue
 		slots.append(index)
 		if roads.has(_road_of(ctx, spot_id)):
