@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 02
 current_phase_name: Night Defense & Playtest Gate
 status: executing
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-10-05T06:52:13.378Z"
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-10-05T07:18:49.030Z"
 last_activity: 2026-10-05
 last_activity_desc: Phase 02 execution started
-state_head: 42362dff15f1b7acbdfa8865b8e9b7e4eca1f678
+state_head: fdab2a404e1052d4562d1db731a912a95c7a0258
 progress:
   total_phases: 13
   completed_phases: 1
   total_plans: 29
-  completed_plans: 19
+  completed_plans: 20
   percent: 8
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-03)
 ## Current Position
 
 Phase: 02 (Night Defense & Playtest Gate) — EXECUTING
-Plan: 2 of 11
+Plan: 3 of 11
 Status: Ready to execute
 Last activity: 2026-10-05 — Phase 02 execution started
 
@@ -75,6 +75,7 @@ Progress: [█░░░░░░░░░] 8%
 | Phase 01 P17 | 10 min | 3 tasks | 14 files |
 | Phase 01 P18 | 7 min | 2 tasks | 4 files |
 | Phase 02 P01 | 19 min | 2 tasks | 56 files |
+| Phase 02 P02 | 20 min | 2 tasks | 19 files |
 
 ## Accumulated Context
 
@@ -126,6 +127,9 @@ Recent decisions affecting current work:
 - [Phase 02]: SimClock.STEP is a const 1/30 s pinned by a contract test, not LoopTuning data (changing it regenerates every golden digest)
 - [Phase 02]: Night timers are night-relative integer ticks; clearing a night needs the wave schedule finished AND no enemy alive; waveless maps keep the Phase 1 timed night
 - [Phase 02]: Recorder lines are '<tick> <event> <args>' (final state included), integer-only with positions quantized roundi(x*100); every new SimEvents signal needs SimSignals.ALL and SimRecorder.HANDLED in the same task
+- [Phase 02]: 02-02: night ramp is the RESEARCH starter (5 to 33 enemies over 1,1,2,2,2,3,3,3 spawn points); contract tests pin structure only so 02-10 can retune
+- [Phase 02]: 02-02: E2eSupport.spawn_map with no map runs the waveless prototype; night tests pass shipped_prototype_map() explicitly
+- [Phase 02]: 02-02: MapConfig.validate() reports a zero-total night only when no finer error explains it; per-night cap 300 sits below the runtime per-group cap 500
 
 ### Pending Todos
 
@@ -158,6 +162,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-05T06:52:12.995Z
-Stopped at: Completed 02-01-PLAN.md
+Last session: 2026-10-05T07:18:48.405Z
+Stopped at: Completed 02-02-PLAN.md
 Resume file: None
