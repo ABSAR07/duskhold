@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 02
 current_phase_name: Night Defense & Playtest Gate
 status: executing
-stopped_at: Completed 02-04-PLAN.md
-last_updated: "2026-10-05T08:45:18.722Z"
+stopped_at: Completed 02-08-PLAN.md
+last_updated: "2026-10-05T09:29:18.397Z"
 last_activity: 2026-10-05
 last_activity_desc: Phase 02 execution started
-state_head: aab1dfffba5926091f7252a00c797220d13f9ef7
+state_head: 9e9241d8f93e96de3a5bc5f638ddec47bd324125
 progress:
   total_phases: 13
   completed_phases: 1
   total_plans: 29
-  completed_plans: 22
+  completed_plans: 23
   percent: 8
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-03)
 ## Current Position
 
 Phase: 02 (Night Defense & Playtest Gate) — EXECUTING
-Plan: 5 of 11
+Plan: 6 of 11
 Status: Ready to execute
 Last activity: 2026-10-05 — Phase 02 execution started
 
@@ -78,6 +78,7 @@ Progress: [█░░░░░░░░░] 8%
 | Phase 02 P02 | 20 min | 2 tasks | 19 files |
 | Phase 02 P03 | 43 min | 3 tasks | 31 files |
 | Phase 02 P04 | 26 min | 2 tasks | 22 files |
+| Phase 02 P08 | 38 min | 2 tasks | 25 files |
 
 ## Accumulated Context
 
@@ -138,6 +139,8 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-04: building_damaged reports the points actually lost, matching castle_damaged and king_damaged
 - [Phase 02]: 02-04: enemies keep a valid castle or building target and search for the nearest structure (edge distance, earlier spot first, castle last) only when they have none
 - [Phase 02]: 02-04: a fallen building leaves a RubbleView (meta rubble) in BuildingViews._views at once; the old model collapses beside it and is freed
+- [Phase 02]: 02-08: the Wave overlay section labels its night row Nights (not Night) because the toggle test flattens every overlay row into one dictionary; the game owns the section titles Wave, King and Paths
+- [Phase 02]: 02-08: SpawnTelegraph.edge_margin shrinks the 48 px margin to a quarter of the shorter side on a tiny window; markers are removed from the tree outside the day so marker_count() is 0 at night
 
 ### Pending Todos
 
@@ -170,6 +173,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-05T08:45:18.348Z
-Stopped at: Completed 02-04-PLAN.md
+Last session: 2026-10-05T09:29:18.022Z
+Stopped at: Completed 02-08-PLAN.md
 Resume file: None
