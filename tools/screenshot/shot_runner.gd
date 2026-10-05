@@ -8,9 +8,8 @@ extends Node
 ## Exit codes: 0 saved, 1 scenario or image check failed, 2 no real renderer.
 
 const MAP_SCENE_PATH := "res://presentation/map/prototype_map.tscn"
-const MAP_DATA_PATH := "res://data/maps/prototype_map.tres"
 const DEFAULT_OUT := "res://screenshots"
-const SHOT_STARTING_GOLD: int = 30
+const FIXED_RUN_SEED: int = 1
 const SETTLE_FRAMES: int = 3
 const SAMPLE_SIZE := Vector2i(64, 36)
 const COLOR_LEVELS: float = 15.0
@@ -109,16 +108,14 @@ func _capture(shot_name: StringName, out_dir: String) -> void:
 	get_tree().quit(EXIT_OK)
 
 
-## The prototype map with enough starting gold to show several buildings in one scene. The shots
-## that wait out the timed night run on a copy without its authored nights.
+## The prototype map on the copy the shot needs (`ShotScenarios.map_for`). The run seed is fixed so
+## a shot looks the same every time, and the results screen buttons stay inert so nothing can
+## reload the scene or close the game while a scenario runs.
 func _spawn_map(shot_name: StringName) -> MapRoot:
 	var scene: PackedScene = load(MAP_SCENE_PATH)
 	var map_root: MapRoot = scene.instantiate()
-	var config: MapConfig = (load(MAP_DATA_PATH) as MapConfig).duplicate(true)
-	config.starting_gold = SHOT_STARTING_GOLD
-	if ShotScenarios.needs_timed_night(shot_name):
-		var no_nights: Array[NightDef] = []
-		config.nights = no_nights
-	map_root.map_config = config
+	map_root.map_config = ShotScenarios.map_for(shot_name)
+	map_root.fixed_run_seed = FIXED_RUN_SEED
+	map_root.handle_results_actions = false
 	add_child(map_root)
 	return map_root

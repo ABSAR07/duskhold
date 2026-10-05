@@ -19,7 +19,7 @@ const TOWER_COLOR := Color(1.0, 0.85, 0.25)
 const SKIRMISHER_COLOR := Color(0.6, 0.3, 0.9)
 const SLASH_COLOR := Color(1.0, 0.95, 0.8)
 const EMISSION_ENERGY: float = 2.0
-const ARROW_SIZE := Vector3(0.07, 0.07, 0.8)
+const ARROW_SIZE := Vector3(0.15, 0.15, 1.0)
 const SLASH_SIZE := Vector3(0.3, 0.05, 1.8)
 const SLASH_SECONDS: float = 0.15
 ## Heights above the ground an arrow leaves from (a tower's top, a unit's chest) and arrives at.

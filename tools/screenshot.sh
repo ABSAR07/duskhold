@@ -2,8 +2,10 @@
 # Captures the scripted screenshot scenes (DEV-04) into screenshots/*.png (git-ignored output).
 # Usage: bash tools/screenshot.sh [shot ...]
 #   Shots: day_overview spot_label build_in_progress night_banner dawn_payout overlay_on
-#          king_behind_keep
-#   With no arguments, all seven are captured.
+#          king_behind_keep spawn_telegraph night_combat building_destroyed dawn_rebuilt
+#          king_down_countdown results_victory results_defeat overlay_paths
+#   With no arguments, all fifteen are captured. The night shots fast-forward the simulation with a
+#   named bot (tools/replay/playtest_strategies.gd) before the real-time capture.
 #
 # Screenshots need a real renderer, so this never runs the capture under --headless (the dummy
 # renderer would save blank images). The only headless call is the one-time --import warm-up.
@@ -18,7 +20,9 @@ set -u
 # shellcheck source=tools/_common.sh
 source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd -P)/_common.sh"
 
-ALL_SHOTS=(day_overview spot_label build_in_progress night_banner dawn_payout overlay_on king_behind_keep)
+ALL_SHOTS=(day_overview spot_label build_in_progress night_banner dawn_payout overlay_on king_behind_keep
+  spawn_telegraph night_combat building_destroyed dawn_rebuilt king_down_countdown results_victory
+  results_defeat overlay_paths)
 RUN_TIMEOUT_S=120
 OUT_DIR="${DUSKHOLD_ROOT}/screenshots"
 OUT_DIR_NATIVE="${DUSKHOLD_ROOT_NATIVE}/screenshots"
