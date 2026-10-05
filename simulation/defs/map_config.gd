@@ -2,6 +2,10 @@ class_name MapConfig
 extends Resource
 ## Everything the simulation needs to know about one map. Data only.
 
+## The most enemies one night may bring. This is a resource-exhaustion guard against a bad data
+## file (threat T-02-04), not a tuning value: a night above it is a validate() error.
+const MAX_ENEMIES_PER_NIGHT: int = 300
+
 @export var id: StringName = &""
 @export var display_name: String = ""
 ## D-04: sandbox and test maps never appear in the campaign.
