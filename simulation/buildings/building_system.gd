@@ -73,13 +73,13 @@ func next_action_cost(spot_id: StringName) -> int:
 
 
 ## What each standing building pays at dawn: spot_id -> gold, in MapConfig order, listing only
-## spots whose current tier pays more than 0. A destroyed building pays nothing. Pure: it never
-## mutates anything.
+## spots whose current tier pays more than 0. A destroyed building pays nothing, and neither does
+## one rebuilt this dawn (LOOP-05). Pure: it never mutates anything.
 func dawn_income_by_spot() -> Dictionary:
 	var income: Dictionary = {}
 	for spot_id: StringName in _order:
 		var instance: BuildingInstance = _instances.get(spot_id) as BuildingInstance
-		if instance == null or instance.destroyed:
+		if instance == null or instance.destroyed or instance.rebuilt_this_dawn:
 			continue
 		var building_def: BuildingDef = _defs.get(instance.building_id) as BuildingDef
 		if building_def == null:
@@ -192,17 +192,31 @@ func damage_building(spot_id: StringName, amount: int) -> void:
 ## gold, and marks it rebuilt_this_dawn so it pays nothing at this dawn (LOOP-05). Returns the spot
 ## ids rebuilt in MapConfig order; a second call finds nothing left and returns an empty array.
 func rebuild_destroyed() -> Array[StringName]:
-	return []
+	var rebuilt: Array[StringName] = []
+	for spot_id: StringName in _order:
+		var instance: BuildingInstance = _instances.get(spot_id) as BuildingInstance
+		if instance == null or not instance.destroyed:
+			continue
+		instance.destroyed = false
+		instance.health = _max_health_of(instance)
+		instance.rebuilt_this_dawn = true
+		rebuilt.append(spot_id)
+	return rebuilt
 
 
-## Dawn: every standing building is back at its tier's full health.
+## Dawn: every standing building is back at its tier's full health. A fallen building is left to
+## rebuild_destroyed.
 func repair_standing() -> void:
-	pass
+	for spot_id: StringName in _order:
+		var instance: BuildingInstance = _instances.get(spot_id) as BuildingInstance
+		if instance != null and not instance.destroyed:
+			instance.health = _max_health_of(instance)
 
 
 ## A new night: no building counts as rebuilt this dawn any more.
 func clear_rebuilt_marks() -> void:
-	pass
+	for instance: BuildingInstance in _instances.values():
+		instance.rebuilt_this_dawn = false
 
 
 ## A copy of `instance` that nothing else holds; null for null.

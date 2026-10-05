@@ -15,6 +15,7 @@ var _buildings: BuildingSystem
 var _tuning: LoopTuning
 var _night: NightSim
 var _king: KingState
+var _castle: CastleState
 var _phase: RunPhase = RunPhase.DAY
 var _elapsed: float = 0.0
 var _phase_elapsed: float = 0.0
@@ -28,7 +29,8 @@ func _init(
 	buildings: BuildingSystem,
 	tuning: LoopTuning,
 	night: NightSim = null,
-	king: KingState = null
+	king: KingState = null,
+	castle: CastleState = null
 ) -> void:
 	_events = events
 	_economy = economy
@@ -36,6 +38,7 @@ func _init(
 	_tuning = tuning
 	_night = night
 	_king = king
+	_castle = castle
 
 
 func get_phase() -> RunPhase:
@@ -86,6 +89,7 @@ func start_night() -> bool:
 	if _phase != RunPhase.DAY:
 		return false
 	_night_number += 1
+	_buildings.clear_rebuilt_marks()
 	_change_phase(RunPhase.NIGHT_TRANSITION)
 	_change_phase(RunPhase.NIGHT)
 	if _night != null:
@@ -117,12 +121,19 @@ func _night_should_end() -> bool:
 	return _phase_elapsed >= _tuning.placeholder_night_seconds
 
 
+## The night is over. What fell is rebuilt for free (LOOP-04), everything that stands and the castle
+## are repaired, the king is whole again, and only then are the survivors paid (LOOP-05).
 func _enter_dawn() -> void:
 	_change_phase(RunPhase.DAWN)
 	if _night != null:
 		_night.end_night()
+	var rebuilt: Array[StringName] = _buildings.rebuild_destroyed()
+	_buildings.repair_standing()
+	if _castle != null:
+		_castle.repair()
 	if _king != null:
 		_king.restore_for_dawn()
+	_events.buildings_rebuilt.emit(rebuilt)
 	_apply_dawn_payout()
 
 
@@ -132,9 +143,10 @@ func _enter_day() -> void:
 	_events.day_started.emit(_day_number)
 
 
-## Pays each House its current tier's income, exactly once per DAWN entry (ECON-02). Nothing here
-## or at day start resets or rebases gold, so unspent gold carries over (ECON-07). Phase 2 extends
-## this with the dawn rebuild (LOOP-04) and the rule that rebuilt buildings pay nothing (LOOP-05).
+## Pays each standing House its current tier's income, exactly once per DAWN entry (ECON-02). A
+## building rebuilt this dawn pays nothing (LOOP-05): BuildingSystem leaves it out of the income it
+## reports. Nothing here or at day start resets or rebases gold, so unspent gold carries over
+## (ECON-07).
 func _apply_dawn_payout() -> void:
 	var per_spot: Dictionary = _buildings.dawn_income_by_spot()
 	var total: int = 0
