@@ -28,12 +28,20 @@ const TOWER_HEIGHT_PER_TIER: float = 2.0
 ## The castle's health bar floats this high above its centre, clear of the turret.
 const CASTLE_BAR_HEIGHT: float = KEEP_SIZE.y + TURRET_HEIGHT + 1.2
 const CASTLE_BAR_WIDTH: float = 5.0
+## A building's health bar floats this far above the top of its model.
+const BUILDING_BAR_CLEARANCE: float = 0.6
+const BUILDING_BAR_WIDTH: float = 2.0
+## The collapsing building sinks by this much and squashes to this scale on its way down.
+const COLLAPSE_SINK_DEPTH: float = 0.6
+const COLLAPSE_SQUASH_SCALE := Vector3(1.12, 0.04, 1.12)
+const BAR_NODE_NAME := "HealthBar"
 
 ## Model lookup; assign before bind_run. A null catalog means primitives everywhere.
 @export var catalog: BuildingViewCatalog = DEFAULT_CATALOG
 
 var _ctx: RunContext
 var _views: Dictionary = {}
+var _bars: Dictionary = {}
 var _castle_bar: HealthBar3D
 
 
@@ -43,6 +51,8 @@ func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 	for spot_id: StringName in ctx.buildings.spot_ids():
 		_add_marker(spot_id)
 	ctx.events.building_built.connect(_on_building_built)
+	ctx.events.building_damaged.connect(_on_building_damaged)
+	ctx.events.building_destroyed.connect(_on_building_destroyed)
 
 
 ## The castle's health bar: hidden at full health, shown once the castle is hurt (D-12 rule).
@@ -50,10 +60,10 @@ func get_castle_health_bar() -> HealthBar3D:
 	return _castle_bar
 
 
-## The health bar over the spot's building; null when the spot has no standing building.
-## RED-phase stub, wired in the next commit.
-func get_health_bar(_spot_id: StringName) -> HealthBar3D:
-	return null
+## The health bar over the spot's building: hidden at full health, shown once hurt (D-12). Null when
+## the spot has no standing building (empty, or fallen into rubble).
+func get_health_bar(spot_id: StringName) -> HealthBar3D:
+	return _bars.get(spot_id) as HealthBar3D
 
 
 ## Null if no building stands on the spot.
@@ -135,6 +145,7 @@ func _on_building_built(spot_id: StringName, building_id: StringName, new_tier: 
 	if old_view != null:
 		remove_child(old_view)
 		old_view.queue_free()
+	_bars.erase(spot_id)
 	var view: Node3D = _make_visual(building_id, new_tier)
 	view.name = "Building_%s" % spot_id
 	view.set_meta(&"tier", new_tier)
@@ -142,6 +153,70 @@ func _on_building_built(spot_id: StringName, building_id: StringName, new_tier: 
 	add_child(view)
 	view.position = _ctx.buildings.get_spot(spot_id).position
 	_views[spot_id] = view
+	_attach_bar(view, spot_id)
+
+
+## One hurt-only bar above the building's model, told the building's current health.
+func _attach_bar(view: Node3D, spot_id: StringName) -> void:
+	var bar: HealthBar3D = HealthBar3D.new()
+	bar.name = BAR_NODE_NAME
+	bar.bar_width = BUILDING_BAR_WIDTH
+	bar.height_offset = _top_of(view) + BUILDING_BAR_CLEARANCE
+	view.add_child(bar)
+	bar.set_health(_ctx.buildings.health_of(spot_id), _ctx.buildings.max_health_of(spot_id))
+	_bars[spot_id] = bar
+
+
+## Height of the highest mesh point under `view`, in the view's own space; 0.0 when it has no mesh.
+## The view must already be in the tree.
+func _top_of(view: Node3D) -> float:
+	var top: float = 0.0
+	var to_local: Transform3D = view.global_transform.affine_inverse()
+	for node: Node in view.find_children("*", "MeshInstance3D", true, false):
+		var mesh_instance: MeshInstance3D = node as MeshInstance3D
+		var box: AABB = to_local * mesh_instance.global_transform * mesh_instance.get_aabb()
+		top = maxf(top, box.end.y)
+	return top
+
+
+func _on_building_damaged(spot_id: StringName, _amount: int, hp: int, max_hp: int) -> void:
+	var bar: HealthBar3D = get_health_bar(spot_id)
+	if bar != null:
+		bar.set_health(hp, max_hp)
+
+
+## The building sinks and squashes away while rubble takes its place on the plot (D-12). The
+## fallen building keeps no bar. Plan 02-06 swaps the rubble back for a model at dawn.
+func _on_building_destroyed(spot_id: StringName, building_id: StringName, tier: int) -> void:
+	_bars.erase(spot_id)
+	var fallen: Node3D = get_view(spot_id)
+	var plot: Vector3 = _ctx.buildings.get_spot(spot_id).position
+	if fallen != null:
+		_collapse(fallen)
+	var rubble: RubbleView = RubbleView.new()
+	rubble.name = "Rubble_%s" % spot_id
+	rubble.set_meta(&"rubble", true)
+	rubble.set_meta(&"tier", tier)
+	rubble.set_meta(&"building_id", building_id)
+	add_child(rubble)
+	rubble.position = plot
+	_views[spot_id] = rubble
+	rubble.play_collapse()
+
+
+## Tweens the fallen view down over RubbleView.COLLAPSE_SECONDS and frees it. Its bar goes at once.
+func _collapse(fallen: Node3D) -> void:
+	fallen.name = "Collapsing_%s" % fallen.name
+	var bar: Node = fallen.get_node_or_null(BAR_NODE_NAME)
+	if bar != null:
+		fallen.remove_child(bar)
+		bar.queue_free()
+	var sink: Tween = create_tween().set_parallel(true)
+	sink.tween_property(fallen, "scale", COLLAPSE_SQUASH_SCALE, RubbleView.COLLAPSE_SECONDS)
+	sink.tween_property(
+		fallen, "position:y", fallen.position.y - COLLAPSE_SINK_DEPTH, RubbleView.COLLAPSE_SECONDS
+	)
+	sink.chain().tween_callback(fallen.queue_free)
 
 
 ## The single seam where a building's look is chosen: a catalog model if one is assigned for
