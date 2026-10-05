@@ -11,6 +11,7 @@ var tuning: LoopTuning
 var events: SimEvents
 var economy: Economy
 var buildings: BuildingSystem
+var castle: CastleState
 var king: KingState
 var night: NightSim
 var run_manager: RunManager
@@ -34,8 +35,9 @@ func _init(
 	events = SimEvents.new()
 	economy = Economy.new(events, map_config.starting_gold)
 	buildings = BuildingSystem.new(map_config, events)
+	castle = CastleState.new(map_config, events)
 	king = KingState.new(def, Vector2(map_config.king_spawn.x, map_config.king_spawn.z), events)
-	night = NightSim.new(map_config, events, king, run_seed)
+	night = NightSim.new(map_config, events, king, run_seed, castle)
 	run_manager = RunManager.new(events, economy, buildings, tuning, night)
 	commands = CommandProcessor.new(economy, buildings, run_manager, events)
 

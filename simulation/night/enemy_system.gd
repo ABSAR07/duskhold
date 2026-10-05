@@ -55,6 +55,16 @@ func is_alive(id: int) -> bool:
 	return record != null and record.health > 0
 
 
+## Stub for the RED commit.
+static func is_rescan_tick(_tick: int, _id: int, _rescan_ticks: int) -> bool:
+	return false
+
+
+## Stub for the RED commit.
+func target_of(_id: int) -> Dictionary:
+	return {}
+
+
 ## Zero vector for an unknown id.
 func position_of(id: int) -> Vector2:
 	var record: Record = _records.get(id) as Record
@@ -112,7 +122,9 @@ func nearest_in_range(pos: Vector2, reach: float) -> int:
 
 ## Moves every living enemy (id order) one step toward the castle; it waits at the castle's edge,
 ## `castle_radius + attack_range` from the centre. Castle damage arrives in a later plan.
-func step(_tick: int, castle_pos: Vector2, castle_radius: float) -> void:
+func step(_tick: int, castle: CastleState, _hits: PendingHits) -> void:
+	var castle_pos: Vector2 = castle.get_position()
+	var castle_radius: float = castle.get_radius()
 	for id: int in _order:
 		var record: Record = _records[id]
 		record.previous = record.position

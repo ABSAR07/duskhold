@@ -7,6 +7,7 @@ extends RefCounted
 var _map: MapConfig
 var _events: SimEvents
 var _king: KingState
+var _castle: CastleState
 var _run_seed: int
 var _enemies: EnemySystem
 var _hits: PendingHits = PendingHits.new()
@@ -18,10 +19,13 @@ var _next_night_tick: int = 0
 var _awaiting_first_step: bool = false
 
 
-func _init(map: MapConfig, events: SimEvents, king: KingState, run_seed: int) -> void:
+func _init(
+	map: MapConfig, events: SimEvents, king: KingState, run_seed: int, castle: CastleState = null
+) -> void:
 	_map = map
 	_events = events
 	_king = king
+	_castle = castle if castle != null else CastleState.new(map, events)
 	_run_seed = run_seed
 	_enemies = EnemySystem.new(events)
 
@@ -53,7 +57,7 @@ func step(tick: int) -> void:
 	var night_tick: int = tick - _start_tick
 	_spawn_due(night_tick)
 	_king.step(night_tick, _enemies, _hits)
-	_enemies.step(night_tick, _castle_xz(), _map.castle_radius)
+	_enemies.step(night_tick, _castle, _hits)
 	_resolve_hits(night_tick)
 	_enemies.remove_dead()
 	_next_night_tick = night_tick + 1

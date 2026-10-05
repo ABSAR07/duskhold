@@ -31,3 +31,7 @@ signal attack_fired(
 	target_id: int,
 	flight_ticks: int
 )
+## The castle lost `amount` hit points and has `hp` of `max_hp` left.
+signal castle_damaged(amount: int, hp: int, max_hp: int)
+## The castle fell to 0 hit points. Emitted exactly once.
+signal castle_destroyed

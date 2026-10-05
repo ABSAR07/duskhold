@@ -21,6 +21,8 @@ const HANDLED: Array[String] = [
 	"enemy_damaged",
 	"enemy_died",
 	"attack_fired",
+	"castle_damaged",
+	"castle_destroyed",
 ]
 ## Written in place of an empty id so every token is non-empty.
 const EMPTY_TOKEN := "-"
@@ -46,6 +48,8 @@ static func attach(ctx: RunContext) -> SimRecorder:
 	events.enemy_damaged.connect(recorder._on_enemy_damaged)
 	events.enemy_died.connect(recorder._on_enemy_died)
 	events.attack_fired.connect(recorder._on_attack_fired)
+	events.castle_damaged.connect(recorder._on_castle_damaged)
+	events.castle_destroyed.connect(recorder._on_castle_destroyed)
 	return recorder
 
 
@@ -153,3 +157,11 @@ func _on_attack_fired(
 	flight_ticks: int
 ) -> void:
 	_record("attack_fired", [attacker_kind, attacker_id, target_kind, target_id, flight_ticks])
+
+
+func _on_castle_damaged(amount: int, hp: int, max_hp: int) -> void:
+	_record("castle_damaged", [amount, hp, max_hp])
+
+
+func _on_castle_destroyed() -> void:
+	_record("castle_destroyed", [])
