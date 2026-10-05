@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 02
 current_phase_name: Night Defense & Playtest Gate
 status: executing
-stopped_at: Completed 02-08-PLAN.md
-last_updated: "2026-10-05T09:29:18.397Z"
+stopped_at: Completed 02-05-PLAN.md
+last_updated: "2026-10-05T10:09:05.594Z"
 last_activity: 2026-10-05
 last_activity_desc: Phase 02 execution started
-state_head: 9e9241d8f93e96de3a5bc5f638ddec47bd324125
+state_head: 98753b38fc395b41daf7200779ddad5b03e19e37
 progress:
   total_phases: 13
   completed_phases: 1
   total_plans: 29
-  completed_plans: 23
+  completed_plans: 24
   percent: 8
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-03)
 ## Current Position
 
 Phase: 02 (Night Defense & Playtest Gate) — EXECUTING
-Plan: 6 of 11
+Plan: 7 of 11
 Status: Ready to execute
 Last activity: 2026-10-05 — Phase 02 execution started
 
@@ -79,6 +79,7 @@ Progress: [█░░░░░░░░░] 8%
 | Phase 02 P03 | 43 min | 3 tasks | 31 files |
 | Phase 02 P04 | 26 min | 2 tasks | 22 files |
 | Phase 02 P08 | 38 min | 2 tasks | 25 files |
+| Phase 02 P05 | 38 min | 2 tasks | 21 files |
 
 ## Accumulated Context
 
@@ -141,6 +142,10 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-04: a fallen building leaves a RubbleView (meta rubble) in BuildingViews._views at once; the old model collapses beside it and is freed
 - [Phase 02]: 02-08: the Wave overlay section labels its night row Nights (not Night) because the toggle test flattens every overlay row into one dictionary; the game owns the section titles Wave, King and Paths
 - [Phase 02]: 02-08: SpawnTelegraph.edge_margin shrinks the 48 px margin to a quarter of the shorter side on a tiny window; markers are removed from the tree outside the day so marker_count() is 0 at night
+- [Phase 02]: 02-05: A ranged shot's flight is measured to the target's centre through SimClock.flight_ticks, so the event's flight_ticks and the hit's arrival tick always agree — One function owns the flight time for towers and skirmishers
+- [Phase 02]: 02-05: Towers keep a per-spot ready-tick and a tower with no target keeps its cooldown, so an enemy entering range is shot on that tick — Same behavior as the king's passive attack
+- [Phase 02]: 02-05: Each ranged group starts 1.5 s after its road's grunts; per-night totals stay 5, 8, 11, 14, 18, 22, 27, 33 — D-08 adds the Skirmisher without changing night difficulty totals; 02-10 retunes
+- [Phase 02]: 02-05: Enemy puppets own their materials so a hit flash is per enemy; melee strikes (flight 0) have no visual — A shared per-type material would flash every enemy of that type
 
 ### Pending Todos
 
@@ -173,6 +178,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-05T09:29:18.022Z
-Stopped at: Completed 02-08-PLAN.md
+Last session: 2026-10-05T10:09:05.148Z
+Stopped at: Completed 02-05-PLAN.md
 Resume file: None
