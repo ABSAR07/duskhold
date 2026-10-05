@@ -9,6 +9,7 @@ const TUNING := "res://data/tuning/loop_tuning.tres"
 const KING_PATH := "res://data/king/king.tres"
 const KING_HEALTH: int = 4
 const GRUNTS: int = 8
+const CASTLE_HEALTH: int = 10000
 const KO_TIMEOUT_S: float = 6.0
 const PUSH_SECONDS: float = 0.5
 const POSITION_TOLERANCE: float = 0.05
@@ -42,6 +43,9 @@ func _ambush_map() -> MapConfig:
 	group.count = GRUNTS
 	group.start_delay_seconds = 0.0
 	group.interval_seconds = 0.0
+	# A fallen castle now ends the run (LOOP-06) and freezes the king's respawn countdown, so the
+	# castle outlasts the eight grunts that are free to hit it while the king is down.
+	map.castle_max_health = CASTLE_HEALTH
 	return map
 
 

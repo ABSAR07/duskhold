@@ -83,6 +83,7 @@ func append_final_state(ctx: RunContext) -> void:
 			ctx.get_enemy_count(),
 			ctx.run_manager.get_day_number(),
 			ctx.run_manager.get_night_number(),
+			ctx.castle.get_health(),
 		]
 	)
 

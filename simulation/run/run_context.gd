@@ -50,8 +50,12 @@ func _init(
 ## that fell during the night step ends the run before the clock ticks, so the loss beats a win the
 ## same step would have made (LOOP-06, DR-8). Once the run is over a step does nothing at all.
 func step() -> void:
+	if run_manager.is_run_over():
+		return
 	if run_manager.get_phase() == RunManager.RunPhase.NIGHT:
 		night.step(tick_count)
+		if castle.is_destroyed():
+			run_manager.end_run_in_defeat()
 	run_manager.tick(SimClock.STEP)
 	tick_count += 1
 

@@ -45,6 +45,11 @@ func has_authored_nights() -> bool:
 	return not _map.nights.is_empty()
 
 
+## How many nights the map authors (0 on a map that keeps the Phase 1 timed night).
+func total_nights() -> int:
+	return _map.nights.size()
+
+
 ## Loads night `night_number` (1-based). The next `step` call is night tick 0.
 func begin_night(night_number: int) -> void:
 	_night_number = night_number

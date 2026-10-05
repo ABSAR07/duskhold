@@ -90,12 +90,12 @@ func get_phase_time_remaining() -> float:
 ## True once the run is WON or LOST. Nothing runs after that: `tick` does nothing and no intent is
 ## accepted.
 func is_run_over() -> bool:
-	return false
+	return _phase == RunPhase.WON or _phase == RunPhase.LOST
 
 
 ## How many nights the map authors; 0 on a map that keeps the Phase 1 timed night.
 func get_total_nights() -> int:
-	return 0
+	return _night.total_nights() if _night != null else 0
 
 
 ## Ends the day. Only legal from DAY; returns false and changes nothing otherwise. The night's
@@ -116,12 +116,20 @@ func start_night() -> bool:
 ## The castle fell: the run is lost at once (LOOP-06). Only legal during the NIGHT; returns false
 ## and changes nothing otherwise, so a second call (or one at dawn) is a no-op.
 func end_run_in_defeat() -> bool:
-	return false
+	if _phase != RunPhase.NIGHT:
+		return false
+	if _night != null:
+		_night.end_night()
+	_change_phase(RunPhase.LOST)
+	_events.run_ended.emit(&"defeat")
+	return true
 
 
 ## Advances simulation time and performs at most one phase transition. Does nothing once the run is
 ## over.
 func tick(delta: float) -> void:
+	if is_run_over():
+		return
 	var step: float = maxf(delta, 0.0)
 	_elapsed += step
 	match _phase:
@@ -146,6 +154,11 @@ func _night_should_end() -> bool:
 ## The night was cleared (or its timer ran out). The last authored night wins the run on the spot,
 ## so no last dawn payout is made (RESEARCH Open Question 2); any other night hands over to dawn.
 func _end_night() -> void:
+	if _night != null and _night.has_authored_nights() and _night_number >= get_total_nights():
+		_night.end_night()
+		_change_phase(RunPhase.WON)
+		_events.run_ended.emit(&"victory")
+		return
 	_enter_dawn()
 
 
