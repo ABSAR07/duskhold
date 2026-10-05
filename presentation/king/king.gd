@@ -11,6 +11,15 @@ const FACING_MIN_SPEED: float = 0.1
 @onready var _model: Node3D = $Model
 
 
+## RED stubs.
+func get_health_bar() -> HealthBar3D:
+	return null
+
+
+func is_ghost_shown() -> bool:
+	return false
+
+
 ## Speed in metres per second for the walking or sprinting king.
 static func move_speed(king_def: KingDef, sprinting: bool) -> float:
 	if sprinting:

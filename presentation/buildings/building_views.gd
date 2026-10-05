@@ -41,6 +41,11 @@ func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 	ctx.events.building_built.connect(_on_building_built)
 
 
+## RED stub.
+func get_castle_health_bar() -> HealthBar3D:
+	return null
+
+
 ## Null if no building stands on the spot.
 func get_view(spot_id: StringName) -> Node3D:
 	return _views.get(spot_id) as Node3D
