@@ -39,7 +39,7 @@ func _init(
 	king = KingState.new(
 		def, Vector2(map_config.king_spawn.x, map_config.king_spawn.z), events, tuning
 	)
-	night = NightSim.new(map_config, events, king, run_seed, castle)
+	night = NightSim.new(map_config, events, king, run_seed, castle, buildings)
 	run_manager = RunManager.new(events, economy, buildings, tuning, night, king)
 	commands = CommandProcessor.new(economy, buildings, run_manager, events)
 

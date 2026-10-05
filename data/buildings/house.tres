@@ -7,19 +7,23 @@
 script = ExtResource("1_tier")
 cost = 2
 dawn_income = 1
+max_health = 8
 
 [sub_resource type="Resource" id="Resource_tier2"]
 script = ExtResource("1_tier")
 cost = 3
 dawn_income = 2
+max_health = 12
 
 [sub_resource type="Resource" id="Resource_tier3"]
 script = ExtResource("1_tier")
 cost = 5
 dawn_income = 3
+max_health = 16
 
 [resource]
 script = ExtResource("2_def")
 id = &"house"
 display_name = "House"
+body_radius = 1.5
 tiers = Array[ExtResource("1_tier")]([SubResource("Resource_tier1"), SubResource("Resource_tier2"), SubResource("Resource_tier3")])

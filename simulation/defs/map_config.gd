@@ -83,6 +83,13 @@ func validate() -> PackedStringArray:
 				errors.append(
 					"building '%s' tier %d dawn_income is negative" % [building_def.id, index + 1]
 				)
+			if tier.max_health <= 0:
+				errors.append(
+					(
+						"building '%s' tier %d max_health is %d"
+						% [building_def.id, index + 1, tier.max_health]
+					)
+				)
 	var spot_ids: Dictionary = {}
 	for spot: BuildSpotDef in spots:
 		if spot == null:

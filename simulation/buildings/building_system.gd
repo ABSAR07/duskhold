@@ -1,7 +1,8 @@
 class_name BuildingSystem
 extends RefCounted
-## Fixed build spots and the building standing on each. Reads never mutate; the only mutation
-## is apply_next_tier, which leaves affordability and range to CommandProcessor, its only caller.
+## Fixed build spots and the building standing on each. Reads never mutate; the mutations are
+## apply_next_tier, which leaves affordability and range to CommandProcessor, its only caller, and
+## damage_building, which the night's hit resolver calls (BLDG-07).
 ## The BuildingInstance objects handed out are snapshots, so a reader cannot change what stands on
 ## a spot. The BuildSpotDef and BuildingDef resources are shared with the MapConfig and returned
 ## by reference: treat them as read-only.
@@ -80,12 +81,13 @@ func next_action_cost(spot_id: StringName) -> int:
 
 
 ## What each standing building pays at dawn: spot_id -> gold, in MapConfig order, listing only
-## spots whose current tier pays more than 0. Pure: it never mutates anything.
+## spots whose current tier pays more than 0. A destroyed building pays nothing. Pure: it never
+## mutates anything.
 func dawn_income_by_spot() -> Dictionary:
 	var income: Dictionary = {}
 	for spot_id: StringName in _order:
 		var instance: BuildingInstance = _instances.get(spot_id) as BuildingInstance
-		if instance == null:
+		if instance == null or instance.destroyed:
 			continue
 		var building_def: BuildingDef = _defs.get(instance.building_id) as BuildingDef
 		if building_def == null:
@@ -128,41 +130,70 @@ func apply_next_tier(spot_id: StringName) -> BuildingInstance:
 		_instances[spot_id] = instance
 	else:
 		instance.tier += 1
+	instance.health = _max_health_of(instance)
 	_events.building_built.emit(spot_id, instance.building_id, instance.tier)
 	return _snapshot(instance)
 
 
-## RED-phase stubs, replaced by the real rules in the next commit.
-func spot_index(_spot_id: StringName) -> int:
-	return -1
+## Position of the spot in spot_ids(), the id a building hit carries; -1 for an unknown spot.
+func spot_index(spot_id: StringName) -> int:
+	return _order.find(spot_id)
 
 
-func spot_at_index(_index: int) -> StringName:
-	return &""
+## The spot at that index of spot_ids(); &"" when the index is out of range.
+func spot_at_index(index: int) -> StringName:
+	if index < 0 or index >= _order.size():
+		return &""
+	return _order[index]
 
 
+## Spots with a building that has not fallen, in MapConfig order. A fresh array.
 func standing_spot_ids() -> Array[StringName]:
-	return []
+	var standing: Array[StringName] = []
+	for spot_id: StringName in _order:
+		var instance: BuildingInstance = _instances.get(spot_id) as BuildingInstance
+		if instance != null and not instance.destroyed:
+			standing.append(spot_id)
+	return standing
 
 
-func is_destroyed(_spot_id: StringName) -> bool:
-	return false
+## True once the building on the spot has fallen; false for an empty or unknown spot.
+func is_destroyed(spot_id: StringName) -> bool:
+	var instance: BuildingInstance = _instances.get(spot_id) as BuildingInstance
+	return instance != null and instance.destroyed
 
 
-func health_of(_spot_id: StringName) -> int:
-	return 0
+## Hit points left on the spot's building; 0 for an empty or unknown spot or a fallen building.
+func health_of(spot_id: StringName) -> int:
+	var instance: BuildingInstance = _instances.get(spot_id) as BuildingInstance
+	return instance.health if instance != null else 0
 
 
-func max_health_of(_spot_id: StringName) -> int:
-	return 0
+## Hit points the building's current tier stands at; 0 for an empty or unknown spot.
+func max_health_of(spot_id: StringName) -> int:
+	return _max_health_of(_instances.get(spot_id) as BuildingInstance)
 
 
-func radius_of(_spot_id: StringName) -> float:
-	return 0.0
+## Footprint radius of the building type the spot takes, standing or not; 0.0 for an unknown spot.
+func radius_of(spot_id: StringName) -> float:
+	var building_def: BuildingDef = get_building_def_for_spot(spot_id)
+	return building_def.body_radius if building_def != null else 0.0
 
 
-func damage_building(_spot_id: StringName, _amount: int) -> void:
-	pass
+## Removes up to `amount` hit points (never below 0) from the spot's building and emits
+## building_damaged with the points actually lost; the hit that reaches 0 then emits
+## building_destroyed, once. A hit on an unknown spot, an empty plot or a fallen building, or a
+## non-positive amount, is dropped silently: a hit on a thing that is gone is not an error.
+func damage_building(spot_id: StringName, amount: int) -> void:
+	var instance: BuildingInstance = _instances.get(spot_id) as BuildingInstance
+	if instance == null or instance.destroyed or amount <= 0:
+		return
+	var lost: int = mini(amount, instance.health)
+	instance.health -= lost
+	_events.building_damaged.emit(spot_id, lost, instance.health, _max_health_of(instance))
+	if instance.health == 0:
+		instance.destroyed = true
+		_events.building_destroyed.emit(spot_id, instance.building_id, instance.tier)
 
 
 ## A copy of `instance` that nothing else holds; null for null.
@@ -173,4 +204,18 @@ func _snapshot(instance: BuildingInstance) -> BuildingInstance:
 	copy.spot_id = instance.spot_id
 	copy.building_id = instance.building_id
 	copy.tier = instance.tier
+	copy.health = instance.health
+	copy.destroyed = instance.destroyed
+	copy.rebuilt_this_dawn = instance.rebuilt_this_dawn
 	return copy
+
+
+## Hit points of the instance's current tier; 0 for null or a building no map definition covers.
+func _max_health_of(instance: BuildingInstance) -> int:
+	if instance == null:
+		return 0
+	var building_def: BuildingDef = _defs.get(instance.building_id) as BuildingDef
+	if building_def == null:
+		return 0
+	var tier_def: BuildingTierDef = building_def.tier_def(instance.tier)
+	return tier_def.max_health if tier_def != null else 0

@@ -8,6 +8,7 @@ var _map: MapConfig
 var _events: SimEvents
 var _king: KingState
 var _castle: CastleState
+var _buildings: BuildingSystem
 var _run_seed: int
 var _enemies: EnemySystem
 var _hits: PendingHits = PendingHits.new()
@@ -20,12 +21,18 @@ var _awaiting_first_step: bool = false
 
 
 func _init(
-	map: MapConfig, events: SimEvents, king: KingState, run_seed: int, castle: CastleState = null
+	map: MapConfig,
+	events: SimEvents,
+	king: KingState,
+	run_seed: int,
+	castle: CastleState = null,
+	buildings: BuildingSystem = null
 ) -> void:
 	_map = map
 	_events = events
 	_king = king
 	_castle = castle if castle != null else CastleState.new(map, events)
+	_buildings = buildings if buildings != null else BuildingSystem.new(map, events)
 	_run_seed = run_seed
 	_enemies = EnemySystem.new(events)
 
@@ -57,7 +64,7 @@ func step(tick: int) -> void:
 	var night_tick: int = tick - _start_tick
 	_spawn_due(night_tick)
 	_king.step(night_tick, _enemies, _hits)
-	_enemies.step(night_tick, _castle, _king, _hits)
+	_enemies.step(night_tick, _castle, _king, _hits, _buildings)
 	_resolve_hits(night_tick)
 	_enemies.remove_dead()
 	_next_night_tick = night_tick + 1
@@ -125,3 +132,5 @@ func _resolve_hits(night_tick: int) -> void:
 			_castle.damage(hit.amount)
 		elif hit.target_kind == PendingHits.KIND_KING:
 			_king.take_damage(hit.amount)
+		elif hit.target_kind == PendingHits.KIND_BUILDING:
+			_buildings.damage_building(_buildings.spot_at_index(hit.target_id), hit.amount)

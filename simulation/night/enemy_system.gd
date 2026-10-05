@@ -117,13 +117,14 @@ func damage(id: int, amount: int, killer_kind: StringName) -> void:
 ## stops at `target radius + attack_range`, then strikes through the pending-hit queue once per
 ## attack_interval. After all of them moved, overlapping enemies are pushed apart. A destroyed
 ## castle leaves nothing to march on, so the field stands still. `king` may be null in tests that
-## have none; then nobody targets him.
+## have none; then nobody targets him. `buildings` may be null in tests that have none; then the
+## castle is the only structure to attack.
 func step(
 	tick: int,
 	castle: CastleState,
 	king: KingState,
 	hits: PendingHits,
-	_buildings: BuildingSystem = null
+	buildings: BuildingSystem = null
 ) -> void:
 	for id: int in _order:
 		var record: Record = _records[id]
@@ -134,8 +135,8 @@ func step(
 		var record: Record = _records[id]
 		if record.health <= 0:
 			continue
-		_choose_target(record, tick, castle, king)
-		_advance_and_strike(record, tick, castle, king, hits)
+		_choose_target(record, tick, castle, king, buildings)
+		_advance_and_strike(record, tick, castle, king, hits, buildings)
 	_separate()
 
 
@@ -167,11 +168,13 @@ func clear() -> void:
 ##   2. the king, when he is up and inside aggro_range (this is how he pulls enemies off whatever
 ##      they were attacking);
 ##   3. keep any other valid target;
-##   4. the castle, once it is inside aggro range plus its own radius;
+##   4. the structure whose edge is nearest inside aggro_range: a standing building or the castle,
+##      ties going to the earlier spot and the castle last, so outer buildings shield the castle;
 ##   5. none: the enemy keeps marching on the castle.
-## Plan 02-04 adds standing buildings between 3 and 4.
-func _choose_target(record: Record, tick: int, castle: CastleState, king: KingState) -> void:
-	var valid: bool = record.target_kind != &"" and _target_valid(record, castle, king)
+func _choose_target(
+	record: Record, tick: int, castle: CastleState, king: KingState, buildings: BuildingSystem
+) -> void:
+	var valid: bool = record.target_kind != &"" and _target_valid(record, castle, king, buildings)
 	var rescan_ticks: int = maxi(SimClock.ticks(record.def.retarget_interval_seconds), 1)
 	if valid and not is_rescan_tick(tick, record.id, rescan_ticks):
 		return
@@ -188,15 +191,43 @@ func _choose_target(record: Record, tick: int, castle: CastleState, king: KingSt
 		return
 	record.target_kind = &""
 	record.target_id = 0
-	var to_castle: float = record.position.distance_to(castle.get_position())
-	if to_castle <= record.def.aggro_range + castle.get_radius():
+	_pick_nearest_structure(record, castle, buildings)
+
+
+## Sets the target to the nearest standing building or the castle by edge distance (centre
+## distance minus radius), if one is within aggro_range. A strictly smaller edge distance is needed
+## to replace an earlier candidate, so buildings are tried in spot order and the castle last.
+func _pick_nearest_structure(
+	record: Record, castle: CastleState, buildings: BuildingSystem
+) -> void:
+	var best_edge: float = INF
+	if buildings != null:
+		for spot_id: StringName in buildings.standing_spot_ids():
+			var edge: float = _building_edge(record.position, buildings, spot_id)
+			if edge <= record.def.aggro_range and edge < best_edge:
+				best_edge = edge
+				record.target_kind = PendingHits.KIND_BUILDING
+				record.target_id = buildings.spot_index(spot_id)
+	var castle_edge: float = (
+		record.position.distance_to(castle.get_position()) - castle.get_radius()
+	)
+	if castle_edge <= record.def.aggro_range and castle_edge < best_edge:
 		record.target_kind = PendingHits.KIND_CASTLE
 		record.target_id = 0
 
 
+## Distance from `pos` to the edge of the building on the spot; negative inside its footprint.
+func _building_edge(pos: Vector2, buildings: BuildingSystem, spot_id: StringName) -> float:
+	var spot: BuildSpotDef = buildings.get_spot(spot_id)
+	var centre: Vector2 = Vector2(spot.position.x, spot.position.z)
+	return pos.distance_to(centre) - buildings.radius_of(spot_id)
+
+
 ## True while the record's current target can still be attacked and is not beyond the leash. The
-## king stops being valid the moment he is down.
-func _target_valid(record: Record, castle: CastleState, king: KingState) -> bool:
+## king stops being valid the moment he is down, a building the moment it falls.
+func _target_valid(
+	record: Record, castle: CastleState, king: KingState, buildings: BuildingSystem
+) -> bool:
 	if record.target_kind == PendingHits.KIND_KING:
 		if not _king_up(king):
 			return false
@@ -206,7 +237,19 @@ func _target_valid(record: Record, castle: CastleState, king: KingState) -> bool
 			return false
 		var to_castle: float = record.position.distance_to(castle.get_position())
 		return to_castle <= record.def.leash_range + castle.get_radius()
+	if record.target_kind == PendingHits.KIND_BUILDING:
+		return _building_target_valid(record, buildings)
 	return false
+
+
+## A building target is valid while it still stands and its edge is inside leash_range.
+func _building_target_valid(record: Record, buildings: BuildingSystem) -> bool:
+	if buildings == null:
+		return false
+	var spot_id: StringName = buildings.spot_at_index(record.target_id)
+	if spot_id == &"" or buildings.current_tier(spot_id) == 0 or buildings.is_destroyed(spot_id):
+		return false
+	return _building_edge(record.position, buildings, spot_id) <= record.def.leash_range
 
 
 func _king_up(king: KingState) -> bool:
@@ -216,13 +259,23 @@ func _king_up(king: KingState) -> bool:
 ## Walks toward the target (or the castle while there is none) and, once at its stop distance and
 ## off cooldown, queues one melee hit that lands this tick.
 func _advance_and_strike(
-	record: Record, tick: int, castle: CastleState, king: KingState, hits: PendingHits
+	record: Record,
+	tick: int,
+	castle: CastleState,
+	king: KingState,
+	hits: PendingHits,
+	buildings: BuildingSystem
 ) -> void:
 	var goal: Vector2 = castle.get_position()
 	var goal_radius: float = castle.get_radius()
 	if record.target_kind == PendingHits.KIND_KING:
 		goal = king.get_position()
 		goal_radius = king.get_def().body_radius
+	elif record.target_kind == PendingHits.KIND_BUILDING:
+		var spot_id: StringName = buildings.spot_at_index(record.target_id)
+		var spot_position: Vector3 = buildings.get_spot(spot_id).position
+		goal = Vector2(spot_position.x, spot_position.z)
+		goal_radius = buildings.radius_of(spot_id)
 	var attacking: bool = record.target_kind != &""
 	var stop_distance: float = goal_radius + record.def.attack_range
 	var remaining: float = record.position.distance_to(goal) - stop_distance
