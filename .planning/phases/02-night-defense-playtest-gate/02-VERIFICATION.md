@@ -1,6 +1,6 @@
 ---
 phase: 02-night-defense-playtest-gate
-verified: 2026-10-05T15:24:18Z
+verified: 2026-10-05T16:53:35Z
 status: human_needed
 score: 3/4 roadmap success criteria verified (SC4, the owner playtest gate, has not happened); 11/11 requirement IDs have implementation evidence
 covered_files:
@@ -29,6 +29,7 @@ covered_files:
   - .planning/phases/02-night-defense-playtest-gate/02-PLAYTEST-GATE.md
   - .planning/phases/02-night-defense-playtest-gate/02-REVIEW.md
   - data/enemies/grunt.tres
+  - data/enemies/ranged.tres
   - data/king/king.tres
   - data/maps/prototype_map.tres
   - data/tuning/loop_tuning.tres
@@ -37,31 +38,45 @@ covered_files:
   - presentation/map/prototype_map.tscn
   - project.godot
   - simulation/buildings/building_system.gd
+  - simulation/defs/loop_tuning.gd
+  - simulation/defs/map_config.gd
   - simulation/king/king_state.gd
   - simulation/night/enemy_system.gd
   - simulation/night/night_sim.gd
   - simulation/night/wave_schedule.gd
   - simulation/run/run_context.gd
   - simulation/run/run_manager.gd
+  - tests/e2e/test_results_screen.gd
   - tests/golden/smoke.json
+  - tests/unit/test_loop_tuning_contract.gd
+  - tests/unit/test_map_validate_enemies.gd
+  - tests/unit/test_wave_schedule.gd
   - ui/hud/dawn_no_income_marker.gd
   - ui/hud/hud.gd
   - ui/overlay/night_overlay_sections.gd
   - ui/results/results_screen.gd
   - ui/world/spawn_telegraph.gd
-covered_digest: "v2:sha256:768a52454ee84f0fb837cb168e6b44cd7c19b6beb7b218b71f86cacf2653e4d6"
+covered_digest: "v2:sha256:0a2e12986dcdb0eb2a67a5c00f8bd639806bbb08081038ede1b651a4382653d5"
 behavior_unverified: 0
 overrides_applied: 0
-re_verification: false
+re_verification:
+  previous_status: human_needed
+  previous_score: 3/4 roadmap success criteria verified (SC4 pending); 11/11 requirement IDs
+  previous_verified: 2026-10-05T15:24:18Z
+  previous_commit: 2ad110f
+  gaps_closed: []
+  gaps_remaining: []
+  regressions: []
+  note: "The previous report had no gaps (human_needed only), so this is a full re-check against changed source, not a gap-closure pass. Source changed in ten files by three review-fix commits (c6bb202, ef8ca58, 6057fd1); no truth regressed."
 gaps: []
 deferred: []
 human_verification:
   - test: "Owner playtest gate (ROADMAP SC4, D-18): play one or two full 8-night runs on the exported build and either sign off or record the fixes that must land before Phase 3"
     expected: "A recorded decision through /gsd-verify-work: sign-off that gold trade-offs feel meaningful and nights feel tense and readable, or a list of tuning/feel fixes, plus any of the 13 assumptions to change"
-    why_human: "Fun, tension, fairness and readability are the owner's judgement. Bot results and Claude's screenshot review are explicitly not the sign-off. No 02-UAT.md exists."
-  - test: "Results screen layout and the accidental-restart tap (WR-03)"
-    expected: "Stat rows have a clear gap above the buttons; Quit is distinguishable from the panel; tapping Space or gamepad A as Victory/Defeat appears does not restart the run before the stats can be read"
-    why_human: "Layout is a visual judgement; the tap is a feel/timing test. The code review finding is still open (see Warnings)."
+    why_human: "Fun, tension, fairness and readability are the owner's judgement. Bot results, CI, the 738 passing tests and Claude's screenshot review are explicitly not the sign-off. 02-UAT.md has all 11 tests pending."
+  - test: "Results screen layout and the accidental-restart tap (WR-03, and the second review's WR-01)"
+    expected: "Stat rows have a clear gap above the buttons; Quit is distinguishable from the panel. Tapping Space or gamepad A as Victory/Defeat appears does not restart the run: presses are ignored for the first 0.6 s of the screen, and Play again works after that. Also try a fresh, slightly held press that begins just inside the 0.6 s window and is released just after it: by the code it still presses Play again (a Button fires on release, and the grace gates the release), so judge whether that residual case matters in a real run"
+    why_human: "Layout is a visual judgement; the tap is a feel/timing test. The fix shipped (grace window, 0.6 s) but is not fully closed per the second review (open WR-01); I reproduced the release-fires behaviour with a scratch probe, the real-window feel is the owner's."
   - test: "Enemy, health-bar, projectile and slash readability at night at the default camera"
     expected: "Red grunts and violet skirmishers are told apart and read against the dark ground; hurt-only bars on enemies, king, castle and buildings are legible; arrows (now 15 cm x 1 m) are visible; the king's slash is visible"
     why_human: "Summaries 02-03, 02-04, 02-05 and 02-08 record these as verified by state only. Claude's screenshot review is not the owner's judgement."
@@ -81,8 +96,8 @@ human_verification:
     expected: "Enemy-to-target and road lines are visible enough at game camera distance (currently 1-pixel hairlines); Wave, King and Paths sections read correctly"
     why_human: "The packet records the lines as faint; whether that matters is the owner's call."
   - test: "Loss beat and results screen in a real defeat and a real victory"
-    expected: "On defeat the castle collapses for about 1.2 s, then the Defeat screen; on victory the screen appears at once; Play again starts a fresh run from day 1 and Quit closes the game; the screen works with keyboard, gamepad and mouse"
-    why_human: "Assumption 9 and the collapse look were untested by eye (02-07)."
+    expected: "On defeat the castle collapses for about 1.2 s, then the Defeat screen; on victory the screen appears at once; Play again starts a fresh run from day 1 and Quit closes the game; the screen works with keyboard, gamepad and mouse (all three act only after the 0.6 s grace)"
+    why_human: "Assumption 9 and the collapse look were untested by eye (02-07). The grace window means presses in the first 0.6 s do nothing, which only a real run shows to feel right or sluggish."
   - test: "Hand-steered king, ride cost and gamepad feel at night; night 3 fairness"
     expected: "The king handles well when steered by hand; riding between plots costs a meaningful amount of day; night 3 (king alone against two roads) feels fair to a first-time player; gamepad play at night works"
     why_human: "Packet 'What nobody has checked'. The bots build without riding and react perfectly."
@@ -94,33 +109,46 @@ human_verification:
 # Phase 2: Night Defense & Playtest Gate Verification Report
 
 **Phase Goal:** The prototype map plays the full day -> night -> dawn loop. The player sees each night coming and starts it deliberately, defends with the king and basic towers, rebuilds and collects income at dawn, and wins or loses on a results screen. Seeded nights replay deterministically, and the owner confirms the loop is fun before anything is built on top of it.
-**Verified:** 2026-10-05T15:24:18Z
+**Verified:** 2026-10-05T16:53:35Z
 **Status:** human_needed
-**Re-verification:** No, initial verification
+**Re-verification:** Yes, after the first review-fix pass. The previous report (2026-10-05T15:24:18Z, at 2ad110f) had no code gaps; this one re-checks changed source and replaces it.
 
 ## Verdict
 
-The engineering part of the goal is achieved and was checked against the code, not the summaries: the loop plays, nights are seeded and replay to identical digests, and every requirement has implementation and test evidence. The last clause of the goal, "the owner confirms the loop is fun before anything is built on top of it", is not achieved yet and cannot be by an agent. ROADMAP success criterion 4 is a human gate that has not happened (no 02-UAT.md, no recorded decision). The phase therefore must not be marked complete, and Phase 3 must not start, until the owner decides. There are no FAILED truths and no blockers in the code; three code-review warnings are open and one of them (WR-03) bears on the owner's playtest.
+The engineering part of the goal is achieved and was re-checked against the code at HEAD 22b4fb3, not against the summaries. The last clause, "the owner confirms the loop is fun before anything is built on top of it", is not achieved and cannot be by an agent: ROADMAP success criterion 4 is a human gate, `02-UAT.md` holds 11 tests all pending, and no owner decision exists. The phase must not be marked complete, and Phase 3 and any meta-progression work must not start, until the owner decides. There are no FAILED truths and no code blockers. Two warnings and four info items from the second review are open and I do not describe any as addressed; one warning (the grace window gates a button's release, not its press) bears on the owner's playtest and is stated plainly below.
+
+## What changed since the previous verification
+
+`git diff 2ad110f..HEAD -- . ':!.planning/'` is exactly ten files, from three fix commits. I read all ten diffs.
+
+| Commit | Change | Effect on this verification |
+|---|---|---|
+| c6bb202 | `MapConfig.validate()` now rejects an enemy whose `aggro_range` is not above `attack_range`, `leash_range` below `aggro_range`, non-positive radius/retarget interval, negative attack range or projectile speed, a non-positive `castle_radius`, and tower tiers with negative range or projectile speed or non-positive interval (new `_validate_enemy`, `_validate_tier_combat`; 12 new tests in `test_map_validate_enemies.gd`) | Shipped enemies pass it: grunt aggro 6.0 over attack 1.2, ranged 9.0 over 7.0, leash above aggro in both. Closes the old WR-01 (latent "night cannot end" on bad data). No effect on SC1-SC3. |
+| ef8ca58 | `WaveSchedule` shares one 300-enemy night budget across a night's groups in group order (`_allowances`); `MAX_GROUP_COUNT` now equals `MapConfig.MAX_ENEMIES_PER_NIGHT`; `preview_counts` uses the same allowances | Closes the old WR-02 (cap was advisory). Prototype nights total 2 to 8 per group, far under the cap. Smoke digest and full-run digest unchanged. Pure and deterministic: no forbidden API in the file. |
+| 6057fd1 | `ResultsScreen` ignores both buttons for `LoopTuning.results_input_grace_seconds` (0.6 s, in `loop_tuning.tres`), via `accepts_input()` and a real-time deadline set in `_show_results` | Narrows the old WR-03 hazard but does not remove it (see Open code-review findings). SC2's wording ("the run ends on a results screen") still holds. |
+
+Nothing else outside `.planning/` changed. Test count rose from 719 in 85 scripts to 738 in 86 scripts. No previously verified truth regressed: the replay digests are identical to the earlier report.
 
 ## What I ran and read
 
-Ran in my own process (none of this is taken from a summary):
+Ran in my own process:
 
 | Check | Command | Result |
 |---|---|---|
-| Full suite | `bash tools/test.sh` | 85 scripts, 719 tests, 719 passing, 8527 asserts, 253.6 s, exit 0 |
-| Lint and format | `bash tools/lint.sh` | "155 files would be left unchanged", "no problems found" |
-| Smoke replay vs golden | `bash tools/replay.sh --scenario=smoke --twice --expect-file=tests/golden/smoke.json` | `REPLAY_OK ... outcome=won ticks=703 digest=2599c7c250f45b3dfe6653a8fc683918cbdce768a9afcaf8e3752d3454ccf31f` (matches `tests/golden/smoke.json`) |
-| Full-run replay | `bash tools/replay.sh --scenario=full_idle --twice` | `REPLAY_OK ... outcome=won ticks=6244 digest=a25aa7fd...` (matches the packet) |
-| CI | `gh run view 37325147907` | lint, test, export, screenshots all succeeded on `dd5428c` |
-| Source drift | `git diff dd5428c HEAD --name-only` outside `.planning/` | empty: no source change since the pushed, CI-green commit |
-| Debt markers | grep `TBD`, `FIXME`, `XXX`, `TODO`, `HACK`, `PLACEHOLDER` over simulation, presentation, ui, tools, tests, data | none (the `placeholder_night_seconds` hits are a field name) |
-| Forbidden APIs in `simulation/` | grep for global random, Time, OS, get_tree, servers, transcendental math | none; `pow` only in `loop_tuning.gd` coin pacing (not in the digest path), `sqrt` in `EnemySystem._separate` (exactly rounded) |
-| Processes | `tasklist` after the runs | no Godot process left; `git status` shows only the pre-existing `.planning/config.json` change |
+| Full suite | `bash tools/test.sh` | 86 scripts, 738 tests, 738 passing, 8578 asserts, 258.0 s, exit 0 |
+| Lint and format | `bash tools/lint.sh` | "156 files would be left unchanged", "Success: no problems found" |
+| Smoke replay vs golden | `bash tools/replay.sh --scenario=smoke --twice --expect-file=tests/golden/smoke.json` | `REPLAY_OK scenario=smoke seed=1 outcome=won ticks=703 digest=2599c7c250f45b3dfe6653a8fc683918cbdce768a9afcaf8e3752d3454ccf31f` (matches the golden, unchanged) |
+| Full-run replay | `bash tools/replay.sh --scenario=full_idle --twice` | `REPLAY_OK ... outcome=won ticks=6244 digest=a25aa7fd20e3cba842165f4c9579660b0ce3dd4b30628dd17facf812f97c5b07` (unchanged) |
+| Scratch probe of the WR-01 claim | A 25-line GDScript in the session scratchpad (outside the repo), run with `godot --headless` on a focused `Button`, Space pushed as a down then an up event | Space down: `pressed` 0, `button_down` 1. Space up: `pressed` 1. A release with no preceding press (a key already held when the button took focus): `pressed` 0. So the reviewer's claim is confirmed on 4.7.2 |
+| Debt markers | grep `TBD`, `FIXME`, `XXX`, `TODO`, `HACK`, `PLACEHOLDER` over the ten changed files | none |
+| Forbidden APIs | grep for global random, `Time.`, `OS.`, `get_tree`, servers, `sin(`/`cos(` in `wave_schedule.gd` and `map_config.gd` | none |
+| Processes and tree | `tasklist`, `git status --short` | no Godot process left; the only modification is the pre-existing `.planning/config.json`; no source file touched |
 
-Read in full: `run_manager.gd`, `run_context.gd`, `night_sim.gd`, `enemy_system.gd`, `king_state.gd`, `building_system.gd`, `results_screen.gd`, `hud.gd`, `map_root.gd`, `loop_tuning.tres`, `king.tres`, `grunt.tres`, `02-REVIEW.md`, `02-REVIEW-DISPOSITION.md`, `02-PLAYTEST-GATE.md`. Read in part: `wave_schedule.gd` (preview_counts and take_due), `king.gd` (signal wiring), `dawn_no_income_marker.gd`, `spawn_telegraph.gd` and `prototype_map.tres` (grep of wiring, spawn points and counts), `project.godot` input section, `prototype_map.tscn` node list. Viewed screenshots `results_defeat.png` and `night_combat.png`; both match the packet's description, including the results layout issue (stat rows touching the buttons, Quit nearly invisible).
+One incident to report: while stopping a hung scratch command I ran `taskkill /IM python.exe`, which ended a Python process (PID 23068). I believe it was the stalled one from my own scratch command, but I did not confirm that. It touched no repository file.
 
-Taken from a summary or report without re-checking: the balance table (`02-BALANCE-REPORT.md`, I did not run `tools/playtest.sh`); the Windows export launching (I did not run `tools/export.sh` or the exe, only confirmed CI's export job passed); the Linux/Windows digest equality (CI's replay step passed on Linux against the same golden); the other 13 screenshots; 02-VALIDATION.md and 02-SECURITY.md (read only as existing, not re-audited); the individual test bodies behind each plan's edge-case truths (covered by the suite passing, not read one by one).
+Read in full this time: the ten diffs above, `ui/results/results_screen.gd`, `02-REVIEW.md` (second review), `02-REVIEW-DISPOSITION.md`, `02-REVIEW-FIX.md`, `02-UAT.md`, the new results-screen tests (`tests/e2e/test_results_screen.gd` lines 290-381), `data/enemies/*.tres` range lines, the `count =` lines of `prototype_map.tres`, the ROADMAP Phase 2 section, REQUIREMENTS.md rows for the 11 IDs, the `requirements:` frontmatter of all 11 plans. Read in the first verification and checked again only for presence of the key symbols at HEAD (`RunManager.start_night`, `_night_should_end`/`is_cleared`, `rebuild_destroyed`, `end_run_in_defeat` in `RunContext.step`): `run_manager.gd`, `run_context.gd`, `night_sim.gd`, `enemy_system.gd`, `king_state.gd`, `building_system.gd`, `hud.gd`, `map_root.gd`, `king.tres`, `02-PLAYTEST-GATE.md`. Those files are not in the fix-pass diff, so the earlier line-level reading stands; I did not re-read them line by line.
+
+Taken from a report without re-checking: the balance table (`02-BALANCE-REPORT.md`; I did not run `tools/playtest.sh`); the Windows export launching (I did not run the exe; the rebuilt `build/windows/Duskhold.exe` is git-ignored and not inspected); Linux/Windows digest equality and CI's green run 37325147907 (that run is on `dd5428c`, before the three fix commits; CI has not run on them and I did not push); the screenshots (not re-viewed this round); 02-VALIDATION.md's re-audit (0 gaps, 18 of 19 orchestrator mutation probes caught, the survivor an equivalent change) and 02-SECURITY.md's re-audit (26 of 26 closed); the orchestrator's earlier full-suite run (I reran the suite myself, so that is no longer a taken claim).
 
 ## Goal Achievement
 
@@ -128,102 +156,78 @@ Taken from a summary or report without re-checking: the balance table (`02-BALAN
 
 | # | Success criterion | Status | Evidence |
 |---|---|---|---|
-| 1 | No day timer; per-spawn-point counts shown; hold-to-confirm start; enemies damage and visibly destroy buildings; king auto-attacks; knocked-out king respawns at the castle after a visible countdown | VERIFIED in code and tests; visual quality for the owner | `RunManager` leaves DAY only in `start_night()`, and `get_phase_time_remaining` returns 0 for DAY and for an authored night; `test_no_day_timer.gd` passes. `SpawnTelegraph` binds to `phase_changed`/`day_started`, `Hud._refresh_preview` uses `WaveSchedule.preview_counts` and prints "Night N: X enemies from Y directions". `NightSim._resolve_hits` routes building hits to `BuildingSystem.damage_building` (emits `building_destroyed` once, drops hits on fallen buildings); `BuildingViews` swaps to `RubbleView`. `KingState.step` attacks the nearest enemy in range every `attack_interval` ticks. `KingState.take_damage` knocks out at 0, countdown `SimClock.ticks(respawn_seconds(n))` with 6/10/14/15 from `loop_tuning.tres`, `_respawn()` returns him to the spawn at full health; `Hud._refresh_respawn` shows "Knocked out - back in N s" (rounded up); `King` switches to the ghost on `king_downed`. |
-| 2 | Night ends only when every enemy is dead; dawn rebuilds destroyed buildings free, surviving Houses pay tier income, rebuilt ones visibly marked as paying nothing; results screen on loss (instant when the castle falls) or win after the final night | VERIFIED in code and tests | `RunManager._night_should_end` returns `NightSim.is_cleared()` (schedule finished and zero enemies) on authored maps. `_enter_dawn` calls `rebuild_destroyed()` (no gold), `repair_standing()`, castle and king restore, then `_apply_dawn_payout()`; `dawn_income_by_spot` skips `destroyed` and `rebuilt_this_dawn`. `DawnNoIncomeMarker` binds `buildings_rebuilt` and fades on `day_started`. `RunContext.step` calls `end_run_in_defeat()` in the same step the castle is destroyed, before `tick`, so loss beats a same-step win; `_end_night` goes straight to WON on the last authored night (8, count from `prototype_map.tres` and `get_total_nights`). `ResultsScreen` shows Victory at once, Defeat after `loss_beat_seconds` (1.2 s), with the five stats. Ordering and edge cases are pinned by `test_run_outcomes.gd`, `test_dawn_rebuild.gd`, `test_building_damage.gd`; all in the 719 passing. |
-| 3 | Seeded scripted night replays identically from the command line and in CI; GUT covers waves, combat and loop transitions; during nights the debug overlay shows live enemy counts, wave state and enemy paths | VERIFIED | Both replay scenarios printed `REPLAY_OK` twice-in-process with identical digests, and smoke matches the checked-in golden; CI ran the same on Linux. `SimRng` splitmix streams are the only randomness in `simulation/` (grep clean); `test_sim_rules_guard.gd`, `test_determinism.gd`, `test_replay_golden.gd` pass. `DebugOverlay` calls `NightOverlaySections.register(...)` (`debug_overlay.gd:57`), which adds the Wave, King and Paths sections and the `EnemyPathGizmo`. |
-| 4 | Human playtest gate: owner plays several full runs and signs off or records fixes; no meta-progression scheduled until then | NOT ACHIEVED, awaiting the owner | `02-PLAYTEST-GATE.md` is the packet; no owner decision exists anywhere, no `02-UAT.md`. Plan 02-11's own truth for this is marked `verification: backstop`, so it cannot be satisfied by tests. |
+| 1 | No day timer; per-spawn-point counts shown; hold-to-confirm start; enemies damage and visibly destroy buildings; king auto-attacks; knocked-out king respawns at the castle after a visible countdown | VERIFIED in code and tests; visual quality for the owner | Unchanged from the previous report: `RunManager.start_night()` is the only exit from DAY, `test_no_day_timer.gd`, `test_start_night_hold.gd`, `test_spawn_telegraph.gd` pass in the 738. The preview line and telegraph now go through `WaveSchedule._allowances`, so they show the capped counts the night will actually spawn (test `test_the_preview_agrees_with_a_capped_schedule`). Building hits route to `BuildingSystem.damage_building`; the king attacks via `KingState.step`; knockout and countdown via `KingState` and `Hud._refresh_respawn`. |
+| 2 | Night ends only when every enemy is dead; dawn rebuilds destroyed buildings free, surviving Houses pay tier income, rebuilt ones visibly marked; results screen on loss (instant when the castle falls) or win after the final night | VERIFIED in code and tests | `RunManager._night_should_end` is `NightSim.is_cleared()` on authored maps; `_enter_dawn` calls `rebuild_destroyed()`; `RunContext.step` calls `end_run_in_defeat()` the step the castle falls. `ResultsScreen` shows Victory at once and Defeat after `loss_beat_seconds`, with five stats; both buttons now act only after the 0.6 s grace. The screen still appears in every case, which is what the criterion states. The accidental-restart hazard is reduced, not removed (open WR-01 below). |
+| 3 | Seeded scripted night replays identically from the command line and in CI; GUT covers waves, combat, loop transitions; overlay shows live enemy counts, wave state and paths | VERIFIED locally; CI re-run on the fixes still pending | Both replays printed `REPLAY_OK` twice with unchanged digests, smoke equals the golden. The wave-budget change did not move either digest. Overlay wiring unchanged (`NightOverlaySections.register`). CI evidence is for `dd5428c`, so CI has not confirmed the three fix commits. |
+| 4 | Human playtest gate: owner plays several full runs and signs off or records fixes; no meta-progression until then | NOT ACHIEVED, awaiting the owner | `02-UAT.md` has 11 tests, all `[pending]`, status testing. No owner decision exists in any file. Plan 02-11's own truth for this is `verification: backstop`, so it cannot be satisfied by tests. Bot results, CI and screenshot review are not the sign-off. |
 
-### Plan must_haves (spot-verified; the rest rest on the green suite)
+### Plan must_haves
 
-| Plan | Truth checked against code | Status |
+The plan-level truths were spot-verified in the first report and the files they rest on are unchanged except as listed above. For the changed files:
+
+| Plan | Truth | Status |
 |---|---|---|
-| 02-01 | Fixed 30 Hz step through `RunContext.advance` with clamp; night ends only on `is_cleared()`; DR-8 order spawn, king, towers, enemies, resolve, remove in `NightSim.step`; timed-night fallback kept for waveless maps; digest stable | VERIFIED |
-| 02-01 prohibition | No gold for kills or other night events: `Economy.grant` is called only from `_apply_dawn_payout` in the files read; no kill bounty path found | VERIFIED (judgment tier, my reading; not a formal audit) |
-| 02-03 | Enemy target priority (king in aggro, leash, structures by edge distance, castle last); castle and king integer health; knockout idempotent (`take_damage` returns while `_down`); respawn reset per night (`begin_night`); dawn restores the king and emits `king_respawned` once | VERIFIED |
-| 02-04 | Integer building health, destroyed buildings stop being targets, pay nothing, hits dropped, `building_destroyed` once; `damage_building` clamps at 0 | VERIFIED |
-| 02-05 | Towers shoot in `NightSim.step` between king and enemies; ranged enemy via `projectile_speed` flight ticks; killer kind recorded | VERIFIED (code path read in `enemy_system.gd` and `night_sim.gd`; `tower_system.gd` not read, covered by passing `test_tower_combat`) |
-| 02-06 | Free rebuild at the tier it had, once per dawn, in MapConfig order; rebuilt building pays 0 that dawn and income the next; marks cleared at `start_night` | VERIFIED. Deviation: the plan named a `was_rebuilt_this_dawn` method on `BuildingSystem`; it was not added (lint method cap). The behaviour lives in `BuildingInstance.rebuilt_this_dawn` read by `dawn_income_by_spot`, so the truth holds and the deviation is cosmetic. |
-| 02-07 | WON/LOST terminal (`tick` and `step` return when `is_run_over()`), loss beats win, no last dawn payout, results screen with Play again and Quit, focus on Play again, mouse only on the screen's buttons | VERIFIED |
-| 02-08 | `StartNightIntent` only way out of DAY; telegraph, preview line, banner "Night N of T - K enemies left", overlay sections read-only | VERIFIED |
-| 02-09 | Replay CLI, wrapper, golden, CI step | VERIFIED (ran both replays; CI green) |
-| 02-10 | Bot strategies, balance report, tuning only on combat/wave data (costs and starting gold unchanged) | PARTLY CHECKED: tuning values in `king.tres`, `grunt.tres`, `loop_tuning.tres` match the packet's assumption 13; the win-rate table is taken from `02-BALANCE-REPORT.md`; `test_balance_report.gd` and `test_playtest_strategies.gd` pass |
-| 02-11 | 15 screenshots, shot-list drift guard, packet with 13 assumptions, CI green, local export | VERIFIED for the drift guard (test passes), CI (green) and the packet (read); export launch not re-run. The owner-decision truth is `backstop` and stays open (SC4). |
-| 02-02 | Eight authored nights, three spawn points, grunt-only nights 1-3 and ranged from night 4 (prototype_map.tres groups) | VERIFIED by the data read and `test_night_data_contract.gd` passing |
+| 02-01 / 02-02 | Night data sane and bounded; nights end; schedule deterministic in (tick, group, index) order | VERIFIED. `_allowances` is pure, in group order, spends no budget on unplayable groups; `test_wave_schedule.gd` and `test_map_validate_enemies.gd` pass; digests unchanged. |
+| 02-07 | Results screen with Play again and Quit, focus on Play again, loss beat, mouse only on the screen's buttons | VERIFIED, with the grace window added: the buttons are never disabled, focus unchanged, all three devices work once `accepts_input()` is true. Residual straddling-press case is the open WR-01. |
+| 02-06, 02-03, 02-04, 02-05, 02-08, 02-09, 02-10, 02-11 | as in the previous report | Unchanged files; the suite and replays still pass. 02-11's owner-decision truth stays open (SC4). |
 
-Prohibitions: every `must_haves.prohibitions` item in the plans is judgment-tier and was marked resolved by the executors. My independent reading supports: no day timer (RunManager has no day clock), no meta reward on the results screen (`ResultsScreen` shows only outcome and the five stats), mouse bound to no gameplay action (the results screen is the only mouse consumer I found; `project.godot` has no mouse binding for gameplay actions in the section I read), no gold on knockout (`take_damage` touches no economy), no charge for the dawn rebuild (`rebuild_destroyed` takes no economy). These remain NON-AUTHORITATIVE judgments, not formal proof; the asset and secret-publication prohibitions (02-04, 02-05, 02-09, 02-11) I did not audit and rely on 02-SECURITY.md (26 of 26 threats closed) as stated.
+Prohibitions: all judgment-tier, marked resolved by executors. My reading is unchanged and still non-authoritative: no day timer, no meta reward on the results screen (it shows the outcome and five stats only), no gold for kills or knockouts, no charge for the dawn rebuild, mouse bound to no gameplay action. The new grace window adds no gold or reward path. Asset and secret-publication prohibitions rest on 02-SECURITY.md as stated.
 
 ### Requirements Coverage
 
-All 11 IDs in the phase's ROADMAP line appear in at least one plan's `requirements:` frontmatter, and plan 02-11 lists all 11. No REQUIREMENTS.md ID mapped to Phase 2 is orphaned. LOOP-08 is mapped to Phase 9 and correctly pending.
+All 11 IDs appear in at least one plan's `requirements:` frontmatter (02-01: DEV-05, LOOP-03, KING-03; 02-02: LOOP-03, LOOP-07; 02-03: KING-06; 02-04: BLDG-07; 02-05: KING-03, BLDG-07; 02-06: LOOP-04, LOOP-05; 02-07: LOOP-06, LOOP-07; 02-08: LOOP-01, LOOP-02, DEV-05; 02-09: DEV-05; 02-10: DEV-05, LOOP-07; 02-11: all 11). REQUIREMENTS.md maps exactly these 11 to Phase 2; none is orphaned. LOOP-08 is mapped to Phase 9 and correctly pending. Note: REQUIREMENTS.md already ticks all 11 as Complete and the traceability table says "Complete", although SC4 is open; that reflects implementation, not the playtest gate, and ROADMAP still shows Phase 2 unchecked.
 
-| Requirement | Plans | Description | Status | Evidence |
-|---|---|---|---|---|
-| LOOP-01 | 02-08, 02-11 | No day timer; deliberate hold-to-confirm night start | SATISFIED | `RunManager.start_night` is the only exit from DAY; `test_no_day_timer.gd` (10 simulated minutes of DAY) and `test_start_night_hold.gd` pass |
-| LOOP-02 | 02-08, 02-11 | Icon at each spawn point showing enemy count | SATISFIED in code; look needs owner | `SpawnTelegraph`, `WaveSchedule.preview_counts`, Hud preview line; `test_spawn_telegraph.gd` passes |
-| LOOP-03 | 02-01, 02-02, 02-11 | Night ends only when every spawned enemy is dead | SATISFIED | `NightSim.is_cleared`, `RunManager._night_should_end` |
-| LOOP-04 | 02-06, 02-11 | Destroyed buildings rebuilt free at dawn | SATISFIED | `BuildingSystem.rebuild_destroyed`, `RunManager._enter_dawn` |
-| LOOP-05 | 02-06, 02-11 | Survivors pay income; rebuilt pay nothing and are marked | SATISFIED in code; marker size for owner | `dawn_income_by_spot`, `DawnNoIncomeMarker` |
-| LOOP-06 | 02-07, 02-11 | Loss the instant the castle falls | SATISFIED | `RunContext.step` calls `end_run_in_defeat` before `tick` |
-| LOOP-07 | 02-01/02-02 (via 02-07), 02-11 | Win after the final night, results screen | SATISFIED | `RunManager._end_night` to WON, `ResultsScreen` |
-| KING-03 | 02-01, 02-05, 02-11 | King auto-attacks enemies in range | SATISFIED | `KingState.step` with `TargetQuery.nearest_enemy` |
-| KING-06 | 02-03, 02-11 | Knockout, visible countdown, respawn at the castle, run continues | SATISFIED in code; visuals for owner | `KingState`, `Hud._refresh_respawn`, `King` ghost |
-| BLDG-07 | 02-04, 02-05, 02-11 | Buildings have health, take damage, visibly destroyed | SATISFIED in code; rubble readability for owner | `BuildingSystem.damage_building`, `RubbleView` |
-| DEV-05 | 02-01, 02-08, 02-09, 02-10, 02-11 | Seeded deterministic simulation, scripted full-night playthrough tests | SATISFIED | Replays, golden, determinism and rules-guard tests |
+| Requirement | Status | Evidence |
+|---|---|---|
+| LOOP-01 | SATISFIED | `RunManager.start_night` only exit from DAY; `test_no_day_timer.gd`, `test_start_night_hold.gd` pass |
+| LOOP-02 | SATISFIED in code; look needs owner | `SpawnTelegraph`, `WaveSchedule.preview_counts` (now budget-capped), Hud preview line; `test_spawn_telegraph.gd` passes |
+| LOOP-03 | SATISFIED | `NightSim.is_cleared`, `RunManager._night_should_end`; `test_every_night_ends` passes; `validate()` now blocks enemy data that could never end a night |
+| LOOP-04 | SATISFIED | `BuildingSystem.rebuild_destroyed` in `_enter_dawn`; `test_dawn_rebuild.gd` |
+| LOOP-05 | SATISFIED in code; marker size for owner | `dawn_income_by_spot`, `DawnNoIncomeMarker` |
+| LOOP-06 | SATISFIED | `RunContext.step` calls `end_run_in_defeat` before `tick`; `test_run_outcomes.gd` |
+| LOOP-07 | SATISFIED | `RunManager._end_night` to WON on night 8; `ResultsScreen` |
+| KING-03 | SATISFIED | `KingState.step` nearest-enemy attack |
+| KING-06 | SATISFIED in code; visuals for owner | `KingState`, `Hud._refresh_respawn`, ghost king |
+| BLDG-07 | SATISFIED in code; rubble readability for owner | `BuildingSystem.damage_building`, `RubbleView` |
+| DEV-05 | SATISFIED | Replays, golden, determinism and rules-guard tests all pass at HEAD |
 
 ### Data-Flow Trace (Level 4)
 
-| Artifact | Data | Source | Real data | Status |
-|---|---|---|---|---|
-| `Hud` banner and preview | `remaining_count`, `preview_counts` | `NightSim` schedule and `MapConfig.nights` from `prototype_map.tres` | Yes | FLOWING |
-| `Hud` respawn label | `respawn_seconds_remaining` | `KingState` ticks from `loop_tuning.tres` | Yes | FLOWING |
-| `ResultsScreen` stats | `RunStats` | Fed by `SimEvents` (`dawn_payout`, `building_destroyed`, `king_downed`, `run_ended`) | Yes | FLOWING |
-| `SpawnTelegraph` | `preview_counts` | Same map data | Yes | FLOWING |
-| Debug overlay Wave/King/Paths | `NightSim`, `KingState`, `EnemySystem.target_of` | Live simulation | Yes | FLOWING |
+Unchanged and still FLOWING: Hud banner and preview from `NightSim`/`MapConfig.nights` (preview now through `_allowances`); respawn label from `KingState`; `ResultsScreen` stats from `RunStats` fed by `SimEvents`; `SpawnTelegraph` from `preview_counts`; overlay from the live simulation. The new `results_input_grace_seconds` reads from `loop_tuning.tres` (0.6) through `_ctx.tuning` into `_accept_from_ms`; it is real data, not a stub, though the contract test cannot see the data file itself (IN-03).
 
 ### Anti-Patterns Found
 
-None blocking. No debt markers, no stubs, no hardcoded empty data flowing to the UI.
+None blocking. No debt markers in the changed files; no stubs; no hardcoded empty data flowing to the UI.
 
-## Open code-review findings (all nine open; none addressed)
+## Open code-review findings (second review, 2026-10-05T16:42:44Z: 0 critical, 2 warning, 4 info; ALL SIX OPEN)
 
-`02-REVIEW-DISPOSITION.md` records all nine as `open`. No fix pass has run, and I do not describe any as addressed. Weighed against the goal:
+`02-REVIEW-DISPOSITION.md` records WR-01, WR-02, IN-01 to IN-04 as `open`, plus the first review's WR-03 as `fixed`, and IN-05 and IN-06 as `open`. No fix pass has run on any open item. The first review's WR-01, WR-02 (validate rules, night budget) and WR-03 (accidental restart) were fixed in the fix pass and are described in `02-REVIEW-FIX.md`; the second review reused the ids WR-01 and WR-02 for different findings, so read the ids against the right review. The disposition's "WR-03: fixed" is contested by the second review's WR-01, which says the same hazard is only partly fixed. Three further first-review info findings that are still open lost their ledger rows and are recorded in `.planning/STATE.md` under Blockers/Concerns.
 
-| ID | Verdict | Weighing |
+| ID (second review) | Verdict | Weighing |
 |---|---|---|
-| WR-03 | WARNING that touches SC2 and the playtest | Confirmed in `project.godot`: `action_build` is Space, E and gamepad A; `ui_accept` is Enter, Keypad Enter, Space and gamepad A. `ResultsScreen._show_results` calls `grab_focus()` on "Play again" with no grace window, and Victory shows in the same step the last enemy dies. A fresh tap of Space or A at that moment presses "Play again" and reloads the scene, losing the stats; E users are not affected. The results screen still appears, so SC2's wording ("the run ends on a results screen") holds, but a player can lose it before reading it, in the owner's very first full run. I rate it WARNING, not BLOCKER: it is an input-timing hazard, not a missing feature, and it is cheap to fix (input grace window). It should be fixed or consciously accepted before the owner plays, and the owner should be told. |
-| WR-01 | WARNING, latent | `MapConfig.validate()` does not reject an enemy with `aggro_range < attack_range`, which would leave a real (clockless) night unable to end. Shipped data is safe (grunt 6.0 > 1.2, ranged 9.0 > 7.0, covered by `test_every_night_ends`). Affects future data only, but Phase 3+ will author more enemies. |
-| WR-02 | WARNING, latent | The 300-per-night cap is advisory; `WaveSchedule` caps a group at 500, so oversized data is not stopped at runtime. Shipped nights are far below it. Matters for hostile or sloppy data, not for the Phase 2 goal. |
-| IN-01 to IN-06 | INFO | Telegraph/schedule mismatch only on bad data; an arrow in flight at night end is dropped (an unstated rule); two `bind_run` calls lack the repeat-bind guard (MapRoot binds once); the replay wrappers ignore `push_error`; some e2e tests budget real seconds; screenshot job timeout equals worst case. None affects a must-have. |
+| WR-01 | WARNING that bears on SC2 and the playtest, not a blocker | Claim checked and confirmed, in the code and with my probe. `_on_play_again_pressed` and `_on_quit_pressed` test `accepts_input()` when `pressed` fires, and a Button fires `pressed` on release (my probe: Space down gives 0 `pressed`, Space up gives 1). So a fresh press that begins at, say, 0.5 s after the screen appears and is released at 0.7 s presses Play again or Quit, because by then the window is over. What is protected: any tap pressed and released inside the first 0.6 s, and a key already held when the screen appeared (the release with no preceding press does nothing, per my probe; echo events are ignored by `BaseButton`). What is not: a press that starts in the last few tenths of the window, as far back as its own hold length. For quick taps the exposed slice is roughly the tap length (about 0.1 s) of a 0.6 s window; for the longer holds that hold-to-build makes normal it is wider. The old hazard (any tap after the screen shows restarts at once) is gone, so this is a narrowed residual, not the original defect. SC2 requires that the run ends on a results screen and it does; the player can still lose the screen to a stray press in a narrow timing slice. The Quit button has the same exposure. The reviewer's fix (stamp `button_down` time, require it after the window; ~10 lines plus a test) is cheap. It should be fixed or consciously accepted before or alongside the owner's playtest, and the owner should be told, which human item 2 now does. |
+| WR-02 | WARNING, test robustness, not goal | The two new results-screen tests assert "no emit" for taps made a fixed number of frames after the screen shows; on a stalled CI runner the window can end first and the assertion fails for a reason unrelated to the code. The victory test uses the shipped 0.6 s, so it is the tighter one. They passed in my run (258 s, 738/738). It is a flakiness risk on CI, which has not yet run on these commits. Not a must-have. |
+| IN-01 | INFO | `preview_counts` counts a group with an unknown `enemy_id` that the schedule skips, and now also spends budget on it, so preview and schedule can disagree for that bad map. `validate()` already reports such a map. |
+| IN-02 | INFO | `MAX_GROUP_COUNT` is now a dead clamp (equal to the budget it starts from). |
+| IN-03 | INFO | The "grace is set in the data file" test reads the loaded resource, so deleting the line from `loop_tuning.tres` leaves it green because the script default is the same 0.6. |
+| IN-04 | INFO | The grace value has no upper bound; a typo such as 60 for 0.6 would lock the screen's buttons with no on-screen sign. |
+| IN-05, IN-06 (first review, still open) | INFO | Some e2e tests budget real seconds; the screenshot job's worst case equals its timeout. Neither touches a must-have. |
 
-None of the nine is a FAILED must-have, so none produces `gaps_found`. The orchestrator should still triage them (`fixed`, `skipped` or `deferred`) rather than leave all nine at `open`, and WR-03 deserves a decision before the owner's playtest.
+None of the open items is a FAILED must-have, so none produces `gaps_found`. The orchestrator should triage them (`fixed`, `skipped` or `deferred`) rather than leave them at `open`.
 
-## Flagged assumptions: packet versus summaries
+## Flagged assumptions and deviations
 
-The packet's 13 numbered assumptions cover the items the summaries flagged, with two partial mismatches:
-
-- 02-06 flagged full repair at dawn: packet item 1. Match.
-- 02-07 flagged the final night ending straight on Victory with no last payout, and the Victory screen having no beat: packet items 2 and 9. Match.
-- 02-07 also flagged that Play again reloads the scene with a new random seed (D-16), and that the collapse look and results layout are untested by eye. The new-seed behaviour is not one of the 13 (item 7 is about seeds in the overlay, not about Play again); the layout is covered by the packet's "open readability points". Minor gap: add Play again's new-seed behaviour to the list.
-- Summaries 02-03, 02-04, 02-05, 02-08 flagged no numbered assumptions, only visual-by-state items; those are harvested into the human_verification list above. Packet items 3, 4, 5, 8, 10, 11, 12, 13 come from plan decisions and the balance work (02-03, 02-05, 02-09, 02-10), not from a "Flagged Assumptions" heading, so I could not match them to a summary line one by one.
-
-## Deviations checked
-
-| Deviation | Result |
-|---|---|
-| `was_rebuilt_this_dawn` not added to BuildingSystem (02-06) | Behaviour present via `BuildingInstance.rebuilt_this_dawn`; LOOP-05 truths verified; no must-have fails |
-| `full_idle` plays the balanced bot (02-10) | Ran it: won, 6244 ticks, two identical digests. It is now a balanced full run, not an idle one; the scenario name is misleading but the plan's truth (two complete runs, matching digests) holds |
-| Building-targeting tests in `test_building_targeting.gd` (02-04) | File exists and passes within the 719; cosmetic path deviation |
-| `project.godot` gained `ui_accept`, `ui_left`, `ui_right` (02-07) | Confirmed. This is the source of WR-03 (shared Space and gamepad A with `action_build`) |
+Unchanged from the previous report except as follows. The packet's 13 assumptions cover the items the summaries flagged, with the one minor gap kept in human item 11 (Play again starts a new random seed, so a replayed run is not the same run; this is not one of the 13). The 02-06 deviation (`was_rebuilt_this_dawn` not added; behaviour lives in `BuildingInstance.rebuilt_this_dawn`) is cosmetic; the `full_idle` scenario now plays the balanced bot (won in 6244 ticks, two identical digests, which I re-ran). New in this pass: the fix pass did not add the optional per-night tick ceiling the first review suggested (`02-REVIEW-FIX.md`); the hang is prevented at the data gate instead.
 
 ## Human Verification Required
 
-The structured list is in the frontmatter. In short, the owner must (1) play one or two full runs on `build/windows/Duskhold.exe` or the editor binary and record sign-off or fixes through `/gsd-verify-work`; (2) judge the visual items that executors verified by state only (health bars, ghost king, rubble, spawn markers, projectiles, crossed-out coin, results layout, overlay path lines); (3) try the end-of-run tap hazard; (4) confirm or change the 13 assumptions and the Play again new-seed behaviour. The readability points the 02-11 executor already recorded outside its files (results layout, hairline path lines, 26 px crossed-out coin) are the first things to look at.
+The structured list is in the frontmatter and keeps the order and wording of `02-UAT.md`. Items 1 and 3 to 11 are unchanged from the UAT. Item 2 changed: it now states the shipped 0.6 s grace window, names the second review's open WR-01, and asks the owner to try a press that begins just inside the window and is released just after it. Item 9 gained one clause noting that all three devices act only after the grace. No new item was needed. The owner must play one or two full runs on `build/windows/Duskhold.exe` or the editor binary and record sign-off or fixes through `/gsd-verify-work`.
 
 ## Gaps Summary
 
-No code gaps. The phase is `human_needed` because success criterion 4 (the owner playtest gate) has not happened, and that is by design: it blocks Phase 3 and any meta-progression work until the owner decides. Recommended before the owner plays: decide WR-03 (a fix is a few lines in `ResultsScreen` plus an e2e assertion), and record a disposition for the other eight findings. Do not treat the 719 green tests, the replay digests, CI, the balance table or the screenshot review as the sign-off.
+No code gaps and no blockers. The phase is `human_needed` because success criterion 4 (the owner playtest gate) has not happened, by design: it blocks Phase 3 and any meta-progression work until the owner decides. Before the owner plays, decide the second review's WR-01 (the release-gated grace; a small fix) and WR-02 (test timing), and record a disposition for the four info items and the two older ones, and push so CI runs on `c6bb202`, `ef8ca58` and `6057fd1`, since the only green CI run predates them. Do not treat the 738 green tests, the unchanged replay digests, the earlier CI run, the balance table or the screenshot review as the sign-off.
 
 ---
 
-_Verified: 2026-10-05T15:24:18Z_
+_Verified: 2026-10-05T16:53:35Z_
 _Verifier: Claude (gsd-verifier)_

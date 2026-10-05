@@ -3,7 +3,7 @@ status: testing
 phase: 02-night-defense-playtest-gate
 source: [02-VERIFICATION.md]
 started: 2026-10-05T15:26:33Z
-updated: 2026-10-05T15:26:33Z
+updated: 2026-10-05T16:55:31Z
 ---
 
 ## Current Test
@@ -20,8 +20,8 @@ awaiting: user response
 expected: A recorded decision through /gsd-verify-work: sign-off that gold trade-offs feel meaningful and nights feel tense and readable, or a list of tuning/feel fixes, plus any of the 13 assumptions to change
 result: [pending]
 
-### 2. Results screen layout and the accidental-restart tap (WR-03)
-expected: Stat rows have a clear gap above the buttons; Quit is distinguishable from the panel; tapping Space or gamepad A as Victory/Defeat appears does not restart the run before the stats can be read
+### 2. Results screen layout and the accidental-restart tap (WR-03, and the second review's WR-01)
+expected: Stat rows have a clear gap above the buttons; Quit is distinguishable from the panel. Tapping Space or gamepad A as Victory/Defeat appears does not restart the run: presses are ignored for the first 0.6 s of the screen, and Play again works after that. Also try a fresh, slightly held press that begins just inside the 0.6 s window and is released just after it: by the code it still presses Play again (a Button fires on release, and the grace gates the release), so judge whether that residual case matters in a real run
 result: [pending]
 
 ### 3. Enemy, health-bar, projectile and slash readability at night at the default camera
@@ -49,7 +49,7 @@ expected: Enemy-to-target and road lines are visible enough at game camera dista
 result: [pending]
 
 ### 9. Loss beat and results screen in a real defeat and a real victory
-expected: On defeat the castle collapses for about 1.2 s, then the Defeat screen; on victory the screen appears at once; Play again starts a fresh run from day 1 and Quit closes the game; the screen works with keyboard, gamepad and mouse
+expected: On defeat the castle collapses for about 1.2 s, then the Defeat screen; on victory the screen appears at once; Play again starts a fresh run from day 1 and Quit closes the game; the screen works with keyboard, gamepad and mouse (all three act only after the 0.6 s grace)
 result: [pending]
 
 ### 10. Hand-steered king, ride cost and gamepad feel at night; night 3 fairness
