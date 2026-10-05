@@ -151,3 +151,12 @@ func test_markers_for_a_night_past_the_last_and_for_a_waveless_map_are_empty() -
 	assert_eq(
 		SpawnTelegraph.markers_for(E2eSupport.waveless_prototype_map(), 1), [], "no authored nights"
 	)
+
+
+func test_the_edge_margin_is_kept_on_a_real_window_and_shrinks_on_a_tiny_one() -> void:
+	assert_eq(SpawnTelegraph.edge_margin(VIEWPORT), SpawnTelegraph.EDGE_MARGIN_PX, "full margin")
+	assert_eq(
+		SpawnTelegraph.edge_margin(Rect2(0.0, 0.0, 64.0, 64.0)),
+		16.0,
+		"a quarter of the shorter side when 48 px would eat the screen"
+	)

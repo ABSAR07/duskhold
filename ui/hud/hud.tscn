@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://ui/hud/hud.gd" id="1_hud"]
 [ext_resource type="PackedScene" path="res://ui/overlay/debug_overlay.tscn" id="2_overlay"]
 [ext_resource type="Script" path="res://ui/hud/dawn_payout_vfx.gd" id="3_payout"]
+[ext_resource type="Script" path="res://ui/world/spawn_telegraph.gd" id="4_telegraph"]
 
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1_hud")
@@ -18,6 +19,16 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 text = "Gold: 0"
+
+[node name="SpawnTelegraph" type="Control" parent="." groups=["run_bound"]]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("4_telegraph")
 
 [node name="StartNightBox" type="VBoxContainer" parent="."]
 anchors_preset = 7
@@ -48,6 +59,14 @@ max_value = 1.0
 step = 0.001
 show_percentage = false
 
+[node name="NightPreview" type="Label" parent="StartNightBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Night 1: 5 enemies from 1 direction"
+horizontal_alignment = 1
+
 [node name="PhaseBannerBox" type="CenterContainer" parent="."]
 anchors_preset = 10
 anchor_right = 1.0
@@ -61,7 +80,7 @@ unique_name_in_owner = true
 visible = false
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
-text = "Night 1 — no enemies yet"
+text = "Night 1 of 8 — 5 enemies left"
 horizontal_alignment = 1
 
 [node name="RespawnBox" type="CenterContainer" parent="."]

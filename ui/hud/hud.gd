@@ -8,10 +8,14 @@ extends CanvasLayer
 ## At dawn the Economy is credited at once, but the readout stays behind by the gold whose coins
 ## are still flying in, and ticks up as each one lands (D-12).
 
-## Player-facing copy. The night banner is Phase-1 placeholder text: Phase 2 replaces it once
-## waves exist.
+## Player-facing copy. The banner counts down the enemies of a real night; a map without authored
+## nights keeps the plain Phase 1 timed-night banner. The preview line sits under the start-night
+## prompt and tells the player what the coming night brings (LOOP-02).
 const START_NIGHT_PROMPT := "Hold %s to start Night %d"
-const NIGHT_BANNER := "Night %d — no enemies yet"
+const NIGHT_BANNER := "Night %d of %d — %d enemies left"
+const TIMED_NIGHT_BANNER := "Night %d"
+const NIGHT_PREVIEW := "Night %d: %d enemies from %d directions"
+const NIGHT_PREVIEW_ONE := "Night %d: %d enemies from 1 direction"
 const UNBOUND_HINT := "(unbound)"
 ## KING-06: the visible respawn countdown, whole seconds rounded up so it never reads 0 while
 ## the king is still down.
@@ -49,6 +53,7 @@ var _hint: String = ""
 @onready var _gold_label: Label = %GoldLabel
 @onready var _start_night_prompt: Label = %StartNightPrompt
 @onready var _start_night_fill: ProgressBar = %StartNightFill
+@onready var _night_preview: Label = %NightPreview
 @onready var _phase_banner: Label = %PhaseBanner
 @onready var _respawn_label: Label = %RespawnLabel
 @onready var _payout_vfx: DawnPayoutVfx = %DawnPayoutVfx
@@ -66,6 +71,9 @@ func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
 	hold.hold_completed.connect(_on_hold_completed)
 	ctx.events.gold_changed.connect(_on_gold_changed)
 	ctx.events.phase_changed.connect(_on_phase_changed)
+	ctx.events.night_started.connect(_on_night_started)
+	ctx.events.enemy_spawned.connect(_on_enemy_spawned)
+	ctx.events.enemy_died.connect(_on_enemy_died)
 	_payout_vfx.payout_started.connect(_on_payout_started)
 	_payout_vfx.coin_landed.connect(_on_coin_landed)
 	var start_night_hold: StartNightHoldController = (
@@ -144,21 +152,68 @@ func _on_start_night_progress(ratio: float) -> void:
 	_start_night_fill.value = ratio
 
 
-## The prompt shows only by day (D-11); the banner only during the night itself (D-12).
+## The night's schedule is loaded after the phase changes, so the banner is refreshed again once
+## night_started has fired.
+func _on_night_started(_night_number: int) -> void:
+	_refresh_banner()
+
+
+func _on_enemy_spawned(_enemy_id: int, _def_id: StringName, _pos: Vector2) -> void:
+	_refresh_banner()
+
+
+func _on_enemy_died(
+	_enemy_id: int, _def_id: StringName, _pos: Vector2, _killer_kind: StringName
+) -> void:
+	_refresh_banner()
+
+
+## The prompt and the preview show only by day (D-11); the banner only during the night itself
+## (D-12).
 func _refresh_loop() -> void:
-	var run_manager: RunManager = _ctx.run_manager
-	var by_day: bool = run_manager.get_phase() == RunManager.RunPhase.DAY
+	var by_day: bool = _ctx.run_manager.get_phase() == RunManager.RunPhase.DAY
 	_start_night_prompt.visible = by_day
 	_start_night_fill.visible = by_day
 	if not by_day:
 		_start_night_fill.value = 0.0
 	_refresh_prompt_text()
+	_refresh_preview(by_day)
+	_refresh_banner()
+
+
+## "Night 3: 11 enemies from 2 directions" under the prompt while the day waits; nothing for a map
+## without authored nights or past the last one.
+func _refresh_preview(by_day: bool) -> void:
+	var night_number: int = _ctx.run_manager.get_night_number() + 1
+	var counts: Dictionary = WaveSchedule.preview_counts(_ctx.map, night_number)
+	_night_preview.visible = by_day and not counts.is_empty()
+	if not _night_preview.visible:
+		return
+	var total: int = 0
+	for count: int in counts.values():
+		total += count
+	if counts.size() == 1:
+		_night_preview.text = NIGHT_PREVIEW_ONE % [night_number, total]
+	else:
+		_night_preview.text = NIGHT_PREVIEW % [night_number, total, counts.size()]
+
+
+## By night: "Night 2 of 8 — 7 enemies left" on a map with authored nights (the enemies still to
+## spawn count as left), the plain "Night 2" on a waveless map.
+func _refresh_banner() -> void:
+	var run_manager: RunManager = _ctx.run_manager
 	var at_night: bool = (
 		run_manager.get_phase() == RunManager.RunPhase.NIGHT_TRANSITION
 		or run_manager.get_phase() == RunManager.RunPhase.NIGHT
 	)
 	_phase_banner.visible = at_night
-	_phase_banner.text = NIGHT_BANNER % run_manager.get_night_number()
+	if _ctx.night.has_authored_nights():
+		_phase_banner.text = (
+			NIGHT_BANNER
+			% [run_manager.get_night_number(), _ctx.map.nights.size(), _ctx.night.remaining_count()]
+		)
+	else:
+		_phase_banner.text = TIMED_NIGHT_BANNER % run_manager.get_night_number()
 
 
 func _refresh_prompt_text() -> void:
