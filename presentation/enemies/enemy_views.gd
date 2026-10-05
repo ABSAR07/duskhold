@@ -10,7 +10,9 @@ const MAX_VIEWS: int = 256
 const PUPPET_HEIGHT: float = 1.6
 const GRUNT_COLOR := Color(0.75, 0.18, 0.15)
 const FALLBACK_COLOR := Color(0.6, 0.25, 0.65)
+const SKIRMISHER_COLOR := Color(0.55, 0.3, 0.85)
 const EMISSION_ENERGY: float = 0.35
+const PUFF_SECONDS: float = 0.6
 
 var _ctx: RunContext
 var _views: Dictionary = {}
@@ -28,6 +30,11 @@ func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 ## Puppets currently alive.
 func view_count() -> int:
 	return _views.size()
+
+
+## Death puffs still showing. RED-phase shell.
+func puff_count() -> int:
+	return 0
 
 
 ## Null when the enemy has no puppet.
