@@ -174,3 +174,25 @@ func test_build_and_start_night_share_no_joypad_button() -> void:
 	var build_buttons: Array[int] = _buttons_of(&"action_build")
 	for button: int in _buttons_of(&"start_night"):
 		assert_false(build_buttons.has(button), "joypad button %d is on both actions" % button)
+
+
+## The results screen is operated through the menu actions (D-16): accept and left / right must work
+## from the keyboard and the gamepad whatever the engine's built-in defaults are on a machine.
+func test_the_menu_actions_have_keyboard_and_gamepad_bindings() -> void:
+	var menu_keys: Dictionary = {
+		&"ui_accept": KEY_ENTER, &"ui_left": KEY_LEFT, &"ui_right": KEY_RIGHT
+	}
+	var menu_buttons: Dictionary = {
+		&"ui_accept": JOY_BUTTON_A,
+		&"ui_left": JOY_BUTTON_DPAD_LEFT,
+		&"ui_right": JOY_BUTTON_DPAD_RIGHT
+	}
+	for action: StringName in menu_keys:
+		var keycodes: Array[int] = []
+		for event: InputEvent in InputMap.action_get_events(action):
+			if event is InputEventKey:
+				keycodes.append((event as InputEventKey).keycode)
+		assert_true(keycodes.has(menu_keys[action]), "%s has its key" % action)
+		assert_true(_buttons_of(action).has(menu_buttons[action]), "%s has a pad button" % action)
+	for event: InputEvent in InputMap.action_get_events(&"ui_accept"):
+		assert_false(event is InputEventMouseButton, "accept has no mouse binding")

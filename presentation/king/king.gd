@@ -2,6 +2,7 @@ class_name King
 extends CharacterBody3D
 ## The mounted king. Moves in WORLD axes so movement stays camera-aligned (KING-02): the camera
 ## rig has yaw 0, so move_forward is always screen-up.
+## Once the run is over (won or lost) he ignores movement input.
 ## KING-06 on screen: when the simulation knocks him out, the model gives way to a translucent
 ## ghost that cannot move, and when the countdown ends he reappears at the castle. A hurt-only
 ## health bar floats over him. The node reads the run and reacts to its events; the simulation
@@ -57,7 +58,7 @@ func is_ghost_shown() -> bool:
 
 
 func _physics_process(delta: float) -> void:
-	if _ctx != null and _ctx.king.is_down():
+	if _ctx != null and (_ctx.king.is_down() or _ctx.run_manager.is_run_over()):
 		velocity = Vector3.ZERO
 		return
 	var direction: Vector2 = Input.get_vector(

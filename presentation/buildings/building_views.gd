@@ -38,6 +38,10 @@ const BAR_NODE_NAME := "HealthBar"
 ## A rebuilt building grows up from the ground over this long, from this flat scale.
 const RISE_SECONDS: float = 0.4
 const RISE_START_SCALE := Vector3(1.0, 0.05, 1.0)
+## The fallen keep sinks and squashes over this long, then rubble sized to the keep (a RubbleView is
+## about one building wide) stays where it stood. Kept inside the loss beat (D-17).
+const CASTLE_COLLAPSE_SECONDS: float = 0.9
+const CASTLE_RUBBLE_SCALE: float = 3.5
 
 ## Model lookup; assign before bind_run. A null catalog means primitives everywhere.
 @export var catalog: BuildingViewCatalog = DEFAULT_CATALOG
@@ -46,6 +50,8 @@ var _ctx: RunContext
 var _views: Dictionary = {}
 var _bars: Dictionary = {}
 var _castle_bar: HealthBar3D
+var _castle_view: Node3D
+var _castle_rubble: RubbleView
 
 
 func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
@@ -59,9 +65,9 @@ func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 	ctx.events.buildings_rebuilt.connect(_on_buildings_rebuilt)
 
 
-## Stub (RED): the collapse arrives with the GREEN change.
+## The rubble the keep collapsed into once the castle has fallen (D-17); null until then.
 func get_castle_rubble() -> RubbleView:
-	return null
+	return _castle_rubble
 
 
 ## The castle's health bar: hidden at full health, shown once the castle is hurt (D-12 rule).
@@ -87,6 +93,7 @@ func _add_castle(castle_position: Vector3) -> void:
 		castle.name = "CastleCenter"
 		add_child(castle)
 		castle.position = castle_position
+		_castle_view = castle
 		_add_castle_bar(castle)
 		return
 	castle = Node3D.new()
@@ -112,6 +119,7 @@ func _add_castle(castle_position: Vector3) -> void:
 	turret.mesh = turret_mesh
 	castle.add_child(turret)
 	turret.position = Vector3(0.0, KEEP_SIZE.y + TURRET_HEIGHT * 0.5, 0.0)
+	_castle_view = castle
 	_add_castle_bar(castle)
 
 
@@ -123,10 +131,35 @@ func _add_castle_bar(castle: Node3D) -> void:
 	castle.add_child(_castle_bar)
 	_castle_bar.set_health(_ctx.castle.get_health(), _ctx.castle.get_max_health())
 	_ctx.events.castle_damaged.connect(_on_castle_damaged)
+	_ctx.events.castle_destroyed.connect(_on_castle_destroyed)
 
 
 func _on_castle_damaged(_amount: int, hp: int, max_hp: int) -> void:
 	_castle_bar.set_health(hp, max_hp)
+
+
+## The loss beat (D-17): the keep sinks and squashes away while rubble settles where it stood, and
+## its bar goes. The simulation is already over, so nothing else on the field moves.
+func _on_castle_destroyed() -> void:
+	if _castle_rubble != null:
+		return
+	_castle_bar.visible = false
+	var sink: Tween = create_tween().set_parallel(true)
+	sink.tween_property(_castle_view, "scale", COLLAPSE_SQUASH_SCALE, CASTLE_COLLAPSE_SECONDS)
+	sink.tween_property(
+		_castle_view,
+		"position:y",
+		_castle_view.position.y - COLLAPSE_SINK_DEPTH,
+		CASTLE_COLLAPSE_SECONDS
+	)
+	var rubble: RubbleView = RubbleView.new()
+	rubble.name = "Rubble_Castle"
+	rubble.set_meta(&"rubble", true)
+	rubble.scale = Vector3.ONE * CASTLE_RUBBLE_SCALE
+	add_child(rubble)
+	rubble.position = _castle_view.position
+	_castle_rubble = rubble
+	rubble.play_collapse()
 
 
 func _add_marker(spot_id: StringName) -> void:

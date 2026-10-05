@@ -2,7 +2,8 @@ class_name DayNightLighting
 extends Node3D
 ## Day, night and dawn lighting moods (D-12), driven only by SimEvents.phase_changed. Attach it to
 ## the node that parents the Sun (DirectionalLight3D) and the WorldEnvironment. NIGHT_TRANSITION
-## and NIGHT share the night mood. The moods are presentation tuning, so they are exported
+## and NIGHT share the night mood, and so does a lost run (the castle fell in the dark); a won run
+## ends in the dawn mood. The moods are presentation tuning, so they are exported
 ## properties set in the text scene; gameplay numbers stay in loop_tuning.tres.
 
 @export var day_sun_color: Color = Color(1.0, 0.96, 0.88)
@@ -68,9 +69,9 @@ func _apply_mood_now(mood: StringName) -> void:
 
 func _mood_for_phase(phase: RunManager.RunPhase) -> StringName:
 	match phase:
-		RunManager.RunPhase.NIGHT_TRANSITION, RunManager.RunPhase.NIGHT:
+		RunManager.RunPhase.NIGHT_TRANSITION, RunManager.RunPhase.NIGHT, RunManager.RunPhase.LOST:
 			return &"night"
-		RunManager.RunPhase.DAWN:
+		RunManager.RunPhase.DAWN, RunManager.RunPhase.WON:
 			return &"dawn"
 	return &"day"
 
