@@ -57,7 +57,7 @@ func step(tick: int) -> void:
 	var night_tick: int = tick - _start_tick
 	_spawn_due(night_tick)
 	_king.step(night_tick, _enemies, _hits)
-	_enemies.step(night_tick, _castle, _hits)
+	_enemies.step(night_tick, _castle, _king, _hits)
 	_resolve_hits(night_tick)
 	_enemies.remove_dead()
 	_next_night_tick = night_tick + 1

@@ -35,3 +35,10 @@ signal attack_fired(
 signal castle_damaged(amount: int, hp: int, max_hp: int)
 ## The castle fell to 0 hit points. Emitted exactly once.
 signal castle_destroyed
+## The king lost `amount` hit points and has `hp` of `max_hp` left.
+signal king_damaged(amount: int, hp: int, max_hp: int)
+## The king's health reached 0: he is out of the fight for `respawn_ticks` ticks.
+## `knockout_number` counts the knockouts of this night, starting at 1.
+signal king_downed(respawn_ticks: int, knockout_number: int)
+## The king is back at the castle with full health (the countdown ended, or dawn came).
+signal king_respawned

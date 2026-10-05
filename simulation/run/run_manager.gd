@@ -14,6 +14,7 @@ var _economy: Economy
 var _buildings: BuildingSystem
 var _tuning: LoopTuning
 var _night: NightSim
+var _king: KingState
 var _phase: RunPhase = RunPhase.DAY
 var _elapsed: float = 0.0
 var _phase_elapsed: float = 0.0
@@ -26,13 +27,15 @@ func _init(
 	economy: Economy,
 	buildings: BuildingSystem,
 	tuning: LoopTuning,
-	night: NightSim = null
+	night: NightSim = null,
+	king: KingState = null
 ) -> void:
 	_events = events
 	_economy = economy
 	_buildings = buildings
 	_tuning = tuning
 	_night = night
+	_king = king
 
 
 func get_phase() -> RunPhase:

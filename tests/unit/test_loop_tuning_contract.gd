@@ -139,3 +139,26 @@ func test_no_shipped_hold_is_shorter_than_a_cheaper_one() -> void:
 					tuning.build_hold_seconds(other) - EPSILON,
 					"a %d-coin hold is not shorter than a %d-coin one" % [cost, other]
 				)
+
+
+## D-01: the knockout countdown never exceeds 15 s. The owner may raise it later (D-02), and that
+## decision belongs in this pin, not in code.
+func test_shipped_respawn_cap_is_fifteen_seconds() -> void:
+	assert_almost_eq(_tuning().respawn_cap_seconds, 15.0, EPSILON, "D-01: capped at 15 s")
+	for number: int in range(1, 40):
+		assert_lte(
+			_tuning().respawn_seconds(number), 15.0 + EPSILON, "knockout %d within the cap" % number
+		)
+
+
+## D-02: the start, the step and the cap are tuning data, not constants in code.
+func test_respawn_start_step_and_cap_are_exported_tuning_fields() -> void:
+	var exported: Dictionary = {}
+	for property: Dictionary in LoopTuning.new().get_property_list():
+		if int(property["usage"]) & PROPERTY_USAGE_STORAGE != 0:
+			exported[property["name"]] = true
+	for field: String in ["respawn_start_seconds", "respawn_step_seconds", "respawn_cap_seconds"]:
+		assert_true(exported.has(field), "%s is a stored, exported field" % field)
+	var tuning: LoopTuning = _tuning()
+	assert_gt(tuning.respawn_start_seconds, 0.0, "the shipped start is set in the data file")
+	assert_gt(tuning.respawn_step_seconds, 0.0, "the shipped step is set in the data file")

@@ -117,7 +117,7 @@ func damage(id: int, amount: int, killer_kind: StringName) -> void:
 ## stops at `target radius + attack_range`, then strikes through the pending-hit queue once per
 ## attack_interval. After all of them moved, overlapping enemies are pushed apart. A destroyed
 ## castle leaves nothing to march on, so the field stands still.
-func step(tick: int, castle: CastleState, hits: PendingHits) -> void:
+func step(tick: int, castle: CastleState, _king: KingState, hits: PendingHits) -> void:
 	for id: int in _order:
 		var record: Record = _records[id]
 		record.previous = record.position

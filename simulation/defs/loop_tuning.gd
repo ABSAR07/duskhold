@@ -39,6 +39,15 @@ const MIN_INTERVAL_S: float = 0.001
 ## Seconds dawn lasts before the next day starts.
 @export var dawn_seconds: float = 2.0
 
+## RED stub: the respawn data and helper arrive with the GREEN commit.
+@export var respawn_start_seconds: float = 0.0
+@export var respawn_step_seconds: float = 0.0
+@export var respawn_cap_seconds: float = 0.0
+
+
+func respawn_seconds(_knockout_number: int) -> float:
+	return 0.0
+
 
 ## Seconds the 1-based coin takes to drip. Positive and never increasing with the index, whatever
 ## the data says (sanitised): the first interval and the floor are at least MIN_INTERVAL_S, the

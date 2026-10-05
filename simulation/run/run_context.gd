@@ -36,9 +36,11 @@ func _init(
 	economy = Economy.new(events, map_config.starting_gold)
 	buildings = BuildingSystem.new(map_config, events)
 	castle = CastleState.new(map_config, events)
-	king = KingState.new(def, Vector2(map_config.king_spawn.x, map_config.king_spawn.z), events)
+	king = KingState.new(
+		def, Vector2(map_config.king_spawn.x, map_config.king_spawn.z), events, tuning
+	)
 	night = NightSim.new(map_config, events, king, run_seed, castle)
-	run_manager = RunManager.new(events, economy, buildings, tuning, night)
+	run_manager = RunManager.new(events, economy, buildings, tuning, night, king)
 	commands = CommandProcessor.new(economy, buildings, run_manager, events)
 
 

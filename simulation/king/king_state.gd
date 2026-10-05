@@ -3,17 +3,22 @@ extends RefCounted
 ## The king as the night simulation sees him: a position it is told and a passive attack it makes.
 ## Movement stays in presentation (the King node) or in a scripted bot; both feed the position in
 ## through `report_position`, the only position input (DR-10).
+## Health and knockout are stubs in the RED commit.
 
 var _def: KingDef
 var _events: SimEvents
+var _tuning: LoopTuning
+var _spawn: Vector2
 var _position: Vector2
 var _cooldown_ready_tick: int = 0
 
 
-func _init(def: KingDef, spawn: Vector2, events: SimEvents) -> void:
+func _init(def: KingDef, spawn: Vector2, events: SimEvents, tuning: LoopTuning = null) -> void:
 	_def = def
+	_spawn = spawn
 	_position = spawn
 	_events = events
+	_tuning = tuning if tuning != null else LoopTuning.new()
 
 
 func get_def() -> KingDef:
@@ -27,6 +32,38 @@ func report_position(pos: Vector2) -> void:
 
 func get_position() -> Vector2:
 	return _position
+
+
+func get_health() -> int:
+	return _def.max_health
+
+
+func get_max_health() -> int:
+	return _def.max_health
+
+
+func is_down() -> bool:
+	return false
+
+
+func take_damage(_amount: int) -> void:
+	pass
+
+
+func respawn_seconds_remaining() -> float:
+	return 0.0
+
+
+func knockouts_this_night() -> int:
+	return 0
+
+
+func knockouts_total() -> int:
+	return 0
+
+
+func restore_for_dawn() -> void:
+	pass
 
 
 ## A new night: the passive attack is ready at once.
