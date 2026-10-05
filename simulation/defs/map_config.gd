@@ -90,6 +90,7 @@ func validate() -> PackedStringArray:
 						% [building_def.id, index + 1, tier.max_health]
 					)
 				)
+			errors.append_array(_validate_tier_combat(building_def.id, index, tier))
 	var spot_ids: Dictionary = {}
 	for spot: BuildSpotDef in spots:
 		if spot == null:
@@ -110,6 +111,8 @@ func _validate_night_data() -> PackedStringArray:
 	var errors: PackedStringArray = PackedStringArray()
 	if castle_max_health <= 0:
 		errors.append("castle_max_health is %d" % castle_max_health)
+	if castle_radius <= 0.0:
+		errors.append("castle_radius is %s" % castle_radius)
 	var enemy_ids: Dictionary = {}
 	for enemy: EnemyDef in enemies:
 		if enemy == null:
@@ -120,12 +123,7 @@ func _validate_night_data() -> PackedStringArray:
 		if enemy_ids.has(enemy.id):
 			errors.append("duplicate enemy id '%s'" % enemy.id)
 		enemy_ids[enemy.id] = true
-		if enemy.max_health <= 0:
-			errors.append("enemy '%s' max_health is %d" % [enemy.id, enemy.max_health])
-		if enemy.move_speed <= 0.0:
-			errors.append("enemy '%s' move_speed is %s" % [enemy.id, enemy.move_speed])
-		if enemy.attack_interval <= 0.0:
-			errors.append("enemy '%s' attack_interval is %s" % [enemy.id, enemy.attack_interval])
+		errors.append_array(_validate_enemy(enemy))
 	var spawn_ids: Dictionary = {}
 	for spawn_point: SpawnPointDef in spawn_points:
 		if spawn_point == null:
@@ -138,6 +136,64 @@ func _validate_night_data() -> PackedStringArray:
 		spawn_ids[spawn_point.id] = true
 	for index: int in range(nights.size()):
 		errors.append_array(_validate_night(index + 1, nights[index], enemy_ids, spawn_ids))
+	return errors
+
+
+## The errors of one enemy type's numbers. An enemy only attacks once it has a target, and it only
+## gets one when the target's edge is within aggro_range, yet it stops walking at attack_range from
+## that edge: with aggro_range at or below attack_range it would stand there forever, and a real
+## night has no clock to end it (WR-01). The comparison is strict because at equality float
+## rounding in the stop position can leave the edge a hair beyond aggro_range.
+func _validate_enemy(enemy: EnemyDef) -> PackedStringArray:
+	var errors: PackedStringArray = PackedStringArray()
+	if enemy.max_health <= 0:
+		errors.append("enemy '%s' max_health is %d" % [enemy.id, enemy.max_health])
+	if enemy.move_speed <= 0.0:
+		errors.append("enemy '%s' move_speed is %s" % [enemy.id, enemy.move_speed])
+	if enemy.attack_interval <= 0.0:
+		errors.append("enemy '%s' attack_interval is %s" % [enemy.id, enemy.attack_interval])
+	if enemy.radius <= 0.0:
+		errors.append("enemy '%s' radius is %s" % [enemy.id, enemy.radius])
+	if enemy.attack_range < 0.0:
+		errors.append("enemy '%s' attack_range is %s" % [enemy.id, enemy.attack_range])
+	if enemy.aggro_range <= enemy.attack_range:
+		errors.append(
+			(
+				"enemy '%s' aggro_range (%s) is not above attack_range (%s): it would never attack"
+				% [enemy.id, enemy.aggro_range, enemy.attack_range]
+			)
+		)
+	if enemy.leash_range < enemy.aggro_range:
+		errors.append(
+			(
+				"enemy '%s' leash_range (%s) is below aggro_range (%s)"
+				% [enemy.id, enemy.leash_range, enemy.aggro_range]
+			)
+		)
+	if enemy.retarget_interval_seconds <= 0.0:
+		errors.append(
+			(
+				"enemy '%s' retarget_interval_seconds is %s"
+				% [enemy.id, enemy.retarget_interval_seconds]
+			)
+		)
+	if enemy.projectile_speed < 0.0:
+		errors.append("enemy '%s' projectile_speed is %s" % [enemy.id, enemy.projectile_speed])
+	return errors
+
+
+## The errors of one building tier's combat numbers; the ones a tower's shots depend on.
+func _validate_tier_combat(
+	building_id: StringName, index: int, tier: BuildingTierDef
+) -> PackedStringArray:
+	var errors: PackedStringArray = PackedStringArray()
+	var label: String = "building '%s' tier %d" % [building_id, index + 1]
+	if tier.attack_range < 0.0:
+		errors.append("%s attack_range is %s" % [label, tier.attack_range])
+	if tier.attack_interval <= 0.0:
+		errors.append("%s attack_interval is %s" % [label, tier.attack_interval])
+	if tier.projectile_speed < 0.0:
+		errors.append("%s projectile_speed is %s" % [label, tier.projectile_speed])
 	return errors
 
 
