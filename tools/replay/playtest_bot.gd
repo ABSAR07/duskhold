@@ -7,6 +7,7 @@ extends RefCounted
 
 const KING_IDLE_AT_CASTLE := &"idle_at_castle"
 const KING_HOLD_POINT := &"hold_point"
+const KING_DEFEND_NEAREST_THREAT := &"defend_nearest_threat"
 
 ## Spots to build in order. A repeated spot id means an upgrade.
 var build_order: Array[StringName] = []
@@ -16,6 +17,8 @@ var king_mode: StringName = KING_IDLE_AT_CASTLE
 var hold_point: Vector2 = Vector2.ZERO
 ## Whether the bot starts every night as soon as the day allows.
 var start_nights: bool = true
+## Whether the bot builds tower plots on the roads the coming night uses first.
+var prefer_telegraphed_towers: bool = false
 
 var _cursor: int = 0
 
