@@ -6,8 +6,12 @@ extends RefCounted
 ## per `tick`. Phase 2 fills the same NIGHT and DAWN states with real waves instead of replacing
 ## them: `_night_should_end` now owns the body of LOOP-03 (a night ends when the NightSim reports it
 ## cleared), and a map with no authored nights keeps the Phase 1 timed night.
+## The run ends in WON or LOST, both terminal: clearing the last authored night wins (LOOP-07, with
+## no last dawn), and `end_run_in_defeat` loses the run in the step the castle falls (LOOP-06). That
+## call is the one exception to the one-change-per-tick rule: RunContext makes it before `tick`, so
+## a same-step win never happens (loss beats win). Nothing leaves WON or LOST.
 
-enum RunPhase { DAY, NIGHT_TRANSITION, NIGHT, DAWN }
+enum RunPhase { DAY, NIGHT_TRANSITION, NIGHT, DAWN, WON, LOST }
 
 var _events: SimEvents
 var _economy: Economy
@@ -83,6 +87,17 @@ func get_phase_time_remaining() -> float:
 	return 0.0
 
 
+## True once the run is WON or LOST. Nothing runs after that: `tick` does nothing and no intent is
+## accepted.
+func is_run_over() -> bool:
+	return false
+
+
+## How many nights the map authors; 0 on a map that keeps the Phase 1 timed night.
+func get_total_nights() -> int:
+	return 0
+
+
 ## Ends the day. Only legal from DAY; returns false and changes nothing otherwise. The night's
 ## waves are loaded here, so NIGHT_TRANSITION passes through to NIGHT within the same call.
 func start_night() -> bool:
@@ -98,7 +113,14 @@ func start_night() -> bool:
 	return true
 
 
-## Advances simulation time and performs at most one phase transition.
+## The castle fell: the run is lost at once (LOOP-06). Only legal during the NIGHT; returns false
+## and changes nothing otherwise, so a second call (or one at dawn) is a no-op.
+func end_run_in_defeat() -> bool:
+	return false
+
+
+## Advances simulation time and performs at most one phase transition. Does nothing once the run is
+## over.
 func tick(delta: float) -> void:
 	var step: float = maxf(delta, 0.0)
 	_elapsed += step
@@ -106,7 +128,7 @@ func tick(delta: float) -> void:
 		RunPhase.NIGHT:
 			_phase_elapsed += step
 			if _night_should_end():
-				_enter_dawn()
+				_end_night()
 		RunPhase.DAWN:
 			_phase_elapsed += step
 			if _phase_elapsed >= _tuning.dawn_seconds:
@@ -119,6 +141,12 @@ func _night_should_end() -> bool:
 	if _night != null and _night.has_authored_nights():
 		return _night.is_cleared()
 	return _phase_elapsed >= _tuning.placeholder_night_seconds
+
+
+## The night was cleared (or its timer ran out). The last authored night wins the run on the spot,
+## so no last dawn payout is made (RESEARCH Open Question 2); any other night hands over to dawn.
+func _end_night() -> void:
+	_enter_dawn()
 
 
 ## The night is over. What fell is rebuilt for free (LOOP-04), everything that stands and the castle

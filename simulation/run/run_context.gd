@@ -16,6 +16,7 @@ var king: KingState
 var night: NightSim
 var run_manager: RunManager
 var commands: CommandProcessor
+var stats: RunStats
 var run_seed: int = 1
 ## Simulation steps run so far.
 var tick_count: int = 0
@@ -33,6 +34,7 @@ func _init(
 	run_seed = seed_value
 	var def: KingDef = king_def if king_def != null else load(DEFAULT_KING_PATH) as KingDef
 	events = SimEvents.new()
+	stats = RunStats.new(events)
 	economy = Economy.new(events, map_config.starting_gold)
 	buildings = BuildingSystem.new(map_config, events)
 	castle = CastleState.new(map_config, events)
@@ -44,7 +46,9 @@ func _init(
 	commands = CommandProcessor.new(economy, buildings, run_manager, events)
 
 
-## Runs one fixed simulation step: the night (only while it is NIGHT), then the loop clock.
+## Runs one fixed simulation step: the night (only while it is NIGHT), then the loop clock. A castle
+## that fell during the night step ends the run before the clock ticks, so the loss beats a win the
+## same step would have made (LOOP-06, DR-8). Once the run is over a step does nothing at all.
 func step() -> void:
 	if run_manager.get_phase() == RunManager.RunPhase.NIGHT:
 		night.step(tick_count)

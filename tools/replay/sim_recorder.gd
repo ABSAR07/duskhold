@@ -26,6 +26,7 @@ const HANDLED: Array[String] = [
 	"building_damaged",
 	"building_destroyed",
 	"buildings_rebuilt",
+	"run_ended",
 	"king_damaged",
 	"king_downed",
 	"king_respawned",
@@ -59,6 +60,7 @@ static func attach(ctx: RunContext) -> SimRecorder:
 	events.building_damaged.connect(recorder._on_building_damaged)
 	events.building_destroyed.connect(recorder._on_building_destroyed)
 	events.buildings_rebuilt.connect(recorder._on_buildings_rebuilt)
+	events.run_ended.connect(recorder._on_run_ended)
 	events.king_damaged.connect(recorder._on_king_damaged)
 	events.king_downed.connect(recorder._on_king_downed)
 	events.king_respawned.connect(recorder._on_king_respawned)
@@ -70,7 +72,8 @@ func lines() -> PackedStringArray:
 	return _lines.duplicate()
 
 
-## Appends the final state of the run: tick, phase, gold, enemies alive, day and night number.
+## Appends the final state of the run: tick, phase, gold, enemies alive, day and night number and
+## the castle's health.
 func append_final_state(ctx: RunContext) -> void:
 	_record(
 		"final",
@@ -190,6 +193,10 @@ func _on_building_destroyed(spot_id: StringName, building_id: StringName, tier: 
 ## One token per rebuilt spot id, in the order given; none when nothing fell.
 func _on_buildings_rebuilt(spot_ids: Array) -> void:
 	_record("buildings_rebuilt", spot_ids)
+
+
+func _on_run_ended(outcome: StringName) -> void:
+	_record("run_ended", [outcome])
 
 
 func _on_king_damaged(amount: int, hp: int, max_hp: int) -> void:

@@ -42,6 +42,9 @@ signal building_destroyed(spot_id: StringName, building_id: StringName, tier: in
 ## Dawn rebuilt the buildings that fell in the night, listed in MapConfig order (empty when nothing
 ## fell). Emitted once per dawn, after the repairs and before the payout.
 signal buildings_rebuilt(spot_ids: Array)
+## The run ended: `outcome` is &"victory" (the last night was cleared) or &"defeat" (the castle
+## fell). Emitted exactly once per run; nothing is emitted after it.
+signal run_ended(outcome: StringName)
 ## The king lost `amount` hit points and has `hp` of `max_hp` left.
 signal king_damaged(amount: int, hp: int, max_hp: int)
 ## The king's health reached 0: he is out of the fight for `respawn_ticks` ticks.
