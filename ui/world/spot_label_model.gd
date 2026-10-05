@@ -25,7 +25,7 @@ static func describe(ctx: RunContext, spot_id: StringName, coins_paid: int) -> D
 	if building_def == null:
 		return content
 	var tier: int = ctx.buildings.current_tier(spot_id)
-	var next_tier: BuildingTierDef = ctx.buildings.next_tier_def(spot_id)
+	var next_tier: BuildingTierDef = building_def.tier_def(tier + 1)
 	if next_tier == null:
 		content["title"] = building_def.tier_label(tier)
 		content["max_tier"] = true

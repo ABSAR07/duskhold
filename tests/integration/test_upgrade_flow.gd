@@ -50,7 +50,7 @@ func _assert_capped(ctx: RunContext, spot_id: StringName) -> void:
 	assert_eq(ctx.economy.get_gold(), gold_at_top, "gold unchanged")
 	assert_eq(ctx.buildings.current_tier(spot_id), building_def.max_tier(), "tier unchanged")
 	assert_eq(ctx.buildings.next_action_cost(spot_id), -1, "nothing left to buy")
-	assert_null(ctx.buildings.next_tier_def(spot_id), "no next tier at the top")
+	assert_null(building_def.tier_def(building_def.max_tier() + 1), "no next tier at the top")
 
 
 func test_house_upgrades_through_all_three_tiers_then_hits_max_tier() -> void:

@@ -64,17 +64,9 @@ func current_tier(spot_id: StringName) -> int:
 	return instance.tier
 
 
-## Null at max tier or for an unknown spot.
-func next_tier_def(spot_id: StringName) -> BuildingTierDef:
-	var building_def: BuildingDef = get_building_def_for_spot(spot_id)
-	if building_def == null:
-		return null
-	return building_def.tier_def(current_tier(spot_id) + 1)
-
-
 ## Gold price of the next build or upgrade, or -1 when nothing can be bought.
 func next_action_cost(spot_id: StringName) -> int:
-	var tier_def: BuildingTierDef = next_tier_def(spot_id)
+	var tier_def: BuildingTierDef = _next_tier_def(spot_id)
 	if tier_def == null:
 		return -1
 	return tier_def.cost
@@ -119,7 +111,7 @@ func nearest_spot_in_range(pos: Vector3, radius: float) -> StringName:
 ## changes, for an unknown spot, a spot whose building has no definition, or a spot at max tier.
 func apply_next_tier(spot_id: StringName) -> BuildingInstance:
 	var spot: BuildSpotDef = get_spot(spot_id)
-	if spot == null or next_tier_def(spot_id) == null:
+	if spot == null or _next_tier_def(spot_id) == null:
 		return null
 	var instance: BuildingInstance = _instances.get(spot_id) as BuildingInstance
 	if instance == null:
@@ -219,3 +211,11 @@ func _max_health_of(instance: BuildingInstance) -> int:
 		return 0
 	var tier_def: BuildingTierDef = building_def.tier_def(instance.tier)
 	return tier_def.max_health if tier_def != null else 0
+
+
+## Null at max tier or for an unknown spot.
+func _next_tier_def(spot_id: StringName) -> BuildingTierDef:
+	var building_def: BuildingDef = get_building_def_for_spot(spot_id)
+	if building_def == null:
+		return null
+	return building_def.tier_def(current_tier(spot_id) + 1)
