@@ -2,7 +2,6 @@ extends GutTest
 ## The Day -> Night -> Dawn -> Day state machine (D-11, D-12) on a RunContext with no scene tree.
 ## Every duration is read from loop_tuning.tres so Phase 2 tuning cannot break these tests.
 
-const PROTOTYPE_MAP := "res://data/maps/prototype_map.tres"
 const TUNING := "res://data/tuning/loop_tuning.tres"
 const SOURCE_ROOTS: Array[String] = [
 	"res://simulation", "res://input", "res://ui", "res://presentation"
@@ -16,7 +15,7 @@ func before_each() -> void:
 
 
 func _context() -> RunContext:
-	return RunContext.new(load(PROTOTYPE_MAP), _tuning)
+	return RunContext.new(E2eSupport.waveless_prototype_map(), _tuning)
 
 
 func _into_night(ctx: RunContext) -> void:

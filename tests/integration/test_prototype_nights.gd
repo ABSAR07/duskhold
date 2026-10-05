@@ -99,3 +99,11 @@ func test_the_shipped_copy_keeps_every_authored_night() -> void:
 	assert_eq(copy.nights.size(), shipped.nights.size(), "all nights kept")
 	assert_eq(copy.nights.size(), 8, "the prototype has eight nights (D-07)")
 	assert_ne(copy.nights[0], shipped.nights[0], "as a deep copy, not the shared resource")
+
+
+func test_only_the_shots_that_start_the_night_ask_for_the_timed_night() -> void:
+	for shot: StringName in ShotScenarios.ALL_SHOTS:
+		var starts_night: bool = (
+			shot == ShotScenarios.NIGHT_BANNER or shot == ShotScenarios.DAWN_PAYOUT
+		)
+		assert_eq(ShotScenarios.needs_timed_night(shot), starts_night, "shot %s" % shot)

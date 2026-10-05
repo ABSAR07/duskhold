@@ -3,7 +3,6 @@ extends GutTest
 ## flies to the gold counter, the counter ticks up as they land, and a "+X gold" total follows.
 ## Amounts come from house.tres and every duration from loop_tuning.tres.
 
-const PROTOTYPE_MAP := "res://data/maps/prototype_map.tres"
 const TUNING := "res://data/tuning/loop_tuning.tres"
 const HOUSE := "res://data/buildings/house.tres"
 const RICH_GOLD: int = 20
@@ -29,7 +28,7 @@ func after_each() -> void:
 
 
 func _rich_map() -> MapConfig:
-	var map: MapConfig = (load(PROTOTYPE_MAP) as MapConfig).duplicate(true)
+	var map: MapConfig = E2eSupport.waveless_prototype_map()
 	map.starting_gold = RICH_GOLD
 	return map
 

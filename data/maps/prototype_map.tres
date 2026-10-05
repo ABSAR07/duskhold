@@ -1,10 +1,15 @@
-[gd_resource type="Resource" script_class="MapConfig" load_steps=14 format=3]
+[gd_resource type="Resource" script_class="MapConfig" load_steps=47 format=3]
 
 [ext_resource type="Script" path="res://simulation/defs/map_config.gd" id="1_map"]
 [ext_resource type="Script" path="res://simulation/defs/build_spot_def.gd" id="2_spot"]
 [ext_resource type="Script" path="res://simulation/defs/building_def.gd" id="3_bdef"]
 [ext_resource type="Resource" path="res://data/buildings/house.tres" id="4_house"]
 [ext_resource type="Resource" path="res://data/buildings/tower.tres" id="5_tower"]
+[ext_resource type="Script" path="res://simulation/defs/spawn_point_def.gd" id="6_spawn"]
+[ext_resource type="Script" path="res://simulation/defs/spawn_group_def.gd" id="7_group"]
+[ext_resource type="Script" path="res://simulation/defs/night_def.gd" id="8_night"]
+[ext_resource type="Script" path="res://simulation/defs/enemy_def.gd" id="9_enemy"]
+[ext_resource type="Resource" path="res://data/enemies/grunt.tres" id="10_grunt"]
 
 [sub_resource type="Resource" id="Resource_house_1"]
 script = ExtResource("2_spot")
@@ -54,6 +59,195 @@ id = &"tower_3"
 position = Vector3(0, 0, -55)
 building_id = &"tower"
 
+[sub_resource type="Resource" id="Resource_spawn_west"]
+script = ExtResource("6_spawn")
+id = &"west"
+display_name = "West road"
+position = Vector3(-66, 0, 24)
+scatter_radius = 3.0
+
+[sub_resource type="Resource" id="Resource_spawn_east"]
+script = ExtResource("6_spawn")
+id = &"east"
+display_name = "East road"
+position = Vector3(66, 0, 24)
+scatter_radius = 3.0
+
+[sub_resource type="Resource" id="Resource_spawn_north"]
+script = ExtResource("6_spawn")
+id = &"north"
+display_name = "North road"
+position = Vector3(0, 0, -66)
+scatter_radius = 3.0
+
+[sub_resource type="Resource" id="Resource_group_n1_west"]
+script = ExtResource("7_group")
+spawn_point_id = &"west"
+enemy_id = &"grunt"
+count = 5
+start_delay_seconds = 0.5
+interval_seconds = 1.5
+
+[sub_resource type="Resource" id="Resource_group_n2_west"]
+script = ExtResource("7_group")
+spawn_point_id = &"west"
+enemy_id = &"grunt"
+count = 8
+start_delay_seconds = 0.5
+interval_seconds = 1.5
+
+[sub_resource type="Resource" id="Resource_group_n3_west"]
+script = ExtResource("7_group")
+spawn_point_id = &"west"
+enemy_id = &"grunt"
+count = 6
+start_delay_seconds = 0.5
+interval_seconds = 1.5
+
+[sub_resource type="Resource" id="Resource_group_n3_east"]
+script = ExtResource("7_group")
+spawn_point_id = &"east"
+enemy_id = &"grunt"
+count = 5
+start_delay_seconds = 2.0
+interval_seconds = 1.5
+
+[sub_resource type="Resource" id="Resource_group_n4_west"]
+script = ExtResource("7_group")
+spawn_point_id = &"west"
+enemy_id = &"grunt"
+count = 7
+start_delay_seconds = 0.5
+interval_seconds = 1.5
+
+[sub_resource type="Resource" id="Resource_group_n4_east"]
+script = ExtResource("7_group")
+spawn_point_id = &"east"
+enemy_id = &"grunt"
+count = 7
+start_delay_seconds = 2.0
+interval_seconds = 1.5
+
+[sub_resource type="Resource" id="Resource_group_n5_west"]
+script = ExtResource("7_group")
+spawn_point_id = &"west"
+enemy_id = &"grunt"
+count = 9
+start_delay_seconds = 0.5
+interval_seconds = 1.5
+
+[sub_resource type="Resource" id="Resource_group_n5_east"]
+script = ExtResource("7_group")
+spawn_point_id = &"east"
+enemy_id = &"grunt"
+count = 9
+start_delay_seconds = 2.0
+interval_seconds = 1.5
+
+[sub_resource type="Resource" id="Resource_group_n6_west"]
+script = ExtResource("7_group")
+spawn_point_id = &"west"
+enemy_id = &"grunt"
+count = 8
+start_delay_seconds = 0.5
+interval_seconds = 1.5
+
+[sub_resource type="Resource" id="Resource_group_n6_east"]
+script = ExtResource("7_group")
+spawn_point_id = &"east"
+enemy_id = &"grunt"
+count = 7
+start_delay_seconds = 2.0
+interval_seconds = 1.5
+
+[sub_resource type="Resource" id="Resource_group_n6_north"]
+script = ExtResource("7_group")
+spawn_point_id = &"north"
+enemy_id = &"grunt"
+count = 7
+start_delay_seconds = 3.5
+interval_seconds = 1.5
+
+[sub_resource type="Resource" id="Resource_group_n7_west"]
+script = ExtResource("7_group")
+spawn_point_id = &"west"
+enemy_id = &"grunt"
+count = 9
+start_delay_seconds = 0.5
+interval_seconds = 1.5
+
+[sub_resource type="Resource" id="Resource_group_n7_east"]
+script = ExtResource("7_group")
+spawn_point_id = &"east"
+enemy_id = &"grunt"
+count = 9
+start_delay_seconds = 2.0
+interval_seconds = 1.5
+
+[sub_resource type="Resource" id="Resource_group_n7_north"]
+script = ExtResource("7_group")
+spawn_point_id = &"north"
+enemy_id = &"grunt"
+count = 9
+start_delay_seconds = 3.5
+interval_seconds = 1.5
+
+[sub_resource type="Resource" id="Resource_group_n8_west"]
+script = ExtResource("7_group")
+spawn_point_id = &"west"
+enemy_id = &"grunt"
+count = 11
+start_delay_seconds = 0.5
+interval_seconds = 1.5
+
+[sub_resource type="Resource" id="Resource_group_n8_east"]
+script = ExtResource("7_group")
+spawn_point_id = &"east"
+enemy_id = &"grunt"
+count = 11
+start_delay_seconds = 2.0
+interval_seconds = 1.5
+
+[sub_resource type="Resource" id="Resource_group_n8_north"]
+script = ExtResource("7_group")
+spawn_point_id = &"north"
+enemy_id = &"grunt"
+count = 11
+start_delay_seconds = 3.5
+interval_seconds = 1.5
+
+[sub_resource type="Resource" id="Resource_night_1"]
+script = ExtResource("8_night")
+groups = Array[ExtResource("7_group")]([SubResource("Resource_group_n1_west")])
+
+[sub_resource type="Resource" id="Resource_night_2"]
+script = ExtResource("8_night")
+groups = Array[ExtResource("7_group")]([SubResource("Resource_group_n2_west")])
+
+[sub_resource type="Resource" id="Resource_night_3"]
+script = ExtResource("8_night")
+groups = Array[ExtResource("7_group")]([SubResource("Resource_group_n3_west"), SubResource("Resource_group_n3_east")])
+
+[sub_resource type="Resource" id="Resource_night_4"]
+script = ExtResource("8_night")
+groups = Array[ExtResource("7_group")]([SubResource("Resource_group_n4_west"), SubResource("Resource_group_n4_east")])
+
+[sub_resource type="Resource" id="Resource_night_5"]
+script = ExtResource("8_night")
+groups = Array[ExtResource("7_group")]([SubResource("Resource_group_n5_west"), SubResource("Resource_group_n5_east")])
+
+[sub_resource type="Resource" id="Resource_night_6"]
+script = ExtResource("8_night")
+groups = Array[ExtResource("7_group")]([SubResource("Resource_group_n6_west"), SubResource("Resource_group_n6_east"), SubResource("Resource_group_n6_north")])
+
+[sub_resource type="Resource" id="Resource_night_7"]
+script = ExtResource("8_night")
+groups = Array[ExtResource("7_group")]([SubResource("Resource_group_n7_west"), SubResource("Resource_group_n7_east"), SubResource("Resource_group_n7_north")])
+
+[sub_resource type="Resource" id="Resource_night_8"]
+script = ExtResource("8_night")
+groups = Array[ExtResource("7_group")]([SubResource("Resource_group_n8_west"), SubResource("Resource_group_n8_east"), SubResource("Resource_group_n8_north")])
+
 [resource]
 script = ExtResource("1_map")
 id = &"prototype"
@@ -64,3 +258,8 @@ king_spawn = Vector3(0, 0, 7)
 castle_position = Vector3(0, 0, 0)
 buildings = Array[ExtResource("3_bdef")]([ExtResource("4_house"), ExtResource("5_tower")])
 spots = Array[ExtResource("2_spot")]([SubResource("Resource_house_1"), SubResource("Resource_house_2"), SubResource("Resource_house_3"), SubResource("Resource_house_4"), SubResource("Resource_house_5"), SubResource("Resource_tower_1"), SubResource("Resource_tower_2"), SubResource("Resource_tower_3")])
+enemies = Array[ExtResource("9_enemy")]([ExtResource("10_grunt")])
+spawn_points = Array[ExtResource("6_spawn")]([SubResource("Resource_spawn_west"), SubResource("Resource_spawn_east"), SubResource("Resource_spawn_north")])
+nights = Array[ExtResource("8_night")]([SubResource("Resource_night_1"), SubResource("Resource_night_2"), SubResource("Resource_night_3"), SubResource("Resource_night_4"), SubResource("Resource_night_5"), SubResource("Resource_night_6"), SubResource("Resource_night_7"), SubResource("Resource_night_8")])
+castle_max_health = 40
+castle_radius = 3.5

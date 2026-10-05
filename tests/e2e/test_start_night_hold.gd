@@ -3,7 +3,6 @@ extends GutTest
 ## start_night input, a placeholder night with its own mood and banner follows, then dawn and a
 ## new day. Every duration is read from loop_tuning.tres.
 
-const PROTOTYPE_MAP := "res://data/maps/prototype_map.tres"
 const TUNING := "res://data/tuning/loop_tuning.tres"
 const ACTION: StringName = &"start_night"
 const RICH_GOLD: int = 20
@@ -246,7 +245,7 @@ func test_a_fresh_run_starts_in_day_lighting_even_after_a_night() -> void:
 
 
 func test_a_build_hold_is_cancelled_when_the_night_starts() -> void:
-	var map: MapConfig = (load(PROTOTYPE_MAP) as MapConfig).duplicate(true)
+	var map: MapConfig = E2eSupport.waveless_prototype_map()
 	map.starting_gold = RICH_GOLD
 	var slow: LoopTuning = E2eSupport.flat_drip_tuning(SLOW_DRIP_S)
 	var map_root: MapRoot = await E2eSupport.spawn_map(self, map, slow)

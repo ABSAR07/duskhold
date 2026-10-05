@@ -2,7 +2,6 @@ extends GutTest
 ## BLDG-06: building and upgrading are impossible outside DAY. Exercised on a RunContext with no
 ## scene tree, entering NIGHT and DAWN only through the real start-night command.
 
-const PROTOTYPE_MAP := "res://data/maps/prototype_map.tres"
 const TUNING := "res://data/tuning/loop_tuning.tres"
 
 var _tuning: LoopTuning
@@ -13,7 +12,7 @@ func before_each() -> void:
 
 
 func _context() -> RunContext:
-	return RunContext.new(load(PROTOTYPE_MAP), _tuning)
+	return RunContext.new(E2eSupport.waveless_prototype_map(), _tuning)
 
 
 func _building_count(ctx: RunContext) -> int:

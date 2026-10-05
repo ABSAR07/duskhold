@@ -15,7 +15,7 @@
 [ext_resource type="Resource" path="res://data/tuning/loop_tuning.tres" id="7_tuning"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
-size = Vector2(140, 140)
+size = Vector2(180, 180)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
 albedo_color = Color(0.36, 0.45, 0.37, 1)

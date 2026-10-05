@@ -2,7 +2,6 @@ extends GutTest
 ## ECON-02: at dawn each House pays its current tier's income once, in MapConfig order.
 ## Expectations come from house.tres and tower.tres so Phase 2 tuning cannot break them.
 
-const PROTOTYPE_MAP := "res://data/maps/prototype_map.tres"
 const TUNING := "res://data/tuning/loop_tuning.tres"
 const RICH_GOLD: int = 100
 const HOUSE_A: StringName = &"house_1"
@@ -20,7 +19,7 @@ func before_each() -> void:
 
 
 func _rich_context() -> RunContext:
-	var map: MapConfig = (load(PROTOTYPE_MAP) as MapConfig).duplicate(true)
+	var map: MapConfig = E2eSupport.waveless_prototype_map()
 	map.starting_gold = RICH_GOLD
 	return RunContext.new(map, _tuning)
 

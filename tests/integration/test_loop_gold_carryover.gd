@@ -3,7 +3,6 @@ extends GutTest
 ## driven through the real start-night command and RunManager.tick on the prototype map, and the
 ## expected gold is recomputed independently from the .tres data after every step.
 
-const PROTOTYPE_MAP := "res://data/maps/prototype_map.tres"
 const TUNING := "res://data/tuning/loop_tuning.tres"
 const HOUSE_A: StringName = &"house_1"
 const HOUSE_B: StringName = &"house_2"
@@ -60,7 +59,7 @@ func _full_night(ctx: RunContext) -> int:
 
 
 func test_gold_carries_over_exactly_across_three_full_cycles() -> void:
-	var map: MapConfig = load(PROTOTYPE_MAP)
+	var map: MapConfig = E2eSupport.waveless_prototype_map()
 	var ctx: RunContext = RunContext.new(map, _tuning)
 	ctx.events.dawn_payout.connect(_record_payout)
 	var expected: int = map.starting_gold
@@ -98,7 +97,7 @@ func test_gold_carries_over_exactly_across_three_full_cycles() -> void:
 
 
 func test_gold_only_moves_at_dawn_never_at_night_or_day_start() -> void:
-	var ctx: RunContext = RunContext.new(load(PROTOTYPE_MAP), _tuning)
+	var ctx: RunContext = RunContext.new(E2eSupport.waveless_prototype_map(), _tuning)
 	ctx.events.dawn_payout.connect(_record_payout)
 	_buy(ctx, HOUSE_A)
 	ctx.events.gold_changed.connect(_record_gold)

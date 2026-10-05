@@ -82,7 +82,7 @@ static func _parse_args(user_args: PackedStringArray) -> Dictionary:
 
 
 func _capture(shot_name: StringName, out_dir: String) -> void:
-	var map_root: MapRoot = _spawn_map()
+	var map_root: MapRoot = _spawn_map(shot_name)
 	for _frame: int in range(SETTLE_FRAMES):
 		await get_tree().process_frame
 	var ok: bool = await ShotScenarios.run(shot_name, self, map_root)
@@ -109,12 +109,16 @@ func _capture(shot_name: StringName, out_dir: String) -> void:
 	get_tree().quit(EXIT_OK)
 
 
-## The prototype map with enough starting gold to show several buildings in one scene.
-func _spawn_map() -> MapRoot:
+## The prototype map with enough starting gold to show several buildings in one scene. The shots
+## that wait out the timed night run on a copy without its authored nights.
+func _spawn_map(shot_name: StringName) -> MapRoot:
 	var scene: PackedScene = load(MAP_SCENE_PATH)
 	var map_root: MapRoot = scene.instantiate()
 	var config: MapConfig = (load(MAP_DATA_PATH) as MapConfig).duplicate(true)
 	config.starting_gold = SHOT_STARTING_GOLD
+	if ShotScenarios.needs_timed_night(shot_name):
+		var no_nights: Array[NightDef] = []
+		config.nights = no_nights
 	map_root.map_config = config
 	add_child(map_root)
 	return map_root

@@ -39,6 +39,13 @@ const ALL_SHOTS: Array[StringName] = [
 ]
 
 
+## True for the shots that wait out the Phase 1 timed night (night_banner and dawn_payout): their
+## map copy drops its authored nights, so the night ends on its timer instead of on dead enemies.
+## The other shots keep the shipped nights.
+static func needs_timed_night(shot_name: StringName) -> bool:
+	return shot_name == NIGHT_BANNER or shot_name == DAWN_PAYOUT
+
+
 ## Runs the scenario and returns true when the scene is ready to be captured.
 static func run(shot_name: StringName, runner: Node, map_root: MapRoot) -> bool:
 	match shot_name:
