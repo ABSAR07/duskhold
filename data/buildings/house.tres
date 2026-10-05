@@ -7,19 +7,19 @@
 script = ExtResource("1_tier")
 cost = 2
 dawn_income = 1
-max_health = 8
+max_health = 12
 
 [sub_resource type="Resource" id="Resource_tier2"]
 script = ExtResource("1_tier")
 cost = 3
 dawn_income = 2
-max_health = 12
+max_health = 18
 
 [sub_resource type="Resource" id="Resource_tier3"]
 script = ExtResource("1_tier")
 cost = 5
 dawn_income = 3
-max_health = 16
+max_health = 24
 
 [resource]
 script = ExtResource("2_def")
