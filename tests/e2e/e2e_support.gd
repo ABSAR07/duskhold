@@ -51,15 +51,34 @@ static func flat_drip_tuning(seconds_per_coin: float, base: LoopTuning = null) -
 	return tuning
 
 
+## An isolated deep copy of the shipped prototype map with its spawn points and authored nights
+## kept. Night tests start from this copy; copied all the way down (DR-12) so an edit never reaches
+## the cached resource other tests read.
+static func shipped_prototype_map() -> MapConfig:
+	var shipped: MapConfig = load(PROTOTYPE_MAP_PATH)
+	return shipped.duplicate_deep(Resource.DEEP_DUPLICATE_ALL)
+
+
+## The shipped prototype map with its nights removed: the Phase 1 timed night, so a test that
+## reaches DAWN through the placeholder timer is not held up by real enemies. Same spots, buildings
+## and scalars as the shipped map, deep copied like `shipped_prototype_map`.
+static func waveless_prototype_map() -> MapConfig:
+	var map: MapConfig = shipped_prototype_map()
+	var no_nights: Array[NightDef] = []
+	map.nights = no_nights
+	return map
+
+
 ## Instantiates the real prototype map scene, optionally swapping the map data or tuning before
-## `_ready` builds the RunContext, and waits two frames for the run-bound nodes to bind.
+## `_ready` builds the RunContext, and waits two frames for the run-bound nodes to bind. With no
+## `map_config` the scene runs on the waveless prototype (`waveless_prototype_map`), so Phase 1 day
+## and loop tests keep their timed night; night tests pass `shipped_prototype_map()` explicitly.
 static func spawn_map(
 	test: GutTest, map_config: MapConfig = null, tuning: LoopTuning = null
 ) -> MapRoot:
 	var scene: PackedScene = load(MAP_SCENE_PATH)
 	var map_root: MapRoot = scene.instantiate()
-	if map_config != null:
-		map_root.map_config = map_config
+	map_root.map_config = map_config if map_config != null else waveless_prototype_map()
 	if tuning != null:
 		map_root.loop_tuning = tuning
 	test.add_child_autofree(map_root)
