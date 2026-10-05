@@ -70,6 +70,9 @@ A command-line script run with `-s` exits 0 even after a script runtime error (p
 | 02-01-T1, 02-01-T2, 02-09-T1, 02-09-T2 | 02-01, 02-09 | 1, 8 | DEV-05 | T-02-01, T-02-18, T-02-19 | `--scenario` comes from a fixed list, `--seed` must be an integer, `--out` stays under `build/`; runs are bounded by `max_ticks` and `timeout` | unit + integration + script + CI | `-gselect=test_determinism.gd`, `-gselect=test_sim_rules_guard.gd`, `-gselect=test_sim_rng.gd`, `-gselect=test_sim_clock.gd`, `-gselect=test_replay_cli_args.gd`, `-gselect=test_replay_golden.gd`, `bash tools/replay.sh --scenario=smoke --twice --expect-file=tests/golden/smoke.json` | ✅ | ✅ green |
 | 02-02-T1, 02-02-T2, 02-05-T1 | 02-02, 02-05 | 2, 5 | D-07 to D-10 (night data contract) | T-02-04 | `MapConfig.validate()` reports non-positive counts, negative delays, empty nights and over-cap enemy counts | unit | `-gselect=test_night_data_contract.gd`, `-gselect=test_map_validate_nights.gd` | ✅ | ✅ green |
 | 02-08-T2 | 02-08 | 4 | DEV-03 extension (overlay: enemy counts, wave state, paths) | T-02-15, T-02-16 | Overlay sections read state and never change it | unit + e2e | `-gselect=test_debug_overlay_night_sections.gd`, `-gselect=test_overlay_paths.gd` | ✅ | ✅ green |
+| WR-01 fix (pass 1) | review | — | LOOP-03, D-07 to D-10 (night data contract) | T-02-04 | `MapConfig.validate()` reports an enemy that could never attack (aggro range not above attack range), one that gives up before it notices, a bodiless or never-rescanning enemy, negative ranges and projectile speeds, a castle with no radius, and a tower tier with a non-positive attack interval or negative range or projectile speed; shipped data reports nothing (each rule fails one test under an orchestrator mutation probe) | unit | `-gselect=test_map_validate_enemies.gd` (12 tests, new file) | ✅ | ✅ green |
+| WR-02 fix (pass 1) | review | — | LOOP-03, D-07 to D-10 (night data contract) | T-02-04 | A night never spawns more than `MapConfig.MAX_ENEMIES_PER_NIGHT` (300): the groups share one budget in group order, and the spawn preview counts the same capped numbers (fails under three orchestrator mutation probes) | unit | `-gselect=test_wave_schedule.gd` (13 tests; four added by the fix) | ✅ | ✅ green |
+| WR-03 fix (pass 1) | review | — | LOOP-06, LOOP-07 (results screen, D-16) | T-02-13 | For `results_input_grace_seconds` (0.6 s shipped) after the results screen appears, no press from any device presses Play again or Quit; afterwards keyboard, gamepad and mouse all work; the shipped value stays between 0.3 and 1.0 s (fails under five orchestrator mutation probes) | e2e + unit | `-gselect=test_results_screen.gd` (9 tests; two added), `-gselect=test_loop_tuning_contract.gd` (11 tests; one added) | ✅ | ✅ green |
 
 Each `-gselect=` entry runs as `bash tools/test.sh -gselect=<file>`. Threat refs are the `T-02-NN` IDs from the plans' `<threat_model>` blocks. Task IDs read `<plan>-T<task number>`.
 
@@ -128,3 +131,29 @@ Notes:
 - All 13 rows are COVERED. Every listed test file exists and is green; several rows gained files beyond the seeded ones (for example `test_no_day_timer.gd`, `test_every_night_ends.gd`, `test_building_targeting.gd`, `test_replay_golden.gd`).
 - Ten of the eleven plans ran test-first (a RED commit before each GREEN commit). The executors of 02-03, 02-04, 02-05, 02-06 and 02-08 each reported a mutation probe that their tests caught; 02-07 reported none. This audit did not run its own mutation probes.
 - The two Manual-Only rows are unchanged. The screenshot review was done by Claude in plan 02-11; the owner's playtest is still open and is recorded through `/gsd-verify-work`.
+
+---
+
+## Validation Audit 2026-10-05 (re-audit after review-fix pass 1)
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Re-audited after the first review-fix pass (3 commits, `c6bb202`, `ef8ca58` and `6057fd1`), which closed the three warnings of the 2026-10-05 review. It touched `simulation/defs/map_config.gd`, `simulation/night/wave_schedule.gd`, `simulation/defs/loop_tuning.gd`, `data/tuning/loop_tuning.tres` and `ui/results/results_screen.gd`, added `tests/unit/test_map_validate_enemies.gd` and extended three test suites. All 13 rows of the per-task map are still COVERED, and three rows were added for the fixes.
+
+- **Mutation probes (orchestrator):** 19 single-line mutations, each run against the fix's own test file and restored from a backup. 18 were caught; 1 survived and is an equivalent change, not a gap.
+  - WR-01 (`test_map_validate_enemies.gd`): the aggro boundary (`<=` to `<`) and each of the nine other new rules switched off, one at a time (leash below aggro, enemy radius, negative enemy attack range, retarget interval, negative enemy projectile speed, castle radius, and the tower tier's attack range, attack interval and projectile speed). Each fails exactly one test.
+  - WR-02 (`test_wave_schedule.gd`): with the budget never spent (`budget -= 0`) 2 tests fail; with the preview back to the uncapped per-group count 1 fails; with the schedule spawning one more than its allowance 5 fail.
+  - WR-03 (`test_results_screen.gd`, `test_loop_tuning_contract.gd`): with `accepts_input()` ignoring the deadline 2 tests fail; with only the Quit handler ungated 1 fails; with only the Play again handler ungated 2 fail; with the shipped value set to 0 the contract test fails (1) and so does the victory test that uses the shipped window (1).
+  - **Survivor:** deleting the `results_input_grace_seconds = 0.6` line from `loop_tuning.tres` leaves `test_loop_tuning_contract.gd` green. The script default is the same 0.6, so the loaded value and the game's behaviour do not change, and Godot itself drops a default-equal property when the resource is re-saved from the editor. The test is named "...is_set_in_the_data_file_and_short", but what it pins is that the field is a stored export and that the loaded shipped value is between 0.3 and 1.0 s. The older respawn-field test in the same file works the same way. Recorded as an observation for the code review, not as a coverage gap.
+- **Tests:** +19, from 719 to 738 (86 scripts). `test_map_validate_enemies` is new with 12; `test_wave_schedule` 9 → 13; `test_results_screen` 7 → 9; `test_loop_tuning_contract` 10 → 11.
+- **Replays:** the smoke replay still matches the golden digest (`2599c7c2...`) and the full run still wins in 6244 ticks (`a25aa7fd...`), so the two simulation-side fixes changed nothing on valid data.
+- **Wall-clock note:** the two new results-screen tests wait on a real-time window (1 s in the defeat test, the shipped 0.6 s in the victory test) and tap inside it. Three consecutive runs of the suite gave identical assertion counts and times within 0.1 s. The total assertion count of the full suite differed by 4 between two runs at the same source (8580 and 8576); the difference is not in `test_results_screen` and was not located.
+- **Manual:** unchanged. The owner still judges the end-of-run tap by feel in the playtest (UAT item 2).
+
+Evidence:
+- Full suite 738/738 (86 scripts, ~270 s GUT time) at `be5ff16` (source as at `6057fd1`); lint clean (156 files).
+- Unit tests: 488, about 17 s of test time.
