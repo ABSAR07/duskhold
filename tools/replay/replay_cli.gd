@@ -22,7 +22,6 @@ extends SceneTree
 
 const EXIT_OK: int = 0
 const EXIT_FAILED: int = 1
-const EXIT_USAGE: int = 64
 
 const RES := "res://"
 const OUT_ROOT := "res://build"
@@ -137,7 +136,7 @@ func _initialize() -> void:
 				+ " [--out=build/<dir>] [--write-golden]"
 			)
 		)
-		quit(EXIT_USAGE)
+		quit(64)
 		return
 	quit(_execute(parsed))
 
