@@ -61,6 +61,10 @@ func get_night_number() -> int:
 	return _night_number
 
 
+func is_timed_night() -> bool:
+	return false
+
+
 ## Seconds left in the current timed phase (NIGHT or DAWN); 0.0 by day.
 func get_phase_time_remaining() -> float:
 	match _phase:
