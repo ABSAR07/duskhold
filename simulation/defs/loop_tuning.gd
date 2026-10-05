@@ -41,6 +41,12 @@ const MIN_INTERVAL_S: float = 0.001
 ## Real seconds the frozen collapse of the castle plays before the Defeat screen appears (D-17).
 ## Presentation time only: the simulation is already over when it starts.
 @export var loss_beat_seconds: float = 1.2
+## Real seconds after the results screen appears during which its buttons ignore presses (review
+## WR-03). The build key (Space, gamepad A) is also ui_accept and the screen takes focus as it
+## appears, so a player still tapping the key as the last enemy falls (or the loss beat ends) would
+## otherwise press Play again and lose the screen before reading it. 0 or less turns the window off.
+## Presentation time only: the simulation is already over.
+@export var results_input_grace_seconds: float = 0.6
 
 ## Seconds the king stays down after his first knockout of a night (D-01).
 @export var respawn_start_seconds: float = 6.0

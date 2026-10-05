@@ -5,6 +5,12 @@ extends CanvasLayer
 ## frozen collapse of the castle play for `loss_beat_seconds` of real time. It only reads RunStats
 ## and the run's phase and emits its two button signals; MapRoot decides what they do. The buttons
 ## take keyboard and gamepad focus (Play again first), and the mouse may click them.
+##
+## The build key (Space, gamepad A) is also ui_accept, so a player still tapping it as the run ends
+## would press the focused Play again and lose the screen before reading it (review WR-03). For
+## `LoopTuning.results_input_grace_seconds` of real time after the screen appears both buttons
+## ignore every press, from any device; the focus and the look of the screen are unchanged, and
+## once the window is over all three devices work as before (D-16).
 
 signal play_again_pressed
 signal quit_pressed
@@ -20,6 +26,8 @@ const KNOCKOUTS_TEXT := "King knockouts: %d"
 var _ctx: RunContext
 var _scheduled: bool = false
 var _showing: bool = false
+## Real time (Time.get_ticks_msec) from which presses are taken; set when the screen appears.
+var _accept_from_ms: int = 0
 
 @onready var _outcome_label: Label = %OutcomeLabel
 @onready var _nights_label: Label = %NightsLabel
@@ -49,6 +57,11 @@ func is_showing() -> bool:
 	return _showing
 
 
+## True once the screen is up and its input grace window is over: only then do the buttons act.
+func accepts_input() -> bool:
+	return _showing and Time.get_ticks_msec() >= _accept_from_ms
+
+
 ## The screen shows at most once per run, whatever run_ended is told afterwards.
 func _on_run_ended(outcome: StringName) -> void:
 	if _scheduled:
@@ -69,6 +82,8 @@ func _show_results(outcome: StringName) -> void:
 	if _showing:
 		return
 	_showing = true
+	var grace_ms: int = roundi(maxf(_ctx.tuning.results_input_grace_seconds, 0.0) * 1000.0)
+	_accept_from_ms = Time.get_ticks_msec() + grace_ms
 	_outcome_label.text = VICTORY_TEXT if outcome == &"victory" else DEFEAT_TEXT
 	var stats: RunStats = _ctx.stats
 	_nights_label.text = (
@@ -82,8 +97,10 @@ func _show_results(outcome: StringName) -> void:
 
 
 func _on_play_again_pressed() -> void:
-	play_again_pressed.emit()
+	if accepts_input():
+		play_again_pressed.emit()
 
 
 func _on_quit_pressed() -> void:
-	quit_pressed.emit()
+	if accepts_input():
+		quit_pressed.emit()

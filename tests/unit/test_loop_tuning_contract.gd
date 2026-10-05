@@ -162,3 +162,17 @@ func test_respawn_start_step_and_cap_are_exported_tuning_fields() -> void:
 	var tuning: LoopTuning = _tuning()
 	assert_gt(tuning.respawn_start_seconds, 0.0, "the shipped start is set in the data file")
 	assert_gt(tuning.respawn_step_seconds, 0.0, "the shipped step is set in the data file")
+
+
+## WR-03: the results screen ignores presses for this many real seconds after it appears, because
+## the build key doubles as ui_accept. It is tuning data: long enough to outlast a frantic tap,
+## short enough that a player who wants to restart is not kept waiting.
+func test_shipped_results_input_grace_is_set_in_the_data_file_and_short() -> void:
+	var exported: Dictionary = {}
+	for property: Dictionary in LoopTuning.new().get_property_list():
+		if int(property["usage"]) & PROPERTY_USAGE_STORAGE != 0:
+			exported[property["name"]] = true
+	assert_true(exported.has("results_input_grace_seconds"), "a stored, exported field")
+	var grace: float = _tuning().results_input_grace_seconds
+	assert_gte(grace, 0.3, "long enough to outlast a tap")
+	assert_lte(grace, 1.0, "short enough not to feel stuck")

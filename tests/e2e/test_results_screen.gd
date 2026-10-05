@@ -21,6 +21,10 @@ const BEAT_SLACK_S: float = 0.5
 ## Frame and timer granularity when checking that the beat was not cut short.
 const EARLY_SLACK_S: float = 0.1
 const FAST_BEAT_S: float = 0.1
+## A grace window long enough that a tap, which takes a few frames, is certainly inside it.
+const TEST_GRACE_S: float = 1.0
+## Real-time slack on top of the grace for the screen to start accepting presses.
+const GRACE_SLACK_S: float = 0.5
 const SHOW_WITHIN_S: float = 0.5
 const MOVE_TOLERANCE: float = 0.001
 const PUPPET_IDS: int = 8
@@ -85,9 +89,18 @@ func _victory_map() -> MapConfig:
 	return map
 
 
+## Shipped tuning with a different loss beat and no input grace, for the tests that press the
+## buttons the moment the screen is up. The grace has its own tests below.
 func _tuning_with_beat(seconds: float) -> LoopTuning:
 	var tuning: LoopTuning = (load(TUNING) as LoopTuning).duplicate(true)
 	tuning.loss_beat_seconds = seconds
+	tuning.results_input_grace_seconds = 0.0
+	return tuning
+
+
+func _tuning_with_grace(seconds: float) -> LoopTuning:
+	var tuning: LoopTuning = _tuning_with_beat(FAST_BEAT_S)
+	tuning.results_input_grace_seconds = seconds
 	return tuning
 
 
@@ -316,3 +329,52 @@ func test_map_root_wires_the_buttons_only_when_it_handles_the_results() -> void:
 	for signal_name: String in ["play_again_pressed", "quit_pressed"]:
 		var found: int = quiet_results.get_signal_connection_list(signal_name).size()
 		assert_eq(found, 0, "a test map leaves %s unhandled" % signal_name)
+
+
+## WR-03: the build key (Space, gamepad A) is also ui_accept, so a player tapping it as the run
+## ends would press the focused Play again and lose the screen. Presses inside the grace window do
+## nothing; the same press after it works. Wait times derive from the tuning given to the scene.
+func test_a_defeat_ignores_accept_inside_the_grace_window_and_takes_it_after() -> void:
+	var map_root: MapRoot = await _siege(_tuning_with_grace(TEST_GRACE_S))
+	var results: ResultsScreen = _results(map_root)
+	var shown: Callable = func() -> bool: return results.is_showing()
+	assert_true(await E2eSupport.wait_until(self, shown, FAST_BEAT_S + BEAT_SLACK_S), "it shows")
+	assert_false(results.accepts_input(), "the screen is not taking presses yet")
+	assert_true(
+		(results.get_node("%PlayAgainButton") as Button).has_focus(), "focus is on Play again"
+	)
+	watch_signals(results)
+	await _tap_pad(JOY_BUTTON_A)
+	await _tap_key(KEY_SPACE)
+	await _tap_key(KEY_ENTER)
+	(results.get_node("%PlayAgainButton") as Button).pressed.emit()
+	(results.get_node("%QuitButton") as Button).pressed.emit()
+	assert_signal_not_emitted(results, "play_again_pressed", "no accept inside the window restarts")
+	assert_signal_not_emitted(results, "quit_pressed", "and none quits")
+	var armed: Callable = func() -> bool: return results.accepts_input()
+	assert_true(await E2eSupport.wait_until(self, armed, TEST_GRACE_S + GRACE_SLACK_S), "it arms")
+	await _tap_key(KEY_SPACE)
+	assert_signal_emit_count(results, "play_again_pressed", 1, "the same press works after it")
+	(results.get_node("%QuitButton") as Button).pressed.emit()
+	assert_signal_emit_count(results, "quit_pressed", 1, "and so does a mouse press on Quit")
+
+
+func test_a_victory_ignores_the_action_key_tapped_as_it_appears() -> void:
+	var shipped_grace: float = (load(TUNING) as LoopTuning).results_input_grace_seconds
+	var map_root: MapRoot = await _spawn(_victory_map())
+	var ctx: RunContext = map_root.get_context()
+	var results: ResultsScreen = _results(map_root)
+	assert_eq(ctx.commands.submit(BuildIntent.new(TOWER)), CommandProcessor.OK, "a Tower")
+	E2eSupport.teleport_king(map_root, KING_AT)
+	_start_night(map_root)
+	ctx.buildings.damage_building(TOWER, RICH_GOLD * 100)
+	var shown: Callable = func() -> bool: return results.is_showing()
+	assert_true(await E2eSupport.wait_until(self, shown, VICTORY_TIMEOUT_S), "Victory shows")
+	assert_gt(shipped_grace, 0.0, "the shipped data sets a grace window")
+	watch_signals(results)
+	await _tap_key(KEY_SPACE)
+	assert_signal_not_emitted(results, "play_again_pressed", "the action key does not restart")
+	var armed: Callable = func() -> bool: return results.accepts_input()
+	assert_true(await E2eSupport.wait_until(self, armed, shipped_grace + GRACE_SLACK_S), "it arms")
+	await _tap_key(KEY_SPACE)
+	assert_signal_emit_count(results, "play_again_pressed", 1, "and works once the grace is over")
