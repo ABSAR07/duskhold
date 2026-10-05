@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3]
+[gd_scene load_steps=22 format=3]
 
 [ext_resource type="Script" path="res://presentation/map/map_root.gd" id="1_map"]
 [ext_resource type="Script" path="res://input/build_hold_controller.gd" id="2_hold"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" path="res://presentation/king/king.tscn" id="4_king"]
 [ext_resource type="PackedScene" path="res://ui/hud/hud.tscn" id="5_hud"]
 [ext_resource type="PackedScene" path="res://ui/world/spot_label.tscn" id="9_label"]
+[ext_resource type="PackedScene" path="res://ui/results/results_screen.tscn" id="15_results"]
 [ext_resource type="Script" path="res://presentation/vfx/coin_drip_vfx.gd" id="10_coins"]
 [ext_resource type="Script" path="res://presentation/vfx/projectile_vfx.gd" id="14_projectiles"]
 [ext_resource type="Script" path="res://input/start_night_hold_controller.gd" id="11_night_hold"]
@@ -76,6 +77,8 @@ script = ExtResource("13_enemies")
 [node name="HUD" parent="." groups=["run_bound"] instance=ExtResource("5_hud")]
 
 [node name="SpotLabel" parent="." groups=["run_bound"] instance=ExtResource("9_label")]
+
+[node name="ResultsScreen" parent="." groups=["run_bound"] instance=ExtResource("15_results")]
 
 [node name="CoinDripVfx" type="Node3D" parent="." groups=["run_bound"]]
 script = ExtResource("10_coins")

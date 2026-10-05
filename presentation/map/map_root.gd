@@ -8,6 +8,9 @@ extends Node3D
 @export var loop_tuning: LoopTuning
 ## Non-zero fixes the run seed (tests, screenshots, replays); zero draws a fresh seed per run.
 @export var fixed_run_seed: int = 0
+## When true the results screen's buttons act: Play again reloads the scene and Quit closes the
+## game. Tests set it false so a press can never reload or quit the test run.
+@export var handle_results_actions: bool = true
 
 var _ctx: RunContext
 var _run_seed: int = 0

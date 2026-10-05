@@ -59,6 +59,11 @@ func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 	ctx.events.buildings_rebuilt.connect(_on_buildings_rebuilt)
 
 
+## Stub (RED): the collapse arrives with the GREEN change.
+func get_castle_rubble() -> RubbleView:
+	return null
+
+
 ## The castle's health bar: hidden at full health, shown once the castle is hurt (D-12 rule).
 func get_castle_health_bar() -> HealthBar3D:
 	return _castle_bar

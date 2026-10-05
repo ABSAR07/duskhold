@@ -38,6 +38,9 @@ const MIN_INTERVAL_S: float = 0.001
 @export var placeholder_night_seconds: float = 4.0
 ## Seconds dawn lasts before the next day starts.
 @export var dawn_seconds: float = 2.0
+## Real seconds the frozen collapse of the castle plays before the Defeat screen appears (D-17).
+## Presentation time only: the simulation is already over when it starts.
+@export var loss_beat_seconds: float = 1.2
 
 ## Seconds the king stays down after his first knockout of a night (D-01).
 @export var respawn_start_seconds: float = 6.0
