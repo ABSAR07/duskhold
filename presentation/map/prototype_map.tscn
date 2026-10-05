@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://presentation/map/map_root.gd" id="1_map"]
 [ext_resource type="Script" path="res://input/build_hold_controller.gd" id="2_hold"]
@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" path="res://ui/hud/hud.tscn" id="5_hud"]
 [ext_resource type="PackedScene" path="res://ui/world/spot_label.tscn" id="9_label"]
 [ext_resource type="Script" path="res://presentation/vfx/coin_drip_vfx.gd" id="10_coins"]
+[ext_resource type="Script" path="res://presentation/vfx/projectile_vfx.gd" id="14_projectiles"]
 [ext_resource type="Script" path="res://input/start_night_hold_controller.gd" id="11_night_hold"]
 [ext_resource type="Script" path="res://presentation/environment/day_night_lighting.gd" id="12_lighting"]
 [ext_resource type="Resource" path="res://data/maps/prototype_map.tres" id="6_map"]
@@ -78,6 +79,9 @@ script = ExtResource("13_enemies")
 
 [node name="CoinDripVfx" type="Node3D" parent="." groups=["run_bound"]]
 script = ExtResource("10_coins")
+
+[node name="ProjectileVfx" type="Node3D" parent="." groups=["run_bound"]]
+script = ExtResource("14_projectiles")
 
 [node name="CameraRig" type="Node3D" parent="." groups=["run_bound"]]
 script = ExtResource("8_rig")
