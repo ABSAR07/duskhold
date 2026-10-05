@@ -19,13 +19,14 @@ func _event_names(lines: PackedStringArray) -> Array[String]:
 	return names
 
 
-func _count_attacks(lines: PackedStringArray, attacker_kind: String, flying: bool) -> int:
+## Attacks fired by `attacker_kind` whose flight lasted at least `min_flight` ticks.
+func _count_attacks(lines: PackedStringArray, attacker_kind: String, min_flight: int) -> int:
 	var count: int = 0
 	for line: String in lines:
 		var parts: PackedStringArray = line.split(" ")
 		if parts[1] != "attack_fired" or parts[2] != attacker_kind:
 			continue
-		if (int(parts[6]) > 0) == flying:
+		if int(parts[6]) >= min_flight:
 			count += 1
 	return count
 
@@ -58,9 +59,9 @@ func test_the_smoke_log_exercises_every_event_family_the_digest_must_guard() -> 
 		"run_ended",
 	]:
 		assert_true(names.has(event_name), "the log has %s" % event_name)
-	assert_gt(_count_attacks(lines, "king", false), 0, "the king strikes")
-	assert_gt(_count_attacks(lines, "building", false), 0, "a tower shoots")
-	assert_gt(_count_attacks(lines, "enemy", true), 0, "a ranged enemy fires a projectile")
+	assert_gt(_count_attacks(lines, "king", 0), 0, "the king strikes")
+	assert_gt(_count_attacks(lines, "building", 0), 0, "a tower shoots")
+	assert_gt(_count_attacks(lines, "enemy", 1), 0, "a ranged enemy fires a projectile")
 	assert_true(lines.size() > 0 and lines[lines.size() - 1].contains(" final "), "final state")
 	var ended: String = ""
 	for line: String in lines:
@@ -96,4 +97,6 @@ func test_the_golden_file_names_the_scenario_and_its_seed() -> void:
 
 func test_an_unknown_scenario_has_no_digest_and_no_golden_is_empty() -> void:
 	assert_false(ReplayScenarios.has(&"nope"), "not on the allowlist")
-	assert_eq(ReplayScenarios.golden_digest("res://tests/golden/nope.json"), "", "no file, no digest")
+	assert_eq(
+		ReplayScenarios.golden_digest("res://tests/golden/nope.json"), "", "no file, no digest"
+	)

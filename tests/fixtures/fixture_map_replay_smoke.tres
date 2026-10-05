@@ -1,0 +1,198 @@
+[gd_resource type="Resource" script_class="MapConfig" load_steps=32 format=3]
+
+[ext_resource type="Script" path="res://simulation/defs/map_config.gd" id="1_map"]
+[ext_resource type="Script" path="res://simulation/defs/build_spot_def.gd" id="2_spot"]
+[ext_resource type="Script" path="res://simulation/defs/building_def.gd" id="3_bdef"]
+[ext_resource type="Script" path="res://simulation/defs/building_tier_def.gd" id="4_tier"]
+[ext_resource type="Script" path="res://simulation/defs/spawn_point_def.gd" id="5_spawn"]
+[ext_resource type="Script" path="res://simulation/defs/spawn_group_def.gd" id="6_group"]
+[ext_resource type="Script" path="res://simulation/defs/night_def.gd" id="7_night"]
+[ext_resource type="Script" path="res://simulation/defs/enemy_def.gd" id="8_enemy"]
+
+[sub_resource type="Resource" id="Resource_grunt"]
+script = ExtResource("8_enemy")
+id = &"grunt"
+display_name = "Grunt"
+max_health = 6
+move_speed = 3.2
+radius = 0.5
+attack_range = 1.2
+attack_damage = 2
+attack_interval = 1.0
+aggro_range = 6.0
+leash_range = 10.0
+retarget_interval_seconds = 0.5
+projectile_speed = 0.0
+
+[sub_resource type="Resource" id="Resource_skirmisher"]
+script = ExtResource("8_enemy")
+id = &"skirmisher"
+display_name = "Skirmisher"
+max_health = 4
+move_speed = 2.8
+radius = 0.45
+attack_range = 7.0
+attack_damage = 2
+attack_interval = 1.6
+aggro_range = 9.0
+leash_range = 12.0
+retarget_interval_seconds = 0.5
+projectile_speed = 14.0
+
+[sub_resource type="Resource" id="Resource_house_tier1"]
+script = ExtResource("4_tier")
+cost = 2
+dawn_income = 1
+max_health = 8
+
+[sub_resource type="Resource" id="Resource_house_tier2"]
+script = ExtResource("4_tier")
+cost = 3
+dawn_income = 2
+max_health = 12
+
+[sub_resource type="Resource" id="Resource_house_tier3"]
+script = ExtResource("4_tier")
+cost = 5
+dawn_income = 3
+max_health = 16
+
+[sub_resource type="Resource" id="Resource_tower_tier1"]
+script = ExtResource("4_tier")
+cost = 4
+attack_range = 8.0
+attack_damage = 2
+max_health = 20
+attack_interval = 1.0
+projectile_speed = 18.0
+
+[sub_resource type="Resource" id="Resource_tower_tier2"]
+script = ExtResource("4_tier")
+cost = 6
+attack_range = 10.0
+attack_damage = 4
+max_health = 30
+attack_interval = 0.8
+projectile_speed = 20.0
+
+[sub_resource type="Resource" id="Resource_house"]
+script = ExtResource("3_bdef")
+id = &"house"
+display_name = "House"
+body_radius = 1.5
+tiers = Array[ExtResource("4_tier")]([SubResource("Resource_house_tier1"), SubResource("Resource_house_tier2"), SubResource("Resource_house_tier3")])
+
+[sub_resource type="Resource" id="Resource_tower"]
+script = ExtResource("3_bdef")
+id = &"tower"
+display_name = "Tower"
+body_radius = 1.0
+tiers = Array[ExtResource("4_tier")]([SubResource("Resource_tower_tier1"), SubResource("Resource_tower_tier2")])
+
+[sub_resource type="Resource" id="Resource_spot_tower_1"]
+script = ExtResource("2_spot")
+id = &"tower_1"
+position = Vector3(-12, 0, 3)
+building_id = &"tower"
+
+[sub_resource type="Resource" id="Resource_spot_house_1"]
+script = ExtResource("2_spot")
+id = &"house_1"
+position = Vector3(-9, 0, 9)
+building_id = &"house"
+
+[sub_resource type="Resource" id="Resource_spot_house_2"]
+script = ExtResource("2_spot")
+id = &"house_2"
+position = Vector3(9, 0, 9)
+building_id = &"house"
+
+[sub_resource type="Resource" id="Resource_spot_house_3"]
+script = ExtResource("2_spot")
+id = &"house_3"
+position = Vector3(-16, 0, -5)
+building_id = &"house"
+
+[sub_resource type="Resource" id="Resource_spot_tower_2"]
+script = ExtResource("2_spot")
+id = &"tower_2"
+position = Vector3(7, 0, -3)
+building_id = &"tower"
+
+[sub_resource type="Resource" id="Resource_spawn_west"]
+script = ExtResource("5_spawn")
+id = &"west"
+display_name = "West"
+position = Vector3(-26, 0, 0)
+scatter_radius = 2.0
+
+[sub_resource type="Resource" id="Resource_spawn_north"]
+script = ExtResource("5_spawn")
+id = &"north"
+display_name = "North"
+position = Vector3(0, 0, -26)
+scatter_radius = 2.0
+
+[sub_resource type="Resource" id="Resource_group_n1_grunts"]
+script = ExtResource("6_group")
+spawn_point_id = &"west"
+enemy_id = &"grunt"
+count = 3
+start_delay_seconds = 0.5
+interval_seconds = 1.0
+
+[sub_resource type="Resource" id="Resource_group_n1_skirmishers"]
+script = ExtResource("6_group")
+spawn_point_id = &"west"
+enemy_id = &"skirmisher"
+count = 2
+start_delay_seconds = 2.0
+interval_seconds = 1.5
+
+[sub_resource type="Resource" id="Resource_group_n2_grunts"]
+script = ExtResource("6_group")
+spawn_point_id = &"west"
+enemy_id = &"grunt"
+count = 4
+start_delay_seconds = 0.5
+interval_seconds = 1.0
+
+[sub_resource type="Resource" id="Resource_group_n2_north_grunts"]
+script = ExtResource("6_group")
+spawn_point_id = &"north"
+enemy_id = &"grunt"
+count = 1
+start_delay_seconds = 2.0
+interval_seconds = 1.0
+
+[sub_resource type="Resource" id="Resource_group_n2_skirmishers"]
+script = ExtResource("6_group")
+spawn_point_id = &"west"
+enemy_id = &"skirmisher"
+count = 2
+start_delay_seconds = 3.0
+interval_seconds = 1.5
+
+[sub_resource type="Resource" id="Resource_night_1"]
+script = ExtResource("7_night")
+groups = Array[ExtResource("6_group")]([SubResource("Resource_group_n1_grunts"), SubResource("Resource_group_n1_skirmishers")])
+
+[sub_resource type="Resource" id="Resource_night_2"]
+script = ExtResource("7_night")
+groups = Array[ExtResource("6_group")]([SubResource("Resource_group_n2_grunts"), SubResource("Resource_group_n2_north_grunts"), SubResource("Resource_group_n2_skirmishers")])
+
+[resource]
+script = ExtResource("1_map")
+id = &"fixture_replay_smoke"
+display_name = "Fixture Replay Smoke"
+is_sandbox = true
+starting_gold = 18
+king_spawn = Vector3(0, 0, 7)
+castle_position = Vector3(0, 0, 0)
+buildings = Array[ExtResource("3_bdef")]([SubResource("Resource_house"), SubResource("Resource_tower")])
+spots = Array[ExtResource("2_spot")]([SubResource("Resource_spot_tower_1"), SubResource("Resource_spot_house_1"), SubResource("Resource_spot_house_2"), SubResource("Resource_spot_house_3"), SubResource("Resource_spot_tower_2")])
+enemies = Array[ExtResource("8_enemy")]([SubResource("Resource_grunt"), SubResource("Resource_skirmisher")])
+spawn_points = Array[ExtResource("5_spawn")]([SubResource("Resource_spawn_west"), SubResource("Resource_spawn_north")])
+nights = Array[ExtResource("7_night")]([SubResource("Resource_night_1"), SubResource("Resource_night_2")])
+castle_max_health = 20
+castle_radius = 3.5

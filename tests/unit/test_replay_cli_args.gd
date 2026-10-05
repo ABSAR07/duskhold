@@ -70,9 +70,7 @@ func test_an_absolute_output_directory_outside_the_project_is_rejected() -> void
 
 
 func test_an_expect_file_must_be_a_json_under_tests_golden() -> void:
-	var parsed: Dictionary = _parse(
-		["--scenario=smoke", "--expect-file=tests/golden/smoke.json"]
-	)
+	var parsed: Dictionary = _parse(["--scenario=smoke", "--expect-file=tests/golden/smoke.json"])
 	assert_eq(parsed.get("error"), "", "the golden file is fine")
 	assert_eq(parsed.get("expect_file"), "res://tests/golden/smoke.json", "normalised")
 	assert_false(_ok(["--scenario=smoke", "--expect-file=../smoke.json"]), "parent traversal")

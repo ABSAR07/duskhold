@@ -1,0 +1,7 @@
+{
+  "scenario": "smoke",
+  "seed": 1,
+  "digests": {
+    "default": "2599c7c250f45b3dfe6653a8fc683918cbdce768a9afcaf8e3752d3454ccf31f"
+  }
+}
