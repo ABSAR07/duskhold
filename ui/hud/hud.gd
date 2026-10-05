@@ -13,6 +13,9 @@ extends CanvasLayer
 const START_NIGHT_PROMPT := "Hold %s to start Night %d"
 const NIGHT_BANNER := "Night %d — no enemies yet"
 const UNBOUND_HINT := "(unbound)"
+## KING-06: the visible respawn countdown, whole seconds rounded up so it never reads 0 while
+## the king is still down.
+const RESPAWN_TEXT := "Knocked out — back in %d s"
 ## Gamepad button names shown in the start-night hint, by JoyButton index. These are Xbox-style
 ## labels: on a PlayStation or Switch pad they are wrong (button 3 reads "Y", not "Triangle"/"X").
 ## Known Phase-1 limitation; later, key the names off Input.get_joy_name.
@@ -47,6 +50,7 @@ var _hint: String = ""
 @onready var _start_night_prompt: Label = %StartNightPrompt
 @onready var _start_night_fill: ProgressBar = %StartNightFill
 @onready var _phase_banner: Label = %PhaseBanner
+@onready var _respawn_label: Label = %RespawnLabel
 @onready var _payout_vfx: DawnPayoutVfx = %DawnPayoutVfx
 
 
@@ -77,10 +81,23 @@ func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
 ## text. Comparing the text, not the event objects, also catches an event edited in place. Nothing
 ## is rebuilt while the bindings are unchanged.
 func _process(_delta: float) -> void:
-	if _ctx == null or not _start_night_prompt.visible:
+	if _ctx == null:
+		return
+	_refresh_respawn()
+	if not _start_night_prompt.visible:
 		return
 	if _start_night_hint() != _hint:
 		_refresh_prompt_text()
+
+
+## Shows the knockout countdown while the king is down and hides it otherwise.
+func _refresh_respawn() -> void:
+	var king: KingState = _ctx.king
+	if not king.is_down():
+		_respawn_label.visible = false
+		return
+	_respawn_label.text = RESPAWN_TEXT % ceili(king.respawn_seconds_remaining())
+	_respawn_label.visible = true
 
 
 func _on_hold_progress(_spot_id: StringName, coins_paid: int, _cost: int) -> void:

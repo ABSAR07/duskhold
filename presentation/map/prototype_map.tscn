@@ -58,7 +58,7 @@ shadow_enabled = true
 [node name="WorldEnvironment" type="WorldEnvironment" parent="Lighting"]
 environment = SubResource("Environment_day")
 
-[node name="King" parent="." instance=ExtResource("4_king")]
+[node name="King" parent="." groups=["run_bound"] instance=ExtResource("4_king")]
 
 [node name="BuildHold" type="Node" parent="." groups=["run_bound"]]
 script = ExtResource("2_hold")

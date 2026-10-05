@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://presentation/king/king.gd" id="1_king"]
 [ext_resource type="Resource" path="res://data/king/king.tres" id="2_def"]
@@ -7,6 +7,16 @@
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_king"]
 radius = 0.5
 height = 1.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ghost"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.4, 0.9, 1, 0.4)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_ghost"]
+material = SubResource("StandardMaterial3D_ghost")
+radius = 0.6
+height = 2.2
 
 [node name="King" type="CharacterBody3D"]
 script = ExtResource("1_king")
@@ -19,3 +29,8 @@ shape = SubResource("CapsuleShape3D_king")
 [node name="Model" type="Node3D" parent="."]
 
 [node name="KingModel" parent="Model" instance=ExtResource("3_model")]
+
+[node name="Ghost" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+visible = false
+mesh = SubResource("CapsuleMesh_ghost")

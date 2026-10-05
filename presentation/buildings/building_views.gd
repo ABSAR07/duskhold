@@ -25,12 +25,16 @@ const HOUSE_HEIGHT_PER_TIER: float = 0.6
 const TOWER_RADIUS: float = 0.9
 const TOWER_BASE_HEIGHT: float = 3.0
 const TOWER_HEIGHT_PER_TIER: float = 2.0
+## The castle's health bar floats this high above its centre, clear of the turret.
+const CASTLE_BAR_HEIGHT: float = KEEP_SIZE.y + TURRET_HEIGHT + 1.2
+const CASTLE_BAR_WIDTH: float = 5.0
 
 ## Model lookup; assign before bind_run. A null catalog means primitives everywhere.
 @export var catalog: BuildingViewCatalog = DEFAULT_CATALOG
 
 var _ctx: RunContext
 var _views: Dictionary = {}
+var _castle_bar: HealthBar3D
 
 
 func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
@@ -41,9 +45,9 @@ func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 	ctx.events.building_built.connect(_on_building_built)
 
 
-## RED stub.
+## The castle's health bar: hidden at full health, shown once the castle is hurt (D-12 rule).
 func get_castle_health_bar() -> HealthBar3D:
-	return null
+	return _castle_bar
 
 
 ## Null if no building stands on the spot.
@@ -51,13 +55,14 @@ func get_view(spot_id: StringName) -> Node3D:
 	return _views.get(spot_id) as Node3D
 
 
-## Landmark only in Phase 1 (D-03): no health, no interaction.
+## The castle landmark (no interaction) with a hurt-only health bar fed by castle_damaged.
 func _add_castle(castle_position: Vector3) -> void:
 	var castle: Node3D = _instance_model(catalog.find_castle() if catalog != null else null)
 	if castle != null:
 		castle.name = "CastleCenter"
 		add_child(castle)
 		castle.position = castle_position
+		_add_castle_bar(castle)
 		return
 	castle = Node3D.new()
 	castle.name = "CastleCenter"
@@ -82,6 +87,21 @@ func _add_castle(castle_position: Vector3) -> void:
 	turret.mesh = turret_mesh
 	castle.add_child(turret)
 	turret.position = Vector3(0.0, KEEP_SIZE.y + TURRET_HEIGHT * 0.5, 0.0)
+	_add_castle_bar(castle)
+
+
+func _add_castle_bar(castle: Node3D) -> void:
+	_castle_bar = HealthBar3D.new()
+	_castle_bar.name = "HealthBar"
+	_castle_bar.bar_width = CASTLE_BAR_WIDTH
+	_castle_bar.height_offset = CASTLE_BAR_HEIGHT
+	castle.add_child(_castle_bar)
+	_castle_bar.set_health(_ctx.castle.get_health(), _ctx.castle.get_max_health())
+	_ctx.events.castle_damaged.connect(_on_castle_damaged)
+
+
+func _on_castle_damaged(_amount: int, hp: int, max_hp: int) -> void:
+	_castle_bar.set_health(hp, max_hp)
 
 
 func _add_marker(spot_id: StringName) -> void:
