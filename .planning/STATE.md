@@ -170,6 +170,7 @@ None yet.
 
 - [Phase 1]: Four open info-level code-review findings (a misleading coin VFX comment, a cosmetic aim drift of delayed refund coins, a sandbox test that cannot catch an in-place tuning change, a silent sandbox failure path); see 01-REVIEW.md
 - [Phase 1]: On upgrades the drip coins fly into the already-built model and are hidden; the label coin row shows the pace (seen at UAT 59 and 60, not yet logged as a task)
+- [Phase 2]: Three info findings of the first Phase 2 code review (2026-10-05, text in 02-REVIEW.md at commit baae3a9) are still open and no longer have a row in 02-REVIEW-DISPOSITION.md, because the second review reused their ids: an arrow in flight when the last enemy dies is dropped though drawn landing; `BuildingViews.bind_run` and `DayNightLighting.bind_run` have no repeat-bind guard; replay.sh and playtest.sh do not fail on `push_error` output
 - [Phase 2]: King respawn rules (timer, location) are a design decision because the sources don't document them; settle them in Phase 2's discuss-phase
 - [Phase 2]: Determinism (DEV-05) has to cover every night system added in Phase 2 (spawning, targeting, combat, destruction), so seeded-RNG and fixed-step rules should be fixed before combat code is written
 - [Phase 4]: Research flag: validate MultiMesh + NavigationServer3D avoidance vs flow fields empirically on Godot 4.7; decide GTX 970-class measurement method
