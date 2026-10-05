@@ -5,16 +5,12 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: fixed
-    title: "MapConfig.validate() cannot catch enemy data that makes a night impossible to end, and a real night has no clock"
+    disposition: open
+    title: "The input grace gates the release of a press, so a press started inside the window and held past it still restarts"
   - id: WR-02
     severity: warning
-    disposition: fixed
-    title: "The per-night enemy cap is advisory only; at runtime it is not enforced"
-  - id: WR-03
-    severity: warning
-    disposition: fixed
-    title: "The action key is also the menu accept key, so mashing it at the end of a run restarts the game"
+    disposition: open
+    title: "The new results-screen tests fail if the runner stalls longer than the grace window"
   - id: IN-01
     severity: info
     disposition: open
@@ -22,15 +18,19 @@ findings:
   - id: IN-02
     severity: info
     disposition: open
-    title: "An arrow in flight when the last enemy dies is dropped, though it is drawn landing"
+    title: "`MAX_GROUP_COUNT` is now a dead clamp"
   - id: IN-03
     severity: info
     disposition: open
-    title: "`BuildingViews.bind_run` and `DayNightLighting.bind_run` have no repeat-bind guard"
+    title: "The \"shipped grace is set in the data file\" test cannot see the data file"
   - id: IN-04
     severity: info
     disposition: open
-    title: "replay.sh and playtest.sh do not fail on `push_error` output"
+    title: "The grace value has no upper bound"
+  - id: WR-03
+    severity: warning
+    disposition: fixed
+    title: "The action key is also the menu accept key, so mashing it at the end of a run restarts the game"
   - id: IN-05
     severity: info
     disposition: open
@@ -39,24 +39,24 @@ findings:
     severity: info
     disposition: open
     title: "Screenshot job worst-case time equals the job timeout"
-open: 6
+open: 8
 total: 9
-recorded: 2026-10-05T16:08:39.442Z
+recorded: 2026-10-05T16:43:55.253Z
 ---
 
 # Phase 02: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | fixed | 02-REVIEW-FIX.md |
-| WR-02 | warning | fixed | 02-REVIEW-FIX.md |
-| WR-03 | warning | fixed | 02-REVIEW-FIX.md |
+| WR-01 | warning | open | - |
+| WR-02 | warning | open | - |
 | IN-01 | info | open | - |
 | IN-02 | info | open | - |
 | IN-03 | info | open | - |
 | IN-04 | info | open | - |
-| IN-05 | info | open | - |
-| IN-06 | info | open | - |
+| WR-03 | warning | fixed | 02-REVIEW-FIX.md (not in the current review) |
+| IN-05 | info | open | - (not in the current review) |
+| IN-06 | info | open | - (not in the current review) |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
 Set `deferred` by hand and put the reason in the Source cell; both are preserved. A `|` in the reason is kept as prose and escaped on the next run.
