@@ -104,10 +104,6 @@ func end_night() -> void:
 	_hits.clear()
 
 
-func _castle_xz() -> Vector2:
-	return Vector2(_map.castle_position.x, _map.castle_position.z)
-
-
 func _spawn_due(night_tick: int) -> void:
 	for entry: WaveSchedule.Entry in _schedule.take_due(night_tick):
 		var spawn_point: SpawnPointDef = _map.find_spawn_point(entry.spawn_point_id)
@@ -125,3 +121,5 @@ func _resolve_hits(night_tick: int) -> void:
 	for hit: PendingHits.Hit in _hits.take_due(night_tick):
 		if hit.target_kind == PendingHits.KIND_ENEMY:
 			_enemies.damage(hit.target_id, hit.amount, hit.attacker_kind)
+		elif hit.target_kind == PendingHits.KIND_CASTLE:
+			_castle.damage(hit.amount)

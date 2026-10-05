@@ -4,6 +4,10 @@ extends RefCounted
 ## reused (Pattern 3: callers never touch the storage, so Phase 4 can swap it for packed arrays).
 ## Positions are Vector2 on the XZ plane. Iteration is always in ascending id order (DR-6).
 
+## An enemy counts as arrived when it is within this many metres of its stop distance, so float32
+## positions that land a hair short still strike.
+const ARRIVE_EPSILON: float = 0.001
+
 var _events: SimEvents
 var _records: Dictionary = {}
 var _order: Array[int] = []
@@ -19,6 +23,12 @@ func _init(events: SimEvents) -> void:
 ## one steering seam: Phase 4 replaces this body with a flow-field sample.
 static func desired_step(pos: Vector2, goal: Vector2, max_distance: float) -> Vector2:
 	return pos.move_toward(goal, maxf(max_distance, 0.0)) - pos
+
+
+## True on the ticks where enemy `id` looks for a better target: (tick + id) % rescan_ticks == 0, so
+## enemies with different ids rescan on different ticks and the cost is spread (Pitfall 5).
+static func is_rescan_tick(tick: int, id: int, rescan_ticks: int) -> bool:
+	return rescan_ticks > 0 and (tick + id) % rescan_ticks == 0
 
 
 ## Adds an enemy and returns its id; emits enemy_spawned.
@@ -55,14 +65,14 @@ func is_alive(id: int) -> bool:
 	return record != null and record.health > 0
 
 
-## Stub for the RED commit.
-static func is_rescan_tick(_tick: int, _id: int, _rescan_ticks: int) -> bool:
-	return false
-
-
-## Stub for the RED commit.
-func target_of(_id: int) -> Dictionary:
-	return {}
+## What enemy `id` is attacking or walking toward: {"kind": StringName, "id": int}, a fresh
+## Dictionary per call; empty while it marches without a target and for an unknown id. Read-only
+## (the debug overlay and the path gizmo read it).
+func target_of(id: int) -> Dictionary:
+	var record: Record = _records.get(id) as Record
+	if record == null or record.target_kind == &"":
+		return {}
+	return {"kind": record.target_kind, "id": record.target_id}
 
 
 ## Zero vector for an unknown id.
@@ -102,40 +112,24 @@ func damage(id: int, amount: int, killer_kind: StringName) -> void:
 	_events.enemy_damaged.emit(id, amount, record.health)
 
 
-## Id of the living enemy nearest `pos` whose centre is within `reach` (inclusive, squared-distance
-## compare), or -1. Equally near enemies: the lower id wins (ids are scanned ascending and only a
-## strictly nearer one replaces the best).
-func nearest_in_range(pos: Vector2, reach: float) -> int:
-	var best_id: int = -1
-	var best_d2: float = INF
-	var limit: float = reach * reach
-	for id: int in _order:
-		var record: Record = _records[id]
-		if record.health <= 0:
-			continue
-		var d2: float = pos.distance_squared_to(record.position)
-		if d2 <= limit and d2 < best_d2:
-			best_d2 = d2
-			best_id = id
-	return best_id
-
-
-## Moves every living enemy (id order) one step toward the castle; it waits at the castle's edge,
-## `castle_radius + attack_range` from the centre. Castle damage arrives in a later plan.
-func step(_tick: int, castle: CastleState, _hits: PendingHits) -> void:
-	var castle_pos: Vector2 = castle.get_position()
-	var castle_radius: float = castle.get_radius()
+## The enemy phase of a night step (DR-8). Every living enemy, in id order, chooses a target
+## (committed until it is invalid or a staggered rescan finds a better one), walks toward it and
+## stops at `target radius + attack_range`, then strikes through the pending-hit queue once per
+## attack_interval. After all of them moved, overlapping enemies are pushed apart. A destroyed
+## castle leaves nothing to march on, so the field stands still.
+func step(tick: int, castle: CastleState, hits: PendingHits) -> void:
 	for id: int in _order:
 		var record: Record = _records[id]
 		record.previous = record.position
+	if castle.is_destroyed():
+		return
+	for id: int in _order:
+		var record: Record = _records[id]
 		if record.health <= 0:
 			continue
-		var stop_distance: float = castle_radius + record.def.attack_range
-		var remaining: float = record.position.distance_to(castle_pos) - stop_distance
-		if remaining <= 0.0:
-			continue
-		var reach: float = minf(record.def.move_speed * SimClock.STEP, remaining)
-		record.position += desired_step(record.position, castle_pos, reach)
+		_choose_target(record, tick, castle)
+		_advance_and_strike(record, tick, castle, hits)
+	_separate()
 
 
 ## Removes dead enemies in ascending id order and emits enemy_died for each.
@@ -160,6 +154,108 @@ func clear() -> void:
 	_died_total = 0
 
 
+## D-11 target choice (Pitfall 5: commit to a target). It runs when the enemy has no target, when
+## its target went invalid, and on the enemy's own staggered rescan tick. In priority order: keep a
+## valid target; else the castle once it is inside aggro range plus its own radius; else none, and
+## the enemy keeps marching. Task 2 of plan 02-03 puts the king in front of both and plan 02-04 adds
+## standing buildings to the same list.
+func _choose_target(record: Record, tick: int, castle: CastleState) -> void:
+	var valid: bool = record.target_kind != &"" and _target_valid(record, castle)
+	var rescan_ticks: int = maxi(SimClock.ticks(record.def.retarget_interval_seconds), 1)
+	if valid and not is_rescan_tick(tick, record.id, rescan_ticks):
+		return
+	if valid:
+		# Nothing outranks a valid castle target yet; the king branches go in front of this.
+		return
+	record.target_kind = &""
+	record.target_id = 0
+	var to_castle: float = record.position.distance_to(castle.get_position())
+	if to_castle <= record.def.aggro_range + castle.get_radius():
+		record.target_kind = PendingHits.KIND_CASTLE
+		record.target_id = 0
+
+
+## True while the record's current target can still be attacked and is not beyond the leash.
+func _target_valid(record: Record, castle: CastleState) -> bool:
+	if record.target_kind == PendingHits.KIND_CASTLE:
+		if castle.is_destroyed():
+			return false
+		var to_castle: float = record.position.distance_to(castle.get_position())
+		return to_castle <= record.def.leash_range + castle.get_radius()
+	return false
+
+
+## Walks toward the target (or the castle while there is none) and, once at its stop distance and
+## off cooldown, queues one melee hit that lands this tick.
+func _advance_and_strike(record: Record, tick: int, castle: CastleState, hits: PendingHits) -> void:
+	var goal: Vector2 = castle.get_position()
+	var goal_radius: float = castle.get_radius()
+	var attacking: bool = record.target_kind != &""
+	var stop_distance: float = goal_radius + record.def.attack_range
+	var remaining: float = record.position.distance_to(goal) - stop_distance
+	if remaining > 0.0:
+		var reach: float = minf(record.def.move_speed * SimClock.STEP, remaining)
+		record.position += desired_step(record.position, goal, reach)
+		remaining = record.position.distance_to(goal) - stop_distance
+	if not attacking or remaining > ARRIVE_EPSILON or tick < record.cooldown_ready_tick:
+		return
+	hits.enqueue(
+		tick,
+		PendingHits.KIND_ENEMY,
+		record.id,
+		record.target_kind,
+		record.target_id,
+		record.def.attack_damage
+	)
+	_events.attack_fired.emit(
+		PendingHits.KIND_ENEMY, record.id, record.target_kind, record.target_id, 0
+	)
+	record.cooldown_ready_tick = tick + SimClock.ticks(record.def.attack_interval)
+
+
+## Pushes overlapping enemies apart (Pitfall 6). Positions are snapshotted once; every pair, in
+## ascending id order, adds half the overlap to each member's displacement along their difference
+## (a zero difference uses a fixed axis chosen by the lower id's parity, never a random one); the
+## displacements are applied together, so the result does not depend on iteration side effects
+## (DR-6, DR-8).
+func _separate() -> void:
+	var alive: Array[Record] = []
+	for id: int in _order:
+		var record: Record = _records[id]
+		if record.health > 0:
+			alive.append(record)
+	var count_alive: int = alive.size()
+	if count_alive < 2:
+		return
+	var snapshot: PackedVector2Array = PackedVector2Array()
+	snapshot.resize(count_alive)
+	var displacement: PackedVector2Array = PackedVector2Array()
+	displacement.resize(count_alive)
+	for index: int in range(count_alive):
+		snapshot[index] = alive[index].position
+	for first: int in range(count_alive):
+		for second: int in range(first + 1, count_alive):
+			var min_gap: float = alive[first].def.radius + alive[second].def.radius
+			var delta: Vector2 = snapshot[second] - snapshot[first]
+			if absf(delta.x) >= min_gap:
+				continue
+			var d2: float = delta.length_squared()
+			if d2 >= min_gap * min_gap:
+				continue
+			var direction: Vector2
+			var gap: float = 0.0
+			if d2 == 0.0:
+				direction = Vector2.RIGHT if alive[first].id % 2 == 0 else Vector2.DOWN
+			else:
+				gap = sqrt(d2)
+				direction = delta / gap
+			var push: float = (min_gap - gap) * 0.5
+			displacement[first] -= direction * push
+			displacement[second] += direction * push
+	for index: int in range(count_alive):
+		alive[index].position += displacement[index]
+
+
 ## One enemy's state. Private to the system.
 class Record:
 	extends RefCounted
@@ -169,3 +265,8 @@ class Record:
 	var previous: Vector2 = Vector2.ZERO
 	var health: int = 0
 	var killer_kind: StringName = &""
+	## What it is attacking or walking toward: kind (empty while marching) and id.
+	var target_kind: StringName = &""
+	var target_id: int = 0
+	## First tick on which its next strike may land.
+	var cooldown_ready_tick: int = 0

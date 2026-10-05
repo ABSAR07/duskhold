@@ -40,7 +40,7 @@ func begin_night() -> void:
 func step(tick: int, enemies: EnemySystem, hits: PendingHits) -> void:
 	if tick < _cooldown_ready_tick:
 		return
-	var target_id: int = enemies.nearest_in_range(_position, _def.attack_range)
+	var target_id: int = TargetQuery.nearest_enemy(enemies, _position, _def.attack_range)
 	if target_id < 0:
 		return
 	hits.enqueue(
