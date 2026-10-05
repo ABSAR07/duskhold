@@ -250,7 +250,8 @@ func test_the_cli_defaults_run_every_strategy_over_ten_seeds() -> void:
 func test_the_cli_accepts_a_strategy_list_and_a_seed_count() -> void:
 	var parsed: Dictionary = _parse(["--strategies=no_build,balanced", "--seeds=2"])
 	assert_eq(parsed.get("error"), "", "valid")
-	assert_eq(parsed.get("strategies"), [&"no_build", &"balanced"] as Array[StringName], "listed")
+	var expected: Array[StringName] = [&"no_build", &"balanced"]
+	assert_eq(parsed.get("strategies"), expected, "listed")
 	assert_eq(parsed.get("seeds"), 2, "two seeds")
 
 

@@ -57,7 +57,7 @@ static func parse_args(args: PackedStringArray) -> Dictionary:
 			seed_text = arg.trim_prefix("--seed=")
 			has_seed = true
 		elif arg.begins_with("--out="):
-			parsed["out"] = _safe_dir(arg.trim_prefix("--out="), OUT_ROOT)
+			parsed["out"] = safe_dir(arg.trim_prefix("--out="), OUT_ROOT)
 		elif arg.begins_with("--expect-file="):
 			parsed["expect_file"] = _safe_json(arg.trim_prefix("--expect-file="), GOLDEN_ROOT)
 		else:
@@ -67,7 +67,7 @@ static func parse_args(args: PackedStringArray) -> Dictionary:
 
 ## The res:// form of `raw` when it is a directory at or under `root`, else "". Rejects any `..`
 ## segment, an absolute path outside the project and a sibling that merely shares the prefix.
-static func _safe_dir(raw: String, root: String) -> String:
+static func safe_dir(raw: String, root: String) -> String:
 	var path: String = _normalise(raw)
 	if path == root or path.begins_with(root + "/"):
 		return path
