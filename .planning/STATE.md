@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 02
 current_phase_name: Night Defense & Playtest Gate
 status: executing
-stopped_at: Completed 02-05-PLAN.md
-last_updated: "2026-10-05T10:09:05.594Z"
+stopped_at: Completed 02-06-PLAN.md
+last_updated: "2026-10-05T10:56:40.571Z"
 last_activity: 2026-10-05
 last_activity_desc: Phase 02 execution started
-state_head: 98753b38fc395b41daf7200779ddad5b03e19e37
+state_head: 0621c5c5e2d4da4a9e5709efaa5c248d6373da15
 progress:
   total_phases: 13
   completed_phases: 1
   total_plans: 29
-  completed_plans: 24
+  completed_plans: 25
   percent: 8
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-03)
 ## Current Position
 
 Phase: 02 (Night Defense & Playtest Gate) — EXECUTING
-Plan: 7 of 11
+Plan: 8 of 11
 Status: Ready to execute
 Last activity: 2026-10-05 — Phase 02 execution started
 
@@ -80,6 +80,7 @@ Progress: [█░░░░░░░░░] 8%
 | Phase 02 P04 | 26 min | 2 tasks | 22 files |
 | Phase 02 P08 | 38 min | 2 tasks | 25 files |
 | Phase 02 P05 | 38 min | 2 tasks | 21 files |
+| Phase 02 P06 | 45 min | 2 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -146,6 +147,8 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-05: Towers keep a per-spot ready-tick and a tower with no target keeps its cooldown, so an enemy entering range is shot on that tick — Same behavior as the king's passive attack
 - [Phase 02]: 02-05: Each ranged group starts 1.5 s after its road's grunts; per-night totals stay 5, 8, 11, 14, 18, 22, 27, 33 — D-08 adds the Skirmisher without changing night difficulty totals; 02-10 retunes
 - [Phase 02]: 02-05: Enemy puppets own their materials so a hit flash is per enemy; melee strikes (flight 0) have no visual — A shared per-type material would flash every enemy of that type
+- [Phase 02]: BuildingSystem stays within gdlint max-public-methods: next_tier_def made private, was_rebuilt_this_dawn dropped (read get_instance(spot).rebuilt_this_dawn) — 02-06: the plan's four additions would exceed the limit of 20; the rule is not raised or disabled
+- [Phase 02]: Dawn does full repair (survivors, castle, king); buildings_rebuilt fires every dawn; rebuilt marks last until the next start_night; a rebuilt Tower gets no crossed-out coin — 02-06: RESEARCH Open Question 1 resolved as full repair; owner confirms at the playtest gate
 
 ### Pending Todos
 
@@ -178,6 +181,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-05T10:09:05.148Z
-Stopped at: Completed 02-05-PLAN.md
+Last session: 2026-10-05T10:56:24.778Z
+Stopped at: Completed 02-06-PLAN.md
 Resume file: None
