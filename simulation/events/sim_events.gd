@@ -39,6 +39,9 @@ signal castle_destroyed
 signal building_damaged(spot_id: StringName, amount: int, hp: int, max_hp: int)
 ## A building fell to 0 hit points and stays down until dawn. Emitted exactly once per destruction.
 signal building_destroyed(spot_id: StringName, building_id: StringName, tier: int)
+## Dawn rebuilt the buildings that fell in the night, listed in MapConfig order (empty when nothing
+## fell). Emitted once per dawn, after the repairs and before the payout.
+signal buildings_rebuilt(spot_ids: Array)
 ## The king lost `amount` hit points and has `hp` of `max_hp` left.
 signal king_damaged(amount: int, hp: int, max_hp: int)
 ## The king's health reached 0: he is out of the fight for `respawn_ticks` ticks.

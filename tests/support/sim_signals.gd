@@ -22,6 +22,7 @@ const ALL: Array[String] = [
 	"castle_destroyed",
 	"building_damaged",
 	"building_destroyed",
+	"buildings_rebuilt",
 	"king_damaged",
 	"king_downed",
 	"king_respawned",

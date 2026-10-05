@@ -25,6 +25,7 @@ const HANDLED: Array[String] = [
 	"castle_destroyed",
 	"building_damaged",
 	"building_destroyed",
+	"buildings_rebuilt",
 	"king_damaged",
 	"king_downed",
 	"king_respawned",
@@ -57,6 +58,7 @@ static func attach(ctx: RunContext) -> SimRecorder:
 	events.castle_destroyed.connect(recorder._on_castle_destroyed)
 	events.building_damaged.connect(recorder._on_building_damaged)
 	events.building_destroyed.connect(recorder._on_building_destroyed)
+	events.buildings_rebuilt.connect(recorder._on_buildings_rebuilt)
 	events.king_damaged.connect(recorder._on_king_damaged)
 	events.king_downed.connect(recorder._on_king_downed)
 	events.king_respawned.connect(recorder._on_king_respawned)
@@ -183,6 +185,11 @@ func _on_building_damaged(spot_id: StringName, amount: int, hp: int, max_hp: int
 
 func _on_building_destroyed(spot_id: StringName, building_id: StringName, tier: int) -> void:
 	_record("building_destroyed", [spot_id, building_id, tier])
+
+
+## One token per rebuilt spot id, in the order given; none when nothing fell.
+func _on_buildings_rebuilt(spot_ids: Array) -> void:
+	_record("buildings_rebuilt", spot_ids)
 
 
 func _on_king_damaged(amount: int, hp: int, max_hp: int) -> void:

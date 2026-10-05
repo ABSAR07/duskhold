@@ -188,6 +188,23 @@ func damage_building(spot_id: StringName, amount: int) -> void:
 		_events.building_destroyed.emit(spot_id, instance.building_id, instance.tier)
 
 
+## Dawn (LOOP-04): stands every fallen building again at the tier it had, at full health, for no
+## gold, and marks it rebuilt_this_dawn so it pays nothing at this dawn (LOOP-05). Returns the spot
+## ids rebuilt in MapConfig order; a second call finds nothing left and returns an empty array.
+func rebuild_destroyed() -> Array[StringName]:
+	return []
+
+
+## Dawn: every standing building is back at its tier's full health.
+func repair_standing() -> void:
+	pass
+
+
+## A new night: no building counts as rebuilt this dawn any more.
+func clear_rebuilt_marks() -> void:
+	pass
+
+
 ## A copy of `instance` that nothing else holds; null for null.
 func _snapshot(instance: BuildingInstance) -> BuildingInstance:
 	if instance == null:
