@@ -23,9 +23,13 @@ static func ticks(duration: float) -> int:
 	return maxi(ceili(duration / STEP - TICK_ROUNDING_SLACK), 1)
 
 
-## RED-phase shell for the projectile flight time; the GREEN commit fills it in.
-static func flight_ticks(_distance: float, _speed: float) -> int:
-	return 0
+## Whole simulation ticks a projectile flies over `distance` metres at `speed` metres per second:
+## 0 for a speed of zero or less (a melee hit lands at once), else at least 1. The same slack as
+## `ticks`, so a flight that is a whole number of steps does not round up.
+static func flight_ticks(distance: float, speed: float) -> int:
+	if speed <= 0.0:
+		return 0
+	return maxi(ceili(distance / speed / STEP - TICK_ROUNDING_SLACK), 1)
 
 
 ## Seconds a whole number of ticks lasts.

@@ -257,7 +257,8 @@ func _king_up(king: KingState) -> bool:
 
 
 ## Walks toward the target (or the castle while there is none) and, once at its stop distance and
-## off cooldown, queues one melee hit that lands this tick.
+## off cooldown, queues one hit: a melee enemy's lands this tick, a ranged enemy's (projectile_speed
+## above 0) lands SimClock.flight_ticks(distance to the target's centre, projectile_speed) later.
 func _advance_and_strike(
 	record: Record,
 	tick: int,
@@ -285,8 +286,11 @@ func _advance_and_strike(
 		remaining = record.position.distance_to(goal) - stop_distance
 	if not attacking or remaining > ARRIVE_EPSILON or tick < record.cooldown_ready_tick:
 		return
+	var flight: int = SimClock.flight_ticks(
+		record.position.distance_to(goal), record.def.projectile_speed
+	)
 	hits.enqueue(
-		tick,
+		tick + flight,
 		PendingHits.KIND_ENEMY,
 		record.id,
 		record.target_kind,
@@ -294,7 +298,7 @@ func _advance_and_strike(
 		record.def.attack_damage
 	)
 	_events.attack_fired.emit(
-		PendingHits.KIND_ENEMY, record.id, record.target_kind, record.target_id, 0
+		PendingHits.KIND_ENEMY, record.id, record.target_kind, record.target_id, flight
 	)
 	record.cooldown_ready_tick = tick + SimClock.ticks(record.def.attack_interval)
 

@@ -1,8 +1,9 @@
 class_name NightSim
 extends RefCounted
-## Orchestrates one night in a fixed order (DR-8): spawn, king, enemies (id order), resolve due
-## hits, remove the dead. Pure RefCounted code on integer ticks (DR-1, DR-3); the only randomness
-## is the night's seeded spawn stream, drawn at spawn time in spawn order (DR-4).
+## Orchestrates one night in a fixed order (DR-8): spawn, king, towers (spot order), enemies (id
+## order), resolve due hits, remove the dead. Pure RefCounted code on integer ticks (DR-1, DR-3);
+## the only randomness is the night's seeded spawn stream, drawn at spawn time in spawn order
+## (DR-4).
 
 var _map: MapConfig
 var _events: SimEvents
@@ -11,6 +12,7 @@ var _castle: CastleState
 var _buildings: BuildingSystem
 var _run_seed: int
 var _enemies: EnemySystem
+var _towers: TowerSystem
 var _hits: PendingHits = PendingHits.new()
 var _schedule: WaveSchedule
 var _spawn_rng: RandomNumberGenerator
@@ -35,6 +37,7 @@ func _init(
 	_buildings = buildings if buildings != null else BuildingSystem.new(map, events)
 	_run_seed = run_seed
 	_enemies = EnemySystem.new(events)
+	_towers = TowerSystem.new(_buildings, events)
 
 
 ## True when the map authors its own nights; otherwise the Phase 1 timed night applies.
@@ -50,6 +53,7 @@ func begin_night(night_number: int) -> void:
 	_hits.clear()
 	_enemies.clear()
 	_king.begin_night()
+	_towers.begin_night()
 	_next_night_tick = 0
 	_awaiting_first_step = true
 
@@ -64,6 +68,7 @@ func step(tick: int) -> void:
 	var night_tick: int = tick - _start_tick
 	_spawn_due(night_tick)
 	_king.step(night_tick, _enemies, _hits)
+	_towers.step(night_tick, _enemies, _hits)
 	_enemies.step(night_tick, _castle, _king, _hits, _buildings)
 	_resolve_hits(night_tick)
 	_enemies.remove_dead()

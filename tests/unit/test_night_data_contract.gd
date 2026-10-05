@@ -124,11 +124,11 @@ func _has_ranged(night: NightDef) -> bool:
 
 
 func test_the_map_lists_exactly_the_grunt_and_the_ranged_type() -> void:
-	var ids: Array[StringName] = []
+	var ids: Array[String] = []
 	for def: EnemyDef in _map().enemies:
-		ids.append(def.id)
+		ids.append(String(def.id))
 	ids.sort()
-	assert_eq(ids, [GRUNT, RANGED] as Array[StringName], "D-08: exactly two enemy types")
+	assert_eq(ids, [String(GRUNT), String(RANGED)] as Array[String], "D-08: exactly two types")
 
 
 func test_the_ranged_type_is_a_real_shooter_and_the_grunt_is_melee() -> void:
