@@ -118,7 +118,13 @@ func damage(id: int, amount: int, killer_kind: StringName) -> void:
 ## attack_interval. After all of them moved, overlapping enemies are pushed apart. A destroyed
 ## castle leaves nothing to march on, so the field stands still. `king` may be null in tests that
 ## have none; then nobody targets him.
-func step(tick: int, castle: CastleState, king: KingState, hits: PendingHits) -> void:
+func step(
+	tick: int,
+	castle: CastleState,
+	king: KingState,
+	hits: PendingHits,
+	_buildings: BuildingSystem = null
+) -> void:
 	for id: int in _order:
 		var record: Record = _records[id]
 		record.previous = record.position

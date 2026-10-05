@@ -35,6 +35,10 @@ signal attack_fired(
 signal castle_damaged(amount: int, hp: int, max_hp: int)
 ## The castle fell to 0 hit points. Emitted exactly once.
 signal castle_destroyed
+## A building lost `amount` hit points and has `hp` of `max_hp` left.
+signal building_damaged(spot_id: StringName, amount: int, hp: int, max_hp: int)
+## A building fell to 0 hit points and stays down until dawn. Emitted exactly once per destruction.
+signal building_destroyed(spot_id: StringName, building_id: StringName, tier: int)
 ## The king lost `amount` hit points and has `hp` of `max_hp` left.
 signal king_damaged(amount: int, hp: int, max_hp: int)
 ## The king's health reached 0: he is out of the fight for `respawn_ticks` ticks.

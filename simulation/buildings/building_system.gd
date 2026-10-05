@@ -132,6 +132,39 @@ func apply_next_tier(spot_id: StringName) -> BuildingInstance:
 	return _snapshot(instance)
 
 
+## RED-phase stubs, replaced by the real rules in the next commit.
+func spot_index(_spot_id: StringName) -> int:
+	return -1
+
+
+func spot_at_index(_index: int) -> StringName:
+	return &""
+
+
+func standing_spot_ids() -> Array[StringName]:
+	return []
+
+
+func is_destroyed(_spot_id: StringName) -> bool:
+	return false
+
+
+func health_of(_spot_id: StringName) -> int:
+	return 0
+
+
+func max_health_of(_spot_id: StringName) -> int:
+	return 0
+
+
+func radius_of(_spot_id: StringName) -> float:
+	return 0.0
+
+
+func damage_building(_spot_id: StringName, _amount: int) -> void:
+	pass
+
+
 ## A copy of `instance` that nothing else holds; null for null.
 func _snapshot(instance: BuildingInstance) -> BuildingInstance:
 	if instance == null:

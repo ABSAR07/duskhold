@@ -7,6 +7,8 @@ const ROMAN_NUMERALS: Array[String] = ["I", "II", "III", "IV", "V"]
 @export var id: StringName = &""
 @export var display_name: String = ""
 @export var tiers: Array[BuildingTierDef] = []
+## Radius of the building's footprint in metres; enemies stop at this plus their own attack range.
+@export var body_radius: float = 1.0
 
 
 func max_tier() -> int:

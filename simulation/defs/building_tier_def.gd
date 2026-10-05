@@ -10,6 +10,12 @@ extends Resource
 @export var attack_range: float = 0.0
 ## Damage per hit (0 for non-defense buildings).
 @export var attack_damage: int = 0
+## Hit points this tier stands at when built, upgraded or rebuilt (BLDG-07). Must be above 0.
+@export var max_health: int = 10
+## Seconds between a tower's shots (towers only; read by the tower plan).
+@export var attack_interval: float = 1.0
+## Metres per second of a tower's arrow (towers only; read by the tower plan).
+@export var projectile_speed: float = 0.0
 
 
 ## One-line effect text shown next to the cost, e.g. "+2 gold at dawn".

@@ -23,6 +23,8 @@ const HANDLED: Array[String] = [
 	"attack_fired",
 	"castle_damaged",
 	"castle_destroyed",
+	"building_damaged",
+	"building_destroyed",
 	"king_damaged",
 	"king_downed",
 	"king_respawned",
@@ -53,6 +55,8 @@ static func attach(ctx: RunContext) -> SimRecorder:
 	events.attack_fired.connect(recorder._on_attack_fired)
 	events.castle_damaged.connect(recorder._on_castle_damaged)
 	events.castle_destroyed.connect(recorder._on_castle_destroyed)
+	events.building_damaged.connect(recorder._on_building_damaged)
+	events.building_destroyed.connect(recorder._on_building_destroyed)
 	events.king_damaged.connect(recorder._on_king_damaged)
 	events.king_downed.connect(recorder._on_king_downed)
 	events.king_respawned.connect(recorder._on_king_respawned)
@@ -171,6 +175,14 @@ func _on_castle_damaged(amount: int, hp: int, max_hp: int) -> void:
 
 func _on_castle_destroyed() -> void:
 	_record("castle_destroyed", [])
+
+
+func _on_building_damaged(spot_id: StringName, amount: int, hp: int, max_hp: int) -> void:
+	_record("building_damaged", [spot_id, amount, hp, max_hp])
+
+
+func _on_building_destroyed(spot_id: StringName, building_id: StringName, tier: int) -> void:
+	_record("building_destroyed", [spot_id, building_id, tier])
 
 
 func _on_king_damaged(amount: int, hp: int, max_hp: int) -> void:
