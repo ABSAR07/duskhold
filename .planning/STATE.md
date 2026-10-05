@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 02
 current_phase_name: Night Defense & Playtest Gate
 status: executing
-stopped_at: Completed 02-06-PLAN.md
-last_updated: "2026-10-05T10:56:40.571Z"
+stopped_at: Completed 02-07-PLAN.md
+last_updated: "2026-10-05T11:37:19.251Z"
 last_activity: 2026-10-05
 last_activity_desc: Phase 02 execution started
-state_head: 0621c5c5e2d4da4a9e5709efaa5c248d6373da15
+state_head: d645e8c83719c926a7e4e3f92709e5d80b2ded0d
 progress:
   total_phases: 13
   completed_phases: 1
   total_plans: 29
-  completed_plans: 25
+  completed_plans: 26
   percent: 8
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-03)
 ## Current Position
 
 Phase: 02 (Night Defense & Playtest Gate) — EXECUTING
-Plan: 8 of 11
+Plan: 9 of 11
 Status: Ready to execute
 Last activity: 2026-10-05 — Phase 02 execution started
 
@@ -81,6 +81,7 @@ Progress: [█░░░░░░░░░] 8%
 | Phase 02 P08 | 38 min | 2 tasks | 25 files |
 | Phase 02 P05 | 38 min | 2 tasks | 21 files |
 | Phase 02 P06 | 45 min | 2 tasks | 15 files |
+| Phase 02 P07 | 80 min | 2 tasks | 28 files |
 
 ## Accumulated Context
 
@@ -149,6 +150,8 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-05: Enemy puppets own their materials so a hit flash is per enemy; melee strikes (flight 0) have no visual — A shared per-type material would flash every enemy of that type
 - [Phase 02]: BuildingSystem stays within gdlint max-public-methods: next_tier_def made private, was_rebuilt_this_dawn dropped (read get_instance(spot).rebuilt_this_dawn) — 02-06: the plan's four additions would exceed the limit of 20; the rule is not raised or disabled
 - [Phase 02]: Dawn does full repair (survivors, castle, king); buildings_rebuilt fires every dawn; rebuilt marks last until the next start_night; a rebuilt Tower gets no crossed-out coin — 02-06: RESEARCH Open Question 1 resolved as full repair; owner confirms at the playtest gate
+- [Phase 02]: 02-07: WON and LOST are terminal; the last authored night wins with no last dawn payout, and loss beats a same-step win by ordering (end_run_in_defeat before RunManager.tick)
+- [Phase 02]: 02-07: ui_accept, ui_left and ui_right are bound explicitly in project.godot (keyboard plus gamepad) because the built-in ui_accept had no gamepad button in this build
 
 ### Pending Todos
 
@@ -181,6 +184,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-05T10:56:24.778Z
-Stopped at: Completed 02-06-PLAN.md
+Last session: 2026-10-05T11:37:18.896Z
+Stopped at: Completed 02-07-PLAN.md
 Resume file: None
