@@ -50,6 +50,12 @@ func get_castle_health_bar() -> HealthBar3D:
 	return _castle_bar
 
 
+## The health bar over the spot's building; null when the spot has no standing building.
+## RED-phase stub, wired in the next commit.
+func get_health_bar(_spot_id: StringName) -> HealthBar3D:
+	return null
+
+
 ## Null if no building stands on the spot.
 func get_view(spot_id: StringName) -> Node3D:
 	return _views.get(spot_id) as Node3D
