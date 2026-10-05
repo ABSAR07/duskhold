@@ -69,12 +69,20 @@ jobs:
         run: python tools/bootstrap.py --godot --yes --platform linux
       - name: Headless import and GUT
         run: bash tools/test.sh
+      # DEV-05: the seeded smoke run must reproduce its checked-in golden digest and itself
+      # twice in one process; a full run on the shipped data must reproduce itself.
+      - name: Seeded replay determinism
+        run: |
+          bash tools/replay.sh --scenario=smoke --twice --expect-file=tests/golden/smoke.json
+          bash tools/replay.sh --scenario=full_idle --twice
       - name: Upload GUT results
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: gut-results
-          path: build/test-results/
+          path: |
+            build/test-results/
+            build/replay/
           if-no-files-found: warn
 
   export:
