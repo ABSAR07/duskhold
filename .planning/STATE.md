@@ -2,17 +2,17 @@
 gsd_state_version: "1.0"
 current_phase: 02
 current_phase_name: Night Defense & Playtest Gate
-status: executing
-stopped_at: Completed 02-10-PLAN.md
-last_updated: "2026-10-05T13:45:27.930Z"
+status: verifying
+stopped_at: Completed 02-11-PLAN.md
+last_updated: "2026-10-05T14:39:34.402Z"
 last_activity: 2026-10-05
 last_activity_desc: Phase 02 execution started
-state_head: 943b9c9832b32b831edf0beb3168b029a25f091d
+state_head: 15823f17791c45f5c856e5e4479a2caa169cc668
 progress:
   total_phases: 13
   completed_phases: 1
   total_plans: 29
-  completed_plans: 28
+  completed_plans: 29
   percent: 8
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-03)
 
 Phase: 02 (Night Defense & Playtest Gate) — EXECUTING
 Plan: 11 of 11
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-10-05 — Phase 02 execution started
 
 Progress: [█░░░░░░░░░] 8%
@@ -84,6 +84,7 @@ Progress: [█░░░░░░░░░] 8%
 | Phase 02 P07 | 80 min | 2 tasks | 28 files |
 | Phase 02 P09 | 28 min | 2 tasks | 10 files |
 | Phase 02 P10 | 81 min | 2 tasks | 17 files |
+| Phase 02 P11 | 51 min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -158,6 +159,8 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-10: tuned only combat data (king 50 hp / 5 dmg / 0.7 s, castle 70, Houses 12/18/24, tower I 50 hp 3 dmg 0.8 s range 9, tower II 70 hp 6 dmg 0.7 s range 10.5); balanced wins 10 of 10, greedy_economy 0 of 10 with median loss night 4
 - [Phase 02]: 02-10: the bot telegraph preference reorders only the first build of each unbuilt tower plot; balanced opens with three Houses because a tower-first opening leaves a run with no income
 - [Phase 02]: 02-10: full_idle replay keeps its name for CI but plays the balanced bot (wins in 6244 ticks); the smoke golden is unchanged
+- [Phase 02]: 02-11: night screenshots reach their state by the replay loop (bot then ctx.step) and place the king and camera before the fast-forward; arrows thickened to 0.15 m by 1 m after the first look
+- [Phase 02]: 02-11: readability points outside the plan's files (results screen spacing and Quit contrast, hairline path lines, small dawn coin) are left in the owner packet; CI run 37325147907 green with 15 screenshots; 02-PLAYTEST-GATE.md opens the D-18 gate
 
 ### Pending Todos
 
@@ -190,6 +193,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-05T13:45:27.472Z
-Stopped at: Completed 02-10-PLAN.md
+Last session: 2026-10-05T14:39:33.972Z
+Stopped at: Completed 02-11-PLAN.md
 Resume file: None

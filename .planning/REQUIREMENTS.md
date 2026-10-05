@@ -9,23 +9,23 @@ Requirements for the initial release (5-map campaign). Each maps to exactly one 
 
 ### Core Loop
 
-- [ ] **LOOP-01**: Player can take as long as they want during the day (no timer) and starts the night only through a deliberate hold-to-confirm input
-- [ ] **LOOP-02**: During the day, player can see an icon at each spawn point showing how many enemies will arrive there that night
-- [ ] **LOOP-03**: The night ends only when every enemy spawned that night is dead, after which dawn begins
-- [ ] **LOOP-04**: At dawn, buildings destroyed during the night are rebuilt automatically at no cost
-- [ ] **LOOP-05**: At dawn, each surviving economic building pays its gold income, while buildings rebuilt that morning pay nothing and are visibly marked as not paying
-- [ ] **LOOP-06**: Player loses the run immediately when the castle center is destroyed
-- [ ] **LOOP-07**: Player wins the map by surviving its final night, and the run ends on a results screen
+- [x] **LOOP-01**: Player can take as long as they want during the day (no timer) and starts the night only through a deliberate hold-to-confirm input
+- [x] **LOOP-02**: During the day, player can see an icon at each spawn point showing how many enemies will arrive there that night
+- [x] **LOOP-03**: The night ends only when every enemy spawned that night is dead, after which dawn begins
+- [x] **LOOP-04**: At dawn, buildings destroyed during the night are rebuilt automatically at no cost
+- [x] **LOOP-05**: At dawn, each surviving economic building pays its gold income, while buildings rebuilt that morning pay nothing and are visibly marked as not paying
+- [x] **LOOP-06**: Player loses the run immediately when the castle center is destroyed
+- [x] **LOOP-07**: Player wins the map by surviving its final night, and the run ends on a results screen
 - [ ] **LOOP-08**: After losing, player can retry from the start of the failed night's day or restart the map; using retry forfeits the no-restart score bonus
 
 ### King
 
 - [x] **KING-01**: Player can move the mounted king with WASD or the left stick, with a sprint modifier
 - [x] **KING-02**: The camera follows the king from a fixed isometric-style angle
-- [ ] **KING-03**: The king automatically attacks enemies in range using the equipped weapon's passive attack
+- [x] **KING-03**: The king automatically attacks enemies in range using the equipped weapon's passive attack
 - [ ] **KING-04**: Player can trigger the equipped weapon's active ability, which then shows a visible cooldown
 - [ ] **KING-05**: The king's health regenerates after a short period without taking damage
-- [ ] **KING-06**: When the king's health reaches zero, the king is knocked out and respawns at the castle after a visible countdown; the run continues
+- [x] **KING-06**: When the king's health reaches zero, the king is knocked out and respawns at the castle after a visible countdown; the run continues
 
 ### Building
 
@@ -35,7 +35,7 @@ Requirements for the initial release (5-map campaign). Each maps to exactly one 
 - [x] **BLDG-04**: Player can upgrade an existing building the same way, seeing the next tier's cost and effect
 - [ ] **BLDG-05**: When an upgrade tier offers branching options, player picks one of the offered choice cards (with keyboard or gamepad), and that choice is permanent for the run
 - [x] **BLDG-06**: Building and upgrading is only possible during the day
-- [ ] **BLDG-07**: Buildings have health, take damage from enemies, and are visibly destroyed at zero health
+- [x] **BLDG-07**: Buildings have health, take damage from enemies, and are visibly destroyed at zero health
 - [ ] **BLDG-08**: Player can upgrade the castle center through its tiers for more health, picking one of four run-wide abilities or passives at each tier
 - [ ] **BLDG-09**: The castle center's tier gates which higher building tiers can be purchased
 - [ ] **BLDG-10**: Player can build walls and barricades that block enemy movement and upgrade linearly in health
@@ -131,7 +131,7 @@ Requirements for the initial release (5-map campaign). Each maps to exactly one 
 - [x] **DEV-02**: CI runs lint and the test suite on every push, and can produce a Windows export
 - [x] **DEV-03**: A toggleable debug overlay shows FPS, unit/enemy counts, wave state, and pathing information
 - [x] **DEV-04**: Automated screenshot capture of scripted scenes allows visual verification without a human watching
-- [ ] **DEV-05**: Seeded, deterministic simulation allows scripted playthrough tests of full nights and maps
+- [x] **DEV-05**: Seeded, deterministic simulation allows scripted playthrough tests of full nights and maps
 
 ## v2 Requirements
 
@@ -173,27 +173,27 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| LOOP-01 | Phase 2 | Pending |
-| LOOP-02 | Phase 2 | Pending |
-| LOOP-03 | Phase 2 | Pending |
-| LOOP-04 | Phase 2 | Pending |
-| LOOP-05 | Phase 2 | Pending |
-| LOOP-06 | Phase 2 | Pending |
-| LOOP-07 | Phase 2 | Pending |
+| LOOP-01 | Phase 2 | Complete |
+| LOOP-02 | Phase 2 | Complete |
+| LOOP-03 | Phase 2 | Complete |
+| LOOP-04 | Phase 2 | Complete |
+| LOOP-05 | Phase 2 | Complete |
+| LOOP-06 | Phase 2 | Complete |
+| LOOP-07 | Phase 2 | Complete |
 | LOOP-08 | Phase 9 | Pending |
 | KING-01 | Phase 1 | Complete |
 | KING-02 | Phase 1 | Complete |
-| KING-03 | Phase 2 | Pending |
+| KING-03 | Phase 2 | Complete |
 | KING-04 | Phase 3 | Pending |
 | KING-05 | Phase 3 | Pending |
-| KING-06 | Phase 2 | Pending |
+| KING-06 | Phase 2 | Complete |
 | BLDG-01 | Phase 1 | Complete |
 | BLDG-02 | Phase 1 | Complete |
 | BLDG-03 | Phase 1 | Complete |
 | BLDG-04 | Phase 1 | Complete |
 | BLDG-05 | Phase 5 | Pending |
 | BLDG-06 | Phase 1 | Complete |
-| BLDG-07 | Phase 2 | Pending |
+| BLDG-07 | Phase 2 | Complete |
 | BLDG-08 | Phase 5 | Pending |
 | BLDG-09 | Phase 5 | Pending |
 | BLDG-10 | Phase 4 | Pending |
@@ -257,7 +257,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DEV-02 | Phase 1 | Complete |
 | DEV-03 | Phase 1 | Complete |
 | DEV-04 | Phase 1 | Complete |
-| DEV-05 | Phase 2 | Pending |
+| DEV-05 | Phase 2 | Complete |
 
 **Coverage:**
 - v1 requirements: 85 total
