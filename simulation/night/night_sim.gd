@@ -123,3 +123,5 @@ func _resolve_hits(night_tick: int) -> void:
 			_enemies.damage(hit.target_id, hit.amount, hit.attacker_kind)
 		elif hit.target_kind == PendingHits.KIND_CASTLE:
 			_castle.damage(hit.amount)
+		elif hit.target_kind == PendingHits.KIND_KING:
+			_king.take_damage(hit.amount)

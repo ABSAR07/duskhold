@@ -116,8 +116,9 @@ func damage(id: int, amount: int, killer_kind: StringName) -> void:
 ## (committed until it is invalid or a staggered rescan finds a better one), walks toward it and
 ## stops at `target radius + attack_range`, then strikes through the pending-hit queue once per
 ## attack_interval. After all of them moved, overlapping enemies are pushed apart. A destroyed
-## castle leaves nothing to march on, so the field stands still.
-func step(tick: int, castle: CastleState, _king: KingState, hits: PendingHits) -> void:
+## castle leaves nothing to march on, so the field stands still. `king` may be null in tests that
+## have none; then nobody targets him.
+func step(tick: int, castle: CastleState, king: KingState, hits: PendingHits) -> void:
 	for id: int in _order:
 		var record: Record = _records[id]
 		record.previous = record.position
@@ -127,8 +128,8 @@ func step(tick: int, castle: CastleState, _king: KingState, hits: PendingHits) -
 		var record: Record = _records[id]
 		if record.health <= 0:
 			continue
-		_choose_target(record, tick, castle)
-		_advance_and_strike(record, tick, castle, hits)
+		_choose_target(record, tick, castle, king)
+		_advance_and_strike(record, tick, castle, king, hits)
 	_separate()
 
 
@@ -155,17 +156,29 @@ func clear() -> void:
 
 
 ## D-11 target choice (Pitfall 5: commit to a target). It runs when the enemy has no target, when
-## its target went invalid, and on the enemy's own staggered rescan tick. In priority order: keep a
-## valid target; else the castle once it is inside aggro range plus its own radius; else none, and
-## the enemy keeps marching. Task 2 of plan 02-03 puts the king in front of both and plan 02-04 adds
-## standing buildings to the same list.
-func _choose_target(record: Record, tick: int, castle: CastleState) -> void:
-	var valid: bool = record.target_kind != &"" and _target_valid(record, castle)
+## its target went invalid, and on the enemy's own staggered rescan tick. In priority order:
+##   1. keep a king target that is still up and inside leash_range;
+##   2. the king, when he is up and inside aggro_range (this is how he pulls enemies off whatever
+##      they were attacking);
+##   3. keep any other valid target;
+##   4. the castle, once it is inside aggro range plus its own radius;
+##   5. none: the enemy keeps marching on the castle.
+## Plan 02-04 adds standing buildings between 3 and 4.
+func _choose_target(record: Record, tick: int, castle: CastleState, king: KingState) -> void:
+	var valid: bool = record.target_kind != &"" and _target_valid(record, castle, king)
 	var rescan_ticks: int = maxi(SimClock.ticks(record.def.retarget_interval_seconds), 1)
 	if valid and not is_rescan_tick(tick, record.id, rescan_ticks):
 		return
+	if valid and record.target_kind == PendingHits.KIND_KING:
+		return
+	if (
+		_king_up(king)
+		and record.position.distance_to(king.get_position()) <= record.def.aggro_range
+	):
+		record.target_kind = PendingHits.KIND_KING
+		record.target_id = 0
+		return
 	if valid:
-		# Nothing outranks a valid castle target yet; the king branches go in front of this.
 		return
 	record.target_kind = &""
 	record.target_id = 0
@@ -175,8 +188,13 @@ func _choose_target(record: Record, tick: int, castle: CastleState) -> void:
 		record.target_id = 0
 
 
-## True while the record's current target can still be attacked and is not beyond the leash.
-func _target_valid(record: Record, castle: CastleState) -> bool:
+## True while the record's current target can still be attacked and is not beyond the leash. The
+## king stops being valid the moment he is down.
+func _target_valid(record: Record, castle: CastleState, king: KingState) -> bool:
+	if record.target_kind == PendingHits.KIND_KING:
+		if not _king_up(king):
+			return false
+		return record.position.distance_to(king.get_position()) <= record.def.leash_range
 	if record.target_kind == PendingHits.KIND_CASTLE:
 		if castle.is_destroyed():
 			return false
@@ -185,11 +203,20 @@ func _target_valid(record: Record, castle: CastleState) -> bool:
 	return false
 
 
+func _king_up(king: KingState) -> bool:
+	return king != null and not king.is_down()
+
+
 ## Walks toward the target (or the castle while there is none) and, once at its stop distance and
 ## off cooldown, queues one melee hit that lands this tick.
-func _advance_and_strike(record: Record, tick: int, castle: CastleState, hits: PendingHits) -> void:
+func _advance_and_strike(
+	record: Record, tick: int, castle: CastleState, king: KingState, hits: PendingHits
+) -> void:
 	var goal: Vector2 = castle.get_position()
 	var goal_radius: float = castle.get_radius()
+	if record.target_kind == PendingHits.KIND_KING:
+		goal = king.get_position()
+		goal_radius = king.get_def().body_radius
 	var attacking: bool = record.target_kind != &""
 	var stop_distance: float = goal_radius + record.def.attack_range
 	var remaining: float = record.position.distance_to(goal) - stop_distance

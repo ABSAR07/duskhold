@@ -39,14 +39,25 @@ const MIN_INTERVAL_S: float = 0.001
 ## Seconds dawn lasts before the next day starts.
 @export var dawn_seconds: float = 2.0
 
-## RED stub: the respawn data and helper arrive with the GREEN commit.
-@export var respawn_start_seconds: float = 0.0
-@export var respawn_step_seconds: float = 0.0
-@export var respawn_cap_seconds: float = 0.0
+## Seconds the king stays down after his first knockout of a night (D-01).
+@export var respawn_start_seconds: float = 6.0
+## Seconds each further knockout in the same night adds to the countdown (D-01).
+@export var respawn_step_seconds: float = 4.0
+## The countdown never exceeds this many seconds (D-01). The owner expects to adjust it and
+## may tie it to a difficulty setting later (D-02), so it stays data.
+@export var respawn_cap_seconds: float = 15.0
 
 
-func respawn_seconds(_knockout_number: int) -> float:
-	return 0.0
+## Seconds the king stays down after his `knockout_number`th knockout of a night (1-based):
+## start + step * (n - 1), never above the cap. Sanitised like the coin helpers, so bad data
+## cannot strand the king (T-02-07): a number below 1 counts as 1, a negative start, step or
+## cap counts as 0, and the result is never above the cap.
+func respawn_seconds(knockout_number: int) -> float:
+	var number: int = maxi(knockout_number, 1)
+	var start: float = maxf(respawn_start_seconds, 0.0)
+	var step: float = maxf(respawn_step_seconds, 0.0)
+	var cap: float = maxf(respawn_cap_seconds, 0.0)
+	return minf(start + step * float(number - 1), cap)
 
 
 ## Seconds the 1-based coin takes to drip. Positive and never increasing with the index, whatever

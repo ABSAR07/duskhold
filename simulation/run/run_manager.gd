@@ -112,6 +112,8 @@ func _enter_dawn() -> void:
 	_change_phase(RunPhase.DAWN)
 	if _night != null:
 		_night.end_night()
+	if _king != null:
+		_king.restore_for_dawn()
 	_apply_dawn_payout()
 
 

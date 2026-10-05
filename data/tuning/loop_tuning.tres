@@ -13,3 +13,6 @@ interaction_radius = 2.5
 start_night_hold_seconds = 1.5
 placeholder_night_seconds = 4.0
 dawn_seconds = 2.0
+respawn_start_seconds = 6.0
+respawn_step_seconds = 4.0
+respawn_cap_seconds = 15.0
