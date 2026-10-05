@@ -61,14 +61,19 @@ func get_night_number() -> int:
 	return _night_number
 
 
+## True when the map authors no nights of its own: the night is then the Phase 1 timed night that
+## ends on a clock. A map with authored nights plays real nights that end when the wave is cleared.
 func is_timed_night() -> bool:
-	return false
+	return _night == null or not _night.has_authored_nights()
 
 
-## Seconds left in the current timed phase (NIGHT or DAWN); 0.0 by day.
+## Seconds left in the current timed phase: the Phase 1 timed night or dawn. A real night has no
+## clock, and the day has none either, so both report 0.0.
 func get_phase_time_remaining() -> float:
 	match _phase:
 		RunPhase.NIGHT:
+			if not is_timed_night():
+				return 0.0
 			return maxf(_tuning.placeholder_night_seconds - _phase_elapsed, 0.0)
 		RunPhase.DAWN:
 			return maxf(_tuning.dawn_seconds - _phase_elapsed, 0.0)

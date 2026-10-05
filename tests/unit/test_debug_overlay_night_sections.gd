@@ -71,7 +71,7 @@ func test_wave_rows_at_the_start_of_night_one() -> void:
 
 	var rows: Array = NightOverlaySections.wave_rows(ctx)
 
-	assert_eq(_row(rows, "Night"), "1 of %d" % ctx.map.nights.size(), "night n of the total")
+	assert_eq(_row(rows, "Nights"), "1 of %d" % ctx.map.nights.size(), "night n of the total")
 	assert_eq(_row(rows, "Spawned"), "0 of %d" % group.count, "nothing has spawned yet")
 	assert_eq(_row(rows, "Alive"), str(ctx.get_enemy_count()), "alive is the live count")
 	assert_eq(_row(rows, "Next spawn"), "%.1f s" % group.start_delay_seconds, "the first spawn")
@@ -114,7 +114,7 @@ func test_wave_rows_by_day_say_night_zero_and_not_cleared() -> void:
 
 	var rows: Array = NightOverlaySections.wave_rows(ctx)
 
-	assert_eq(_row(rows, "Night"), "0 of %d" % ctx.map.nights.size(), "no night yet")
+	assert_eq(_row(rows, "Nights"), "0 of %d" % ctx.map.nights.size(), "no night yet")
 	assert_eq(_row(rows, "Next spawn"), EM_DASH, "nothing scheduled")
 	assert_eq(_row(rows, "Cleared"), "no", "nothing to clear")
 
@@ -125,7 +125,7 @@ func test_wave_rows_on_a_waveless_map_call_the_night_timed() -> void:
 
 	var rows: Array = NightOverlaySections.wave_rows(ctx)
 
-	assert_eq(_row(rows, "Night"), "1 (timed)", "no authored nights, so no total")
+	assert_eq(_row(rows, "Nights"), "1 (timed)", "no authored nights, so no total")
 
 
 func test_king_rows_for_a_healthy_king() -> void:

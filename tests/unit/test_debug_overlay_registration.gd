@@ -219,10 +219,10 @@ func test_a_pending_section_replaced_before_bind_run_does_not_warn_about_the_old
 	var overlay: DebugOverlay = _overlay()
 	var old_owner: Node = Node.new()
 	overlay.register_section(
-		"Wave", func() -> Array: return [["Old", str(old_owner.get_child_count())]], old_owner
+		"Probe", func() -> Array: return [["Old", str(old_owner.get_child_count())]], old_owner
 	)
 	old_owner.free()
-	overlay.register_section("Wave", func() -> Array: return [["Wave", "4"]])
+	overlay.register_section("Probe", func() -> Array: return [["Wave", "4"]])
 
 	overlay.bind_run(_context(), null)
 
@@ -254,11 +254,11 @@ func test_a_refused_pending_replacement_leaves_the_registered_section_alone() ->
 	var overlay: DebugOverlay = _overlay()
 	var gone: Node = Node.new()
 	gone.free()
-	overlay.register_section("Wave", func() -> Array: return [["Wave", "3"]])
+	overlay.register_section("Probe", func() -> Array: return [["Wave", "3"]])
 
-	overlay.register_section("Wave", func() -> Array: return [["Wave", "9"]], gone)
+	overlay.register_section("Probe", func() -> Array: return [["Wave", "9"]], gone)
 
-	assert_push_warning("debug overlay section 'Wave' not registered: its owner was freed")
+	assert_push_warning("debug overlay section 'Probe' not registered: its owner was freed")
 	overlay.bind_run(_context(), null)
 	var text: String = await _shown_text(overlay)
 	assert_string_contains(text, "Wave: 3", "the earlier registration still stands")

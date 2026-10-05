@@ -214,8 +214,10 @@ func _loop_rows() -> Array:
 		["Gold", str(_ctx.economy.get_gold())],
 		["Buildings", str(_count_buildings())],
 	]
-	# NIGHT_TRANSITION has no clock of its own (it passes straight through to NIGHT), so no Timer row.
-	if phase == RunManager.RunPhase.NIGHT or phase == RunManager.RunPhase.DAWN:
+	# NIGHT_TRANSITION has no clock of its own (it passes straight through to NIGHT), and a real
+	# night ends when its wave is cleared, not on a clock, so only the timed night and dawn show one.
+	var timed_night: bool = phase == RunManager.RunPhase.NIGHT and _ctx.run_manager.is_timed_night()
+	if timed_night or phase == RunManager.RunPhase.DAWN:
 		rows.append(["Timer", "%.1f" % _ctx.run_manager.get_phase_time_remaining()])
 	return rows
 
