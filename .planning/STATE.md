@@ -1,18 +1,18 @@
 ---
 gsd_state_version: "1.0"
 current_phase: 02
-current_phase_name: night-defense-playtest-gate
+current_phase_name: Night Defense & Playtest Gate
 status: executing
-stopped_at: Phase 2 context gathered
-last_updated: "2026-10-03T15:58:30.864Z"
-last_activity: 2026-10-03
-last_activity_desc: Phase 01 complete, transitioned to Phase 2
-state_head: 2d7092086e8c5c074dd593da96d5349eb06977bf
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-10-05T06:52:13.378Z"
+last_activity: 2026-10-05
+last_activity_desc: Phase 02 execution started
+state_head: 42362dff15f1b7acbdfa8865b8e9b7e4eca1f678
 progress:
   total_phases: 13
   completed_phases: 1
   total_plans: 29
-  completed_plans: 18
+  completed_plans: 19
   percent: 8
 ---
 
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-03)
 
 **Core value:** The day/night build-then-defend loop must feel as tight and satisfying as Thronefall's, with meaningful gold trade-offs by day and readable, tense defense by night. It must be fun on a single map with zero meta-progression.
-**Current focus:** Phase 2 — Night Defense & Playtest Gate
+**Current focus:** Phase 02 — Night Defense & Playtest Gate
 
 ## Current Position
 
-Phase: 02 (night-defense-playtest-gate) — READY TO EXECUTE
-Plan: Not started
+Phase: 02 (Night Defense & Playtest Gate) — EXECUTING
+Plan: 2 of 11
 Status: Ready to execute
-Last activity: 2026-10-03 — Phase 01 complete, transitioned to Phase 2
+Last activity: 2026-10-05 — Phase 02 execution started
 
 Progress: [█░░░░░░░░░] 8%
 
@@ -74,6 +74,7 @@ Progress: [█░░░░░░░░░] 8%
 | Phase 01 P16 | 25 min | 3 tasks | 9 files |
 | Phase 01 P17 | 10 min | 3 tasks | 14 files |
 | Phase 01 P18 | 7 min | 2 tasks | 4 files |
+| Phase 02 P01 | 19 min | 2 tasks | 56 files |
 
 ## Accumulated Context
 
@@ -122,6 +123,9 @@ Recent decisions affecting current work:
 - [Phase 01]: G-01-59: no build hold cap; max_build_hold_seconds kept as a dormant data switch shipped at 0.0, coin floor 0.05 s (D-05 amended again)
 - [Phase 01]: CoinDripVfx.MIN_FLIGHT_SECONDS stays 0.12 s; up to 3 drip coins airborne at the 0.05 s floor, judged at the owner re-check
 - [Phase 01]: Plan 01-18: T-01-24/T-01-25 rescoped to any frame paying several coins; T-01-27 (uncapped coin_due_seconds) accepted as AR-06
+- [Phase 02]: SimClock.STEP is a const 1/30 s pinned by a contract test, not LoopTuning data (changing it regenerates every golden digest)
+- [Phase 02]: Night timers are night-relative integer ticks; clearing a night needs the wave schedule finished AND no enemy alive; waveless maps keep the Phase 1 timed night
+- [Phase 02]: Recorder lines are '<tick> <event> <args>' (final state included), integer-only with positions quantized roundi(x*100); every new SimEvents signal needs SimSignals.ALL and SimRecorder.HANDLED in the same task
 
 ### Pending Todos
 
@@ -154,6 +158,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-03T14:26:23.724Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-night-defense-playtest-gate/02-CONTEXT.md
+Last session: 2026-10-05T06:52:12.995Z
+Stopped at: Completed 02-01-PLAN.md
+Resume file: None

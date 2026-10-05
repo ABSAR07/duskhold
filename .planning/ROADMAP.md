@@ -108,12 +108,12 @@ Plans:
   3. From the command line and in CI, a seeded scripted night replays with identical results, and headless GUT tests cover waves, combat, and loop transitions (day → night → dawn, loss, win). During nights, the debug overlay shows live enemy counts, wave state, and enemy paths.
   4. Human playtest gate: the owner plays the prototype map through several full runs and either signs off that gold trade-offs feel meaningful and nights feel tense and readable, or records the tuning/feel fixes that must land before later phases begin. No meta-progression work is scheduled until this sign-off.
 
-**Plans**: 11 plans
+**Plans**: 1/11 plans executed
 **UI hint**: yes
 
 Plans:
 **Wave 1**
-- [ ] 02-01: Tracer — one seeded night end to end on the fixed 30 Hz step behind the determinism guards; event recorder, scripted bot and in-process replay digest
+- [x] 02-01: Tracer — one seeded night end to end on the fixed 30 Hz step behind the determinism guards; event recorder, scripted bot and in-process replay digest
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 02-02: Eight real nights on the prototype map, every Phase 1 suite moved onto a waveless copy, night data validation and contract pins
@@ -322,7 +322,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Day Loop | 18/18 | Complete    | 2026-10-03 |
-| 2. Night Defense & Playtest Gate | 0/11 | Not started | - |
+| 2. Night Defense & Playtest Gate | 1/11 | In Progress|  |
 | 3. King Combat & Troops | 0/TBD | Not started | - |
 | 4. Crowd-Scale Battles & Walls | 0/TBD | Not started | - |
 | 5. Castle Center & Economy Depth | 0/TBD | Not started | - |
