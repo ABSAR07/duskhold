@@ -343,6 +343,7 @@ id = &"prototype"
 display_name = "Prototype Sandbox"
 is_sandbox = true
 starting_gold = 4
+base_dawn_income = 1
 king_spawn = Vector3(0, 0, 7)
 castle_position = Vector3(0, 0, 0)
 buildings = Array[ExtResource("3_bdef")]([ExtResource("4_house"), ExtResource("5_tower")])

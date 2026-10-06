@@ -20,6 +20,7 @@ var _tuning: LoopTuning
 var _night: NightSim
 var _king: KingState
 var _castle: CastleState
+var _base_dawn_income: int = 0
 var _phase: RunPhase = RunPhase.DAY
 var _elapsed: float = 0.0
 var _phase_elapsed: float = 0.0
@@ -34,7 +35,8 @@ func _init(
 	tuning: LoopTuning,
 	night: NightSim = null,
 	king: KingState = null,
-	castle: CastleState = null
+	castle: CastleState = null,
+	base_dawn_income: int = 0
 ) -> void:
 	_events = events
 	_economy = economy
@@ -43,6 +45,7 @@ func _init(
 	_night = night
 	_king = king
 	_castle = castle
+	_base_dawn_income = maxi(base_dawn_income, 0)
 
 
 func get_phase() -> RunPhase:
@@ -184,12 +187,16 @@ func _enter_day() -> void:
 	_events.day_started.emit(_day_number)
 
 
-## Pays each standing House its current tier's income, exactly once per DAWN entry (ECON-02). A
-## building rebuilt this dawn pays nothing (LOOP-05): BuildingSystem leaves it out of the income it
-## reports. Nothing here or at day start resets or rebases gold, so unspent gold carries over
-## (ECON-07).
+## Pays the dawn income exactly once per DAWN entry. Each standing House pays its current tier's
+## income (ECON-02); a building rebuilt this dawn pays nothing (LOOP-05): BuildingSystem leaves it
+## out of the income it reports. The castle's base income is paid every dawn regardless of what
+## stands (G-02-1) and is listed last under MapConfig.CASTLE_PAYOUT_KEY, so the total always equals
+## the sum of per_spot and the coin can fly from the castle. Nothing here or at day start resets or
+## rebases gold, so unspent gold carries over (ECON-07).
 func _apply_dawn_payout() -> void:
 	var per_spot: Dictionary = _buildings.dawn_income_by_spot()
+	if _base_dawn_income > 0:
+		per_spot[MapConfig.CASTLE_PAYOUT_KEY] = _base_dawn_income
 	var total: int = 0
 	for amount: int in per_spot.values():
 		total += amount

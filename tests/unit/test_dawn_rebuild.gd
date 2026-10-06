@@ -1,8 +1,9 @@
 extends GutTest
 ## LOOP-04 and LOOP-05: at dawn every building that fell in the night is rebuilt for free at the
 ## tier it had, the survivors and the castle are repaired and the king is whole again, and only the
-## buildings that stood through the night pay income. Every amount is read from house.tres,
-## tower.tres and the maps, so retuning cannot break these tests.
+## buildings that stood through the night pay income, while the castle's base income (G-02-1) is
+## paid on every waveless-map dawn regardless. Every amount is read from house.tres, tower.tres and
+## the maps, so retuning cannot break these tests.
 
 const FIXTURE := "res://tests/fixtures/fixture_map_one_night.tres"
 const TUNING := "res://data/tuning/loop_tuning.tres"
@@ -91,6 +92,11 @@ func _income(tier: int) -> int:
 	return _house.tier_def(tier).dawn_income
 
 
+## The base income the shipped map pays each dawn; the one-night fixture leaves it off.
+func _base() -> int:
+	return E2eSupport.waveless_prototype_map().base_dawn_income
+
+
 func _max_hp(tier: int) -> int:
 	return _house.tier_def(tier).max_health
 
@@ -148,8 +154,16 @@ func test_dawn_rebuilds_what_fell_for_free_and_pays_only_the_survivors() -> void
 	assert_eq(ctx.buildings.current_tier(HOUSE_B), 1, "at the tier it had")
 	assert_eq(ctx.buildings.health_of(HOUSE_B), _max_hp(1), "at full health")
 	assert_eq(_payouts.size(), 1, "one payout")
-	assert_eq(_payouts[0], [_income(2), {HOUSE_A: _income(2)}], "only the survivor paid")
-	assert_eq(ctx.economy.get_gold(), gold_before + _income(2), "gold rose by the survivor only")
+	assert_eq(
+		_payouts[0],
+		[_income(2) + _base(), {HOUSE_A: _income(2), MapConfig.CASTLE_PAYOUT_KEY: _base()}],
+		"only the survivor and the castle paid"
+	)
+	assert_eq(
+		ctx.economy.get_gold(),
+		gold_before + _income(2) + _base(),
+		"gold rose by the survivor and the base income only"
+	)
 	for delta: int in _gold_deltas:
 		assert_gt(delta, 0, "the rebuild charged nothing")
 
@@ -171,7 +185,11 @@ func test_a_survivor_the_castle_and_the_king_are_whole_again_at_dawn() -> void:
 	assert_eq(ctx.buildings.health_of(HOUSE_A), _max_hp(2), "the hurt House is repaired")
 	assert_eq(ctx.castle.get_health(), castle_max, "the castle is repaired")
 	assert_eq(ctx.king.get_health(), ctx.king.get_max_health(), "the king is whole")
-	assert_eq(_payouts[0], [_income(2), {HOUSE_A: _income(2)}], "a repaired survivor still pays")
+	assert_eq(
+		_payouts[0],
+		[_income(2) + _base(), {HOUSE_A: _income(2), MapConfig.CASTLE_PAYOUT_KEY: _base()}],
+		"a repaired survivor still pays"
+	)
 
 
 func test_a_rebuilt_house_pays_nothing_at_its_dawn_and_pays_at_the_next_one() -> void:
@@ -189,7 +207,13 @@ func test_a_rebuilt_house_pays_nothing_at_its_dawn_and_pays_at_the_next_one() ->
 	_into_dawn(ctx)
 
 	assert_eq(_payouts.size(), 2, "two dawns")
-	assert_eq(_payouts[1], [_income(2) + _income(1), {HOUSE_A: _income(2), HOUSE_B: _income(1)}])
+	assert_eq(
+		_payouts[1],
+		[
+			_income(2) + _income(1) + _base(),
+			{HOUSE_A: _income(2), HOUSE_B: _income(1), MapConfig.CASTLE_PAYOUT_KEY: _base()}
+		]
+	)
 	assert_eq(_ids(_rebuilt_lists[1]), [] as Array[StringName], "nothing fell the second night")
 
 
@@ -227,7 +251,11 @@ func test_a_night_with_no_losses_rebuilds_nothing_and_reports_an_empty_list() ->
 	assert_eq(_rebuilt_lists.size(), 1, "the report still fires")
 	assert_eq(_rebuilt_lists[0].size(), 0, "with an empty list")
 	assert_false(ctx.buildings.get_instance(HOUSE_A).rebuilt_this_dawn, "nothing was marked")
-	assert_eq(_payouts[0], [_income(1), {HOUSE_A: _income(1)}], "the survivor paid as usual")
+	assert_eq(
+		_payouts[0],
+		[_income(1) + _base(), {HOUSE_A: _income(1), MapConfig.CASTLE_PAYOUT_KEY: _base()}],
+		"the survivor paid as usual, and the castle its base"
+	)
 
 
 func test_two_fallen_buildings_are_listed_in_map_order_whatever_fell_first() -> void:
@@ -334,9 +362,13 @@ func test_when_every_house_fell_the_dawn_pays_nothing_and_rebuilds_them_all() ->
 	_into_dawn(ctx)
 
 	assert_eq(_ids(_rebuilt_lists[0]), [HOUSE_A, HOUSE_B] as Array[StringName], "both rebuilt")
-	assert_eq(_payouts[0], [0, {}], "and nothing paid")
-	assert_eq(ctx.economy.get_gold(), gold, "gold is unchanged")
-	assert_eq(_gold_deltas.size(), 0, "gold never moved")
+	assert_eq(
+		_payouts[0],
+		[_base(), {MapConfig.CASTLE_PAYOUT_KEY: _base()}],
+		"only the castle's base income paid"
+	)
+	assert_eq(ctx.economy.get_gold(), gold + _base(), "gold rose by the base income only")
+	assert_eq(_gold_deltas.size(), 1, "gold moved once")
 
 
 func test_the_payout_lists_survivors_in_map_order_and_omits_rebuilt_spots() -> void:
@@ -350,8 +382,12 @@ func test_the_payout_lists_survivors_in_map_order_and_omits_rebuilt_spots() -> v
 	_into_dawn(ctx)
 
 	var per_spot: Dictionary = _payouts[0][1]
-	assert_eq(per_spot.keys(), [HOUSE_A, HOUSE_C], "MapConfig order, the rebuilt House left out")
-	assert_eq(_payouts[0][0], _income(1) * 2, "the total is the survivors' income")
+	assert_eq(
+		per_spot.keys(),
+		[HOUSE_A, HOUSE_C, MapConfig.CASTLE_PAYOUT_KEY],
+		"MapConfig order, the rebuilt House left out, the castle last"
+	)
+	assert_eq(_payouts[0][0], _income(1) * 2 + _base(), "the total is the survivors' income + base")
 
 
 func test_the_dawn_reports_in_order_phase_then_rebuild_then_payout() -> void:

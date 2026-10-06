@@ -67,6 +67,8 @@ func validate() -> PackedStringArray:
 	var errors: PackedStringArray = PackedStringArray()
 	if starting_gold < 0:
 		errors.append("starting_gold is negative (%d)" % starting_gold)
+	if base_dawn_income < 0:
+		errors.append("base_dawn_income is negative (%d)" % base_dawn_income)
 	var building_ids: Dictionary = {}
 	for building_def: BuildingDef in buildings:
 		if building_def == null:
@@ -107,6 +109,8 @@ func validate() -> PackedStringArray:
 			continue
 		if spot.id == &"":
 			errors.append("a spot has an empty id")
+		if spot.id == CASTLE_PAYOUT_KEY:
+			errors.append("spot id '%s' is reserved for the base income payout" % spot.id)
 		if spot_ids.has(spot.id):
 			errors.append("duplicate spot id '%s'" % spot.id)
 		spot_ids[spot.id] = true
