@@ -5,7 +5,8 @@ extends GutTest
 ## kill a skirmisher, and the castle reaches a skirmisher at its stand-off. Each bad case edits a
 ## deep copy and calls validate() directly, never through RunContext, whose push_error would fail
 ## the test. The contract test lives here because test_prototype_map_data.gd already holds gdlint's
-## 20 public methods (as with test_map_validate_income.gd).
+## 20 public methods (as with test_map_validate_income.gd). The owner doubled the reach and raised
+## the arrow speed 1.5x on 2026-10-07 (G-02-13); the other castle numbers are unchanged.
 
 const SMOKE_FIXTURE := "res://tests/fixtures/fixture_map_replay_smoke.tres"
 const BAD_DAMAGE: int = -1
@@ -17,6 +18,11 @@ const GRUNT_SHOTS: int = 3
 const SKIRMISHER_SHOTS: int = 2
 const GRUNT_HEALTH: int = 6
 const SHIPPED_INTERVAL_S: float = 1.5
+## The owner's castle (G-02-13): 22 m reach, 27 m/s arrows, so an arrow at the edge of the reach
+## flies 25 ticks, under the 45-tick interval.
+const OWNER_RANGE_M: float = 22.0
+const OWNER_SPEED_MPS: float = 27.0
+const EDGE_FLIGHT_TICKS: int = 25
 
 
 func _map() -> MapConfig:
@@ -114,3 +120,16 @@ func test_the_castle_kills_a_grunt_in_three_shots_and_a_skirmisher_in_two_and_re
 	)
 	assert_almost_eq(map.castle_attack_interval, SHIPPED_INTERVAL_S, 0.0001, "one shot per 1.5 s")
 	assert_gt(map.castle_projectile_speed, 0.0, "its arrows fly")
+
+
+func test_the_shipped_castle_reaches_22_m_and_its_arrows_fly_at_27_m_per_s() -> void:
+	var map: MapConfig = _map()
+	assert_almost_eq(map.castle_attack_range, OWNER_RANGE_M, 0.0001, "the owner's reach")
+	assert_almost_eq(map.castle_projectile_speed, OWNER_SPEED_MPS, 0.0001, "the owner's speed")
+	var flight: int = SimClock.flight_ticks(map.castle_attack_range, map.castle_projectile_speed)
+	assert_eq(flight, EDGE_FLIGHT_TICKS, "an arrow at the edge of the reach flies 25 ticks")
+	assert_lt(
+		flight,
+		SimClock.ticks(map.castle_attack_interval),
+		"one castle arrow in the air at a time"
+	)
