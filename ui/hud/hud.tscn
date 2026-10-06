@@ -101,6 +101,25 @@ theme_override_font_sizes/font_size = 30
 text = "Knocked out — back in 6 s"
 horizontal_alignment = 1
 
+[node name="FastForwardLabel" type="Label" parent="."]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -260.0
+offset_top = 60.0
+offset_right = -16.0
+offset_bottom = 96.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.45, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 26
+text = "Fast-forward 2x"
+horizontal_alignment = 2
+
 [node name="PayoutTotal" type="Label" parent="."]
 unique_name_in_owner = true
 visible = false

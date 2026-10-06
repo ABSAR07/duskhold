@@ -20,6 +20,9 @@ const UNBOUND_HINT := "(unbound)"
 ## KING-06: the visible respawn countdown, whole seconds rounded up so it never reads 0 while
 ## the king is still down.
 const RESPAWN_TEXT := "Knocked out — back in %d s"
+## The corner label shown while the night is fast-forwarded (owner decision 2026-10-06). The
+## scale prints with String.num and a trailing ".0" trimmed, so 2.0 reads 2 and 1.5 reads 1.5.
+const FAST_FORWARD_TEXT := "Fast-forward %sx"
 ## Gamepad button names shown in the start-night hint, by JoyButton index. These are Xbox-style
 ## labels: on a PlayStation or Switch pad they are wrong (button 3 reads "Y", not "Triangle"/"X").
 ## Known Phase-1 limitation; later, key the names off Input.get_joy_name.
@@ -56,6 +59,7 @@ var _hint: String = ""
 @onready var _night_preview: Label = %NightPreview
 @onready var _phase_banner: Label = %PhaseBanner
 @onready var _respawn_label: Label = %RespawnLabel
+@onready var _fast_forward_label: Label = %FastForwardLabel
 @onready var _payout_vfx: DawnPayoutVfx = %DawnPayoutVfx
 
 
@@ -81,6 +85,11 @@ func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
 	)
 	if start_night_hold != null:
 		start_night_hold.progress_changed.connect(_on_start_night_progress)
+	var fast_forward: FastForwardController = (
+		map_root.find_child("FastForward", true, false) as FastForwardController
+	)
+	if fast_forward != null:
+		fast_forward.changed.connect(_on_fast_forward_changed)
 	_refresh()
 	_refresh_loop()
 
@@ -146,6 +155,12 @@ func _on_phase_changed(old_phase: int, _new_phase: int) -> void:
 	# Every phase change lands here, and RunManager has already updated the phase and the day and
 	# night numbers by then, so this alone keeps the prompt and the banner current.
 	_refresh_loop()
+
+
+## Shows the fast-forward label while the night runs faster than real time.
+func _on_fast_forward_changed(active: bool, scale: float) -> void:
+	_fast_forward_label.visible = active
+	_fast_forward_label.text = FAST_FORWARD_TEXT % String.num(scale, 2).trim_suffix(".0")
 
 
 func _on_start_night_progress(ratio: float) -> void:
