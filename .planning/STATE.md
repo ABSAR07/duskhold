@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 02
 current_phase_name: Night Defense & Playtest Gate
 status: executing
-stopped_at: Completed 02-15-PLAN.md
-last_updated: "2026-10-06T13:47:17.765Z"
+stopped_at: Completed 02-16-PLAN.md
+last_updated: "2026-10-06T14:08:53.066Z"
 last_activity: 2026-10-06
 last_activity_desc: Phase 02 execution started
-state_head: 8c0362783c0fe6593a27f175415700068bc79b21
+state_head: 8a231baf20c44400f6c919b6c6d3dc6db680525a
 progress:
   total_phases: 13
   completed_phases: 1
   total_plans: 34
-  completed_plans: 33
+  completed_plans: 34
   percent: 8
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-03)
 ## Current Position
 
 Phase: 02 (Night Defense & Playtest Gate) — EXECUTING
-Plan: 5 of 16
+Plan: 6 of 16
 Status: Ready to execute
 Last activity: 2026-10-06 — Phase 02 execution started
 
@@ -89,6 +89,7 @@ Progress: [█░░░░░░░░░] 8%
 | Phase 02 P13 | 45 min | 3 tasks | 18 files |
 | Phase 02 P14 | 8 min | 2 tasks | 3 files |
 | Phase 02 P15 | 32 min | 2 tasks | 15 files |
+| Phase 02 P16 | 14 min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -170,6 +171,7 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-14: 11 px ButtonsMargin above the results Buttons row only (9 px label leading + 2 px focus outline reach) equalises stat-row and button gaps; no script change — G-02-2 diagnosis measured in memory; pinned by test_results_layout.gd
 - [Phase 02]: 02-15: the castle attacks as a one-attacker system (id 0, KIND_CASTLE), armed only with damage, range and interval above 0; shipped 2 dmg, 11 m, 1.5 s, 18 m/s (3 hits per grunt, 2 per skirmisher)
 - [Phase 02]: 02-15: full_idle digest unchanged (27fa2a80...) because the balanced bot never lets an enemy within the castle's reach; the castle only helps weak or idle play
+- [Phase 02]: 02-16: no wave or castle-health change, balanced bot won 10 of 10 after base income, castle attack and sprint, so the owner's night-3/castle lever rule never triggered
 
 ### Pending Todos
 
@@ -203,6 +205,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-06T13:47:17.586Z
-Stopped at: Completed 02-15-PLAN.md
+Last session: 2026-10-06T14:08:52.878Z
+Stopped at: Completed 02-16-PLAN.md
 Resume file: None
