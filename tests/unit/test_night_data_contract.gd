@@ -5,6 +5,8 @@ extends GutTest
 ## a straight march crosses a tower plot) and D-10 (the nights escalate). Plan 02-10 retunes counts;
 ## these pins hold the structure, not the numbers. D-08 (two enemy types: the melee grunt and a
 ## ranged attacker that first joins on night 4 and never before night 3) was added by plan 02-05.
+## Nights 2 to 5 are now the owner's exact numbers (G-02-15, round 3): the other pins hold the
+## structure, the round-three counts test names every changed number.
 
 const PROTOTYPE_MAP := "res://data/maps/prototype_map.tres"
 const NIGHT_COUNT: int = 8
@@ -17,8 +19,28 @@ const RANGED: StringName = &"ranged"
 ## D-08: the ranged type may not appear before this night, and is expected on FIRST_RANGED_NIGHT.
 const EARLIEST_RANGED_NIGHT: int = 3
 const FIRST_RANGED_NIGHT: int = 4
-## Per-night enemy totals fixed by plan 02-02; adding the ranged type only splits groups.
-const NIGHT_TOTALS: Array[int] = [5, 8, 11, 14, 18, 22, 27, 33]
+## Per-night enemy totals: plan 02-02's ramp until round 3; owner decision 2026-10-07 (G-02-15,
+## the full wall): night 2 opens the east road and nights 3 to 5 grow. Nights 1 and 6 to 8 are
+## unchanged. Adding the ranged type only splits groups.
+const NIGHT_TOTALS: Array[int] = [5, 12, 21, 21, 21, 22, 27, 33]
+## The owner's round-three counts of nights 2 to 5: [night, spawn point, enemy, count].
+const ROUND_THREE_COUNTS: Array = [
+	[2, &"west", &"grunt", 8],
+	[2, &"east", &"grunt", 4],
+	[3, &"west", &"grunt", 11],
+	[3, &"east", &"grunt", 10],
+	[4, &"west", &"grunt", 11],
+	[4, &"east", &"grunt", 7],
+	[4, &"east", &"ranged", 3],
+	[5, &"west", &"grunt", 9],
+	[5, &"east", &"grunt", 8],
+	[5, &"west", &"ranged", 2],
+	[5, &"east", &"ranged", 2],
+]
+const ROUND_THREE_NIGHTS: Array[int] = [2, 3, 4, 5]
+## Night 2's new east group starts at 2.0 s and spaces its grunts 1.5 s apart.
+const NIGHT_TWO_EAST_START_S: float = 2.0
+const NIGHT_TWO_EAST_INTERVAL_S: float = 1.5
 
 
 func _map() -> MapConfig:
@@ -170,4 +192,34 @@ func test_the_per_night_totals_are_unchanged_by_the_ranged_type() -> void:
 	var totals: Array[int] = []
 	for night_number: int in range(1, map.nights.size() + 1):
 		totals.append(_total_enemies(map.night_def(night_number)))
-	assert_eq(totals, NIGHT_TOTALS, "5, 8, 11, 14, 18, 22, 27, 33")
+	assert_eq(totals, NIGHT_TOTALS, "5, 12, 21, 21, 21, 22, 27, 33")
+
+
+func _summed_counts(night: NightDef) -> Dictionary:
+	var sums: Dictionary = {}
+	for group: SpawnGroupDef in night.groups:
+		var key: String = "%s/%s" % [group.spawn_point_id, group.enemy_id]
+		sums[key] = int(sums.get(key, 0)) + group.count
+	return sums
+
+
+func test_nights_two_to_five_carry_the_owner_s_round_three_counts() -> void:
+	var map: MapConfig = _map()
+	for night_number: int in ROUND_THREE_NIGHTS:
+		var expected: Dictionary = {}
+		for entry: Array in ROUND_THREE_COUNTS:
+			if entry[0] == night_number:
+				expected["%s/%s" % [entry[1], entry[2]]] = entry[3]
+		assert_eq(
+			_summed_counts(map.night_def(night_number)),
+			expected,
+			"G-02-15: night %d carries exactly the owner's counts" % night_number
+		)
+	var groups: Array[SpawnGroupDef] = map.night_def(2).groups
+	assert_eq(groups.size(), 2, "night 2 has a west group and an east group")
+	if groups.size() != 2:
+		return
+	assert_eq(groups[0].spawn_point_id, &"west", "night 2 lists the west group first")
+	assert_eq(groups[1].spawn_point_id, &"east", "then the new east group")
+	assert_eq(groups[1].start_delay_seconds, NIGHT_TWO_EAST_START_S, "east starts at 2.0 s")
+	assert_eq(groups[1].interval_seconds, NIGHT_TWO_EAST_INTERVAL_S, "and spaces 1.5 s apart")
