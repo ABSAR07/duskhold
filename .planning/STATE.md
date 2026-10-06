@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 02
 current_phase_name: Night Defense & Playtest Gate
 status: executing
-stopped_at: Completed 02-17-PLAN.md
-last_updated: "2026-10-06T23:27:04.362Z"
+stopped_at: Completed 02-18-PLAN.md
+last_updated: "2026-10-06T23:48:12.449Z"
 last_activity: 2026-10-07
 last_activity_desc: Phase 02 execution started
-state_head: 6849f8de4f6fa2212aa5c27804deb3fbdb22373f
+state_head: af4fccca82bfd5670ed23b4d084427b94794932b
 progress:
   total_phases: 13
   completed_phases: 1
   total_plans: 38
-  completed_plans: 35
+  completed_plans: 36
   percent: 8
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-03)
 ## Current Position
 
 Phase: 02 (Night Defense & Playtest Gate) — EXECUTING
-Plan: 2 of 20
+Plan: 3 of 20
 Status: Ready to execute
 Last activity: 2026-10-07 — Phase 02 execution started
 
@@ -91,6 +91,7 @@ Progress: [█░░░░░░░░░] 8%
 | Phase 02 P15 | 32 min | 2 tasks | 15 files |
 | Phase 02 P16 | 14 min | 2 tasks | 4 files |
 | Phase 02 P17 | 15 min | 2 tasks | 6 files |
+| Phase 02 P18 | 28 min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -175,6 +176,7 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-16: no wave or castle-health change, balanced bot won 10 of 10 after base income, castle attack and sprint, so the owner's night-3/castle lever rule never triggered
 - [Phase 02]: 02-17: castle reach 22.0 m and arrow speed 27.0 m/s on the shipped map (owner decision 2026-10-07, G-02-13); damage, interval, health untouched
 - [Phase 02]: 02-17: CastleAttack.is_armed and MapConfig.validate both refuse non-finite and sub-step (below SimClock.STEP) castle numbers (WR-02)
+- [Phase 02]: 02-18: night fast-forward is a toggle latched in FastForwardController (press edge at night flips, phase_changed out of NIGHT clears); REARM_STRENGTH 0.25 raw-strength guard stops a trigger hovering at the 0.5 deadzone from re-toggling
 
 ### Pending Todos
 
@@ -209,6 +211,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-06T23:27:03.874Z
-Stopped at: Completed 02-17-PLAN.md
+Last session: 2026-10-06T23:48:12.249Z
+Stopped at: Completed 02-18-PLAN.md
 Resume file: None
