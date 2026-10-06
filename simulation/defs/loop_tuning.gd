@@ -14,6 +14,9 @@ const COIN_DRIP_INTERVAL_MAX_S: float = 0.3
 ## No helper returns an interval shorter than this, so zero or negative data can never make coins
 ## free of time or spin a loop forever.
 const MIN_INTERVAL_S: float = 0.001
+## Largest night fast-forward scale anything accepts. A bigger or non-finite data value is clamped
+## (non-finite counts as 1.0), so bad data can never stall or race the game (T-02-29).
+const FAST_FORWARD_MAX_SCALE: float = 4.0
 
 ## Seconds the first coin and every steady coin take (D-05 as amended, UAT G-01-58). The name is
 ## kept so existing overrides still compile.
@@ -47,6 +50,11 @@ const MIN_INTERVAL_S: float = 0.001
 ## otherwise press Play again and lose the screen before reading it. 0 or less turns the window off.
 ## Presentation time only: the simulation is already over.
 @export var results_input_grace_seconds: float = 0.6
+## How many times faster than real time the game runs while the fast_forward input is held during
+## a night (owner decision 2026-10-06, UAT G-02-1). 1.0 is off. Presentation only: the simulation
+## runs more fixed steps per real second, never different steps. Read through
+## FastForwardController.scale_for, which clamps it to 1.0 .. FAST_FORWARD_MAX_SCALE.
+@export var fast_forward_scale: float = 1.0
 
 ## Seconds the king stays down after his first knockout of a night (D-01).
 @export var respawn_start_seconds: float = 6.0
