@@ -5,27 +5,27 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "The input grace gates the release of a press, so a press started inside the window and held past it still restarts"
   - id: WR-02
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "The new results-screen tests fail if the runner stalls longer than the grace window"
   - id: IN-01
     severity: info
-    disposition: open
+    disposition: fixed
     title: "`preview_counts` counts groups that `WaveSchedule` skips"
   - id: IN-02
     severity: info
-    disposition: open
+    disposition: fixed
     title: "`MAX_GROUP_COUNT` is now a dead clamp"
   - id: IN-03
     severity: info
-    disposition: open
+    disposition: fixed
     title: "The \"shipped grace is set in the data file\" test cannot see the data file"
   - id: IN-04
     severity: info
-    disposition: open
+    disposition: fixed
     title: "The grace value has no upper bound"
   - id: WR-03
     severity: warning
@@ -39,21 +39,21 @@ findings:
     severity: info
     disposition: open
     title: "Screenshot job worst-case time equals the job timeout"
-open: 8
+open: 2
 total: 9
-recorded: 2026-10-05T16:43:55.253Z
+recorded: 2026-10-06T05:20:12.595Z
 ---
 
 # Phase 02: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
-| WR-02 | warning | open | - |
-| IN-01 | info | open | - |
-| IN-02 | info | open | - |
-| IN-03 | info | open | - |
-| IN-04 | info | open | - |
+| WR-01 | warning | fixed | 02-REVIEW-FIX.md |
+| WR-02 | warning | fixed | 02-REVIEW-FIX.md |
+| IN-01 | info | fixed | 02-REVIEW-FIX.md |
+| IN-02 | info | fixed | 02-REVIEW-FIX.md |
+| IN-03 | info | fixed | 02-REVIEW-FIX.md |
+| IN-04 | info | fixed | 02-REVIEW-FIX.md |
 | WR-03 | warning | fixed | 02-REVIEW-FIX.md (not in the current review) |
 | IN-05 | info | open | - (not in the current review) |
 | IN-06 | info | open | - (not in the current review) |
