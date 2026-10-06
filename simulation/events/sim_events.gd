@@ -13,7 +13,8 @@ signal command_rejected(command: StringName, spot_id: StringName, reason: String
 signal phase_changed(old_phase: int, new_phase: int)
 ## The night began (after NIGHT_TRANSITION); `night_number` is 1 for the first night.
 signal night_started(night_number: int)
-## Dawn income was paid. `per_spot` maps spot_id to amount in MapConfig order, amount > 0 only.
+## Dawn income was paid. `per_spot` maps spot_id to amount in MapConfig order, amount > 0 only, then
+## MapConfig.CASTLE_PAYOUT_KEY for the castle's base income when the map pays one (listed last).
 signal dawn_payout(total: int, per_spot: Dictionary)
 ## A new day began; `day_number` is 2 for the first day after a night.
 signal day_started(day_number: int)

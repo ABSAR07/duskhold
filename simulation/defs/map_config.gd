@@ -163,25 +163,44 @@ func _validate_night_data() -> PackedStringArray:
 	return errors
 
 
-## The errors of the castle's attack numbers (T-02-33): none may be negative, and a castle that
-## attacks (damage above 0) needs a range and an interval above 0, else it would never or always
-## shoot. A negative range or interval is reported once, as negative, not again as missing.
+## The errors of the castle's attack numbers (T-02-33, review WR-02): none may be negative or not
+## finite, and a castle that attacks (damage above 0) needs a range and an interval above 0, else
+## it would never or always shoot. An infinite interval, or one below a simulation step, would make
+## the castle fire every tick because SimClock.ticks floors at one tick, and a NaN would silently
+## disarm it, so all of them are reported. A value that is not finite or is negative is reported
+## once, as that, not again as missing.
 func _validate_castle_attack() -> PackedStringArray:
 	var errors: PackedStringArray = PackedStringArray()
 	if castle_attack_damage < 0:
 		errors.append("castle_attack_damage is negative (%d)" % castle_attack_damage)
-	if castle_attack_range < 0.0:
-		errors.append("castle_attack_range is negative (%s)" % castle_attack_range)
-	if castle_attack_interval < 0.0:
-		errors.append("castle_attack_interval is negative (%s)" % castle_attack_interval)
-	if castle_projectile_speed < 0.0:
-		errors.append("castle_projectile_speed is negative (%s)" % castle_projectile_speed)
+	errors.append_array(_castle_number_errors("castle_attack_range", castle_attack_range))
+	errors.append_array(_castle_number_errors("castle_attack_interval", castle_attack_interval))
+	errors.append_array(_castle_number_errors("castle_projectile_speed", castle_projectile_speed))
 	if castle_attack_damage > 0 and castle_attack_range == 0.0:
 		errors.append("castle_attack_range is 0 but the castle attacks (castle_attack_damage > 0)")
 	if castle_attack_damage > 0 and castle_attack_interval == 0.0:
 		errors.append(
 			"castle_attack_interval is 0 but the castle attacks (castle_attack_damage > 0)"
 		)
+	if (
+		castle_attack_damage > 0
+		and is_finite(castle_attack_interval)
+		and castle_attack_interval > 0.0
+		and castle_attack_interval < SimClock.STEP
+	):
+		errors.append(
+			"castle_attack_interval is below one simulation step (%s)" % castle_attack_interval
+		)
+	return errors
+
+
+## The errors of one castle float: not finite, or negative.
+func _castle_number_errors(field: String, value: float) -> PackedStringArray:
+	var errors: PackedStringArray = PackedStringArray()
+	if not is_finite(value):
+		errors.append("%s is not finite (%s)" % [field, value])
+	elif value < 0.0:
+		errors.append("%s is negative (%s)" % [field, value])
 	return errors
 
 
