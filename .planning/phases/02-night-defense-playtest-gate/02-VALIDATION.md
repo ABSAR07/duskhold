@@ -169,19 +169,20 @@ Evidence:
 
 | Metric | Count |
 |--------|-------|
-| Gaps found | 0 |
+| Gaps found | 1 |
 | Resolved | 0 |
-| Escalated | 0 |
+| Escalated | 1 (to the review-fix loop: third review WR-01) |
 
 Re-audited after the second review-fix pass (3 commits, `21b8abb`, `260ec31` and `81c300e`), which closed all six findings of the 2026-10-05 second review (2 warnings, 4 info). It touched `simulation/night/wave_schedule.gd`, `ui/results/results_screen.gd`, `tests/unit/test_wave_schedule.gd`, `tests/unit/test_loop_tuning_contract.gd` and `tests/e2e/test_results_screen.gd`; no data file changed. All 16 rows of the per-task map are still COVERED, and five rows were added for the fixes.
 
-- **Mutation probes (orchestrator):** 6 single-line mutations, each run against the fix's own test file and restored from a backup. 6 were caught; none survived.
+- **Mutation probes (orchestrator):** 7 single-line mutations, each run against the fix's own test file and restored from a backup. 6 were caught; 1 survived (see the addendum below).
   - WR-01 (`test_results_screen.gd`): with the press-start stamp ignored (the gate back to `accepts_input()` alone) the four straddling-press tests fail; with `button_down` never stamping 8 tests fail, because every press is then ignored.
   - IN-04 (`test_results_screen.gd`): with the clamp from below only (`maxf` instead of `clampf`) the 600 s grace test fails.
   - IN-01 (`test_wave_schedule.gd`): with the preview and the schedule no longer requiring a known enemy the unknown-enemy preview test fails.
   - IN-02 (`test_wave_schedule.gd`): with the dead `MAX_GROUP_COUNT` constant re-added its absence test fails.
   - IN-03 (`test_loop_tuning_contract.gd`): deleting the `results_input_grace_seconds = 0.6` line from `loop_tuning.tres` now fails the contract test. This was the one survivor of the pass-1 probes.
-  - WR-02 is a test-only change and has no behaviour to mutate.
+  - WR-02 is a test-only change and has no behaviour to mutate, but its `pending()` escape is what lets the seventh probe survive.
+  - **Survivor (addendum, after the third review):** with the grace never applied (`grace_ms` forced to 0 in `_show_results`) `test_results_screen.gd` still passes: the seven grace and straddling-press tests end `pending` ("the runner stalled past the grace window") because `accepts_input()` is true at once, the capped-grace test passes with no grace at all, and `tools/test.sh` exits 0 on pending tests. So the accidental-restart bug (first review WR-03) could return with CI green. The third review reports this as its WR-01 with a fix (assert `accepts_input()` is false right after the screen shows, keep `pending()` only for a genuine stall); it is escalated to the review-fix loop rather than to a nyquist-auditor run, since the fix belongs to the test file the loop already owns.
 - **Tests:** +7, from 738 to 745 (86 scripts). `test_results_screen` 9 → 14 (four straddling-press tests and the capped-grace test); `test_wave_schedule` 13 → 15; `test_loop_tuning_contract` stays at 11 with one test extended. No test ended `pending` in the full run.
 - **Replays:** the smoke replay still matches the golden digest (`2599c7c2...`) and the full run still wins in 6244 ticks (`a25aa7fd...`), so the wave-schedule change altered nothing on valid data.
 - **Wall-clock note:** the grace tests no longer depend on the shipped 0.6 s window. Each uses a 3.0 s window of its own (`TEST_GRACE_S`, equal to the cap so it is never clamped), judges "inside the window" after the taps, and calls `pending()` if the runner had already passed the window. `test_results_screen.gd` takes about 36 s of GUT time, most of it waiting out those windows.
