@@ -164,9 +164,10 @@ func test_respawn_start_step_and_cap_are_exported_tuning_fields() -> void:
 	assert_gt(tuning.respawn_step_seconds, 0.0, "the shipped step is set in the data file")
 
 
-## Owner decision 2026-10-06 (UAT G-02-1, speed-up part b): holding fast_forward at night runs the
-## game at this multiple of real time. The shipped value is written in the data file itself and is
-## at least the owner's 1.5; the script default is 1.0 (off) and the cap is 4.0.
+## Owner decision 2026-10-06 (UAT G-02-1, speed-up part b): switching fast_forward on at night runs
+## the game at this multiple of real time (a toggle since 2026-10-07, G-02-14). The shipped value
+## is written in the data file itself and is at least the owner's 1.5; the script default is 1.0
+## (off) and the cap is 4.0.
 func test_shipped_fast_forward_is_set_in_the_data_file_and_at_least_one_and_a_half() -> void:
 	var exported: Dictionary = {}
 	for property: Dictionary in LoopTuning.new().get_property_list():

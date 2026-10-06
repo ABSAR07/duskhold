@@ -11,7 +11,10 @@ extends Node
 ##
 ## The switch is a latch (_switched_on), flipped on a press edge read in _process, never on the
 ## key level and never per input event: a trigger axis reports "pressed" on every motion event
-## above its deadzone, so a per-event check would flip it several times in one pull.
+## above its deadzone, so a per-event check would flip it several times in one pull. Godot also
+## applies no hysteresis to an action deadzone, so a trigger hovering around halfway would cross
+## it upward again and again; after a counted press the next one counts only once the action's raw
+## strength has fallen below REARM_STRENGTH, a quarter of the trigger's travel (diagnosis probe A).
 ##
 ## Fast-forward acts only in NIGHT. By day there is nothing to wait for (no day timer, and the
 ## sprint is for riding), dawn is two seconds of payout coins, and the loss beat and the results
@@ -31,11 +34,15 @@ signal changed(active: bool, scale: float)
 
 const ACTION: StringName = &"fast_forward"
 const REAL_TIME: float = 1.0
+## Input-device guard, not gameplay tuning (like the action deadzone in project.godot): after an
+## accepted press, another press counts only once the action's raw strength has fallen below this.
+const REARM_STRENGTH: float = 0.25
 
 var _ctx: RunContext
 var _scale: float = REAL_TIME
 var _switched_on: bool = false
 var _was_pressed: bool = false
+var _rearmed: bool = true
 
 
 ## 1.0 unless the switch is on during NIGHT; then the tuning scale clamped to
@@ -71,10 +78,11 @@ func _process(_delta: float) -> void:
 	if _ctx == null:
 		return
 	var pressed: bool = Input.is_action_pressed(ACTION)
-	var just_pressed: bool = Input.is_action_just_pressed(ACTION) or (pressed and not _was_pressed)
+	var edge: bool = Input.is_action_just_pressed(ACTION) or (pressed and not _was_pressed)
 	_was_pressed = pressed
+	var counted: bool = _press_counts(edge, pressed)
 	var phase: int = _ctx.run_manager.get_phase()
-	if just_pressed and phase == RunManager.RunPhase.NIGHT:
+	if counted and phase == RunManager.RunPhase.NIGHT:
 		_switched_on = not _switched_on
 	_apply(phase)
 
@@ -87,6 +95,18 @@ func _exit_tree() -> void:
 	if _scale != REAL_TIME:
 		_scale = REAL_TIME
 		Engine.time_scale = REAL_TIME
+
+
+## True for a press edge that counts: the guard must be armed, and it re-arms once the action is up
+## and its raw strength (before the deadzone) has fallen below REARM_STRENGTH. A released key reads
+## 0, so a key press, even a sub-frame tap, always counts and re-arms in the same frame.
+func _press_counts(edge: bool, pressed: bool) -> bool:
+	var counted: bool = edge and _rearmed
+	if counted:
+		_rearmed = false
+	if not pressed and Input.get_action_raw_strength(ACTION) < REARM_STRENGTH:
+		_rearmed = true
+	return counted
 
 
 ## Runs inside the simulation step that changes the phase, so leaving the night clears the switch

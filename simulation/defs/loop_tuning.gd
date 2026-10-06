@@ -50,9 +50,10 @@ const FAST_FORWARD_MAX_SCALE: float = 4.0
 ## otherwise press Play again and lose the screen before reading it. 0 or less turns the window off.
 ## Presentation time only: the simulation is already over.
 @export var results_input_grace_seconds: float = 0.6
-## How many times faster than real time the game runs while the fast_forward input is held during
-## a night (owner decision 2026-10-06, UAT G-02-1). 1.0 is off. Presentation only: the simulation
-## runs more fixed steps per real second, never different steps. Read through
+## How many times faster than real time the game runs while fast-forward is switched on during a
+## night (owner decision 2026-10-06, UAT G-02-1; a toggle since 2026-10-07, G-02-14). 1.0 is off.
+## Presentation only: the simulation runs more fixed steps per real second, never different steps.
+## Read through
 ## FastForwardController.scale_for, which clamps it to 1.0 .. FAST_FORWARD_MAX_SCALE.
 @export var fast_forward_scale: float = 1.0
 

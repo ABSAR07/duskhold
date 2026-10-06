@@ -141,8 +141,8 @@ func test_zoom_deadzone_is_point_three() -> void:
 		assert_almost_eq(InputMap.action_get_deadzone(action), ZOOM_DEADZONE, 0.0001, str(action))
 
 
-## Fast-forward is a hold on the left trigger (an analog axis), so it reads like a button: pressed
-## from halfway down.
+## Fast-forward is a toggle (G-02-14) on the left trigger, an analog axis, so it reads like a button
+## pressed from halfway down.
 func test_fast_forward_deadzone_is_point_five() -> void:
 	assert_almost_eq(
 		InputMap.action_get_deadzone(&"fast_forward"), FAST_FORWARD_DEADZONE, 0.0001, "deadzone"
