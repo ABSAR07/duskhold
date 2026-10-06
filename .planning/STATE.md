@@ -2,17 +2,17 @@
 gsd_state_version: "1.0"
 current_phase: 02
 current_phase_name: Night Defense & Playtest Gate
-status: verifying
-stopped_at: Completed 02-11-PLAN.md
-last_updated: "2026-10-05T14:39:34.402Z"
-last_activity: 2026-10-05
+status: executing
+stopped_at: Completed 02-12-PLAN.md
+last_updated: "2026-10-06T12:07:00.635Z"
+last_activity: 2026-10-06
 last_activity_desc: Phase 02 execution started
-state_head: 15823f17791c45f5c856e5e4479a2caa169cc668
+state_head: 33db6728317c6f5c760b31e76a31b4fbcf5f2335
 progress:
   total_phases: 13
   completed_phases: 1
-  total_plans: 29
-  completed_plans: 29
+  total_plans: 34
+  completed_plans: 30
   percent: 8
 ---
 
@@ -28,9 +28,9 @@ See: .planning/PROJECT.md (updated 2026-10-03)
 ## Current Position
 
 Phase: 02 (Night Defense & Playtest Gate) — EXECUTING
-Plan: 11 of 11
-Status: Phase complete — ready for verification
-Last activity: 2026-10-05 — Phase 02 execution started
+Plan: 2 of 16
+Status: Ready to execute
+Last activity: 2026-10-06 — Phase 02 execution started
 
 Progress: [█░░░░░░░░░] 8%
 
@@ -85,6 +85,7 @@ Progress: [█░░░░░░░░░] 8%
 | Phase 02 P09 | 28 min | 2 tasks | 10 files |
 | Phase 02 P10 | 81 min | 2 tasks | 17 files |
 | Phase 02 P11 | 51 min | 3 tasks | 8 files |
+| Phase 02 P12 | 22 min | 2 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -161,6 +162,7 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-10: full_idle replay keeps its name for CI but plays the balanced bot (wins in 6244 ticks); the smoke golden is unchanged
 - [Phase 02]: 02-11: night screenshots reach their state by the replay loop (bot then ctx.step) and place the king and camera before the fast-forward; arrows thickened to 0.15 m by 1 m after the first look
 - [Phase 02]: 02-11: readability points outside the plan's files (results screen spacing and Quit contrast, hairline path lines, small dawn coin) are left in the owner packet; CI run 37325147907 green with 15 screenshots; 02-PLAYTEST-GATE.md opens the D-18 gate
+- [Phase 02]: 02-12: base dawn income of 1 gold on the prototype map, paid under the reserved castle payout key; towers still pay nothing (D-10)
 
 ### Pending Todos
 
@@ -194,6 +196,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-05T14:39:33.972Z
-Stopped at: Completed 02-11-PLAN.md
+Last session: 2026-10-06T12:07:00.428Z
+Stopped at: Completed 02-12-PLAN.md
 Resume file: None
