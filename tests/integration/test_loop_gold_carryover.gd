@@ -1,7 +1,8 @@
 extends GutTest
 ## ECON-07: unspent gold carries over unchanged from one day to the next. Three full cycles are
 ## driven through the real start-night command and RunManager.tick on the prototype map, and the
-## expected gold is recomputed independently from the .tres data after every step.
+## expected gold is recomputed independently from the .tres data after every step. Every dawn pays
+## the Houses' income plus the map's base income (G-02-1), which is read from the map.
 
 const TUNING := "res://data/tuning/loop_tuning.tres"
 const HOUSE_A: StringName = &"house_1"
@@ -62,6 +63,7 @@ func test_gold_carries_over_exactly_across_three_full_cycles() -> void:
 	var map: MapConfig = E2eSupport.waveless_prototype_map()
 	var ctx: RunContext = RunContext.new(map, _tuning)
 	ctx.events.dawn_payout.connect(_record_payout)
+	var base: int = map.base_dawn_income
 	var expected: int = map.starting_gold
 	assert_gte(expected, 2 * _cost(1), "the map affords two tier I Houses on day one")
 	assert_eq(ctx.economy.get_gold(), expected, "the run starts with the map's gold")
@@ -72,15 +74,15 @@ func test_gold_carries_over_exactly_across_three_full_cycles() -> void:
 	expected -= 2 * _cost(1)
 	assert_eq(ctx.economy.get_gold(), expected, "day 1 spend")
 	var paid_1: int = _full_night(ctx)
-	expected += 2 * _income(1)
-	assert_eq(paid_1, 2 * _income(1), "dawn 1 payout")
+	expected += 2 * _income(1) + base
+	assert_eq(paid_1, 2 * _income(1) + base, "dawn 1 payout")
 	assert_eq(ctx.economy.get_gold(), expected, "dawn 1: carried over plus payout")
 
 	# Day 2: spend nothing.
 	assert_eq(ctx.economy.get_gold(), expected, "day 2 starts with what dawn left")
 	var paid_2: int = _full_night(ctx)
-	expected += 2 * _income(1)
-	assert_eq(paid_2, 2 * _income(1), "dawn 2 payout")
+	expected += 2 * _income(1) + base
+	assert_eq(paid_2, 2 * _income(1) + base, "dawn 2 payout")
 	assert_eq(ctx.economy.get_gold(), expected, "dawn 2: unspent gold was kept")
 
 	# Day 3: upgrade one House.
@@ -89,19 +91,24 @@ func test_gold_carries_over_exactly_across_three_full_cycles() -> void:
 	expected -= _cost(2)
 	assert_eq(ctx.economy.get_gold(), expected, "day 3 spend")
 	var paid_3: int = _full_night(ctx)
-	expected += _income(2) + _income(1)
-	assert_eq(paid_3, _income(2) + _income(1), "dawn 3 pays the new tier")
+	expected += _income(2) + _income(1) + base
+	assert_eq(paid_3, _income(2) + _income(1) + base, "dawn 3 pays the new tier")
 	assert_eq(ctx.economy.get_gold(), expected, "the run ends on the exact expected total")
 	assert_eq(ctx.run_manager.get_night_number(), 3, "three nights were played")
 	assert_eq(ctx.run_manager.get_day_number(), 4, "and the fourth day began")
 
 
 func test_gold_only_moves_at_dawn_never_at_night_or_day_start() -> void:
-	var ctx: RunContext = RunContext.new(E2eSupport.waveless_prototype_map(), _tuning)
+	var map: MapConfig = E2eSupport.waveless_prototype_map()
+	var ctx: RunContext = RunContext.new(map, _tuning)
 	ctx.events.dawn_payout.connect(_record_payout)
 	_buy(ctx, HOUSE_A)
 	ctx.events.gold_changed.connect(_record_gold)
 
 	_full_night(ctx)
 
-	assert_eq(_gold_deltas, [_income(1)] as Array[int], "the payout is the only gold change")
+	assert_eq(
+		_gold_deltas,
+		[_income(1) + map.base_dawn_income] as Array[int],
+		"the payout, House income plus base income, is the only gold change"
+	)

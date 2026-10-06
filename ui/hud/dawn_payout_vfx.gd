@@ -20,6 +20,9 @@ const COIN_RIM_START: float = 0.8
 const COIN_RIM_END: float = 0.9
 ## World-space offset above the plot where a coin starts.
 const SPOT_ANCHOR := Vector3(0.0, 2.5, 0.0)
+## World-space offset above the castle's centre where the base income's coin starts: the top of the
+## keep (5 m). Any higher and the default camera projects it above the top edge of the screen.
+const CASTLE_ANCHOR := Vector3(0.0, 4.5, 0.0)
 const STAGGER_SECONDS: float = 0.08
 ## Coin budget of one payout. A bigger payout puts several gold on each coin.
 ## A soft cap: every paying spot still sends at least one coin (attribution matters more than the

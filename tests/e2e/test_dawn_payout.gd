@@ -1,7 +1,8 @@
 extends GutTest
 ## D-12 / ECON-02 on the real scene: at dawn a coin pops out of the plot of each paying House and
-## flies to the gold counter, the counter ticks up as they land, and a "+X gold" total follows.
-## Amounts come from house.tres and every duration from loop_tuning.tres.
+## flies to the gold counter, the counter ticks up as they land, and a "+X gold" total follows. The
+## castle's base income (G-02-1) adds its own coin from the castle. Amounts come from house.tres
+## and the map, every duration from loop_tuning.tres.
 
 const TUNING := "res://data/tuning/loop_tuning.tres"
 const HOUSE := "res://data/buildings/house.tres"
@@ -50,7 +51,12 @@ func _vfx(map_root: MapRoot) -> DawnPayoutVfx:
 
 
 func _coins_launched(vfx: DawnPayoutVfx, expected: int) -> bool:
-	return vfx.get_spawned_count(HOUSE_ONE) + vfx.get_spawned_count(HOUSE_TWO) >= expected
+	var launched: int = (
+		vfx.get_spawned_count(HOUSE_ONE)
+		+ vfx.get_spawned_count(HOUSE_TWO)
+		+ vfx.get_spawned_count(MapConfig.CASTLE_PAYOUT_KEY)
+	)
+	return launched >= expected
 
 
 func _is_dawn(ctx: RunContext) -> bool:
@@ -93,11 +99,12 @@ func _dawn_with_two_houses() -> MapRoot:
 	return map_root
 
 
+## The amounts of the two-House dawn: tier I House, tier II House, then the castle's base income.
 func _expected_amounts() -> Array[int]:
 	var house: BuildingDef = load(HOUSE)
 	var tier_one: int = house.tiers[0].dawn_income
 	var tier_two: int = house.tiers[1].dawn_income
-	return [tier_one, tier_two]
+	return [tier_one, tier_two, _rich_map().base_dawn_income]
 
 
 func test_coins_are_in_flight_and_the_counter_lags_early_in_dawn() -> void:
@@ -131,7 +138,7 @@ func test_after_landing_the_hud_settles_on_the_ledger_and_the_total_is_shown() -
 	if vfx == null or label == null:
 		return
 	var amounts: Array[int] = _expected_amounts()
-	var expected_total: int = amounts[0] + amounts[1]
+	var expected_total: int = amounts[0] + amounts[1] + amounts[2]
 
 	var shown: bool = await E2eSupport.wait_until(self, _total_shown.bind(map_root), SETTLED_S)
 
@@ -162,7 +169,7 @@ func test_each_house_spawns_as_many_coins_as_it_pays() -> void:
 	if vfx == null:
 		return
 	var amounts: Array[int] = _expected_amounts()
-	var gold_paid: int = amounts[0] + amounts[1]
+	var gold_paid: int = amounts[0] + amounts[1] + amounts[2]
 	# One coin per gold only holds while the payout fits the coin budget; a rebalance past it
 	# should fail here, with a reason, rather than as a wrong coin count below.
 	assert_lte(
@@ -176,6 +183,9 @@ func test_each_house_spawns_as_many_coins_as_it_pays() -> void:
 	assert_true(all_launched, "every coin left its plot")
 	assert_eq(vfx.get_spawned_count(HOUSE_ONE), amounts[0], "the tier I House sends its income")
 	assert_eq(vfx.get_spawned_count(HOUSE_TWO), amounts[1], "the tier II House sends its income")
+	assert_eq(
+		vfx.get_spawned_count(MapConfig.CASTLE_PAYOUT_KEY), amounts[2], "the castle sends its base"
+	)
 	assert_eq(vfx.get_spawned_count(&"house_3"), 0, "an unbuilt plot sends nothing")
 
 
@@ -322,7 +332,11 @@ func test_a_payout_with_no_coin_to_fly_shows_no_total_and_does_not_leave_the_hud
 
 
 func test_a_dawn_that_pays_nothing_shows_no_coins_and_no_total() -> void:
-	var map_root: MapRoot = await E2eSupport.spawn_map(self, _rich_map(), _tuning)
+	# With no House the only income is the castle's base, so a dawn that pays nothing needs the base
+	# switched off; the real dawn with the base is in test_dawn_payout_castle.gd.
+	var no_base_map: MapConfig = _rich_map()
+	no_base_map.base_dawn_income = 0
+	var map_root: MapRoot = await E2eSupport.spawn_map(self, no_base_map, _tuning)
 	var ctx: RunContext = map_root.get_context()
 	var vfx: DawnPayoutVfx = _vfx(map_root)
 	assert_not_null(vfx, "the HUD has a DawnPayoutVfx")
