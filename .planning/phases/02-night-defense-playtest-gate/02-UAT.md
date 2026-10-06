@@ -1,14 +1,18 @@
 ---
-status: diagnosed
+status: testing
 phase: 02-night-defense-playtest-gate
 source: [02-VERIFICATION.md]
 started: 2026-10-05T15:26:33Z
-updated: 2026-10-06T11:02:17Z
+updated: 2026-10-06T14:44:25Z
 ---
 
 ## Current Test
 
-[testing complete]
+number: 12
+name: Owner round-2 playtest gate (ROADMAP SC4, D-18): replay one or two runs on the fresh build/windows/Duskhold.exe (exported in 02-16) and either sign off or name further fixes, covering the four G-02-1 points and the G-02-2 spacing
+expected: |
+  A recorded decision through /gsd-verify-work. Sign-off means: base gold fixes the tower-first trap without making gold meaningless, the castle attack is simple and not too strong, the 12 m/s sprint and the night fast-forward are fast enough, the game is a bit easier but still tense, and the results spacing looks even. Otherwise a list of fixes and any of assumptions 12 to 15 to change. Read the Round 2 section of 02-PLAYTEST-GATE.md first (what changed for each point, the controls table with the Fast-forward row, the round-2 balance table)
+awaiting: user response
 
 ## Tests
 
@@ -60,16 +64,42 @@ result: pass
 expected: Owner confirms or changes each; in particular full dawn repair (1), no last dawn payout after night 8 (2), 6/10/14/15 s respawn (10), the 4-gold opening (13). Also the Play again behaviour recorded in 02-07 (a new random seed, so a replayed run is not the same run) is flagged in the summary but is not one of the 13
 result: pass
 
+### 12. Owner round-2 playtest gate (ROADMAP SC4, D-18): replay one or two runs on the fresh build/windows/Duskhold.exe (exported in 02-16) and either sign off or name further fixes, covering the four G-02-1 points and the G-02-2 spacing
+expected: A recorded decision through /gsd-verify-work. Sign-off means: base gold fixes the tower-first trap without making gold meaningless, the castle attack is simple and not too strong, the 12 m/s sprint and the night fast-forward are fast enough, the game is a bit easier but still tense, and the results spacing looks even. Otherwise a list of fixes and any of assumptions 12 to 15 to change. Read the Round 2 section of 02-PLAYTEST-GATE.md first (what changed for each point, the controls table with the Fast-forward row, the round-2 balance table)
+result: [pending]
+
+### 13. G-02-1 points 1 and 2 as seen on the real camera: the castle's base-income coin at dawn and the castle's arrows at night
+expected: At dawn one coin starts from the top of the castle keep (4.5 m above the castle centre) and flies to the gold counter, read as the castle paying 1 gold. At night, when an enemy comes within 11 m of the castle, a gold arrow leaves the top of the keep; three hits kill a grunt and two a skirmisher. Judge whether the castle attack reads as simple and not too strong. Note: the balanced bot never lets an enemy within 11 m, so castle arrows appear mostly when the defence is thin
+result: [pending]
+
+### 14. G-02-1 point 3: how the 12 m/s sprint, the 60 m/s^2 braking and the night 2x fast-forward feel in the owner's hands
+expected: The king still stops on a plot when the sprint key is released (full-sprint stop 1.2 m, inside the 2.5 m build radius) and is not uncontrollable at 12 m/s. Holding F or the gamepad left trigger at night runs the game at 2x and the 'Fast-forward 2x' label (top right) is legible. The game returns to real time at dawn, in the 1.2 s defeat beat and on the results screen. Say whether night-only is acceptable or you want it by day too or faster than 2x (assumption 14). Round-1 test 10 passed at 8 m/s; the sprint changed, so the handling judgement is partly reopened here
+result: [pending]
+
+### 15. G-02-1 point 4: difficulty for a human after the three fixes
+expected: Decide whether the run is now 'a bit easier' rather than too easy, and whether night 3 and the castle still feel fair. The bots now win 10 of 10 (balanced and tower-first); the balanced bot loses no building and is never knocked out, which is easier than 'a bit easier', and none of your two levers (night-3 east grunts 5 to 4, castle health 70 to 80) was applied because the balanced bot never lost. If it feels too easy, the levers in 02-BALANCE-REPORT.md are the night counts and the castle's damage, never grunt health
+result: [pending]
+
+### 16. G-02-2: results screen spacing on a real Victory and a real Defeat
+expected: The visible gap from the last stat row to the Play again and Quit buttons looks equal to the gap between stat rows (11 px added above the button row). Quit is still distinguishable. Play again, Quit and the 0.6 s accidental-restart grace behave as passed in round 1
+result: [pending]
+
+### 17. Assumptions 12 to 15 of the round-2 packet, made on the owner's behalf
+expected: Confirm or change: 12 (the bot measurement rule), 13 (base income of 1 gold per dawn paid on every dawn including the first, the castle attack numbers 2 dmg / 11 m / 1.5 s / 18 m/s, no night-3 or castle-health change), 14 (fast-forward night only, 2x, F or left trigger), 15 (the base income shown as a coin from the castle, not a text line)
+result: [pending]
+
 ## Summary
 
-total: 11
+total: 17
 passed: 9
 issues: 2
-pending: 0
+pending: 6
 skipped: 0
 blocked: 0
 
 ## Gaps
+
+> Round 2 (2026-10-06): plans 02-12 to 02-16 closed the code side of G-02-1 (points 1 to 3) and G-02-2, and re-measured point 4 under the owner's rule (no lever applied; balanced bot 10 of 10). The owner's re-check of each is tests 12 to 17 above; the gap rows below keep their round-1 wording until that decision is recorded.
 - gap_id: G-02-1
   truth: "A recorded decision through /gsd-verify-work: sign-off that gold trade-offs feel meaningful and nights feel tense and readable, or a list of tuning/feel fixes, plus any of the 13 assumptions to change"
   status: failed
