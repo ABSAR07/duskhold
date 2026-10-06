@@ -3,7 +3,7 @@ status: testing
 phase: 02-night-defense-playtest-gate
 source: [02-VERIFICATION.md]
 started: 2026-10-05T15:26:33Z
-updated: 2026-10-05T16:55:31Z
+updated: 2026-10-06T05:57:23Z
 ---
 
 ## Current Test
@@ -20,8 +20,8 @@ awaiting: user response
 expected: A recorded decision through /gsd-verify-work: sign-off that gold trade-offs feel meaningful and nights feel tense and readable, or a list of tuning/feel fixes, plus any of the 13 assumptions to change
 result: [pending]
 
-### 2. Results screen layout and the accidental-restart tap (WR-03, and the second review's WR-01)
-expected: Stat rows have a clear gap above the buttons; Quit is distinguishable from the panel. Tapping Space or gamepad A as Victory/Defeat appears does not restart the run: presses are ignored for the first 0.6 s of the screen, and Play again works after that. Also try a fresh, slightly held press that begins just inside the 0.6 s window and is released just after it: by the code it still presses Play again (a Button fires on release, and the grace gates the release), so judge whether that residual case matters in a real run
+### 2. Results screen layout and the accidental-restart tap (WR-03, and the second review's WR-01, both now fixed in the code)
+expected: Stat rows have a clear gap above the buttons; Quit is distinguishable from the panel. Tapping or mashing Space or gamepad A as Victory/Defeat appears does not restart the run or quit: for the first 0.6 s of the screen both buttons ignore every press, and Play again works after that. A press that BEGINS inside the 0.6 s window and is released after it also does nothing (the code stamps when a press began, on button_down, and counts it only if it began after the window), and so does a key that was already held when the screen appeared. A fresh press that begins after the window works. Judge the feel: that 0.6 s neither lets a mash through nor feels sluggish before Play again responds, and that a held or straddling press does nothing
 result: [pending]
 
 ### 3. Enemy, health-bar, projectile and slash readability at night at the default camera
