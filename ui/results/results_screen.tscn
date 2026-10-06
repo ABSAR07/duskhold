@@ -73,12 +73,16 @@ theme_override_font_sizes/font_size = 26
 text = "King knockouts: 0"
 horizontal_alignment = 1
 
-[node name="Buttons" type="HBoxContainer" parent="Center/Panel/Margin/Column"]
+[node name="ButtonsMargin" type="MarginContainer" parent="Center/Panel/Margin/Column"]
+layout_mode = 2
+theme_override_constants/margin_top = 11
+
+[node name="Buttons" type="HBoxContainer" parent="Center/Panel/Margin/Column/ButtonsMargin"]
 layout_mode = 2
 theme_override_constants/separation = 24
 alignment = 1
 
-[node name="PlayAgainButton" type="Button" parent="Center/Panel/Margin/Column/Buttons"]
+[node name="PlayAgainButton" type="Button" parent="Center/Panel/Margin/Column/ButtonsMargin/Buttons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(180, 48)
 layout_mode = 2
@@ -89,7 +93,7 @@ focus_neighbor_bottom = NodePath(".")
 theme_override_font_sizes/font_size = 24
 text = "Play again"
 
-[node name="QuitButton" type="Button" parent="Center/Panel/Margin/Column/Buttons"]
+[node name="QuitButton" type="Button" parent="Center/Panel/Margin/Column/ButtonsMargin/Buttons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(180, 48)
 layout_mode = 2
