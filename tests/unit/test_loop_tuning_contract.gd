@@ -173,6 +173,14 @@ func test_shipped_results_input_grace_is_set_in_the_data_file_and_short() -> voi
 		if int(property["usage"]) & PROPERTY_USAGE_STORAGE != 0:
 			exported[property["name"]] = true
 	assert_true(exported.has("results_input_grace_seconds"), "a stored, exported field")
+	# The script default equals the shipped value, so the loaded resource cannot tell a stored value
+	# from the default; only the text of the data file can (review IN-03).
+	var data_text: String = FileAccess.get_file_as_string(TUNING)
+	assert_ne(data_text, "", "the tuning data file can be read")
+	assert_true(
+		data_text.contains("\nresults_input_grace_seconds = "),
+		"the grace is written in loop_tuning.tres itself, not left to the script default"
+	)
 	var grace: float = _tuning().results_input_grace_seconds
 	assert_gte(grace, 0.3, "long enough to outlast a tap")
 	assert_lte(grace, 1.0, "short enough not to feel stuck")
