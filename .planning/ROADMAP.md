@@ -108,7 +108,7 @@ Plans:
   3. From the command line and in CI, a seeded scripted night replays with identical results, and headless GUT tests cover waves, combat, and loop transitions (day → night → dawn, loss, win). During nights, the debug overlay shows live enemy counts, wave state, and enemy paths.
   4. Human playtest gate: the owner plays the prototype map through several full runs and either signs off that gold trade-offs feel meaningful and nights feel tense and readable, or records the tuning/feel fixes that must land before later phases begin. No meta-progression work is scheduled until this sign-off.
 
-**Plans**: 11/11 plans executed
+**Plans**: 11/16 plans executed (02-12 to 02-16 close the 2026-10-06 UAT gaps G-02-1 and G-02-2)
 **UI hint**: yes
 
 Plans:
@@ -142,6 +142,19 @@ Plans:
 
 **Wave 10** *(blocked on Wave 9 completion)*
 - [x] 02-11: Fifteen scripted screenshots with a readability review, final green CI, a launch-checked export and the owner's playtest gate packet
+
+**Gap closure** *(UAT 2026-10-06: G-02-1 playtest fixes, G-02-2 results-screen spacing)*
+
+**Gap wave 1**
+- [ ] 02-12: Base dawn income of 1 gold from the castle, its coin flying from the castle at dawn
+- [ ] 02-13: Sprint 12 m/s and a night-only hold-to-fast-forward (F / left trigger, 2x) with its HUD label
+- [ ] 02-14: Results screen: 11 px above the buttons so the spacing is even
+
+**Gap wave 2** *(blocked on 02-12)*
+- [ ] 02-15: The castle shoots (2 damage, 11 m, every 1.5 s) with visible arrows; castle kills in the balance report
+
+**Gap wave 3** *(blocked on 02-12 to 02-15)*
+- [ ] 02-16: Balance re-measure under the owner's rule, acceptance test, regenerated report, fresh export and the round-2 playtest packet
 
 ### Phase 3: King Combat & Troops
 
