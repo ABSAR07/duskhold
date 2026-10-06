@@ -1,18 +1,14 @@
 ---
-status: testing
+status: complete
 phase: 02-night-defense-playtest-gate
 source: [02-VERIFICATION.md]
 started: 2026-10-05T15:26:33Z
-updated: 2026-10-06T14:44:25Z
+updated: 2026-10-06T20:17:23Z
 ---
 
 ## Current Test
 
-number: 12
-name: Owner round-2 playtest gate (ROADMAP SC4, D-18): replay one or two runs on the fresh build/windows/Duskhold.exe (exported in 02-16) and either sign off or name further fixes, covering the four G-02-1 points and the G-02-2 spacing
-expected: |
-  A recorded decision through /gsd-verify-work. Sign-off means: base gold fixes the tower-first trap without making gold meaningless, the castle attack is simple and not too strong, the 12 m/s sprint and the night fast-forward are fast enough, the game is a bit easier but still tense, and the results spacing looks even. Otherwise a list of fixes and any of assumptions 12 to 15 to change. Read the Round 2 section of 02-PLAYTEST-GATE.md first (what changed for each point, the controls table with the Fast-forward row, the round-2 balance table)
-awaiting: user response
+[testing complete]
 
 ## Tests
 
@@ -66,34 +62,44 @@ result: pass
 
 ### 12. Owner round-2 playtest gate (ROADMAP SC4, D-18): replay one or two runs on the fresh build/windows/Duskhold.exe (exported in 02-16) and either sign off or name further fixes, covering the four G-02-1 points and the G-02-2 spacing
 expected: A recorded decision through /gsd-verify-work. Sign-off means: base gold fixes the tower-first trap without making gold meaningless, the castle attack is simple and not too strong, the 12 m/s sprint and the night fast-forward are fast enough, the game is a bit easier but still tense, and the results spacing looks even. Otherwise a list of fixes and any of assumptions 12 to 15 to change. Read the Round 2 section of 02-PLAYTEST-GATE.md first (what changed for each point, the controls table with the Fast-forward row, the round-2 balance table)
-result: [pending]
+result: issue
+reported: "Fixes first (owner decision, round 2, 2026-10-07): castle range should be double and arrow speed 1.5x faster (test 13); speed up should be togglable instead of hold (test 14); difficulty a little harder, balanced bot should lose 2-3 of 10 (test 15). Everything else passes: base gold, spacing, sprint, 2x pace, label, night-only. Phase 2 does not close until these land and the owner replays (round 3)"
+severity: major
 
 ### 13. G-02-1 points 1 and 2 as seen on the real camera: the castle's base-income coin at dawn and the castle's arrows at night
 expected: At dawn one coin starts from the top of the castle keep (4.5 m above the castle centre) and flies to the gold counter, read as the castle paying 1 gold. At night, when an enemy comes within 11 m of the castle, a gold arrow leaves the top of the keep; three hits kill a grunt and two a skirmisher. Judge whether the castle attack reads as simple and not too strong. Note: the balanced bot never lets an enemy within 11 m, so castle arrows appear mostly when the defence is thin
-result: [pending]
+result: issue
+reported: "castle range should be double what it is now, and arrow speed should be 1.5x faster (owner, round 2, 2026-10-07; given on the gate test, belongs to the castle attack)"
+severity: minor
 
 ### 14. G-02-1 point 3: how the 12 m/s sprint, the 60 m/s^2 braking and the night 2x fast-forward feel in the owner's hands
 expected: The king still stops on a plot when the sprint key is released (full-sprint stop 1.2 m, inside the 2.5 m build radius) and is not uncontrollable at 12 m/s. Holding F or the gamepad left trigger at night runs the game at 2x and the 'Fast-forward 2x' label (top right) is legible. The game returns to real time at dawn, in the 1.2 s defeat beat and on the results screen. Say whether night-only is acceptable or you want it by day too or faster than 2x (assumption 14). Round-1 test 10 passed at 8 m/s; the sprint changed, so the handling judgement is partly reopened here
-result: [pending]
+result: issue
+reported: "speed up should be togglable instead of hold to speed up. everything else is pass (owner, round 2, 2026-10-07: sprint, braking, 2x, label and night-only all pass; the fast-forward input should be a toggle, not a hold)"
+severity: minor
 
 ### 15. G-02-1 point 4: difficulty for a human after the three fixes
 expected: Decide whether the run is now 'a bit easier' rather than too easy, and whether night 3 and the castle still feel fair. The bots now win 10 of 10 (balanced and tower-first); the balanced bot loses no building and is never knocked out, which is easier than 'a bit easier', and none of your two levers (night-3 east grunts 5 to 4, castle health 70 to 80) was applied because the balanced bot never lost. If it feels too easy, the levers in 02-BALANCE-REPORT.md are the night counts and the castle's damage, never grunt health
-result: [pending]
+result: issue
+reported: "difficulty should be tweaked to be little harder. I think balanced bot should lose 2-3 times out of 10 (owner, round 2, 2026-10-07: target for the balanced bot on seeds 1 to 10 is 7 or 8 wins, not 10; levers per 02-BALANCE-REPORT.md are the night counts and the castle's damage, never grunt health)"
+severity: minor
 
 ### 16. G-02-2: results screen spacing on a real Victory and a real Defeat
 expected: The visible gap from the last stat row to the Play again and Quit buttons looks equal to the gap between stat rows (11 px added above the button row). Quit is still distinguishable. Play again, Quit and the 0.6 s accidental-restart grace behave as passed in round 1
-result: [pending]
+result: pass
+evidence: "owner: otherwise the spacing etc looks ok (round 2, 2026-10-07); orchestrator screenshots results_victory/results_defeat show the button row spaced like the stat rows"
 
 ### 17. Assumptions 12 to 15 of the round-2 packet, made on the owner's behalf
 expected: Confirm or change: 12 (the bot measurement rule), 13 (base income of 1 gold per dawn paid on every dawn including the first, the castle attack numbers 2 dmg / 11 m / 1.5 s / 18 m/s, no night-3 or castle-health change), 14 (fast-forward night only, 2x, F or left trigger), 15 (the base income shown as a coin from the castle, not a text line)
-result: [pending]
+result: pass
+evidence: "owner, round 2, 2026-10-07: 12 confirmed as the measurement rule with the target changed to the balanced bot winning 7 or 8 of 10 seeds; 15 pass; 13 and 14 superseded by the answers on tests 13 (castle range x2, arrow speed x1.5), 14 (fast-forward toggle) and 15 (a little harder)"
 
 ## Summary
 
 total: 17
-passed: 9
-issues: 2
-pending: 6
+passed: 11
+issues: 6
+pending: 0
 skipped: 0
 blocked: 0
 
@@ -102,7 +108,9 @@ blocked: 0
 > Round 2 (2026-10-06): plans 02-12 to 02-16 closed the code side of G-02-1 (points 1 to 3) and G-02-2, and re-measured point 4 under the owner's rule (no lever applied; balanced bot 10 of 10). The owner's re-check of each is tests 12 to 17 above; the gap rows below keep their round-1 wording until that decision is recorded.
 - gap_id: G-02-1
   truth: "A recorded decision through /gsd-verify-work: sign-off that gold trade-offs feel meaningful and nights feel tense and readable, or a list of tuning/feel fixes, plus any of the 13 assumptions to change"
-  status: failed
+  status: resolved
+  resolved_by: 02-12-PLAN.md, 02-13-PLAN.md, 02-15-PLAN.md, 02-16-PLAN.md
+  resolved_at: 2026-10-06
   reason: "User reported: (1) there needs to be some base gold gain at each wave. I made a tower the first wave and then had 0 gold for all waves after that. (2) castle should also have a simple attack, not too strong though. Maybe takes three shots to kill a grunt and two to kill the ranged units. (3) the speed up should be at least 1.5x faster too (4) i cant currently win lol make it just a bit easier"
   severity: major
   test: 1
@@ -138,7 +146,9 @@ blocked: 0
   debug_session: .planning/debug/playtest-economy-castle-speed-difficulty.md
 - gap_id: G-02-2
   truth: "Stat rows have a clear gap above the buttons; Quit is distinguishable from the panel. Tapping or mashing Space or gamepad A as Victory/Defeat appears does not restart the run or quit: for the first 0.6 s of the screen both buttons ignore every press, and Play again works after that. A press that BEGINS inside the 0.6 s window and is released after it also does nothing (the code stamps when a press began, on button_down, and counts it only if it began after the window), and so does a key that was already held when the screen appeared. A fresh press that begins after the window works. Judge the feel: that 0.6 s neither lets a mash through nor feels sluggish before Play again responds, and that a held or straddling press does nothing"
-  status: failed
+  status: resolved
+  resolved_by: 02-14-PLAN.md
+  resolved_at: 2026-10-06
   reason: "User reported: stat rows have a gap between each other and between them and the buttons but the gap between the stat rows and the buttons is smaller than the gap within the stat rows. I think it should be equal. The rest is all good and passes (accidental-restart tap and press feel pass)."
   severity: cosmetic
   test: 2
@@ -150,3 +160,35 @@ blocked: 0
     - "Add 11 px above the Buttons row only: wrap Buttons in a MarginContainer with margin_top = 11, or give Buttons custom_minimum_size (0, 59) with both buttons size_flags_vertical SHRINK_END; keep the stat rows untouched (the e2e tests reach the buttons by unique name, so wrapping is safe)"
     - "Note the value depends on the font and size; recompute as ascent minus cap height plus the 2 px focus expand if either changes"
   debug_session: .planning/debug/results-screen-button-gap.md
+- gap_id: G-02-13
+  truth: "At dawn one coin starts from the top of the castle keep (4.5 m above the castle centre) and flies to the gold counter, read as the castle paying 1 gold. At night, when an enemy comes within 11 m of the castle, a gold arrow leaves the top of the keep; three hits kill a grunt and two a skirmisher. Judge whether the castle attack reads as simple and not too strong. Note: the balanced bot never lets an enemy within 11 m, so castle arrows appear mostly when the defence is thin"
+  status: failed
+  reason: "User reported: castle range should be double what it is now, and arrow speed should be 1.5x faster (owner, round 2, 2026-10-07; given on the gate test, belongs to the castle attack)"
+  severity: minor
+  test: 13
+  artifacts: []
+  missing: []
+- gap_id: G-02-14
+  truth: "The king still stops on a plot when the sprint key is released (full-sprint stop 1.2 m, inside the 2.5 m build radius) and is not uncontrollable at 12 m/s. Holding F or the gamepad left trigger at night runs the game at 2x and the 'Fast-forward 2x' label (top right) is legible. The game returns to real time at dawn, in the 1.2 s defeat beat and on the results screen. Say whether night-only is acceptable or you want it by day too or faster than 2x (assumption 14). Round-1 test 10 passed at 8 m/s; the sprint changed, so the handling judgement is partly reopened here"
+  status: failed
+  reason: "User reported: speed up should be togglable instead of hold to speed up. everything else is pass (owner, round 2, 2026-10-07: sprint, braking, 2x, label and night-only all pass; the fast-forward input should be a toggle, not a hold)"
+  severity: minor
+  test: 14
+  artifacts: []
+  missing: []
+- gap_id: G-02-15
+  truth: "Decide whether the run is now 'a bit easier' rather than too easy, and whether night 3 and the castle still feel fair. The bots now win 10 of 10 (balanced and tower-first); the balanced bot loses no building and is never knocked out, which is easier than 'a bit easier', and none of your two levers (night-3 east grunts 5 to 4, castle health 70 to 80) was applied because the balanced bot never lost. If it feels too easy, the levers in 02-BALANCE-REPORT.md are the night counts and the castle's damage, never grunt health"
+  status: failed
+  reason: "User reported: difficulty should be tweaked to be little harder. I think balanced bot should lose 2-3 times out of 10 (owner, round 2, 2026-10-07: target for the balanced bot on seeds 1 to 10 is 7 or 8 wins, not 10; levers per 02-BALANCE-REPORT.md are the night counts and the castle's damage, never grunt health)"
+  severity: minor
+  test: 15
+  artifacts: []
+  missing: []
+- gap_id: G-02-12
+  truth: "A recorded decision through /gsd-verify-work. Sign-off means: base gold fixes the tower-first trap without making gold meaningless, the castle attack is simple and not too strong, the 12 m/s sprint and the night fast-forward are fast enough, the game is a bit easier but still tense, and the results spacing looks even. Otherwise a list of fixes and any of assumptions 12 to 15 to change. Read the Round 2 section of 02-PLAYTEST-GATE.md first (what changed for each point, the controls table with the Fast-forward row, the round-2 balance table)"
+  status: failed
+  reason: "User reported: Fixes first (owner decision, round 2, 2026-10-07): castle range should be double and arrow speed 1.5x faster (test 13); speed up should be togglable instead of hold (test 14); difficulty a little harder, balanced bot should lose 2-3 of 10 (test 15). Everything else passes: base gold, spacing, sprint, 2x pace, label, night-only. Phase 2 does not close until these land and the owner replays (round 3)"
+  severity: major
+  test: 12
+  artifacts: []
+  missing: []
