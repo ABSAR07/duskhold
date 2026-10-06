@@ -8,9 +8,11 @@ extends CanvasLayer
 ##
 ## The build key (Space, gamepad A) is also ui_accept, so a player still tapping it as the run ends
 ## would press the focused Play again and lose the screen before reading it (review WR-03). For
-## `LoopTuning.results_input_grace_seconds` of real time after the screen appears both buttons
-## ignore every press, from any device; the focus and the look of the screen are unchanged, and
-## once the window is over all three devices work as before (D-16).
+## `LoopTuning.results_input_grace_seconds` of real time after the screen appears (at most
+## MAX_GRACE_S) both buttons ignore every press, from any device; the focus and the look of the
+## screen are unchanged, and once the window is over all three devices work as before (D-16). A
+## Button emits `pressed` when the press is released, so what is gated is when the press began
+## (`button_down`): a press that starts inside the window and is let go after it does nothing too.
 
 signal play_again_pressed
 signal quit_pressed
@@ -23,11 +25,17 @@ const GOLD_TEXT := "Gold earned: %d"
 const BUILDINGS_LOST_TEXT := "Buildings lost: %d"
 const KNOCKOUTS_TEXT := "King knockouts: %d"
 
+## Cap on the input grace, in seconds. A typo in the data (60 for 0.6) would otherwise leave both
+## buttons dead for that long with nothing on screen to say why; no tap or hold lasts this long.
+const MAX_GRACE_S: float = 3.0
+
 var _ctx: RunContext
 var _scheduled: bool = false
 var _showing: bool = false
 ## Real time (Time.get_ticks_msec) from which presses are taken; set when the screen appears.
 var _accept_from_ms: int = 0
+## Real time at which the latest press on either button began; -1 until one has.
+var _down_ms: int = -1
 
 @onready var _outcome_label: Label = %OutcomeLabel
 @onready var _nights_label: Label = %NightsLabel
@@ -41,6 +49,8 @@ var _accept_from_ms: int = 0
 func _ready() -> void:
 	_play_again_button.pressed.connect(_on_play_again_pressed)
 	_quit_button.pressed.connect(_on_quit_pressed)
+	_play_again_button.button_down.connect(_on_button_down)
+	_quit_button.button_down.connect(_on_button_down)
 
 
 ## Binds the screen to one run. MapRoot calls this once; a repeat call is ignored so no signal is
@@ -82,7 +92,8 @@ func _show_results(outcome: StringName) -> void:
 	if _showing:
 		return
 	_showing = true
-	var grace_ms: int = roundi(maxf(_ctx.tuning.results_input_grace_seconds, 0.0) * 1000.0)
+	var grace_s: float = clampf(_ctx.tuning.results_input_grace_seconds, 0.0, MAX_GRACE_S)
+	var grace_ms: int = roundi(grace_s * 1000.0)
 	_accept_from_ms = Time.get_ticks_msec() + grace_ms
 	_outcome_label.text = VICTORY_TEXT if outcome == &"victory" else DEFEAT_TEXT
 	var stats: RunStats = _ctx.stats
@@ -96,11 +107,20 @@ func _show_results(outcome: StringName) -> void:
 	_play_again_button.grab_focus()
 
 
+func _on_button_down() -> void:
+	_down_ms = Time.get_ticks_msec()
+
+
+## A press counts only if the screen is taking input now and the press began after the window.
+func _press_counts() -> bool:
+	return accepts_input() and _down_ms >= _accept_from_ms
+
+
 func _on_play_again_pressed() -> void:
-	if accepts_input():
+	if _press_counts():
 		play_again_pressed.emit()
 
 
 func _on_quit_pressed() -> void:
-	if accepts_input():
+	if _press_counts():
 		quit_pressed.emit()
