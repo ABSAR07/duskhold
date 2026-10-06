@@ -22,6 +22,8 @@ const PUPPET_AT := Vector2(5.0, 5.0)
 const FLASH_SETTLE_S: float = 0.5
 const FILL_EPSILON: float = 0.0001
 const COLOR_EPSILON: float = 0.001
+## The top of the castle model: the keep box with its turret on it.
+const KEEP_TOP: float = BuildingViews.KEEP_SIZE.y + BuildingViews.TURRET_HEIGHT
 
 
 func after_each() -> void:
@@ -100,6 +102,36 @@ func test_a_skirmisher_shot_flies_as_a_violet_arrow() -> void:
 	assert_almost_eq(material.albedo_color.r, ProjectileVfx.SKIRMISHER_COLOR.r, COLOR_EPSILON, "r")
 	assert_almost_eq(material.albedo_color.g, ProjectileVfx.SKIRMISHER_COLOR.g, COLOR_EPSILON, "g")
 	assert_almost_eq(material.albedo_color.b, ProjectileVfx.SKIRMISHER_COLOR.b, COLOR_EPSILON, "b")
+
+
+func test_a_castle_shot_flies_as_a_gold_arrow_from_the_keep() -> void:
+	var map_root: MapRoot = await _spawn_map(E2eSupport.shipped_prototype_map(), KING_AWAY)
+	var ctx: RunContext = map_root.get_context()
+	var vfx: ProjectileVfx = _vfx(map_root)
+	assert_not_null(vfx, "the scene has a ProjectileVfx")
+	if vfx == null:
+		return
+	var id: int = ctx.night.get_enemies().spawn(ctx.map.find_enemy(&"grunt"), PUPPET_AT)
+	ctx.events.attack_fired.emit(&"castle", 0, &"enemy", id, FLOOD_FLIGHT_TICKS)
+	assert_eq(vfx.live_count(), 1, "one projectile for one castle shot")
+	var arrows: Array[Node] = vfx.find_children("*", "MeshInstance3D", true, false)
+	assert_eq(arrows.size(), 1, "one arrow mesh")
+	if arrows.is_empty():
+		return
+	var arrow: MeshInstance3D = arrows[0] as MeshInstance3D
+	var material: StandardMaterial3D = arrow.mesh.material
+	assert_almost_eq(material.albedo_color.r, ProjectileVfx.TOWER_COLOR.r, COLOR_EPSILON, "r")
+	assert_almost_eq(material.albedo_color.g, ProjectileVfx.TOWER_COLOR.g, COLOR_EPSILON, "g")
+	assert_almost_eq(material.albedo_color.b, ProjectileVfx.TOWER_COLOR.b, COLOR_EPSILON, "b")
+	var castle: Vector2 = ctx.castle.get_position()
+	assert_almost_eq(arrow.global_position.x, castle.x, COLOR_EPSILON, "starts over the castle x")
+	assert_almost_eq(arrow.global_position.z, castle.y, COLOR_EPSILON, "starts over the castle z")
+	assert_almost_eq(
+		arrow.global_position.y, KEEP_TOP, COLOR_EPSILON, "starts at the top of the keep"
+	)
+	var gone: Callable = func() -> bool: return vfx.live_count() == 0
+	var window_s: float = ProjectileVfx.flight_seconds(FLOOD_FLIGHT_TICKS) + FLIGHT_SLACK_S
+	assert_true(await E2eSupport.wait_until(self, gone, window_s), "freed after its flight")
 
 
 func test_a_flood_of_shots_never_passes_the_cap_and_all_of_them_free_themselves() -> void:

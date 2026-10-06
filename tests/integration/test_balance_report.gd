@@ -6,6 +6,7 @@ extends GutTest
 
 const Cli := preload("res://tools/playtest/playtest_cli.gd")
 const MAP_PATH := "res://data/maps/prototype_map.tres"
+const FIXTURE_MAP := "res://tests/fixtures/fixture_map_replay_smoke.tres"
 const TUNING_PATH := "res://data/tuning/loop_tuning.tres"
 const KING_PATH := "res://data/king/king.tres"
 const RUN_KEYS: Array[String] = [
@@ -23,6 +24,7 @@ const NIGHT_KEYS: Array[String] = [
 	"enemies",
 	"kills_king",
 	"kills_towers",
+	"kills_castle",
 	"buildings_lost",
 	"knockouts",
 	"castle_hp_end",
@@ -183,7 +185,7 @@ func _night_lines(lines: PackedStringArray) -> Array:
 	return nights
 
 
-func test_kills_by_king_and_towers_add_up_to_the_nights_deaths() -> void:
+func test_kills_by_king_towers_and_castle_add_up_to_the_nights_deaths() -> void:
 	var nights: Array = _night_lines(_driver_result["lines"])
 	var per_night: Array = _driver_result["per_night"]
 	assert_eq(nights.size(), per_night.size(), "the log has the same nights")
@@ -195,10 +197,42 @@ func test_kills_by_king_and_towers_add_up_to_the_nights_deaths() -> void:
 			deaths += 1 if parts[1] == "enemy_died" else 0
 			spawns += 1 if parts[1] == "enemy_spawned" else 0
 		var night: Dictionary = per_night[index]
-		assert_eq(
-			night["kills_king"] + night["kills_towers"], deaths, "night %d deaths" % (index + 1)
-		)
+		var kills: int = night["kills_king"] + night["kills_towers"] + night["kills_castle"]
+		assert_eq(kills, deaths, "night %d deaths" % (index + 1))
 		assert_eq(night["enemies"], spawns, "night %d enemies" % (index + 1))
+
+
+func test_the_tally_credits_a_castle_kill_to_kills_castle() -> void:
+	var map: MapConfig = (load(FIXTURE_MAP) as MapConfig).duplicate_deep(
+		Resource.DEEP_DUPLICATE_ALL
+	)
+	var ctx: RunContext = RunContext.new(map, load(TUNING_PATH), 1)
+	var tally: ReplayDriver.Tally = ReplayDriver.Tally.new(ctx)
+	ctx.events.night_started.emit(1)
+	ctx.events.enemy_died.emit(1, &"grunt", Vector2.ZERO, PendingHits.KIND_CASTLE)
+	ctx.events.enemy_died.emit(2, &"grunt", Vector2.ZERO, PendingHits.KIND_KING)
+	ctx.events.enemy_died.emit(3, &"grunt", Vector2.ZERO, PendingHits.KIND_BUILDING)
+	ctx.events.enemy_died.emit(4, &"grunt", Vector2.ZERO, PendingHits.KIND_CASTLE)
+	var night: Dictionary = tally.per_night[0]
+	assert_eq(night["kills_castle"], 2, "two castle kills")
+	assert_eq(night["kills_king"], 1, "the king kill is not a castle kill")
+	assert_eq(night["kills_towers"], 1, "the tower kill is not a castle kill")
+
+
+func test_the_markdown_night_table_has_a_kills_castle_column_with_a_value_per_row() -> void:
+	var text: String = BalanceReport.to_markdown(_report)
+	assert_true(text.contains("| Kills towers | Kills castle | Buildings lost |"), "the column")
+	var headers: int = 0
+	var rows: int = 0
+	for line: String in text.split("\n"):
+		if line.begins_with("| Night |"):
+			headers += 1
+			assert_eq(line.count("|"), 12, "the Night cell and ten column headers")
+		elif line.begins_with("| ") and line.substr(2, 1).is_valid_int():
+			rows += 1
+			assert_eq(line.count("|"), 12, "a night row has a value for every column")
+	assert_eq(headers, 2, "one night table per strategy")
+	assert_gt(rows, 0, "the tables have night rows")
 
 
 func test_a_nights_duration_is_its_steps_times_the_step() -> void:
