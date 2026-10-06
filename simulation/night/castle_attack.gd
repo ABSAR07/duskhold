@@ -4,10 +4,13 @@ extends RefCounted
 ## strong). While the castle stands it shoots the nearest enemy whose centre is within
 ## MapConfig.castle_attack_range, once per castle_attack_interval, as a pending hit that lands
 ## SimClock.flight_ticks(distance, castle_projectile_speed) ticks later on the enemy's id, like a
-## tower arrow (RESEARCH Pattern 2). The shipped numbers (damage 2, reach 11 m, every 1.5 s) are
-## meant to kill a grunt (6 hp) in three hits and a skirmisher (4 hp) in two, and the reach is
-## castle_radius plus a skirmisher's attack_range plus a little, so the castle answers a skirmisher
-## shooting at it from its stand-off.
+## tower arrow (RESEARCH Pattern 2). The shipped numbers are damage 2 every 1.5 s, reach 22 m and
+## arrows at 27 m/s (reach doubled and arrow speed raised 1.5x by owner decision 2026-10-07,
+## G-02-13). Three hits kill a grunt (6 hp) and two a skirmisher (4 hp). The reach stays well beyond
+## a skirmisher's 10.5 m stand-off, covers the two inner House plots and the centres of houses 3
+## and 4 but no tower's reach circle, so a lone grunt takes all three hits before reaching the wall
+## and a lone skirmisher dies before it shoots. An arrow at the edge flies 25 ticks, under the
+## 45-tick interval.
 ##
 ## It is stepped by NightSim.step only, between the towers and the enemies (DR-8), so it never acts
 ## by day, at dawn or after the run ends. It is armed only when damage, range and interval are all

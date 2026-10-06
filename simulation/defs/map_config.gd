@@ -37,10 +37,12 @@ const CASTLE_PAYOUT_KEY: StringName = &"castle"
 @export var castle_max_health: int = 40
 ## Radius of the castle in metres; enemies stop at this plus their own attack range.
 @export var castle_radius: float = 3.5
-## The castle's own attack (owner decision 2026-10-06, G-02-1 point 2): a simple, slow shot at the
-## nearest enemy whose centre is within castle_attack_range, every castle_attack_interval seconds,
-## as an arrow flying at castle_projectile_speed metres per second (0 would hit at once). 0 damage
-## switches the castle attack off, which keeps every fixture and the smoke golden unchanged.
+## The castle's own attack: a simple shot at the nearest enemy whose centre is within
+## castle_attack_range, every castle_attack_interval seconds, as an arrow flying at
+## castle_projectile_speed metres per second (0 would hit at once). Damage and rate were chosen on
+## 2026-10-06 (G-02-1 point 2); reach and arrow speed were raised on 2026-10-07 (G-02-13: 22 m and
+## 27 m/s on the shipped map). 0 damage switches the castle attack off, which keeps every fixture
+## and the smoke golden unchanged.
 @export var castle_attack_damage: int = 0
 @export var castle_attack_range: float = 0.0
 @export var castle_attack_interval: float = 0.0

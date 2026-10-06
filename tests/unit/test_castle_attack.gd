@@ -4,7 +4,8 @@ extends GutTest
 ## skirmisher, and it reaches a skirmisher shooting at it. Hand-built night (CastleAttack,
 ## CastleState, EnemySystem and PendingHits, no RunContext) copied from test_tower_combat.gd, plus
 ## one NightSim run for the step order. Shipped enemy numbers come from the .tres files; the pinned
-## literals are the castle's own numbers and the 6 m / 18 m/s flight of 10 ticks.
+## literals are the shipped castle's numbers since the owner's decision of 2026-10-07 (G-02-13:
+## reach 22 m, arrows 27 m/s), with the 6 m / 27 m/s flight of 7 ticks.
 
 const GRUNT_PATH := "res://data/enemies/grunt.tres"
 const RANGED_PATH := "res://data/enemies/ranged.tres"
@@ -12,11 +13,11 @@ const TOWER_PATH := "res://data/buildings/tower.tres"
 const HOUSE_PATH := "res://data/buildings/house.tres"
 const KING_PATH := "res://data/king/king.tres"
 const DAMAGE: int = 2
-const REACH: float = 11.0
+const REACH: float = 22.0
 const INTERVAL_S: float = 1.5
-const PROJECTILE_SPEED: float = 18.0
+const PROJECTILE_SPEED: float = 27.0
 const TOUGH_HEALTH: int = 100000
-const JUST_BEYOND_REACH: float = 11.01
+const JUST_BEYOND_REACH: float = 22.01
 const INTERVAL_TICKS: int = 45
 const FAR_FROM_THE_FIGHT := Vector2(0.0, 80.0)
 ## Each way a castle attack number can disarm the castle: [field, value].
@@ -92,8 +93,8 @@ func _record_shots() -> Array:
 	return shots
 
 
-func test_the_pinned_flight_for_six_metres_at_the_castle_arrow_speed_is_ten_ticks() -> void:
-	assert_eq(SimClock.flight_ticks(6.0, PROJECTILE_SPEED), 10, "6 m at 18 m/s")
+func test_the_pinned_flight_for_six_metres_at_the_castle_arrow_speed_is_seven_ticks() -> void:
+	assert_eq(SimClock.flight_ticks(6.0, PROJECTILE_SPEED), 7, "6 m at 27 m/s")
 	assert_eq(SimClock.ticks(INTERVAL_S), INTERVAL_TICKS, "1.5 s is 45 ticks")
 
 
@@ -140,13 +141,13 @@ func test_with_no_enemy_in_reach_nothing_fires_and_an_enemy_entering_is_shot_at_
 func test_an_enemy_exactly_at_the_reach_is_shot_and_one_just_beyond_it_is_not() -> void:
 	var at_edge: int = _spawn_at(REACH)
 	_tick(0)
-	assert_eq(_shots.size(), 1, "11.0 m is in reach")
+	assert_eq(_shots.size(), 1, "%s m is in reach" % REACH)
 	if _shots.size() == 1:
 		assert_eq(_shots[0][3], at_edge, "that one")
 	_build()
 	_spawn_at(JUST_BEYOND_REACH)
 	_tick(0)
-	assert_eq(_shots.size(), 0, "11.01 m is out of reach")
+	assert_eq(_shots.size(), 0, "%s m is out of reach" % JUST_BEYOND_REACH)
 
 
 func test_equally_near_enemies_the_lower_id_is_shot() -> void:

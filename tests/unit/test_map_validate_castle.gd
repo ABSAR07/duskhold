@@ -129,7 +129,5 @@ func test_the_shipped_castle_reaches_22_m_and_its_arrows_fly_at_27_m_per_s() -> 
 	var flight: int = SimClock.flight_ticks(map.castle_attack_range, map.castle_projectile_speed)
 	assert_eq(flight, EDGE_FLIGHT_TICKS, "an arrow at the edge of the reach flies 25 ticks")
 	assert_lt(
-		flight,
-		SimClock.ticks(map.castle_attack_interval),
-		"one castle arrow in the air at a time"
+		flight, SimClock.ticks(map.castle_attack_interval), "one castle arrow in the air at a time"
 	)
