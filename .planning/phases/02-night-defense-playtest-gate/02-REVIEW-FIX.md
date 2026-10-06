@@ -1,58 +1,105 @@
 ---
 phase: 02-night-defense-playtest-gate
-fixed_at: 2026-10-05T16:00:29Z
+fixed_at: 2026-10-06T05:13:06Z
 review_path: .planning/phases/02-night-defense-playtest-gate/02-REVIEW.md
 iteration: 1
-findings_in_scope: 3
-fixed: 3
+findings_in_scope: 6
+fixed: 6
 skipped: 0
 status: all_fixed
 ---
 
 # Phase 2: Code Review Fix Report
 
-**Fixed at:** 2026-10-05T16:00:29Z
+**Fixed at:** 2026-10-06T05:13:06Z
 **Source review:** .planning/phases/02-night-defense-playtest-gate/02-REVIEW.md
 **Iteration:** 1
 
 **Summary:**
-- Findings in scope: 3
-- Fixed: 3
+- Findings in scope: 6
+- Fixed: 6
 - Skipped: 0
 
-Scope was Critical and Warning only (WR-01 to WR-03); IN-01 to IN-06 were left alone.
+Every fix was written test-first: the new or extended test was run and seen to fail for the right
+reason before the code change. Verification ran in the main checkout (no worktree; `workflow.use_worktrees`
+is unset and the task said to work on the main checkout), so the numbers are reproducible from the tree.
+Full suite at the end: 86 scripts, 745 tests, 0 failures (was 738 before this pass). `bash tools/lint.sh`
+is clean. The replay goldens are unchanged: `smoke` prints REPLAY_OK with digest 2599c7c2..., and
+`full_idle` still wins in 6244 ticks with digest a25aa7fd....
 
 ## Fixed Issues
 
-### WR-01: MapConfig.validate() cannot catch enemy data that makes a night impossible to end, and a real night has no clock
+### WR-01: The input grace gates the release of a press, so a press started inside the window and held past it still restarts
 
-**Files modified:** `simulation/defs/map_config.gd`, `tests/unit/test_map_validate_enemies.gd`, `tests/unit/test_map_validate_enemies.gd.uid`
-**Commit:** c6bb202
-**Applied fix:** `validate()` now reports an enemy whose `aggro_range` is not above its `attack_range` (strict, because at equality float rounding in the stop position can leave the target edge a hair beyond aggro range), `leash_range` below `aggro_range`, non-positive `radius` or `retarget_interval_seconds`, negative `attack_range` or `projectile_speed`, a non-positive `castle_radius`, and per tower tier a negative `attack_range` or `projectile_speed` and a non-positive `attack_interval`. The enemy checks moved into a new private `_validate_enemy`, the tier checks into `_validate_tier_combat`. A new test file (12 tests, each bad value yields exactly one error naming the field) was written first and failed with 11 of 12 reporting no error; the 20-test cap on `test_map_validate_nights.gd` is why the tests live in a new file. Shipped data still validates clean and the replay goldens are unchanged. Not done: the optional per-night tick ceiling in `RunManager` (the review said "consider"); it would change run structure and the hang is now prevented at the data gate instead. Status: fixed, requires human verification (logic rule; the strict `>` is a judgement call).
+**Files modified:** `ui/results/results_screen.gd`, `tests/e2e/test_results_screen.gd`
+**Commit:** 81c300e
+**Applied fix:** Both buttons now connect `button_down` to a handler that stamps `_down_ms`; the two
+`pressed` handlers call `_press_counts()`, which requires `accepts_input()` and
+`_down_ms >= _accept_from_ms`. A press that begins inside the window and is released after it does
+nothing; a press that begins after the window works. New tests press down only inside the window, wait
+until `accepts_input()` is true, release, assert no signal, then do a fresh press and release and assert
+one signal, for keyboard (Space), gamepad (A) and mouse (button_down then pressed on Quit) on the Defeat
+screen and for the keyboard on the Victory screen. Before the fix all four failed with the straddling
+press restarting. Existing tests that called `pressed.emit()` directly now go through a `_click()` helper
+that emits `button_down` and then `pressed`, which is what a real mouse click does, so they stay
+meaningful as mouse-press checks instead of being kept on `accepts_input()` alone. The e2e file still
+sets `handle_results_actions` false, so no test reloads or quits. Logic fix: requires human verification.
 
-### WR-02: The per-night enemy cap is advisory only; at runtime it is not enforced
+### WR-02: The new results-screen tests fail if the runner stalls longer than the grace window
+
+**Files modified:** `tests/e2e/test_results_screen.gd`
+**Commit:** 81c300e
+**Applied fix:** The two existing grace tests and the new straddle tests use their own 3.0 s window
+(`TEST_GRACE_S`, through the `_tuning_with_grace` override) instead of the shipped 0.6 s; the victory
+test no longer reads the shipped value (the shipped-value check stays in
+`tests/unit/test_loop_tuning_contract.gd`). "Ignored inside the window" is judged after the taps rather
+than before: `accepts_input()` never goes back to false, so if it is still false after the last tap every
+tap was inside the window. If the runner stalled past the window the test calls `pending()` instead of
+failing. The brittle `assert_false(results.accepts_input())` at the top of the defeat test was removed.
+
+### IN-01: `preview_counts` counts groups that `WaveSchedule` skips
 
 **Files modified:** `simulation/night/wave_schedule.gd`, `tests/unit/test_wave_schedule.gd`
-**Commit:** ef8ca58
-**Applied fix:** A new static `_allowances(map, night, needs_enemy)` shares one `MapConfig.MAX_ENEMIES_PER_NIGHT` budget across a night's groups in group order. `WaveSchedule._init` and `preview_counts` both use it, so the telegraph agrees with the capped night. `MAX_GROUP_COUNT` is now derived from the map constant (it was 500 against a 300 night limit). Groups the schedule cannot play take nothing from the budget; `preview_counts` still does not look at the enemy id (`needs_enemy` is false there), so IN-01 behaviour is unchanged. Four tests were added (one group of 1500 gives 300, 20 groups of 500 give at most 300, the budget is shared in group order, preview equals schedule when capped); three failed first with 500, 10000 and 580 spawned. Status: fixed, requires human verification (scheduling logic). The smoke and full_idle replay digests are unchanged.
+**Commit:** 21b8abb
+**Applied fix:** `_allowances` lost its `needs_enemy` parameter and always skips a group with an unknown
+enemy as well as one with an unknown spawn point, so the preview and the schedule skip the same groups and
+spend the night budget identically. The comment that claimed they agree now says what is shared. New test
+`test_the_preview_skips_an_unknown_enemy_group_like_the_schedule` puts an unknown-enemy group of the whole
+night budget ahead of a valid 5-grunt group; it failed before (preview `{west: 300}`) and now gives
+`{east: 5}`, equal to the schedule's total. Replay goldens unchanged. Logic fix: requires human
+verification.
 
-### WR-03: The action key is also the menu accept key, so mashing it at the end of a run restarts the game
+### IN-02: `MAX_GROUP_COUNT` is now a dead clamp
 
-**Files modified:** `ui/results/results_screen.gd`, `simulation/defs/loop_tuning.gd`, `data/tuning/loop_tuning.tres`, `tests/e2e/test_results_screen.gd`, `tests/unit/test_loop_tuning_contract.gd`
-**Commit:** 6057fd1
-**Applied fix:** New tuning field `LoopTuning.results_input_grace_seconds` (0.6 s in `loop_tuning.tres`, with the reason in its doc comment). `ResultsScreen` records a real-time deadline (`Time.get_ticks_msec`) when it shows, exposes `accepts_input()`, and both button handlers emit their signal only when it is true. Focus and the look of the screen are unchanged (no disabled buttons, no timers), so keyboard, gamepad and mouse all work once the window is over (D-16); inside the window a press from any device does nothing, including a mouse click. The window applies to Victory (shown at once) and Defeat (shown after the loss beat). Tests: a defeat test pins that A, Space, Enter and mouse presses on both buttons inside a 1 s window emit nothing and that Space after `accepts_input()` emits exactly once; a victory test uses the shipped 0.6 s and Space as the real collision; a contract test pins the field as stored, between 0.3 and 1.0 s. Before the gate existed the new tests failed with `play_again_pressed` emitted inside the window. The older button tests now use a tuning with grace 0 so they press at once; `handle_results_actions` stays false on MapRoot there. Status: fixed, requires human verification (input timing; the owner should tap the action key as Victory appears in a real run).
+**Files modified:** `simulation/night/wave_schedule.gd`, `tests/unit/test_wave_schedule.gd`
+**Commit:** 21b8abb
+**Applied fix:** Removed `MAX_GROUP_COUNT` and the inner `mini`; the `_allowances` doc comment now
+describes the night budget (`MapConfig.MAX_ENEMIES_PER_NIGHT`) alone. Because a dead-constant removal has
+no behaviour for a test to see, `test_the_night_budget_is_the_only_cap_constant` asserts the script's
+constant map has no `MAX_GROUP_COUNT`, so the second cap cannot quietly come back. Committed together
+with IN-01 (same file, same function).
+
+### IN-03: The "shipped grace is set in the data file" test cannot see the data file
+
+**Files modified:** `tests/unit/test_loop_tuning_contract.gd`
+**Commit:** 260ec31
+**Applied fix:** The test now reads the text of `res://data/tuning/loop_tuning.tres` with
+`FileAccess.get_file_as_string` and asserts it contains a line starting `results_input_grace_seconds = `.
+Checked by mutation: with the line deleted from the data file the test fails, and with the file restored
+it passes.
+
+### IN-04: The grace value has no upper bound
+
+**Files modified:** `ui/results/results_screen.gd`, `tests/e2e/test_results_screen.gd`
+**Commit:** 81c300e
+**Applied fix:** New constant `MAX_GRACE_S = 3.0` (with a comment giving the reason) and the grace is
+`clampf(value, 0.0, MAX_GRACE_S)`, so it is clamped at both ends. New test
+`test_a_huge_grace_value_is_capped_so_the_buttons_still_work` gives a 600 s grace, waits for
+`accepts_input()` within `MAX_GRACE_S` plus slack and then taps the key and expects Play again to fire; it
+failed before the clamp (the screen was still deaf after 3.5 s).
 
 ---
 
-_Fixed: 2026-10-05T16:00:29Z_
+_Fixed: 2026-10-06T05:13:06Z_
 _Fixer: Claude (gsd-code-fixer)_
 _Iteration: 1_
-
-## Verification
-
-Worked in the main checkout on `gsd/phase-01-foundation-day-loop`, no git worktree (per the dispatch instructions); all gates ran there, so they are reproducible from the tree. Each fix: test written first and seen to fail for the right reason, then fixed, `bash tools/lint.sh` clean before each commit.
-
-- Full suite after the last commit: 86 scripts, 738 tests, 738 passing (was 719 in 85 scripts; +12 +4 +2 +1 tests, +1 script).
-- `bash tools/replay.sh --scenario=smoke --twice --expect-file=tests/golden/smoke.json`: REPLAY_OK, digest 2599c7c250f45b3dfe6653a8fc683918cbdce768a9afcaf8e3752d3454ccf31f, 703 ticks (unchanged), after WR-01, WR-02 and at the end.
-- `bash tools/replay.sh --scenario=full_idle --twice`: REPLAY_OK, won in 6244 ticks, digest a25aa7fd20e3cba842165f4c9579660b0ce3dd4b30628dd17facf812f97c5b07 (unchanged).
-- Not run: screenshot job, playtest tool, a real-window play-through of the results screen, gdUnit or mutation probes by script.
