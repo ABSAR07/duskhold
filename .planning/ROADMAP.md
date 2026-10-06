@@ -108,7 +108,7 @@ Plans:
   3. From the command line and in CI, a seeded scripted night replays with identical results, and headless GUT tests cover waves, combat, and loop transitions (day → night → dawn, loss, win). During nights, the debug overlay shows live enemy counts, wave state, and enemy paths.
   4. Human playtest gate: the owner plays the prototype map through several full runs and either signs off that gold trade-offs feel meaningful and nights feel tense and readable, or records the tuning/feel fixes that must land before later phases begin. No meta-progression work is scheduled until this sign-off.
 
-**Plans**: 16/16 plans executed (02-12 to 02-16 close the 2026-10-06 UAT gaps G-02-1 and G-02-2)
+**Plans**: 16/20 plans executed (02-12 to 02-16 closed the 2026-10-06 UAT gaps G-02-1 and G-02-2; 02-17 to 02-20 close the 2026-10-07 round-2 UAT gaps G-02-13 to G-02-15 and reopen the gate for G-02-12)
 **UI hint**: yes
 
 Plans:
@@ -147,14 +147,26 @@ Plans:
 
 **Gap wave 1**
 - [x] 02-12: Base dawn income of 1 gold from the castle, its coin flying from the castle at dawn
-- [x] 02-13: Sprint 12 m/s and a night-only hold-to-fast-forward (F / left trigger, 2x) with its HUD label
+- [x] 02-13: Sprint 12 m/s and a night-only hold-to-fast-forward (F / left trigger, 2x) with its HUD label (a toggle from 02-18)
 - [x] 02-14: Results screen: 11 px above the buttons so the spacing is even
 
 **Gap wave 2** *(blocked on 02-12)*
-- [x] 02-15: The castle shoots (2 damage, 11 m, every 1.5 s) with visible arrows; castle kills in the balance report
+- [x] 02-15: The castle shoots (2 damage, 11 m, every 1.5 s) with visible arrows; castle kills in the balance report (22 m and 27 m/s arrows from 02-17)
 
 **Gap wave 3** *(blocked on 02-12 to 02-15)*
 - [x] 02-16: Balance re-measure under the owner's rule, acceptance test, regenerated report, fresh export and the round-2 playtest packet
+
+**Gap closure, round 2** *(UAT 2026-10-07: G-02-13 castle reach and arrow speed, G-02-14 fast-forward toggle, G-02-15 a little harder; G-02-12 is the owner's gate record, answered by the round-3 replay)*
+
+**Round-2 gap wave 1**
+- [ ] 02-17: Castle reach 22 m and arrows 27 m/s (the owner's numbers, pinned); castle validation and arming refuse non-finite and sub-step values (review WR-02)
+- [ ] 02-18: Fast-forward becomes a night-only toggle (press on, press again off, off when the night ends; one trigger pull counts once); leaked test controllers fixed (review WR-01)
+
+**Round-2 gap wave 2** *(blocked on 02-17)*
+- [ ] 02-19: The owner's full wall: night 2 opens the east road and nights 3 to 5 grow (totals 5, 12, 21, 21, 21, 22, 27, 33); balanced bot pinned at 7 or 8 of 10
+
+**Round-2 gap wave 3** *(blocked on 02-17 to 02-19)*
+- [ ] 02-20: Round-3 balance report, 15 screenshots, fresh export and the round-3 owner packet (the night-3 wall said plainly)
 
 ### Phase 3: King Combat & Troops
 
@@ -335,7 +347,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Day Loop | 18/18 | Complete    | 2026-10-03 |
-| 2. Night Defense & Playtest Gate | 16/16 | In Progress|  |
+| 2. Night Defense & Playtest Gate | 16/20 | In Progress|  |
 | 3. King Combat & Troops | 0/TBD | Not started | - |
 | 4. Crowd-Scale Battles & Walls | 0/TBD | Not started | - |
 | 5. Castle Center & Economy Depth | 0/TBD | Not started | - |
