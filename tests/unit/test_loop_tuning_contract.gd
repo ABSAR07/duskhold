@@ -164,6 +164,27 @@ func test_respawn_start_step_and_cap_are_exported_tuning_fields() -> void:
 	assert_gt(tuning.respawn_step_seconds, 0.0, "the shipped step is set in the data file")
 
 
+## Owner decision 2026-10-06 (UAT G-02-1, speed-up part b): holding fast_forward at night runs the
+## game at this multiple of real time. The shipped value is written in the data file itself and is
+## at least the owner's 1.5; the script default is 1.0 (off) and the cap is 4.0.
+func test_shipped_fast_forward_is_set_in_the_data_file_and_at_least_one_and_a_half() -> void:
+	var exported: Dictionary = {}
+	for property: Dictionary in LoopTuning.new().get_property_list():
+		if int(property["usage"]) & PROPERTY_USAGE_STORAGE != 0:
+			exported[property["name"]] = true
+	assert_true(exported.has("fast_forward_scale"), "a stored, exported field")
+	assert_eq(LoopTuning.new().fast_forward_scale, 1.0, "the script default is off")
+	assert_eq(LoopTuning.FAST_FORWARD_MAX_SCALE, 4.0, "the cap against bad data")
+	var data_text: String = FileAccess.get_file_as_string(TUNING)
+	assert_true(
+		data_text.contains("\nfast_forward_scale = "),
+		"the scale is written in loop_tuning.tres itself, not left to the script default"
+	)
+	var scale: float = _tuning().fast_forward_scale
+	assert_gte(scale, 1.5, "at least the 1.5x the owner asked for")
+	assert_lte(scale, 3.0, "not so fast the night is unplayable")
+
+
 ## WR-03: the results screen ignores presses for this many real seconds after it appears, because
 ## the build key doubles as ui_accept. It is tuning data: long enough to outlast a frantic tap,
 ## short enough that a player who wants to restart is not kept waiting.

@@ -15,6 +15,7 @@ const GAMEPLAY_ACTIONS: Array[StringName] = [
 	&"toggle_debug_overlay",
 	&"zoom_in",
 	&"zoom_out",
+	&"fast_forward",
 ]
 
 const EXPECTED_KEYS: Dictionary = {
@@ -28,6 +29,7 @@ const EXPECTED_KEYS: Dictionary = {
 	&"toggle_debug_overlay": [KEY_F3],
 	&"zoom_in": [KEY_EQUAL, KEY_KP_ADD],
 	&"zoom_out": [KEY_MINUS, KEY_KP_SUBTRACT],
+	&"fast_forward": [KEY_F],
 }
 
 const EXPECTED_BUTTONS: Dictionary = {
@@ -37,6 +39,7 @@ const EXPECTED_BUTTONS: Dictionary = {
 	&"toggle_debug_overlay": [JOY_BUTTON_BACK],
 	&"zoom_in": [],
 	&"zoom_out": [],
+	&"fast_forward": [],
 }
 
 # Stick bindings as [axis, sign].
@@ -47,10 +50,12 @@ const EXPECTED_AXES: Dictionary = {
 	&"move_back": [JOY_AXIS_LEFT_Y, 1.0],
 	&"zoom_in": [JOY_AXIS_RIGHT_Y, -1.0],
 	&"zoom_out": [JOY_AXIS_RIGHT_Y, 1.0],
+	&"fast_forward": [JOY_AXIS_TRIGGER_LEFT, 1.0],
 }
 
 const MOVE_DEADZONE: float = 0.2
 const ZOOM_DEADZONE: float = 0.3
+const FAST_FORWARD_DEADZONE: float = 0.5
 
 
 func _keys_of(action: StringName) -> Array[int]:
@@ -134,6 +139,14 @@ func test_movement_deadzone_is_point_two() -> void:
 func test_zoom_deadzone_is_point_three() -> void:
 	for action: StringName in [&"zoom_in", &"zoom_out"]:
 		assert_almost_eq(InputMap.action_get_deadzone(action), ZOOM_DEADZONE, 0.0001, str(action))
+
+
+## Fast-forward is a hold on the left trigger (an analog axis), so it reads like a button: pressed
+## from halfway down.
+func test_fast_forward_deadzone_is_point_five() -> void:
+	assert_almost_eq(
+		InputMap.action_get_deadzone(&"fast_forward"), FAST_FORWARD_DEADZONE, 0.0001, "deadzone"
+	)
 
 
 func test_no_two_gameplay_actions_share_a_key_button_or_stick_direction() -> void:
