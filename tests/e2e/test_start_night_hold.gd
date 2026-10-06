@@ -259,6 +259,8 @@ func test_a_build_hold_is_cancelled_when_the_night_starts() -> void:
 	for amount: int in ctx.buildings.dawn_income_by_spot().values():
 		dawn_income += amount
 	assert_gt(dawn_income, 0, "the standing House pays at dawn")
+	# The castle's base income is paid at every dawn on top of the House's (G-02-1).
+	dawn_income += map.base_dawn_income
 	E2eSupport.teleport_king(map_root, ctx.buildings.get_spot(HOUSE_SPOT).position + NEAR_OFFSET)
 	await wait_process_frames(2)
 	watch_signals(hold)

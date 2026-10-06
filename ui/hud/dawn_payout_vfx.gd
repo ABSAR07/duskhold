@@ -1,7 +1,8 @@
 class_name DawnPayoutVfx
 extends Control
 ## Makes the dawn income visible and attributable (D-12, ECON-02): one gold coin pops out above
-## each paying House, one per gold it pays, and flies to the HUD gold counter. When the last coin
+## each paying House, one per gold it pays, and above the castle for the base income (G-02-1), and
+## flies to the HUD gold counter. When the last coin
 ## lands a "+X gold" total appears for a moment. Purely visual: the Economy was already credited
 ## when dawn began, and the HUD lags its readout behind the coins (see Hud).
 
@@ -325,16 +326,24 @@ func start_point(spot_id: StringName) -> Vector2:
 
 ## Where the plot's coin anchor appears on screen in `viewport`; the middle of the screen when `ctx`
 ## is null, the viewport has no camera, the spot is unknown or its anchor is behind the camera. The
-## one projection both the flying coins and the crossed-out coins use.
+## key MapConfig.CASTLE_PAYOUT_KEY is the castle's base income, anchored above the castle instead of
+## a plot. The one projection both the flying coins and the crossed-out coins use.
 static func spot_screen_point(ctx: RunContext, viewport: Viewport, spot_id: StringName) -> Vector2:
 	var middle: Vector2 = viewport.get_visible_rect().size * 0.5
 	if ctx == null:
 		return middle
 	var camera: Camera3D = viewport.get_camera_3d()
-	var spot: BuildSpotDef = ctx.buildings.get_spot(spot_id)
-	if camera == null or spot == null:
+	if camera == null:
 		return middle
-	var world_pos: Vector3 = spot.position + SPOT_ANCHOR
+	var world_pos: Vector3
+	if spot_id == MapConfig.CASTLE_PAYOUT_KEY:
+		var castle_xz: Vector2 = ctx.castle.get_position()
+		world_pos = Vector3(castle_xz.x, 0.0, castle_xz.y) + CASTLE_ANCHOR
+	else:
+		var spot: BuildSpotDef = ctx.buildings.get_spot(spot_id)
+		if spot == null:
+			return middle
+		world_pos = spot.position + SPOT_ANCHOR
 	# unproject_position mirrors a point behind the camera onto the screen, so it needs the
 	# fallback too.
 	if camera.is_position_behind(world_pos):
