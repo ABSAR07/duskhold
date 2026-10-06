@@ -3,7 +3,7 @@ status: diagnosed
 phase: 02-night-defense-playtest-gate
 source: [02-VERIFICATION.md]
 started: 2026-10-05T15:26:33Z
-updated: 2026-10-06T22:11:23Z
+updated: 2026-10-06T22:18:54Z
 ---
 
 ## Current Test
@@ -231,7 +231,7 @@ blocked: 0
     - path: ".planning/phases/02-night-defense-playtest-gate/02-BALANCE-REPORT.md"
       issue: "needs a Round 3 section; the full_idle replay changes to 5140 ticks, digest bb9059c8... (quoted only in phase docs; no test or CI step pins the old 27fa2a80...)"
   missing:
-    - "Land G-02-13 (22.0 / 27.0) first, then apply the chosen night-count edit (owner decision pending: the recommended k4pS5m night-3 wall, a milder step that keeps the bot near 10 of 10, or widened levers)"
+    - "OWNER DECISION 2026-10-07 (asked once, chose the full wall, bot 8 of 10): land G-02-13 (22.0 / 27.0) first, then apply exactly the measured k4pS5m edit (night 2 adds an east grunt group of 4, delay 2.0 s, interval 1.5 s; night 3 west 11, east 10; night 4 west 11, east 7; night 5 west 9, east 8; totals 5, 12, 21, 21, 21, 22, 27, 33). The owner heard that this is a night-3 wall for House openings and accepted it; the round-3 packet must say so plainly"
     - "Change test_balanced_wins_every_run to a seeds-1-to-10 count between 7 and 8 (pin the losing seeds and night 3 or later) and NIGHT_TOTALS to the new totals; test_every_night_ends, test_king_sturdiness, test_wave_schedule, test_spawn_telegraph (night 2 now shows two markers), test_prototype_nights, test_map_validate_nights, test_playtest_strategies and test_balance_report pass unchanged; the smoke golden is unchanged"
     - "Refresh 02-BALANCE-REPORT.md and the round-3 packet, re-run the 15 screenshots in a real window (night_combat, spawn_telegraph and building_destroyed depend on the night data), export a fresh build, and tell the owner plainly about the night-3 wall"
   debug_session: .planning/debug/difficulty-balanced-7-of-10.md
