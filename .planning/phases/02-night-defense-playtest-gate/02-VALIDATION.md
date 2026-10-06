@@ -24,7 +24,7 @@ created: "2026-10-03"
 | **Config file** | `.gutconfig.json` (exists: `res://tests/unit/`, `res://tests/integration/`, `res://tests/e2e/`, JUnit to `res://build/test-results/gut-junit.xml`) |
 | **Quick run command** | `bash tools/test.sh -gdir=res://tests/unit` |
 | **Full suite command** | `bash tools/test.sh && bash tools/lint.sh` |
-| **Estimated runtime** | quick ~15 s of test time plus import (471 unit tests at the audit); full suite ~4.5 minutes (719 tests in 85 scripts) |
+| **Estimated runtime** | quick ~15 s of test time plus import (471 unit tests at the audit); full suite ~4.5 minutes (745 tests in 86 scripts after review-fix pass 2; about 240 s of GUT time) |
 
 Other commands this phase adds or reuses:
 
@@ -73,6 +73,11 @@ A command-line script run with `-s` exits 0 even after a script runtime error (p
 | WR-01 fix (pass 1) | review | — | LOOP-03, D-07 to D-10 (night data contract) | T-02-04 | `MapConfig.validate()` reports an enemy that could never attack (aggro range not above attack range), one that gives up before it notices, a bodiless or never-rescanning enemy, negative ranges and projectile speeds, a castle with no radius, and a tower tier with a non-positive attack interval or negative range or projectile speed; shipped data reports nothing (each rule fails one test under an orchestrator mutation probe) | unit | `-gselect=test_map_validate_enemies.gd` (12 tests, new file) | ✅ | ✅ green |
 | WR-02 fix (pass 1) | review | — | LOOP-03, D-07 to D-10 (night data contract) | T-02-04 | A night never spawns more than `MapConfig.MAX_ENEMIES_PER_NIGHT` (300): the groups share one budget in group order, and the spawn preview counts the same capped numbers (fails under three orchestrator mutation probes) | unit | `-gselect=test_wave_schedule.gd` (13 tests; four added by the fix) | ✅ | ✅ green |
 | WR-03 fix (pass 1) | review | — | LOOP-06, LOOP-07 (results screen, D-16) | T-02-13 | For `results_input_grace_seconds` (0.6 s shipped) after the results screen appears, no press from any device presses Play again or Quit; afterwards keyboard, gamepad and mouse all work; the shipped value stays between 0.3 and 1.0 s (fails under five orchestrator mutation probes) | e2e + unit | `-gselect=test_results_screen.gd` (9 tests; two added), `-gselect=test_loop_tuning_contract.gd` (11 tests; one added) | ✅ | ✅ green |
+| WR-01 fix (pass 2) | review | — | LOOP-06, LOOP-07 (results screen, D-16) | T-02-13 | A press on Play again or Quit counts only if it BEGAN after the grace window as well as being released after it: a press begun inside the window and released after it does nothing, a fresh press after it works, on keyboard, gamepad and mouse, on Defeat and Victory (fails under two orchestrator mutation probes) | e2e | `-gselect=test_results_screen.gd` (14 tests; four added) | ✅ | ✅ green |
+| WR-02 fix (pass 2) | review | — | LOOP-06, LOOP-07 (results screen, D-16) | T-02-13 | Test hardening only: the grace tests use their own 3.0 s window instead of the shipped 0.6 s, judge "inside the window" after the taps, and report a stalled runner as `pending` instead of failing; no behaviour to mutate | e2e | `-gselect=test_results_screen.gd` | ✅ | ✅ green (no `pending` in the full run) |
+| IN-01, IN-02 fix (pass 2) | review | — | LOOP-02, D-07 to D-10 (night data contract) | T-02-04 | The spawn preview skips exactly the groups the schedule skips (unknown enemy as well as unknown spawn point) and spends the night budget identically; the night budget is the only cap (fails under two orchestrator mutation probes) | unit | `-gselect=test_wave_schedule.gd` (15 tests; two added) | ✅ | ✅ green |
+| IN-03 fix (pass 2) | review | — | LOOP-06, LOOP-07 (results screen, D-16) | T-02-13 | The shipped grace is written in `loop_tuning.tres` itself: deleting the line fails the contract test (the pass-1 mutation survivor, now caught) | unit | `-gselect=test_loop_tuning_contract.gd` (11 tests; one extended) | ✅ | ✅ green |
+| IN-04 fix (pass 2) | review | — | LOOP-06, LOOP-07 (results screen, D-16) | T-02-13 | The grace is clamped to `ResultsScreen.MAX_GRACE_S` (3 s): with a 600 s data value the buttons accept presses once the cap is over (fails under one orchestrator mutation probe) | e2e | `-gselect=test_results_screen.gd` (one added) | ✅ | ✅ green |
 
 Each `-gselect=` entry runs as `bash tools/test.sh -gselect=<file>`. Threat refs are the `T-02-NN` IDs from the plans' `<threat_model>` blocks. Task IDs read `<plan>-T<task number>`.
 
@@ -110,9 +115,9 @@ No framework install is needed.
 - [x] Wave 0 covers all MISSING references
 - [x] No watch-mode flags
 - [x] Feedback latency < 60s
-- [x] `nyquist_compliant: true` set in frontmatter
+- [x] `nyquist_compliant` set in frontmatter (`false`: the two manual-only rows above belong to the owner's playtest gate and cannot be automated, so the phase reads PARTIAL by design)
 
-**Approval:** validated 2026-10-05 (automated coverage; the two manual-only rows stay with the owner's playtest gate)
+**Approval:** validated 2026-10-05 (automated coverage; the two manual-only rows stay with the owner's playtest gate); re-validated 2026-10-05 and 2026-10-06 after review-fix passes 1 and 2
 
 ---
 
@@ -157,3 +162,31 @@ Re-audited after the first review-fix pass (3 commits, `c6bb202`, `ef8ca58` and 
 Evidence:
 - Full suite 738/738 (86 scripts, ~270 s GUT time) at `be5ff16` (source as at `6057fd1`); lint clean (156 files).
 - Unit tests: 488, about 17 s of test time.
+
+---
+
+## Validation Audit 2026-10-06 (re-audit after review-fix pass 2)
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Re-audited after the second review-fix pass (3 commits, `21b8abb`, `260ec31` and `81c300e`), which closed all six findings of the 2026-10-05 second review (2 warnings, 4 info). It touched `simulation/night/wave_schedule.gd`, `ui/results/results_screen.gd`, `tests/unit/test_wave_schedule.gd`, `tests/unit/test_loop_tuning_contract.gd` and `tests/e2e/test_results_screen.gd`; no data file changed. All 16 rows of the per-task map are still COVERED, and five rows were added for the fixes.
+
+- **Mutation probes (orchestrator):** 6 single-line mutations, each run against the fix's own test file and restored from a backup. 6 were caught; none survived.
+  - WR-01 (`test_results_screen.gd`): with the press-start stamp ignored (the gate back to `accepts_input()` alone) the four straddling-press tests fail; with `button_down` never stamping 8 tests fail, because every press is then ignored.
+  - IN-04 (`test_results_screen.gd`): with the clamp from below only (`maxf` instead of `clampf`) the 600 s grace test fails.
+  - IN-01 (`test_wave_schedule.gd`): with the preview and the schedule no longer requiring a known enemy the unknown-enemy preview test fails.
+  - IN-02 (`test_wave_schedule.gd`): with the dead `MAX_GROUP_COUNT` constant re-added its absence test fails.
+  - IN-03 (`test_loop_tuning_contract.gd`): deleting the `results_input_grace_seconds = 0.6` line from `loop_tuning.tres` now fails the contract test. This was the one survivor of the pass-1 probes.
+  - WR-02 is a test-only change and has no behaviour to mutate.
+- **Tests:** +7, from 738 to 745 (86 scripts). `test_results_screen` 9 → 14 (four straddling-press tests and the capped-grace test); `test_wave_schedule` 13 → 15; `test_loop_tuning_contract` stays at 11 with one test extended. No test ended `pending` in the full run.
+- **Replays:** the smoke replay still matches the golden digest (`2599c7c2...`) and the full run still wins in 6244 ticks (`a25aa7fd...`), so the wave-schedule change altered nothing on valid data.
+- **Wall-clock note:** the grace tests no longer depend on the shipped 0.6 s window. Each uses a 3.0 s window of its own (`TEST_GRACE_S`, equal to the cap so it is never clamped), judges "inside the window" after the taps, and calls `pending()` if the runner had already passed the window. `test_results_screen.gd` takes about 36 s of GUT time, most of it waiting out those windows.
+- **Manual:** unchanged. The owner still judges the end-of-run tap by feel in the playtest (UAT item 2); the held-press case that item asked the owner to judge is now ignored by the code.
+
+Evidence:
+- Full suite 745/745 (86 scripts, about 240 s of GUT time) at `bcbb712` (source as at `81c300e`); lint clean.
+- Unit tests: 490, about 13 s of test time.
