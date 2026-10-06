@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="MapConfig" load_steps=59 format=3]
+[gd_resource type="Resource" script_class="MapConfig" load_steps=60 format=3]
 
 [ext_resource type="Script" path="res://simulation/defs/map_config.gd" id="1_map"]
 [ext_resource type="Script" path="res://simulation/defs/build_spot_def.gd" id="2_spot"]
@@ -97,31 +97,7 @@ count = 8
 start_delay_seconds = 0.5
 interval_seconds = 1.5
 
-[sub_resource type="Resource" id="Resource_group_n3_west"]
-script = ExtResource("7_group")
-spawn_point_id = &"west"
-enemy_id = &"grunt"
-count = 6
-start_delay_seconds = 0.5
-interval_seconds = 1.5
-
-[sub_resource type="Resource" id="Resource_group_n3_east"]
-script = ExtResource("7_group")
-spawn_point_id = &"east"
-enemy_id = &"grunt"
-count = 5
-start_delay_seconds = 2.0
-interval_seconds = 1.5
-
-[sub_resource type="Resource" id="Resource_group_n4_west"]
-script = ExtResource("7_group")
-spawn_point_id = &"west"
-enemy_id = &"grunt"
-count = 7
-start_delay_seconds = 0.5
-interval_seconds = 1.5
-
-[sub_resource type="Resource" id="Resource_group_n4_east"]
+[sub_resource type="Resource" id="Resource_group_n2_east"]
 script = ExtResource("7_group")
 spawn_point_id = &"east"
 enemy_id = &"grunt"
@@ -129,11 +105,43 @@ count = 4
 start_delay_seconds = 2.0
 interval_seconds = 1.5
 
+[sub_resource type="Resource" id="Resource_group_n3_west"]
+script = ExtResource("7_group")
+spawn_point_id = &"west"
+enemy_id = &"grunt"
+count = 11
+start_delay_seconds = 0.5
+interval_seconds = 1.5
+
+[sub_resource type="Resource" id="Resource_group_n3_east"]
+script = ExtResource("7_group")
+spawn_point_id = &"east"
+enemy_id = &"grunt"
+count = 10
+start_delay_seconds = 2.0
+interval_seconds = 1.5
+
+[sub_resource type="Resource" id="Resource_group_n4_west"]
+script = ExtResource("7_group")
+spawn_point_id = &"west"
+enemy_id = &"grunt"
+count = 11
+start_delay_seconds = 0.5
+interval_seconds = 1.5
+
+[sub_resource type="Resource" id="Resource_group_n4_east"]
+script = ExtResource("7_group")
+spawn_point_id = &"east"
+enemy_id = &"grunt"
+count = 7
+start_delay_seconds = 2.0
+interval_seconds = 1.5
+
 [sub_resource type="Resource" id="Resource_group_n5_west"]
 script = ExtResource("7_group")
 spawn_point_id = &"west"
 enemy_id = &"grunt"
-count = 7
+count = 9
 start_delay_seconds = 0.5
 interval_seconds = 1.5
 
@@ -141,7 +149,7 @@ interval_seconds = 1.5
 script = ExtResource("7_group")
 spawn_point_id = &"east"
 enemy_id = &"grunt"
-count = 7
+count = 8
 start_delay_seconds = 2.0
 interval_seconds = 1.5
 
@@ -311,7 +319,7 @@ groups = Array[ExtResource("7_group")]([SubResource("Resource_group_n1_west")])
 
 [sub_resource type="Resource" id="Resource_night_2"]
 script = ExtResource("8_night")
-groups = Array[ExtResource("7_group")]([SubResource("Resource_group_n2_west")])
+groups = Array[ExtResource("7_group")]([SubResource("Resource_group_n2_west"), SubResource("Resource_group_n2_east")])
 
 [sub_resource type="Resource" id="Resource_night_3"]
 script = ExtResource("8_night")
