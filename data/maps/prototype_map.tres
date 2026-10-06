@@ -353,3 +353,7 @@ spawn_points = Array[ExtResource("6_spawn")]([SubResource("Resource_spawn_west")
 nights = Array[ExtResource("8_night")]([SubResource("Resource_night_1"), SubResource("Resource_night_2"), SubResource("Resource_night_3"), SubResource("Resource_night_4"), SubResource("Resource_night_5"), SubResource("Resource_night_6"), SubResource("Resource_night_7"), SubResource("Resource_night_8")])
 castle_max_health = 70
 castle_radius = 3.5
+castle_attack_damage = 2
+castle_attack_range = 11.0
+castle_attack_interval = 1.5
+castle_projectile_speed = 18.0

@@ -194,6 +194,11 @@ func test_a_dawn_after_a_loss_pays_only_the_survivors() -> void:
 ## Several grunts striking one House on one tick. Returns the context after that tick.
 func _swarm_a_house(grunt_count: int) -> RunContext:
 	var map: MapConfig = E2eSupport.waveless_prototype_map()
+	# The subject is the swarm on the House, so the castle must not shoot one of the grunts (02-15).
+	map.castle_attack_damage = 0
+	map.castle_attack_range = 0.0
+	map.castle_attack_interval = 0.0
+	map.castle_projectile_speed = 0.0
 	var ctx: RunContext = RunContext.new(map, _tuning)
 	ctx.buildings.apply_next_tier(HOUSE_A)
 	assert_eq(ctx.commands.submit(StartNightIntent.new()), CommandProcessor.OK, "night started")

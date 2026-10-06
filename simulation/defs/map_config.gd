@@ -134,6 +134,7 @@ func _validate_night_data() -> PackedStringArray:
 		errors.append("castle_max_health is %d" % castle_max_health)
 	if castle_radius <= 0.0:
 		errors.append("castle_radius is %s" % castle_radius)
+	errors.append_array(_validate_castle_attack())
 	var enemy_ids: Dictionary = {}
 	for enemy: EnemyDef in enemies:
 		if enemy == null:
@@ -157,6 +158,28 @@ func _validate_night_data() -> PackedStringArray:
 		spawn_ids[spawn_point.id] = true
 	for index: int in range(nights.size()):
 		errors.append_array(_validate_night(index + 1, nights[index], enemy_ids, spawn_ids))
+	return errors
+
+
+## The errors of the castle's attack numbers (T-02-33): none may be negative, and a castle that
+## attacks (damage above 0) needs a range and an interval above 0, else it would never or always
+## shoot. A negative range or interval is reported once, as negative, not again as missing.
+func _validate_castle_attack() -> PackedStringArray:
+	var errors: PackedStringArray = PackedStringArray()
+	if castle_attack_damage < 0:
+		errors.append("castle_attack_damage is negative (%d)" % castle_attack_damage)
+	if castle_attack_range < 0.0:
+		errors.append("castle_attack_range is negative (%s)" % castle_attack_range)
+	if castle_attack_interval < 0.0:
+		errors.append("castle_attack_interval is negative (%s)" % castle_attack_interval)
+	if castle_projectile_speed < 0.0:
+		errors.append("castle_projectile_speed is negative (%s)" % castle_projectile_speed)
+	if castle_attack_damage > 0 and castle_attack_range == 0.0:
+		errors.append("castle_attack_range is 0 but the castle attacks (castle_attack_damage > 0)")
+	if castle_attack_damage > 0 and castle_attack_interval == 0.0:
+		errors.append(
+			"castle_attack_interval is 0 but the castle attacks (castle_attack_damage > 0)"
+		)
 	return errors
 
 
