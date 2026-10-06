@@ -5,7 +5,8 @@ extends GutTest
 ## CastleState, EnemySystem and PendingHits, no RunContext) copied from test_tower_combat.gd, plus
 ## one NightSim run for the step order. Shipped enemy numbers come from the .tres files; the pinned
 ## literals are the shipped castle's numbers since the owner's decision of 2026-10-07 (G-02-13:
-## reach 22 m, arrows 27 m/s), with the 6 m / 27 m/s flight of 7 ticks.
+## reach 22 m, arrows 27 m/s), with the 6 m / 27 m/s flight of 7 ticks. A non-finite or sub-step
+## number never arms the castle (review WR-02), so it can never fire every tick.
 
 const GRUNT_PATH := "res://data/enemies/grunt.tres"
 const RANGED_PATH := "res://data/enemies/ranged.tres"
@@ -28,6 +29,11 @@ const DISARMING: Array = [
 	["castle_attack_range", -1.0],
 	["castle_attack_interval", 0.0],
 	["castle_attack_interval", -1.0],
+	["castle_attack_range", INF],
+	["castle_attack_range", NAN],
+	["castle_attack_interval", INF],
+	["castle_attack_interval", NAN],
+	["castle_attack_interval", 0.001],
 ]
 
 var _map: MapConfig
@@ -207,7 +213,7 @@ func test_a_destroyed_castle_fires_nothing() -> void:
 	assert_eq(_shots.size(), 0, "a fallen castle does not shoot")
 
 
-func test_the_castle_is_armed_only_with_damage_range_and_interval_above_zero() -> void:
+func test_the_castle_is_armed_only_with_numbers_it_can_use() -> void:
 	assert_true(_attack.is_armed(), "the pinned numbers arm it")
 	for case: Array in DISARMING:
 		var map: MapConfig = _armed_map()

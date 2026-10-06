@@ -6,7 +6,9 @@ extends GutTest
 ## deep copy and calls validate() directly, never through RunContext, whose push_error would fail
 ## the test. The contract test lives here because test_prototype_map_data.gd already holds gdlint's
 ## 20 public methods (as with test_map_validate_income.gd). The owner doubled the reach and raised
-## the arrow speed 1.5x on 2026-10-07 (G-02-13); the other castle numbers are unchanged.
+## the arrow speed 1.5x on 2026-10-07 (G-02-13); the other castle numbers are unchanged. A castle
+## number that is not finite (INF, -INF, NaN) or an attacking castle whose interval is below one
+## simulation step is reported too, since either would fire every tick or never (WR-02).
 
 const SMOKE_FIXTURE := "res://tests/fixtures/fixture_map_replay_smoke.tres"
 const BAD_DAMAGE: int = -1
@@ -23,6 +25,12 @@ const SHIPPED_INTERVAL_S: float = 1.5
 const OWNER_RANGE_M: float = 22.0
 const OWNER_SPEED_MPS: float = 27.0
 const EDGE_FLIGHT_TICKS: int = 25
+## The float fields that must be finite, and the values that are not.
+const FINITE_FIELDS: Array[String] = [
+	"castle_attack_range", "castle_attack_interval", "castle_projectile_speed"
+]
+const NOT_FINITE_VALUES: Array[float] = [INF, -INF, NAN]
+const SUB_STEP_INTERVAL_S: float = 0.001
 
 
 func _map() -> MapConfig:
@@ -130,4 +138,38 @@ func test_the_shipped_castle_reaches_22_m_and_its_arrows_fly_at_27_m_per_s() -> 
 	assert_eq(flight, EDGE_FLIGHT_TICKS, "an arrow at the edge of the reach flies 25 ticks")
 	assert_lt(
 		flight, SimClock.ticks(map.castle_attack_interval), "one castle arrow in the air at a time"
+	)
+
+
+func test_a_castle_number_that_is_not_finite_is_reported_once() -> void:
+	for field: String in FINITE_FIELDS:
+		for value: float in NOT_FINITE_VALUES:
+			var map: MapConfig = _map()
+			map.set(field, value)
+			var label: String = "%s at %s" % [field, value]
+			_assert_one_error(map, field, label)
+			var errors: PackedStringArray = map.validate()
+			if errors.size() == 1:
+				assert_string_contains(errors[0], "finite", "%s says it is not finite" % label)
+
+
+func test_an_attacking_castle_with_an_interval_below_one_step_is_reported() -> void:
+	for interval: float in [SUB_STEP_INTERVAL_S, SimClock.STEP * 0.5]:
+		var map: MapConfig = _map()
+		map.castle_attack_interval = interval
+		_assert_one_error(map, "castle_attack_interval", "an interval of %s s" % interval)
+		var errors: PackedStringArray = map.validate()
+		if errors.size() == 1:
+			assert_string_contains(errors[0], "step", "%s s is below one step" % interval)
+
+
+func test_an_interval_of_one_step_or_no_damage_is_accepted() -> void:
+	var one_step: MapConfig = _map()
+	one_step.castle_attack_interval = SimClock.STEP
+	assert_eq(one_step.validate(), PackedStringArray(), "exactly one step is a valid interval")
+	var off: MapConfig = _map()
+	off.castle_attack_damage = 0
+	off.castle_attack_interval = SUB_STEP_INTERVAL_S
+	assert_eq(
+		off.validate(), PackedStringArray(), "a castle that does not attack needs no interval"
 	)
