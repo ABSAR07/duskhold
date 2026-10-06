@@ -180,9 +180,15 @@ func test_a_dawn_after_a_loss_pays_only_the_survivors() -> void:
 	assert_eq(ctx.run_manager.get_phase(), RunManager.RunPhase.DAWN, "dawn reached")
 	var payout: Array = get_signal_parameters(ctx.events, "dawn_payout", 0) as Array
 	var income: int = _house.tier_def(1).dawn_income
-	assert_eq(payout[0], income, "one House paid")
-	assert_eq(payout[1], {HOUSE_B: income}, "and it was the survivor")
-	assert_eq(ctx.economy.get_gold(), income, "gold rose by that income only")
+	var base: int = map.base_dawn_income
+	assert_eq(payout[0], income + base, "one House paid, and the castle its base income")
+	assert_eq(
+		payout[1],
+		{HOUSE_B: income, MapConfig.CASTLE_PAYOUT_KEY: base},
+		"the survivor and the castle"
+	)
+	assert_false(payout[1].has(HOUSE_A), "the fallen House is not listed")
+	assert_eq(ctx.economy.get_gold(), income + base, "gold rose by those two only")
 
 
 ## Several grunts striking one House on one tick. Returns the context after that tick.

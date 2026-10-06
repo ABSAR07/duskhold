@@ -6,11 +6,20 @@ extends Resource
 ## file (threat T-02-04), not a tuning value: a night above it is a validate() error.
 const MAX_ENEMIES_PER_NIGHT: int = 300
 
+## The reserved dawn_payout per_spot key the base income is listed under. No spot may use this id
+## (validate() reports it), so a House entry can never be merged with the base income.
+const CASTLE_PAYOUT_KEY: StringName = &"castle"
+
 @export var id: StringName = &""
 @export var display_name: String = ""
 ## D-04: sandbox and test maps never appear in the campaign.
 @export var is_sandbox: bool = true
 @export var starting_gold: int = 0
+## Gold every dawn pays besides the buildings, even when no House stands (owner decision
+## 2026-10-06, G-02-1): the castle's own income, listed in the dawn payout under CASTLE_PAYOUT_KEY.
+## 0 switches it off, which keeps every fixture and the smoke golden unchanged. Towers still pay
+## nothing at dawn (D-10).
+@export var base_dawn_income: int = 0
 @export var king_spawn: Vector3 = Vector3.ZERO
 @export var castle_position: Vector3 = Vector3.ZERO
 ## The building set this map uses.
