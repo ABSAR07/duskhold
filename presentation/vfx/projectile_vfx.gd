@@ -1,9 +1,10 @@
 class_name ProjectileVfx
 extends Node3D
-## Makes every attack the simulation decides visible (KING-03, D-13). A tower or skirmisher shot
-## spawns a thin emissive arrow that flies from the attacker to the target's current position for
-## exactly SimClock.flight_ticks of simulation time, arcing on the way. The king's passive strike
-## has no flight, so it shows a short flat slash at the king pointing at his target instead.
+## Makes every attack the simulation decides visible (KING-03, D-13). A tower, castle or
+## skirmisher shot spawns a thin emissive arrow that flies from the attacker to the target's current
+## position for exactly SimClock.flight_ticks of simulation time, arcing on the way. The king's
+## passive strike has no flight, so it shows a short flat slash at the king pointing at his target
+## instead.
 ## Purely visual: the simulation has already decided the hit by the target's id (RESEARCH Pattern
 ## 2), so an arrow cannot miss, cannot hit anything else and, when its target is gone, finishes at
 ## the target's last known position. Every arrow and slash frees itself; arrows are capped at
@@ -22,8 +23,11 @@ const EMISSION_ENERGY: float = 2.0
 const ARROW_SIZE := Vector3(0.15, 0.15, 1.0)
 const SLASH_SIZE := Vector3(0.3, 0.05, 1.8)
 const SLASH_SECONDS: float = 0.15
-## Heights above the ground an arrow leaves from (a tower's top, a unit's chest) and arrives at.
+## Heights above the ground an arrow leaves from (a tower's top, the castle keep's top, a unit's
+## chest) and arrives at.
 const TOWER_LAUNCH_HEIGHT: float = 3.2
+## The top of the castle model: the keep with its turret on it (BuildingViews).
+const CASTLE_LAUNCH_HEIGHT: float = BuildingViews.KEEP_SIZE.y + BuildingViews.TURRET_HEIGHT
 const UNIT_HEIGHT: float = 1.2
 const BUILDING_TARGET_HEIGHT: float = 1.5
 const SLASH_HEIGHT: float = 1.1
@@ -110,7 +114,7 @@ func _on_attack_fired(
 		if attacker_kind == PendingHits.KIND_KING:
 			_spawn_slash(target_kind, target_id)
 		return
-	if attacker_kind != PendingHits.KIND_BUILDING and attacker_kind != PendingHits.KIND_ENEMY:
+	if not _draws_arrows(attacker_kind):
 		return
 	if _flights.size() >= MAX_PROJECTILES:
 		return
@@ -125,13 +129,22 @@ func _on_attack_fired(
 	flight.duration = maxf(flight_seconds(flight_ticks), SimClock.STEP)
 	var arrow: MeshInstance3D = MeshInstance3D.new()
 	arrow.name = "Arrow"
-	arrow.mesh = _tower_mesh if attacker_kind == PendingHits.KIND_BUILDING else _skirmisher_mesh
+	arrow.mesh = _skirmisher_mesh if attacker_kind == PendingHits.KIND_ENEMY else _tower_mesh
 	arrow.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(arrow)
 	arrow.global_position = origin
 	_place(arrow, origin)
 	flight.node = arrow
 	_flights.append(flight)
+
+
+## Towers, the castle and enemies shoot arrows; the king strikes without a flight.
+func _draws_arrows(attacker_kind: StringName) -> bool:
+	return (
+		attacker_kind == PendingHits.KIND_BUILDING
+		or attacker_kind == PendingHits.KIND_CASTLE
+		or attacker_kind == PendingHits.KIND_ENEMY
+	)
 
 
 ## A flat bar from the king toward his target that shrinks away in SLASH_SECONDS.
@@ -172,6 +185,9 @@ func _attacker_position(kind: StringName, id: int) -> Vector3:
 		if spot_id == &"":
 			return NO_POSITION
 		return _ctx.buildings.get_spot(spot_id).position + Vector3.UP * TOWER_LAUNCH_HEIGHT
+	if kind == PendingHits.KIND_CASTLE:
+		var castle_ground: Vector2 = _ctx.castle.get_position()
+		return Vector3(castle_ground.x, CASTLE_LAUNCH_HEIGHT, castle_ground.y)
 	var enemies: EnemySystem = _ctx.night.get_enemies()
 	if not enemies.is_alive(id):
 		return NO_POSITION

@@ -19,9 +19,9 @@ const OUTCOME_LOST := &"lost"
 ## Result: {outcome, ticks, digest, line_count, nights_started, lines, stats, per_night}. `stats`
 ## holds the RunStats values {nights_survived, gold_earned, buildings_lost, king_knockouts, outcome}
 ## and per_night has one Dictionary per started night: {night, enemies, kills_king, kills_towers,
-## buildings_lost, knockouts, castle_hp_end, duration_s, gold_at_dawn, end}. `end` is "dawn", "won"
-## or "lost" for a night that finished and "" for one the tick bound cut short; `gold_at_dawn` is
-## the gold after the dawn payout, or the gold when the night ended without one.
+## kills_castle, buildings_lost, knockouts, castle_hp_end, duration_s, gold_at_dawn, end}. `end` is
+## "dawn", "won" or "lost" for a night that finished and "" for one the tick bound cut short;
+## `gold_at_dawn` is the gold after the dawn payout, or the gold when the night ended without one.
 ## `stop_after_dawns` of 0 means run until the run ends or `max_ticks` runs out.
 static func run(
 	map: MapConfig,
@@ -106,6 +106,7 @@ class Tally:
 			"enemies": 0,
 			"kills_king": 0,
 			"kills_towers": 0,
+			"kills_castle": 0,
 			"buildings_lost": 0,
 			"knockouts": 0,
 			"castle_hp_end": 0,
@@ -137,6 +138,8 @@ class Tally:
 			_bump("kills_king")
 		elif killer_kind == PendingHits.KIND_BUILDING:
 			_bump("kills_towers")
+		elif killer_kind == PendingHits.KIND_CASTLE:
+			_bump("kills_castle")
 
 	func _on_building_destroyed(_spot_id: StringName, _building_id: StringName, _tier: int) -> void:
 		_bump("buildings_lost")
