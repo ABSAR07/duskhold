@@ -24,7 +24,7 @@ created: "2026-10-03"
 | **Config file** | `.gutconfig.json` (exists: `res://tests/unit/`, `res://tests/integration/`, `res://tests/e2e/`, JUnit to `res://build/test-results/gut-junit.xml`) |
 | **Quick run command** | `bash tools/test.sh -gdir=res://tests/unit` |
 | **Full suite command** | `bash tools/test.sh && bash tools/lint.sh` |
-| **Estimated runtime** | quick ~15 s of test time plus import (471 unit tests at the audit); full suite ~4.5 minutes (745 tests in 86 scripts after review-fix pass 2; about 240 s of GUT time) |
+| **Estimated runtime** | quick ~15 s of test time plus import (471 unit tests at the audit); full suite ~4.5 minutes (817 tests in 94 scripts after the gap-closure plans 02-12 to 02-16; about 270 s wall clock including import) |
 
 Other commands this phase adds or reuses:
 
@@ -78,6 +78,11 @@ A command-line script run with `-s` exits 0 even after a script runtime error (p
 | IN-01, IN-02 fix (pass 2) | review | — | LOOP-02, D-07 to D-10 (night data contract) | T-02-04 | The spawn preview skips exactly the groups the schedule skips (unknown enemy as well as unknown spawn point) and spends the night budget identically; the night budget is the only cap (fails under two orchestrator mutation probes) | unit | `-gselect=test_wave_schedule.gd` (15 tests; two added) | ✅ | ✅ green |
 | IN-03 fix (pass 2) | review | — | LOOP-06, LOOP-07 (results screen, D-16) | T-02-13 | The shipped grace is written in `loop_tuning.tres` itself: deleting the line fails the contract test (the pass-1 mutation survivor, now caught) | unit | `-gselect=test_loop_tuning_contract.gd` (11 tests; one extended) | ✅ | ✅ green |
 | IN-04 fix (pass 2) | review | — | LOOP-06, LOOP-07 (results screen, D-16) | T-02-13 | The grace is clamped to `ResultsScreen.MAX_GRACE_S` (3 s): with a 600 s data value the buttons accept presses once the cap is over (fails under one orchestrator mutation probe) | e2e | `-gselect=test_results_screen.gd` (one added) | ✅ | ✅ green |
+| 02-12-T1, 02-12-T2 | 02-12 | gap 1 | LOOP-04, LOOP-05 (G-02-1 point 1, base dawn income) | T-02-27, T-02-28 | `MapConfig.validate()` reports a negative `base_dawn_income` and a spot using the reserved castle id; `RunManager` clamps a negative base to 0 and lists it last under `CASTLE_PAYOUT_KEY`, so the payout total always equals its per-spot sum; towers still pay nothing and a rebuilt House still pays nothing while the base is paid (6 of 12 `test_dawn_income` tests fail with the castle entry switched off) | unit + e2e + replay | `-gselect=test_dawn_income.gd` (12), `-gselect=test_map_validate_income.gd` (8, new file), `-gselect=test_dawn_payout_castle.gd` (2, new file), `-gselect=test_dawn_payout.gd`, `-gselect=test_loop_gold_carryover.gd`, `bash tools/replay.sh --scenario=smoke --twice --expect-file=tests/golden/smoke.json` | ✅ | ✅ green |
+| 02-13-T1, 02-13-T2, 02-13-T3 | 02-13 | gap 1 | KING-03, LOOP-03 (G-02-1 point 3, sprint 12 m/s and night fast-forward) | T-02-29, T-02-30, T-02-31 | `scale_for` clamps the tuning scale to [1.0, 4.0] and treats non-finite values as 1.0; `FastForwardController` is the only writer of `Engine.time_scale` (source scan) and restores 1.0 on leaving NIGHT and in `_exit_tree`; nothing under `simulation/` reads the time scale and doubled frame deltas give the same ticks and digest (11 of 19 `test_fast_forward*` tests fail with the scale forced to real time) | unit + e2e + replay | `-gselect=test_king_movement_config.gd` (7), `-gselect=test_king_ride.gd` (10), `-gselect=test_input_map.gd` (14), `-gselect=test_loop_tuning_contract.gd` (12), `-gselect=test_fast_forward_rules.gd` (14, new file), `-gselect=test_fast_forward.gd` (5, new file), `bash tools/replay.sh --scenario=smoke --twice --expect-file=tests/golden/smoke.json` | ✅ | ✅ green |
+| 02-14-T1 | 02-14 | gap 1 | LOOP-06, LOOP-07 (G-02-2, results screen spacing) | T-02-32 | The `ButtonsMargin` adds 11 px above the button row only: stat rows stay exactly the Column separation apart, Play again sits separation + 11 px below the Knockouts label, both buttons still work by keyboard, gamepad and mouse after the grace (the target test fails with `margin_top` set to 0, executor probe) | e2e | `-gselect=test_results_layout.gd` (4, new file), `-gselect=test_results_screen.gd` (14) | ✅ | ✅ green |
+| 02-15-T1, 02-15-T2 | 02-15 | gap 2 | KING-03, LOOP-03 (G-02-1 point 2, castle attack) | T-02-33, T-02-34 | `MapConfig.validate()` reports negative castle attack numbers and an attacking castle with no range or interval; `CastleAttack` is armed only when damage, range and interval are all above 0, returns while the castle is destroyed, runs only inside `NightSim.step` between the towers and the enemies, and `begin_night` resets it; castle kills are tallied in the balance report (11 of 14 `test_castle_attack` tests fail with the castle never armed) | unit + e2e + integration + replay | `-gselect=test_castle_attack.gd` (14, new file), `-gselect=test_map_validate_castle.gd` (9, new file), `-gselect=test_projectiles_visible.gd` (8), `-gselect=test_balance_report.gd` (18), `-gselect=test_building_damage.gd` (16), `bash tools/replay.sh --scenario=smoke --twice --expect-file=tests/golden/smoke.json` | ✅ | ✅ green |
+| 02-16-T1 | 02-16 | gap 3 | LOOP-05, LOOP-07, DEV-05 (G-02-1 point 4, balance shape after the gap closure) | T-02-35, T-02-36 | The seeded (1 to 3) acceptance test pins the shape the owner asked for: balanced wins every run, greedy_economy wins none and loses on nights 3 to 6, no_build survives at most 2 nights, towers_first earns gold in every run and wins at least 2 of 3, grunt max_health stays 6; the owner's two levers were not needed (balanced 10 of 10) and no data changed (2 of 7 tests fail with the base income and castle attack both switched off, executor probe) | integration + script | `-gselect=test_balance_acceptance.gd` (7, new file), `bash tools/playtest.sh` (PLAYTEST_OK runs=50) | ✅ | ✅ green |
 
 Each `-gselect=` entry runs as `bash tools/test.sh -gselect=<file>`. Threat refs are the `T-02-NN` IDs from the plans' `<threat_model>` blocks. Task IDs read `<plan>-T<task number>`.
 
@@ -105,6 +110,7 @@ No framework install is needed.
 |----------|-------------|------------|-------------------|
 | Tension, readability and gold trade-offs over full runs | Success criterion 4 (playtest gate), D-18 | A feel judgment that belongs to the owner | After the balance table and screenshots exist, the owner plays one or two full runs and either signs off or names the fixes. Recorded through `/gsd-verify-work`. |
 | Night readability: enemies, health bars, projectiles, rubble and telegraph markers in the dark | LOOP-02, BLDG-07, KING-06 | Needs someone to look at the images | `bash tools/screenshot.sh` captures the new shots (spawn telegraph, night combat, building destroyed, dawn rebuilt, king-down countdown, results victory, results defeat, overlay paths). Claude reviews each for content first (D-18); the owner confirms during the one or two runs. |
+| Round 2 of the playtest gate: the four G-02-1 fixes and the G-02-2 spacing judged in play | Success criterion 4 (playtest gate), D-18, G-02-1, G-02-2 | Whether 12 m/s and the 2x fast-forward feel right, whether the castle's arrows and the castle coin at dawn read well on the real camera, whether the game is now "a bit easier" for a human (the bots find it much easier than that: balanced loses nothing), and the results spacing by eye are the owner's judgments; the tests prove only the numbers, the projection and the label | The owner replays one or two runs on the fresh `build/windows/Duskhold.exe` (exported in 02-16) using the round-2 section of `02-PLAYTEST-GATE.md`, and signs off or names further fixes through `/gsd-verify-work`. |
 
 ---
 
@@ -117,7 +123,7 @@ No framework install is needed.
 - [x] Feedback latency < 60s
 - [x] `nyquist_compliant` set in frontmatter (`false`: the two manual-only rows above belong to the owner's playtest gate and cannot be automated, so the phase reads PARTIAL by design)
 
-**Approval:** validated 2026-10-05 (automated coverage; the two manual-only rows stay with the owner's playtest gate); re-validated 2026-10-05 and 2026-10-06 after review-fix passes 1 and 2
+**Approval:** validated 2026-10-05 (automated coverage; the two manual-only rows stay with the owner's playtest gate); re-validated 2026-10-05 and 2026-10-06 after review-fix passes 1 and 2; re-validated 2026-10-06 after the gap-closure plans 02-12 to 02-16 (three manual-only rows, all the owner's playtest gate)
 
 ---
 
@@ -191,3 +197,29 @@ Re-audited after the second review-fix pass (3 commits, `21b8abb`, `260ec31` and
 Evidence:
 - Full suite 745/745 (86 scripts, about 240 s of GUT time) at `bcbb712` (source as at `81c300e`); lint clean.
 - Unit tests: 490, about 13 s of test time.
+
+---
+
+## Validation Audit 2026-10-06 (re-audit after the gap-closure plans 02-12 to 02-16)
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Re-audited by `/gsd-execute-phase 2 --gaps-only` after the five gap-closure plans for the owner's round-1 UAT (G-02-1: base dawn income, castle attack, sprint and fast-forward, difficulty; G-02-2: results-screen spacing) executed in three waves at commits `b6c47d5..a483ff6`. All 21 existing rows of the per-task map are still COVERED and five rows were added, one per plan. Every test file named in the new rows is present in the JUnit XML of the wave-3 full run with 0 failures.
+
+- **Mutation probes (orchestrator, whole feature off):** three mutations, each run against the plan's own suites with `-gselect=` and restored from a `cp` backup, the tree confirmed clean afterwards. All three were caught and none ended `pending`:
+  - 02-13: `scale_for` forced to real time in every phase: 11 of 19 tests fail across `test_fast_forward_rules.gd` and `test_fast_forward.gd`.
+  - 02-15: the castle never armed (`castle_attack_damage > 999`): 11 of 14 `test_castle_attack.gd` tests fail.
+  - 02-12: the castle entry never added (`_base_dawn_income > 999`): 6 of 12 `test_dawn_income.gd` tests fail.
+- **Mutation probes (executors, recorded in the SUMMARYs):** 02-12 two (castle entry replaced by `pass`, castle branch of `spot_screen_point` skipped); 02-13 three (multiplier back to 1.6, scale applied in any phase, label forced hidden); 02-14 one (`margin_top` 0); 02-15 three (`KIND_CASTLE` dropped from the arrow filter, destroyed-castle check removed, castle stepped after the enemies); 02-16 one (base income and castle attack both switched off in the map data). All caught.
+- **Tests:** +72, from 745 to 817 (86 to 94 scripts). New files: `test_map_validate_income` (8), `test_dawn_payout_castle` (2), `test_fast_forward_rules` (14), `test_fast_forward` (5), `test_results_layout` (4), `test_castle_attack` (14), `test_map_validate_castle` (9), `test_balance_acceptance` (7). Three of the new files exist because `test_prototype_map_data.gd` and `test_dawn_payout.gd` already hold gdlint's 20 public methods; the plans' acceptance greps therefore match the new files instead.
+- **Tests changed outside the plans' lists:** `test_dawn_rebuild.gd` (5 assertions) and `test_start_night_hold.gd` (1) now read the base income from the map instead of assuming 0; `test_building_damage.gd` switches the castle attack off in `_swarm_a_house`, which spawns grunts inside the castle's reach. No design-contract test was loosened.
+- **Replays:** the smoke replay still matches the golden digest (`2599c7c2...`), since every new field defaults to 0 on the frozen fixtures. The full run on the shipped data moved from 6244 ticks (`a25aa7fd...`) to 4007 ticks (`27fa2a80...`) with the sprint change, unchanged by the castle attack (the balanced bot never lets an enemy within 11 m of the castle). `bash tools/playtest.sh` prints `PLAYTEST_OK runs=50`.
+- **Balance note for the owner (not a coverage gap):** the owner's two levers (night-3 east grunts 5 to 4, then castle health 70 to 80) were never triggered because the balanced bot won 10 of 10, so no data changed in 02-16; the bots now find the game much easier than "a bit easier" (balanced loses no building and is never knocked out, towers_first 0 to 100% wins), which the round-2 packet flags as the owner's call.
+- **Manual:** one row added for round 2 of the playtest gate (feel of 12 m/s and 2x, the castle arrows and castle coin on the real camera, difficulty for a human, the spacing by eye). `nyquist_compliant` stays `false` by design: the three manual-only rows belong to the owner's playtest gate.
+
+Evidence:
+- Full suite 817/817 (94 scripts, 270 s wall clock) at `a483ff6`; lint clean. Three wave gates (784, 810, 817 tests) all green.
