@@ -1,12 +1,14 @@
 class_name KingDef
 extends Resource
-## King movement and passive-attack numbers. The 1.6 ratio is the source game's walk-to-sprint
-## ratio.
+## King movement and passive-attack numbers.
 
 @export var walk_speed: float = 5.0
-@export var sprint_multiplier: float = 1.6
-## Rate (m/s squared) at which velocity approaches the target velocity.
-@export var acceleration: float = 40.0
+## Sprint speed is walk_speed times this: 12 m/s at walk 5.0 by owner decision (UAT G-02-1,
+## 2026-10-06), half again as fast as the 8 m/s sprint of the first playtest.
+@export var sprint_multiplier: float = 2.4
+## Rate (m/s squared) at which velocity approaches the target velocity. It is also the braking
+## rate, and 60 keeps a full-sprint stop (v^2 / 2a = 1.2 m) inside the build radius.
+@export var acceleration: float = 60.0
 ## Rate (rad/s) at which the model turns to face the movement direction.
 @export var turn_speed: float = 12.0
 ## Hit points; the king is knocked out at 0.

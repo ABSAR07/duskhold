@@ -1,8 +1,8 @@
 extends GutTest
 ## KING-01 / KING-02 proof, driven through real input on the prototype map (headless display):
-## riding reaches a build spot in time, sprint is about 1.6x, diagonals are not faster, the
-## deadzone is respected, the king turns to face its heading, and the camera is a detached,
-## smoothed, fixed-angle follow rig whose rotation never changes.
+## riding reaches a build spot in time, sprint matches the sprint multiplier, diagonals are not
+## faster, the deadzone is respected, the king turns to face its heading, and the camera is a
+## detached, smoothed, fixed-angle follow rig whose rotation never changes.
 
 const MAP_SCENE_PATH := "res://presentation/map/prototype_map.tscn"
 const KING_DEF_PATH := "res://data/king/king.tres"
