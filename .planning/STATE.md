@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 02
 current_phase_name: Night Defense & Playtest Gate
 status: executing
-stopped_at: Completed 02-13-PLAN.md
-last_updated: "2026-10-06T12:56:20.479Z"
+stopped_at: Completed 02-14-PLAN.md
+last_updated: "2026-10-06T13:07:37.001Z"
 last_activity: 2026-10-06
 last_activity_desc: Phase 02 execution started
-state_head: 0a4c97d77c66ec6f3b263dc36d29ff4f649fb1ab
+state_head: 23374dcd8eb019063317045df51495a8ca791133
 progress:
   total_phases: 13
   completed_phases: 1
   total_plans: 34
-  completed_plans: 31
+  completed_plans: 32
   percent: 8
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-03)
 ## Current Position
 
 Phase: 02 (Night Defense & Playtest Gate) — EXECUTING
-Plan: 3 of 16
+Plan: 4 of 16
 Status: Ready to execute
 Last activity: 2026-10-06 — Phase 02 execution started
 
@@ -87,6 +87,7 @@ Progress: [█░░░░░░░░░] 8%
 | Phase 02 P11 | 51 min | 3 tasks | 8 files |
 | Phase 02 P12 | 22 min | 2 tasks | 15 files |
 | Phase 02 P13 | 45 min | 3 tasks | 18 files |
+| Phase 02 P14 | 8 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -165,6 +166,7 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-11: readability points outside the plan's files (results screen spacing and Quit contrast, hairline path lines, small dawn coin) are left in the owner packet; CI run 37325147907 green with 15 screenshots; 02-PLAYTEST-GATE.md opens the D-18 gate
 - [Phase 02]: 02-12: base dawn income of 1 gold on the prototype map, paid under the reserved castle payout key; towers still pay nothing (D-10)
 - [Phase 02]: Plan 02-13: sprint 12 m/s (multiplier 2.4, acceleration 60); night fast-forward on F / left trigger acts only in NIGHT, drops to 1.0 in the phase_changed that leaves NIGHT, FastForwardController is the single writer of Engine.time_scale — Owner asked for both a faster sprint and a speed-up (G-02-1); night-only keeps the 1.2 s loss beat and 0.6 s results grace in real seconds
+- [Phase 02]: 02-14: 11 px ButtonsMargin above the results Buttons row only (9 px label leading + 2 px focus outline reach) equalises stat-row and button gaps; no script change — G-02-2 diagnosis measured in memory; pinned by test_results_layout.gd
 
 ### Pending Todos
 
@@ -198,6 +200,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-06T12:56:19.849Z
-Stopped at: Completed 02-13-PLAN.md
+Last session: 2026-10-06T13:07:36.821Z
+Stopped at: Completed 02-14-PLAN.md
 Resume file: None
