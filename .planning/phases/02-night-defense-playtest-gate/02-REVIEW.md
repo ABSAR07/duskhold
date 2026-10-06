@@ -1,129 +1,132 @@
 ---
 phase: 02-night-defense-playtest-gate
-reviewed: 2026-10-06T05:39:42Z
+reviewed: 2026-10-06T14:31:33Z
 depth: standard
-files_reviewed: 5
+files_reviewed: 50
 files_reviewed_list:
-  - simulation/night/wave_schedule.gd
-  - tests/e2e/test_results_screen.gd
+  - data/king/king.tres
+  - data/maps/prototype_map.tres
+  - data/tuning/loop_tuning.tres
+  - input/fast_forward_controller.gd
+  - input/fast_forward_controller.gd.uid
+  - presentation/map/prototype_map.tscn
+  - presentation/vfx/projectile_vfx.gd
+  - project.godot
+  - simulation/defs/king_def.gd
+  - simulation/defs/loop_tuning.gd
+  - simulation/defs/map_config.gd
+  - simulation/night/castle_attack.gd
+  - simulation/night/castle_attack.gd.uid
+  - simulation/night/night_sim.gd
+  - simulation/run/run_context.gd
+  - simulation/run/run_manager.gd
+  - tests/e2e/test_dawn_payout.gd
+  - tests/e2e/test_dawn_payout_castle.gd
+  - tests/e2e/test_dawn_payout_castle.gd.uid
+  - tests/e2e/test_fast_forward.gd
+  - tests/e2e/test_fast_forward.gd.uid
+  - tests/e2e/test_king_ride.gd
+  - tests/e2e/test_projectiles_visible.gd
+  - tests/e2e/test_results_layout.gd
+  - tests/e2e/test_results_layout.gd.uid
+  - tests/e2e/test_start_night_hold.gd
+  - tests/integration/test_balance_acceptance.gd
+  - tests/integration/test_balance_acceptance.gd.uid
+  - tests/integration/test_balance_report.gd
+  - tests/integration/test_loop_gold_carryover.gd
+  - tests/unit/test_building_damage.gd
+  - tests/unit/test_castle_attack.gd
+  - tests/unit/test_castle_attack.gd.uid
+  - tests/unit/test_dawn_income.gd
+  - tests/unit/test_dawn_rebuild.gd
+  - tests/unit/test_fast_forward_rules.gd
+  - tests/unit/test_fast_forward_rules.gd.uid
+  - tests/unit/test_input_map.gd
+  - tests/unit/test_king_movement_config.gd
   - tests/unit/test_loop_tuning_contract.gd
-  - tests/unit/test_wave_schedule.gd
-  - ui/results/results_screen.gd
+  - tests/unit/test_map_validate_castle.gd
+  - tests/unit/test_map_validate_castle.gd.uid
+  - tests/unit/test_map_validate_income.gd
+  - tests/unit/test_map_validate_income.gd.uid
+  - tools/replay/balance_report.gd
+  - tools/replay/replay_driver.gd
+  - ui/hud/dawn_payout_vfx.gd
+  - ui/hud/hud.gd
+  - ui/hud/hud.tscn
+  - ui/results/results_screen.tscn
 findings:
   critical: 0
-  warning: 1
-  info: 1
-  total: 2
+  warning: 2
+  info: 2
+  total: 4
 status: issues_found
 ---
 
-# Phase 2: Code Review Report
+# Phase 2: Code Review Report (fourth review, gap-closure plans 02-12 to 02-16)
 
-**Reviewed:** 2026-10-06T05:39:42Z
+**Reviewed:** 2026-10-06T14:31:33Z
 **Depth:** standard
-**Files Reviewed:** 5
+**Files Reviewed:** 50
 **Status:** issues_found
 
 ## Summary
 
-Third review of Phase 2, covering the five files changed since the second review (review-fix pass 2).
-All five were read in full, plus `tools/test.sh`, `tests/e2e/e2e_support.gd` (wait_until),
-`simulation/defs/map_config.gd` (find_enemy, find_spawn_point, night_def), `SimClock.ticks` and
-`RunContext.advance`. Nothing was run and no source was modified; the orchestrator's measurements
-(745 tests green, six mutation probes caught) were taken as given.
+Scope was the diff `2adf91a..HEAD` on the listed files: the base dawn income (RunManager, MapConfig, DawnPayoutVfx), the 12 m/s sprint, the night-only hold-to-fast-forward (FastForwardController, HUD label, input action), the castle ranged attack (CastleAttack, NightSim order, ProjectileVfx), the results-button margin and the seeded balance acceptance test.
 
-The second review's six fixes are sound in the code. The results screen and the wave schedule have no
-defect I can show. The one real problem is in the new tests: the `pending()` escape hatch added for
-WR-02 also swallows the exact regression those tests exist to catch, and `tools/test.sh` does not
-fail on a pending test.
+The simulation changes hold up. CastleAttack uses only integer ticks, SimClock and TargetQuery, steps between towers and enemies as DR-8 requires, resets in begin_night, and is off at the data defaults, so the smoke golden is unaffected. The base income is added to a fresh Dictionary returned by `dawn_income_by_spot()` (checked: no shared state is mutated), is listed last, and the total equals the sum of per_spot. FastForwardController is the only writer of Engine.time_scale, nothing under simulation/ reads it, the scale drops inside the same step that leaves NIGHT (including defeat), and `_exit_tree` restores 1.0. The HUD scale text was checked against Godot 4.7.2 directly (2.0 reads "2", 1.5 reads "1.5", 2.5 reads "2.5"). No new test uses `pending()`, and no new test budgets real seconds tightly against the clamped clock (the dawn and arrow waits give 3 s or more against a 0.5 s simulated night).
 
-What I checked and found correct:
-
-- **Press-start gate (`results_screen.gd`).** The engine's `BaseButton` emits `button_down` for
-  keyboard and gamepad `ui_accept` as well as the mouse (non-echo press), which the passing
-  key and gamepad straddle tests confirm empirically. A press begun inside the window and released
-  after it is rejected because `_down_ms < _accept_from_ms`. A key held from before the screen
-  appears sends no press event to the button, and its release does nothing because no press attempt
-  began. A `pressed` with no `button_down` since the window opened is rejected: `_down_ms` starts at
-  -1 and `_accept_from_ms` is never negative, so `-1 >= 0` is false. A grace of exactly 0 gives
-  `_accept_from_ms == now`, so the first press (same millisecond or later) counts. The cap cannot lock
-  the player out for more than 3 s, and a negative value clamps to 0. Nothing in the gate depends on
-  focus, so focus changes cannot lock it. After the window all three devices work as before.
-- **Shared `_down_ms` across the two buttons.** The only way I can construct to exploit it is a key
-  press on Play again begun inside the window and still held, then a mouse press on Quit after the
-  window, then the key released. That needs two devices at once and the focus change on the mouse
-  press should already cancel the first button's press attempt. I did not report it; a per-button
-  stamp would close it if the owner wants zero residual.
-- **Wave schedule.** `_allowances` is the single rule for both the schedule and `preview_counts`:
-  null group, unknown spawn point and unknown enemy each give 0 and spend no budget; the budget is
-  spent in group order and `mini(maxi(count, 0), budget)` never goes negative. The constructor's
-  `<= 0` skip and the preview's `> 0` filter agree. The sort key `(tick, group_index, index)` is
-  total. The file uses no `Time`, `OS`, global random or scene tree, so it stays deterministic.
-  `MAX_GROUP_COUNT` is gone and has no remaining users in the repo.
-- **Contract test.** The `"\nresults_input_grace_seconds = "` check now fails if the line is removed
-  from `loop_tuning.tres`; the shipped value of 0.6 sits inside the 0.3 to 1.0 pin.
-- **Wave-schedule tests.** The unknown-enemy test fails on the pre-fix preview (it would list a
-  full-budget ghost group at WEST and starve EAST) and passes now, for the right reason.
-- **Bounded waits.** Every wait in the new tests is `E2eSupport.wait_until` (bounded by real time) or
-  a fixed number of frames; a stalled runner cannot hang the suite.
+Two things need attention. The castle-attack validation claims a guarantee it does not give (a data value can make the castle fire on every tick). Separately, the leaked controllers in test_fast_forward_rules.gd make one of its tests unable to fail on the behaviour it names.
 
 ## Warnings
 
-### WR-01: A grace that is never applied turns every grace test pending, and a pending test does not fail the run
+### WR-01: Leaked FastForwardControllers make "a held key resumes fast-forward as the night begins" unable to fail
 
-**File:** `tests/e2e/test_results_screen.gd:373-375`, `:405-407`, `:424-427` (also `:492-504`)
-**Issue:** The three grace tests and the four straddle tests treat `results.accepts_input() == true`
-after the taps as "the runner stalled past the window" and end with `pending()`. But
-`accepts_input()` is also true immediately if the grace is simply not applied: `grace_ms` computed as
-0, the clamp swapped, `_accept_from_ms` set to the past, or the tuning field read from the wrong
-object. In that case all seven tests go pending, and nothing else asserts the window exists:
+**File:** `tests/unit/test_fast_forward_rules.gd:54-59` (helper), `tests/unit/test_fast_forward_rules.gd:113-121` (affected test)
+**Issue:** `_controller_on` does `add_child(controller)` with no autofree. GUT keeps one test-script node for the whole file, so every controller created by an earlier test stays in the tree for the rest of the file, still polling `Input.is_action_pressed` each frame against its own old RunContext. The first controller test (`test_fast_forward_held_by_day_changes_nothing_then_runs_the_night_at_2x`) leaves its context in NIGHT, so that stale controller applies `Engine.time_scale = 2.0` whenever the action is held, for every later test.
 
-- `test_a_huge_grace_value_is_capped_so_the_buttons_still_work` (`:492`) only waits for
-  `accepts_input()` to become true, which is true at once with no grace at all.
-- `test_shipped_results_input_grace_is_set_in_the_data_file_and_short` only reads the data file.
-- A repo grep shows `accepts_input` and `_accept_from_ms` are used by no other test.
-
-`tools/test.sh` exits non-zero only if Godot/GUT exits non-zero, the JUnit XML is missing, or a
-parse error appears. GUT counts pending tests as neither passed nor failed and exits 0 on them, so CI
-stays green. The result is that the WR-03 behaviour (mashing the build key at the end of a run
-restarts the game) can regress with a green suite. The orchestrator's six mutation probes did not
-include "grace not applied", so this was not seen. The press-start stamp probes are caught only
-because they do not depend on the window.
-
-**Fix:** Decide "the window exists" from a fact that cannot be confused with a stall, taken the moment
-the screen shows, and keep `pending()` only for the genuine stall. With a 3 s window a stall before
-this check is not credible, so assert it hard:
-
+`test_a_night_that_starts_while_the_key_is_already_down_runs_fast` presses the action, awaits one frame (during which the stale controller from the earlier test already sets 2.0, because its own night is running), and only then submits StartNightIntent. Its assertion `Engine.time_scale == 2.0` is therefore already true before the new controller's `phase_changed` handler runs. If that handler were deleted or disconnected the test would still pass. The same masking applies to the "fast at night" pre-assertions in `test_freeing_the_controller_while_fast_restores_real_time` and `test_the_scale_drops_inside_the_step_that_reaches_dawn`. The three whole-feature-off mutation probes would not expose this, because a partial regression (the handler only) is what slips through.
+**Fix:** Own each controller with the test, so nothing outlives it:
 ```gdscript
-# in _defeat_scene() and _victory_scene(), right after the wait for is_showing():
-assert_false(results.accepts_input(), "the grace window is open when the screen appears")
+func _controller_on(ctx: RunContext) -> FastForwardController:
+	var controller: FastForwardController = FastForwardController.new()
+	add_child_autofree(controller)
+	controller.bind_run(ctx, null)
+	controller.changed.connect(_on_changed)
+	return controller
 ```
+`test_freeing_the_controller_while_fast_restores_real_time` frees the controller itself, which autofree tolerates (GUT checks for a freed instance). Then confirm by mutation that removing the `phase_changed` connection fails `test_a_night_that_starts_while_the_key_is_already_down_runs_fast`.
 
-Do the same in the two tests that build their own scene (`:359-363`, `:492-497` for the cap test:
-there assert it is false after show, then keep the wait for true). Then a regression that applies no
-grace fails these asserts instead of silently going pending. If a stall between show and assert is
-still a concern, compare against a timestamp taken at show time instead of relying on the later
-`accepts_input()` read.
+### WR-02: Castle attack validation does not prevent a castle that fires on every tick (non-finite or sub-step interval), contradicting T-02-33
+
+**File:** `simulation/defs/map_config.gd:164-184` (`_validate_castle_attack`), `simulation/night/castle_attack.gd:38-43` (`is_armed`), `simulation/night/castle_attack.gd:66`
+**Issue:** The class comment and the map comment say bad data can never make the castle fire every tick. The check only rejects negatives and exact zeros. I ran it on 4.7.2-stable. With `castle_attack_damage = 1`, `castle_attack_range = INF` and `castle_attack_interval = INF`, `validate()` returns `[]`. `SimClock.ticks(INF)` is 1, so `_ready_at = tick + 1` and the castle shoots every 33 ms. `castle_attack_interval = 0.001` (also valid) does the same, since `ticks()` has a floor of 1. With a NaN range or interval `validate()` is also clean, but `is_armed()` is false (NaN > 0 is false), so the castle is silently off with no error. The sibling control, `FastForwardController.scale_for`, does handle NaN and INF (T-02-29), so the castle numbers are the inconsistent case. A shipped .tres is authored data, so this is not exploitable, but it breaks the stated invariant and can swing balance or flood PendingHits and the projectile cap.
+**Fix:** In `_validate_castle_attack` reject non-finite values and require at least one step:
+```gdscript
+for field: String in ["castle_attack_range", "castle_attack_interval", "castle_projectile_speed"]:
+	var value: float = get(field)
+	if is_nan(value) or is_inf(value):
+		errors.append("%s is not finite (%s)" % [field, value])
+if castle_attack_damage > 0 and castle_attack_interval > 0.0 and castle_attack_interval < SimClock.STEP:
+	errors.append("castle_attack_interval is below one simulation step (%s)" % castle_attack_interval)
+```
+Also make `CastleAttack.is_armed` use `is_finite()` on the range and interval so a map that was never validated cannot arm the castle with INF. Add the INF, NaN and 0.001 cases to `tests/unit/test_map_validate_castle.gd`. If a sub-step interval is meant to be legal, correct the "can never fire every tick" wording in `castle_attack.gd` and `map_config.gd` instead.
 
 ## Info
 
-### IN-05: Some end-to-end tests budget real seconds against a clamped simulation clock
+### IN-01: The dawn_payout signal documentation still says per_spot maps only spot ids
 
-**File:** `tests/e2e/test_results_screen.gd:17-18`, `:163`, `:267`, `:397`
-**Issue:** `DEFEAT_TIMEOUT_S = 4.0` and `VICTORY_TIMEOUT_S = 20.0` are real-time budgets for events that
-happen in simulation time, and `RunContext.advance` clamps each frame to
-`SimClock.MAX_ADVANCE_SECONDS` (0.25 s). Real and simulated time agree only while the runner
-holds at least 4 frames per second; below that the simulation runs slower than the wall clock and
-the siege (castle falls) or the night (Victory) can miss its budget on a loaded CI VM, failing with
-"the castle falls" or "the night is cleared" rather than a real defect. The loss-beat and grace waits
-are real time on both sides and are not affected. No flake has been seen in the measured runs, so
-the risk is latent.
-**Fix:** Wait on simulation progress with a generous real-time backstop (for example, a tick-count
-based predicate with the current timeout kept only as a deadlock guard), or raise the two timeouts
-by a safety factor and state the minimum frame rate they assume.
+**File:** `simulation/events/sim_events.gd:16` (related: `simulation/run/run_manager.gd:196-205`)
+**Issue:** The doc reads "`per_spot` maps spot_id to amount in MapConfig order, amount > 0 only". Since 02-12 it can also carry `MapConfig.CASTLE_PAYOUT_KEY` (&"castle"), listed last, which is not a spot. Consumers were checked and cope (DawnPayoutVfx projects the key above the castle, SimRecorder logs it, the others ignore the dictionary), but the next consumer that does `get_spot(key)` will get null.
+**Fix:** Update the comment: "...in MapConfig order, then `MapConfig.CASTLE_PAYOUT_KEY` for the castle's base income when the map pays one."
+
+### IN-02: test_results_layout pins the 11 px constant rather than measuring the visible gap it exists for
+
+**File:** `tests/e2e/test_results_layout.gd:49-57`
+**Issue:** `test_buttons_sit_the_row_gap_plus_the_leading_below_the_last_stat` asserts `play_again.y == knockouts.end.y + separation + 11`, which restates the scene's `margin_top = 11`. The owner's complaint (the visible gap from the last stat's capitals to the button edge equals the stat-row gap) is not measured; the font-leading arithmetic lives in a comment and in a debug note. A theme or font change that alters the leading passes this test and re-introduces the uneven gap. The file comment says so openly, so this is a limitation, not a defect.
+**Fix:** Optional. Derive the leading from the font (`font.get_ascent(size)` minus cap height) for a font with known metrics and assert the visible gap against the row gap within 1 px. Otherwise keep the current test and the focus-expand sentinel.
 
 ---
 
-_Reviewed: 2026-10-06T05:39:42Z_
+_Reviewed: 2026-10-06T14:31:33Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
