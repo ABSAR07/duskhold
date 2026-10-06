@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 02
 current_phase_name: Night Defense & Playtest Gate
 status: executing
-stopped_at: Completed 02-12-PLAN.md
-last_updated: "2026-10-06T12:07:00.635Z"
+stopped_at: Completed 02-13-PLAN.md
+last_updated: "2026-10-06T12:56:20.479Z"
 last_activity: 2026-10-06
 last_activity_desc: Phase 02 execution started
-state_head: 33db6728317c6f5c760b31e76a31b4fbcf5f2335
+state_head: 0a4c97d77c66ec6f3b263dc36d29ff4f649fb1ab
 progress:
   total_phases: 13
   completed_phases: 1
   total_plans: 34
-  completed_plans: 30
+  completed_plans: 31
   percent: 8
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-03)
 ## Current Position
 
 Phase: 02 (Night Defense & Playtest Gate) — EXECUTING
-Plan: 2 of 16
+Plan: 3 of 16
 Status: Ready to execute
 Last activity: 2026-10-06 — Phase 02 execution started
 
@@ -86,6 +86,7 @@ Progress: [█░░░░░░░░░] 8%
 | Phase 02 P10 | 81 min | 2 tasks | 17 files |
 | Phase 02 P11 | 51 min | 3 tasks | 8 files |
 | Phase 02 P12 | 22 min | 2 tasks | 15 files |
+| Phase 02 P13 | 45 min | 3 tasks | 18 files |
 
 ## Accumulated Context
 
@@ -163,6 +164,7 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-11: night screenshots reach their state by the replay loop (bot then ctx.step) and place the king and camera before the fast-forward; arrows thickened to 0.15 m by 1 m after the first look
 - [Phase 02]: 02-11: readability points outside the plan's files (results screen spacing and Quit contrast, hairline path lines, small dawn coin) are left in the owner packet; CI run 37325147907 green with 15 screenshots; 02-PLAYTEST-GATE.md opens the D-18 gate
 - [Phase 02]: 02-12: base dawn income of 1 gold on the prototype map, paid under the reserved castle payout key; towers still pay nothing (D-10)
+- [Phase 02]: Plan 02-13: sprint 12 m/s (multiplier 2.4, acceleration 60); night fast-forward on F / left trigger acts only in NIGHT, drops to 1.0 in the phase_changed that leaves NIGHT, FastForwardController is the single writer of Engine.time_scale — Owner asked for both a faster sprint and a speed-up (G-02-1); night-only keeps the 1.2 s loss beat and 0.6 s results grace in real seconds
 
 ### Pending Todos
 
@@ -196,6 +198,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-06T12:07:00.428Z
-Stopped at: Completed 02-12-PLAN.md
+Last session: 2026-10-06T12:56:19.849Z
+Stopped at: Completed 02-13-PLAN.md
 Resume file: None
