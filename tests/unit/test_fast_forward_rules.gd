@@ -1,13 +1,20 @@
 extends GutTest
-## Night fast-forward (owner decision 2026-10-06, UAT G-02-1): holding fast_forward during a night
-## runs the game at LoopTuning.fast_forward_scale through Engine.time_scale. It changes only how
-## many fixed steps run per real second, never what a step does (DEV-05), it acts in NIGHT alone,
-## and FastForwardController is the single writer of the engine time scale.
+## Night fast-forward as a toggle (owner decision 2026-10-07, UAT G-02-14, after the 2026-10-06 hold
+## of G-02-1): one press at night switches the game to LoopTuning.fast_forward_scale through
+## Engine.time_scale, the next press switches it off, and the end of the night switches it off in
+## the same simulation step. It changes only how many fixed steps run per real second, never what a
+## step does (DEV-05), it acts in NIGHT alone, and FastForwardController is the single writer of
+## the engine time scale. Every test controller is owned by its test (add_child_autofree, fourth
+## review WR-01), so none survives to mask a later assertion.
 
 const TUNING_PATH := "res://data/tuning/loop_tuning.tres"
+const FIXTURE_PATH := "res://tests/fixtures/fixture_map_one_night.tres"
 const ACTION: StringName = &"fast_forward"
 const SEED: int = 7
 const MAX_DAWN_STEPS: int = 600
+const MAX_NIGHT_STEPS: int = 1500
+## The king's hold point in front of the west route (as in test_run_outcomes.gd).
+const KING_AT := Vector2(-4.5, 0.0)
 const NIGHT: int = RunManager.RunPhase.NIGHT
 const SCAN_SKIP_DIRS: Array[String] = ["addons", "tests", ".godot", ".tools", "build"]
 const WRITE_PATTERN := "Engine\\.time_scale\\s*=[^=]"
@@ -41,7 +48,7 @@ func _context(map: MapConfig = null) -> RunContext:
 
 func _controller_on(ctx: RunContext) -> FastForwardController:
 	var controller: FastForwardController = FastForwardController.new()
-	add_child(controller)
+	add_child_autofree(controller)
 	controller.bind_run(ctx, null)
 	controller.changed.connect(_on_changed)
 	return controller
@@ -57,15 +64,31 @@ func _night_started_context() -> RunContext:
 	return ctx
 
 
+## One press of the action: down for two frames, released, one more frame.
+func _tap() -> void:
+	Input.action_press(ACTION)
+	await wait_process_frames(2)
+	Input.action_release(ACTION)
+	await wait_process_frames(1)
+
+
+func _step_until_phase(ctx: RunContext, phase: int, max_steps: int) -> bool:
+	var steps: int = 0
+	while ctx.run_manager.get_phase() != phase and steps < max_steps:
+		ctx.step()
+		steps += 1
+	return ctx.run_manager.get_phase() == phase
+
+
 # --- the scale rules ---------------------------------------------------------------------------
 
 
-func test_the_shipped_scale_applies_only_to_a_held_night() -> void:
-	assert_eq(FastForwardController.scale_for(NIGHT, true, _tuning), 2.0, "held at night is 2x")
-	assert_eq(FastForwardController.scale_for(NIGHT, false, _tuning), 1.0, "not held is real time")
+func test_the_shipped_scale_applies_only_to_a_switched_on_night() -> void:
+	assert_eq(FastForwardController.scale_for(NIGHT, true, _tuning), 2.0, "on at night is 2x")
+	assert_eq(FastForwardController.scale_for(NIGHT, false, _tuning), 1.0, "off is real time")
 
 
-func test_every_other_phase_runs_at_real_time_even_when_held() -> void:
+func test_every_other_phase_runs_at_real_time_even_when_switched_on() -> void:
 	for phase: int in [
 		RunManager.RunPhase.DAY,
 		RunManager.RunPhase.NIGHT_TRANSITION,
@@ -92,64 +115,95 @@ func test_a_scale_that_is_not_finite_counts_as_real_time() -> void:
 # --- the controller on a run -------------------------------------------------------------------
 
 
-func test_fast_forward_held_by_day_changes_nothing_then_runs_the_night_at_2x() -> void:
+func test_a_press_at_night_switches_fast_forward_on_and_the_next_press_switches_it_off() -> void:
 	var ctx: RunContext = _context()
 	var controller: FastForwardController = _controller_on(ctx)
-	Input.action_press(ACTION)
-	await wait_process_frames(2)
-	assert_eq(Engine.time_scale, 1.0, "held by day stays at real time")
+	await _tap()
+	assert_eq(Engine.time_scale, 1.0, "a press by day changes nothing")
 	assert_false(controller.is_active(), "not active by day")
 	assert_eq(ctx.commands.submit(StartNightIntent.new()), CommandProcessor.OK, "night started")
-	await wait_process_frames(1)
-	assert_eq(Engine.time_scale, 2.0, "held at night runs at 2x")
+	await wait_process_frames(2)
+	assert_eq(Engine.time_scale, 1.0, "the day press armed nothing: the night starts at real time")
+	assert_eq(_changes, [] as Array[Array], "nothing changed yet")
+	await _tap()
+	assert_eq(Engine.time_scale, 2.0, "a press at night runs at 2x")
 	assert_true(controller.is_active(), "active at night")
 	assert_eq(controller.get_scale(), 2.0, "the controller reports the scale")
 	assert_eq(_changes, [[true, 2.0]] as Array[Array], "changed fired once, on")
-	Input.action_release(ACTION)
-	await wait_process_frames(1)
-	assert_eq(Engine.time_scale, 1.0, "released is real time")
+	await wait_process_frames(2)
+	assert_eq(Engine.time_scale, 2.0, "it stays on after the key is let go")
+	assert_eq(_changes, [[true, 2.0]] as Array[Array], "and nothing else changed")
+	await _tap()
+	assert_eq(Engine.time_scale, 1.0, "the next press switches it off")
+	assert_false(controller.is_active(), "no longer active")
 	assert_eq(_changes, [[true, 2.0], [false, 1.0]] as Array[Array], "changed fired off once")
 
 
-func test_a_night_that_starts_while_the_key_is_already_down_runs_fast() -> void:
+func test_a_key_held_from_day_into_the_night_does_not_switch_it_on() -> void:
 	var ctx: RunContext = _context()
 	_controller_on(ctx)
 	Input.action_press(ACTION)
+	await wait_process_frames(2)
+	assert_eq(ctx.commands.submit(StartNightIntent.new()), CommandProcessor.OK, "night started")
+	assert_eq(Engine.time_scale, 1.0, "the night begins at real time with the key down")
+	await wait_process_frames(2)
+	assert_eq(Engine.time_scale, 1.0, "and stays there while the key stays down")
+	Input.action_release(ACTION)
 	await wait_process_frames(1)
-	ctx.commands.submit(StartNightIntent.new())
-	assert_eq(Engine.time_scale, 2.0, "the held key resumes fast-forward as the night begins")
+	await _tap()
+	assert_eq(Engine.time_scale, 2.0, "a fresh press at night switches it on")
 
 
 func test_the_scale_drops_inside_the_step_that_ends_the_run_in_defeat() -> void:
 	var ctx: RunContext = _night_started_context()
-	_controller_on(ctx)
-	Input.action_press(ACTION)
-	await wait_process_frames(1)
+	var controller: FastForwardController = _controller_on(ctx)
+	await _tap()
 	assert_eq(Engine.time_scale, 2.0, "fast at night")
 	assert_true(ctx.run_manager.end_run_in_defeat(), "the run is lost")
 	assert_eq(Engine.time_scale, 1.0, "real time at once, before any frame passes")
+	assert_false(controller.is_active(), "the switch is cleared")
+	await _tap()
+	assert_eq(Engine.time_scale, 1.0, "a press on the lost run does nothing")
+	assert_eq(_changes, [[true, 2.0], [false, 1.0]] as Array[Array], "one on, one off")
 
 
-func test_the_scale_drops_inside_the_step_that_reaches_dawn() -> void:
+func test_the_switch_resets_in_the_dawn_step_and_the_next_night_starts_at_real_time() -> void:
 	var ctx: RunContext = _context(E2eSupport.waveless_prototype_map())
-	_controller_on(ctx)
+	var controller: FastForwardController = _controller_on(ctx)
 	ctx.commands.submit(StartNightIntent.new())
-	Input.action_press(ACTION)
-	await wait_process_frames(1)
+	await _tap()
 	assert_eq(Engine.time_scale, 2.0, "fast during the timed night")
-	var steps: int = 0
-	while ctx.run_manager.get_phase() == NIGHT and steps < MAX_DAWN_STEPS:
-		ctx.step()
-		steps += 1
-	assert_eq(ctx.run_manager.get_phase(), RunManager.RunPhase.DAWN, "the night ended into dawn")
-	assert_eq(Engine.time_scale, 1.0, "real time the moment dawn begins, with the key still held")
+	assert_true(_step_until_phase(ctx, RunManager.RunPhase.DAWN, MAX_DAWN_STEPS), "dawn reached")
+	assert_eq(Engine.time_scale, 1.0, "real time the moment dawn begins, no frame passed")
+	assert_false(controller.is_active(), "the switch is cleared")
+	assert_true(_step_until_phase(ctx, RunManager.RunPhase.DAY, MAX_DAWN_STEPS), "next day")
+	assert_eq(ctx.commands.submit(StartNightIntent.new()), CommandProcessor.OK, "night 2 started")
+	await wait_process_frames(2)
+	assert_eq(Engine.time_scale, 1.0, "night 2 starts at real time")
+	assert_eq(_changes, [[true, 2.0], [false, 1.0]] as Array[Array], "no second switch on")
+
+
+func test_the_switch_resets_inside_the_step_that_wins_the_run() -> void:
+	var shipped: MapConfig = load(FIXTURE_PATH)
+	var map: MapConfig = shipped.duplicate_deep(Resource.DEEP_DUPLICATE_ALL)
+	var ctx: RunContext = RunContext.new(map, _tuning, 1)
+	ctx.king.report_position(KING_AT)
+	assert_eq(ctx.commands.submit(StartNightIntent.new()), CommandProcessor.OK, "night 1 started")
+	assert_true(_step_until_phase(ctx, RunManager.RunPhase.DAWN, MAX_NIGHT_STEPS), "dawn 1")
+	assert_true(_step_until_phase(ctx, RunManager.RunPhase.DAY, MAX_DAWN_STEPS), "day 2")
+	var controller: FastForwardController = _controller_on(ctx)
+	assert_eq(ctx.commands.submit(StartNightIntent.new()), CommandProcessor.OK, "night 2 started")
+	await _tap()
+	assert_eq(Engine.time_scale, 2.0, "fast during the last night")
+	assert_true(_step_until_phase(ctx, RunManager.RunPhase.WON, MAX_NIGHT_STEPS), "the run is won")
+	assert_eq(Engine.time_scale, 1.0, "real time the moment the run is won, no frame passed")
+	assert_false(controller.is_active(), "the switch is cleared")
 
 
 func test_freeing_the_controller_while_fast_restores_real_time() -> void:
 	var ctx: RunContext = _night_started_context()
 	var controller: FastForwardController = _controller_on(ctx)
-	Input.action_press(ACTION)
-	await wait_process_frames(1)
+	await _tap()
 	assert_eq(Engine.time_scale, 2.0, "fast at night")
 	controller.free()
 	assert_eq(Engine.time_scale, 1.0, "leaving the tree restores real time")
