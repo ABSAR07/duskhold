@@ -184,3 +184,31 @@ func test_the_preview_agrees_with_a_capped_schedule() -> void:
 		WaveSchedule.new(map, 1).total_count(),
 		"the telegraph shows the enemies the capped night will actually bring"
 	)
+
+
+## IN-01: a group whose enemy the map does not define is skipped by the schedule, so it must not be
+## previewed and must not spend the night budget in the preview either.
+func test_the_preview_skips_an_unknown_enemy_group_like_the_schedule() -> void:
+	var map: MapConfig = _shipped()
+	var night: NightDef = map.night_def(1)
+	night.groups.clear()
+	var ghost: SpawnGroupDef = _group(WEST, MapConfig.MAX_ENEMIES_PER_NIGHT)
+	ghost.enemy_id = &"no_such_enemy"
+	night.groups.append(ghost)
+	night.groups.append(_group(EAST, 5))
+
+	var counts: Dictionary = WaveSchedule.preview_counts(map, 1)
+
+	assert_eq(WaveSchedule.new(map, 1).total_count(), 5, "the schedule skips the unknown enemy")
+	assert_eq(counts, {EAST: 5}, "the preview lists the valid group only, with its full count")
+	assert_eq(_previewed(map, 1), WaveSchedule.new(map, 1).total_count(), "and the totals agree")
+
+
+## IN-02: the night budget is the only cap. A second per-group cap with the same number could never
+## decide anything, so it must not come back as a constant.
+func test_the_night_budget_is_the_only_cap_constant() -> void:
+	var constants: Dictionary = (
+		WaveSchedule.new(_shipped(), 1).get_script().get_script_constant_map()
+	)
+
+	assert_false(constants.has("MAX_GROUP_COUNT"), "no dead per-group cap beside the night budget")
