@@ -6,23 +6,23 @@ findings:
   - id: WR-01
     severity: warning
     disposition: open
-    title: "A grace that is never applied turns every grace test pending, and a pending test does not fail the run"
+    title: "Leaked FastForwardControllers make \"a held key resumes fast-forward as the night begins\" unable to fail"
+  - id: WR-02
+    severity: warning
+    disposition: open
+    title: "Castle attack validation does not prevent a castle that fires on every tick (non-finite or sub-step interval), contradicting T-02-33"
+  - id: IN-01
+    severity: info
+    disposition: open
+    title: "The dawn_payout signal documentation still says per_spot maps only spot ids"
+  - id: IN-02
+    severity: info
+    disposition: open
+    title: "test_results_layout pins the 11 px constant rather than measuring the visible gap it exists for"
   - id: IN-05
     severity: info
     disposition: open
     title: "Some end-to-end tests budget real seconds against a clamped simulation clock"
-  - id: WR-02
-    severity: warning
-    disposition: fixed
-    title: "The new results-screen tests fail if the runner stalls longer than the grace window"
-  - id: IN-01
-    severity: info
-    disposition: fixed
-    title: "`preview_counts` counts groups that `WaveSchedule` skips"
-  - id: IN-02
-    severity: info
-    disposition: fixed
-    title: "`MAX_GROUP_COUNT` is now a dead clamp"
   - id: IN-03
     severity: info
     disposition: fixed
@@ -39,9 +39,9 @@ findings:
     severity: info
     disposition: open
     title: "Screenshot job worst-case time equals the job timeout"
-open: 3
+open: 6
 total: 9
-recorded: 2026-10-06T05:42:09.446Z
+recorded: 2026-10-06T14:32:32.881Z
 ---
 
 # Phase 02: Code Review Disposition
@@ -49,10 +49,10 @@ recorded: 2026-10-06T05:42:09.446Z
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
 | WR-01 | warning | open | - |
-| IN-05 | info | open | - |
-| WR-02 | warning | fixed | 02-REVIEW-FIX.md (not in the current review) |
-| IN-01 | info | fixed | 02-REVIEW-FIX.md (not in the current review) |
-| IN-02 | info | fixed | 02-REVIEW-FIX.md (not in the current review) |
+| WR-02 | warning | open | - |
+| IN-01 | info | open | - |
+| IN-02 | info | open | - |
+| IN-05 | info | open | - (not in the current review) |
 | IN-03 | info | fixed | 02-REVIEW-FIX.md (not in the current review) |
 | IN-04 | info | fixed | 02-REVIEW-FIX.md (not in the current review) |
 | WR-03 | warning | fixed | 02-REVIEW-FIX.md (not in the current review) |
