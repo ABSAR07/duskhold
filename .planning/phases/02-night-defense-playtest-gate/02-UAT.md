@@ -3,7 +3,7 @@ status: diagnosed
 phase: 02-night-defense-playtest-gate
 source: [02-VERIFICATION.md]
 started: 2026-10-05T15:26:33Z
-updated: 2026-10-06T10:56:56Z
+updated: 2026-10-06T11:02:17Z
 ---
 
 ## Current Test
@@ -103,7 +103,7 @@ blocked: 0
   missing:
     - "A base dawn income that does not come from a building (e.g. MapConfig.base_dawn_income, script default 0 so frozen fixtures and the golden keep their digests; 1 in prototype_map.tres), paid in _apply_dawn_payout and listed in per_spot so the payout VFX contract holds"
     - "A castle attacker: MapConfig data (damage 2, range about 11 m, interval about 1.5 s, projectile speed about 18 m/s, defaults 0 = off), a TowerSystem-style step at a fixed point in NightSim order using KIND_CASTLE, plus ProjectileVfx origin handling and the replay kill tally"
-    - "Speed-up: either sprint_multiplier 2.4 (12 m/s, acceleration about 60, update test_king_movement_config.gd) or a new deterministic fast-forward input (more fixed 1/30 s ticks per real second, king movement scaled the same) — owner to decide which was meant"
+    - "Speed-up, OWNER DECISION 2026-10-06 (\"both\"): (a) the king sprint at least 1.5x its current 8 m/s, i.e. sprint_multiplier >= 2.4 (12 m/s) with acceleration raised (about 60) so stopping stays inside the 2.5 m build radius, and test_king_movement_config.gd updated; AND (b) a new fast-forward input (keyboard and gamepad bindings, mouse not required) that runs the simulation at >= 1.5x real time while held during the night: deterministic by construction (more fixed 1/30 s ticks per real second, king movement in presentation scaled the same), with the MAX_ADVANCE_SECONDS clamp and the debug overlay accounted for"
     - "Re-run tools/playtest.sh and the owner's playtest after the above before touching night 3 counts or castle health; do not lower grunt hp to 5 (king would one-shot grunts)"
   debug_session: .planning/debug/playtest-economy-castle-speed-difficulty.md
 - gap_id: G-02-2
