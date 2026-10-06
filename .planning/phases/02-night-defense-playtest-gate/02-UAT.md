@@ -1,9 +1,9 @@
 ---
-status: complete
+status: diagnosed
 phase: 02-night-defense-playtest-gate
 source: [02-VERIFICATION.md]
 started: 2026-10-05T15:26:33Z
-updated: 2026-10-06T20:17:23Z
+updated: 2026-10-06T22:11:23Z
 ---
 
 ## Current Test
@@ -166,29 +166,85 @@ blocked: 0
   reason: "User reported: castle range should be double what it is now, and arrow speed should be 1.5x faster (owner, round 2, 2026-10-07; given on the gate test, belongs to the castle attack)"
   severity: minor
   test: 13
-  artifacts: []
-  missing: []
+  root_cause: "A tuning decision on shipped data, not a code bug: data/maps/prototype_map.tres:357 castle_attack_range = 11.0 and :359 castle_projectile_speed = 18.0 are read by CastleAttack.step every tick (range into TargetQuery.nearest_enemy at castle_attack.gd:51, speed into SimClock.flight_ticks at :54-56) and ProjectileVfx times each arrow from the event's flight_ticks, so 'double the range, 1.5x the arrow speed' is exactly 22.0 and 27.0 in those two lines with no code change. At 11 m the castle fires only during the last 6.3 m before a grunt reaches its wall and covers no House plot; at 22 m it covers house_1 to house_4 (12.7 and 21.6 m), never a tower circle (gap 22.5 m), a lone grunt takes all three hits before the wall and a lone skirmisher dies before its 10.5 m stand-off; flight at the edge is 25 ticks (0.83 s) instead of 19. validate() accepts both values; no test asserts 11.0 or 18.0 against the shipped map (817 of 817 pass on a temporary 22.0/27.0 edit); fixtures and the smoke golden keep castle fields at 0. Balance (seeds 1 to 10, temporary edit): balanced identical (10 of 10, 0 castle kills, the castle never fires for it), towers_first 10 of 10, greedy_economy 0 of 10 with its loss moved from night 5 to night 6 (the top of the acceptance band), no_build now survives exactly night 1 on every seed."
+  artifacts:
+    - path: "data/maps/prototype_map.tres"
+      issue: "castle_attack_range 11.0 (:357) and castle_projectile_speed 18.0 (:359); the owner wants 22.0 and 27.0"
+    - path: "simulation/night/castle_attack.gd"
+      issue: "doc comment :7-10 states 'reach 11 m' and the stand-off formula; logic reads the map and needs no change"
+    - path: "simulation/defs/map_config.gd"
+      issue: "doc comment :40-43 ('a simple, slow shot'); _validate_castle_attack :167-185 accepts INF, NaN and sub-step intervals (fourth review WR-02, open)"
+    - path: "tests/unit/test_map_validate_castle.gd"
+      issue: ":92-116 pins only range >= 10.75, interval 1.5 and speed > 0; does not lock the owner's new numbers"
+    - path: "tests/unit/test_castle_attack.gd"
+      issue: ":7, :15-19, :95-97, :140-150 use their own 11.0 / 18.0 numbers and call them 'the castle's own numbers'; stay green but go stale (6 m at 27 m/s is 7 ticks)"
+    - path: "tests/integration/test_balance_acceptance.gd"
+      issue: "GREEDY_LAST_LOSS_NIGHT 6 is now the measured greedy loss night; the G-02-15 lever must pull it back inside the band"
+  missing:
+    - "Set castle_attack_range 22.0 and castle_projectile_speed 27.0 on the shipped map (data only); add a shipped-data assertion for both in test_map_validate_castle.gd written failing first; refresh the test_castle_attack.gd numbers or header and the two doc comments"
+    - "Land this BEFORE the G-02-15 difficulty lever and measure that lever with the 22 m castle in place"
+    - "Close the fourth review's WR-02 in the same change: reject non-finite range/interval/speed and an interval below SimClock.STEP when the castle attacks (INF or sub-step fires every tick, NaN silently disarms); optionally an upper bound on the range"
+    - "Update the docs quoting 11 m / 18 m/s (02-PLAYTEST-GATE.md :19 :62, 02-BALANCE-REPORT.md :23, ROADMAP.md :154, STATE.md :172) in the round-3 packet plan"
+  debug_session: .planning/debug/castle-range-arrow-speed.md
 - gap_id: G-02-14
   truth: "The king still stops on a plot when the sprint key is released (full-sprint stop 1.2 m, inside the 2.5 m build radius) and is not uncontrollable at 12 m/s. Holding F or the gamepad left trigger at night runs the game at 2x and the 'Fast-forward 2x' label (top right) is legible. The game returns to real time at dawn, in the 1.2 s defeat beat and on the results screen. Say whether night-only is acceptable or you want it by day too or faster than 2x (assumption 14). Round-1 test 10 passed at 8 m/s; the sprint changed, so the handling judgement is partly reopened here"
   status: failed
   reason: "User reported: speed up should be togglable instead of hold to speed up. everything else is pass (owner, round 2, 2026-10-07: sprint, braking, 2x, label and night-only all pass; the fast-forward input should be a toggle, not a hold)"
   severity: minor
   test: 14
-  artifacts: []
-  missing: []
+  root_cause: "A design change, not a defect: the hold lives in one line, input/fast_forward_controller.gd:82 inside _apply, `scale_for(phase, Input.is_action_pressed(ACTION), _ctx.tuning)`, which runs every frame from _process (:61-63) and inside the simulation step from _on_phase_changed (:77-78); the controller keeps no on/off state, so Engine.time_scale follows the key from frame to frame, exactly as plan 02-13 asked ('it is a hold, not a toggle'). A toggle needs a latched switch flipped on a press edge while the phase is NIGHT and applied through the same scale_for(phase, switch_on, tuning), which keeps the night-only clamp, the single-writer rule and the determinism argument untouched (nothing under simulation/ reads the time scale; replays never involve the controller). Probe findings on the real InputMap: Input.is_action_just_pressed fires once per left-trigger pull past the 0.5 deadzone, while per-event InputEvent.is_action_pressed is true for every motion event at or above 0.5 (so an _unhandled_input toggle would flip several times in one pull); Godot has no deadzone hysteresis, so a trigger wavering around 0.5 re-fires on each upward crossing (a new risk under a toggle); GUT tests resume on process_frame before any _process, so Input.action_press is seen as just_pressed; the build-hold edge idiom `is_action_just_pressed(ACTION) or (pressed and not _was_pressed)` catches every case exactly once. A scratch latch run through the real scale_for behaved as the orchestrator's default semantics: day presses ignored, press on / press off at night, cleared within the step that leaves NIGHT (dawn, won, lost), a key held from day into night 2 does not arm it."
+  artifacts:
+    - path: "input/fast_forward_controller.gd"
+      issue: ":82 is the only level read of the action (called from _process :61-63 and _on_phase_changed :77-78); scale_for's `held` parameter (:35-41) keeps its body and only needs renaming; hold wording in the docs at :3-4, :15-16, :32; _exit_tree (:66-72) stays"
+    - path: "tests/unit/test_fast_forward_rules.gd"
+      issue: "_controller_on (:42-47) uses add_child without autofree (fourth review WR-01): under a toggle a leaked controller stays switched on after release_all_actions and flips on later tests' presses; T5 (:95-111), T6 (:114-121, inverts: a key held from day into the night must NOT switch it on), T7 (:123-130), T8 (:133-145, 'resumes across dawn' becomes 'resets at dawn'), T9 (:148-155) and the names of T1/T2 change meaning"
+    - path: "tests/e2e/test_fast_forward.gd"
+      issue: "header :2-4, E1 (:71-81) 'pressing by day changes nothing', E2 (:84-99) 'hides on release' becomes 'stays shown after release, hides on the second press', E3/E4 should release after the press, E5 (:128-145) 'key still held' becomes 'still switched on' and the next night starts with the label hidden"
+    - path: "tests/unit/test_input_map.gd"
+      issue: "doc comment :144; the deadzone pin (:58, :146-149) changes only if the deadzone is raised against trigger chatter"
+    - path: "simulation/defs/loop_tuning.gd"
+      issue: ":53 doc wording ('held'); tests/unit/test_loop_tuning_contract.gd:167 likewise"
+  missing:
+    - "Keep every change inside FastForwardController: add a `_wanted_on` switch and a `_was_pressed` updated every frame in every phase; detect a press with the build-hold edge idiom and flip the switch only while the phase is NIGHT; apply scale_for(phase, _wanted_on, tuning); in _on_phase_changed clear the switch before _apply when the new phase is not NIGHT so dawn, victory and defeat drop to real time in the same step and each night starts at real time"
+    - "Keep F and the left trigger, the `changed` signal, the HUD label, _exit_tree and the single-writer rule; do not use _unhandled_input with event.is_action_pressed (one trigger pull would flip several times); consider a short real-time debounce or a higher deadzone against trigger chatter"
+    - "Rewrite the fast-forward tests for toggle semantics (a long hold toggles once, one trigger pull toggles once, a sub-frame tap toggles, WON/LOST/DAWN clear the switch, a day press does not arm the next night) and fix WR-01 with add_child_autofree in the same change"
+    - "Record the semantics as the rewritten assumption 14 in the round-3 packet (press on, press off, resets when the night ends, day presses ignored; the switch survives alt-tab where the hold did not); update the controls row in 02-PLAYTEST-GATE.md and the hold wording in 02-SECURITY.md T-02-29 and ROADMAP.md:150"
+  debug_session: .planning/debug/fast-forward-toggle.md
 - gap_id: G-02-15
   truth: "Decide whether the run is now 'a bit easier' rather than too easy, and whether night 3 and the castle still feel fair. The bots now win 10 of 10 (balanced and tower-first); the balanced bot loses no building and is never knocked out, which is easier than 'a bit easier', and none of your two levers (night-3 east grunts 5 to 4, castle health 70 to 80) was applied because the balanced bot never lost. If it feels too easy, the levers in 02-BALANCE-REPORT.md are the night counts and the castle's damage, never grunt health"
   status: failed
   reason: "User reported: difficulty should be tweaked to be little harder. I think balanced bot should lose 2-3 times out of 10 (owner, round 2, 2026-10-07: target for the balanced bot on seeds 1 to 10 is 7 or 8 wins, not 10; levers per 02-BALANCE-REPORT.md are the night counts and the castle's damage, never grunt health)"
   severity: minor
   test: 15
-  artifacts: []
-  missing: []
+  root_cause: "Balance data, not a code bug, in two parts that only matter together (every number measured with the G-02-13 castle range 22.0 and arrow speed 27.0 applied). (1) Why balanced wins 10 of 10 and loses nothing: a bigger group count makes a road's stream last longer (one enemy per 1.5 s per group) but never denser; from night 3 on the balanced bot has a tower on every road before it opens (north tower from night 5, north road opens night 6); tier II towers one-shot grunts; the bot's king sprints at 12 m/s to the enemy nearest the castle and kills grunts faster than one road brings them; no enemy ever gets within 41 m of the castle, so castle damage and castle health never matter for it. Nights 6 to 8 have the most slack (+6 per road on night 8 still 10 of 10), and late pressure breaks towers_first first (no north tower, 7 gold; night 8 +1 per road already loses the acceptance-pinned seeds 2 and 3). None of the five obvious levers (nights 3-5 +1/+2, nights 6-8 +1/+3, extra skirmishers, castle damage 1, castle health 60), alone or stacked, moves balanced off 10 of 10. (2) The one place balanced can lose is nights 2 to 3 of its House opening: when night 2 costs the lone king 2 of its 3 Houses, dawn 2 pays 3 gold (a rebuilt House pays nothing that dawn, building_system.gd:82), below the 4-gold first tower, so night 3 starts with no tower and must then be too heavy for the king plus the castle. Either change alone still gives 10 of 10. Recommended data edit k4pS5m: night 2 adds an east grunt group (count 4, delay 2.0 s, interval 1.5 s); night 3 west 6 to 11, east 5 to 10; night 4 west 7 to 11, east 4 to 7 and night 5 west 7 to 9, east 7 to 8 only so the totals never fall (totals 5, 12, 21, 21, 21, 22, 27, 33); castle damage 2, castle health 70, grunt health 6, costs, incomes, base income, starting gold, nights 1 and 6 to 8 and all skirmisher groups unchanged. Measured (tool runs on temporary edits): balanced 8 of 10 (loses seeds 3 and 9 on night 3; 36 of 50 = 72% on the wider harness), greedy_economy 0 of 10 with losses on nights 3 (x6) and 4 (x4), no_build loses night 2, towers_first 10 of 10 and 50 of 50 with 7.0 gold, no balanced knockout. Alternatives: k7pS4m (night 2 east 7; night 3 west 10, east 9; night 4 west 10, east 6; night 5 west 8) gives 7 of 10 (seeds 4, 6, 8) and 76% of 50 with greedy losses spread over nights 3 to 6; k4pS6m (night 3 west 12, east 11 and more) gives 7 of 10 but 66% of 50. The response is steep (night 3 +4/+5/+6/+8 per road = 88/72/66/56% over 50 seeds), so 7 or 8 of 10 is one setting, not a range. Plainly for the owner: the extra difficulty is a NIGHT-3 WALL for House openings (a House opening that loses 2 Houses on night 2 meets 21 grunts on night 3 with no tower, heavier than round 1's night 3 that the owner could not beat); a tower opening stays safe and becomes the strictly safer start; houses_first loses on the same seeds. The bot target is met, but only the owner's replay can judge whether this is 'a little harder'."
+  artifacts:
+    - path: "data/maps/prototype_map.tres"
+      issue: "night 2 to 5 grunt group counts (:86-160) and a new night-2 east group; nights 1 and 6 to 8 and all skirmisher groups unchanged"
+    - path: "tests/integration/test_balance_acceptance.gd"
+      issue: "test_balanced_wins_every_run pins 3 of 3 on seeds 1 to 3; with the edit seed 3 is lost (0.667) and the pin must become a seeds-1-to-10 win count between 7 and 8 (optionally the losing seeds 3 and 9 and 'every balanced loss on night 3 or later'); runtime about 23 to 25 s"
+    - path: "tests/unit/test_night_data_contract.gd"
+      issue: "NIGHT_TOTALS must become [5, 12, 21, 21, 21, 22, 27, 33]; the only other failing test"
+    - path: "simulation/buildings/building_system.gd"
+      issue: ":82, a rebuilt House pays nothing that dawn: the rule that makes the lever work; no change"
+    - path: "tools/replay/playtest_bot.gd"
+      issue: "the perfect king (sprint to the nearest threat, never misses) and the tower ordering explain why counts do not bite; out of scope to change"
+    - path: ".planning/phases/02-night-defense-playtest-gate/02-BALANCE-REPORT.md"
+      issue: "needs a Round 3 section; the full_idle replay changes to 5140 ticks, digest bb9059c8... (quoted only in phase docs; no test or CI step pins the old 27fa2a80...)"
+  missing:
+    - "Land G-02-13 (22.0 / 27.0) first, then apply the chosen night-count edit (owner decision pending: the recommended k4pS5m night-3 wall, a milder step that keeps the bot near 10 of 10, or widened levers)"
+    - "Change test_balanced_wins_every_run to a seeds-1-to-10 count between 7 and 8 (pin the losing seeds and night 3 or later) and NIGHT_TOTALS to the new totals; test_every_night_ends, test_king_sturdiness, test_wave_schedule, test_spawn_telegraph (night 2 now shows two markers), test_prototype_nights, test_map_validate_nights, test_playtest_strategies and test_balance_report pass unchanged; the smoke golden is unchanged"
+    - "Refresh 02-BALANCE-REPORT.md and the round-3 packet, re-run the 15 screenshots in a real window (night_combat, spawn_telegraph and building_destroyed depend on the night data), export a fresh build, and tell the owner plainly about the night-3 wall"
+  debug_session: .planning/debug/difficulty-balanced-7-of-10.md
 - gap_id: G-02-12
   truth: "A recorded decision through /gsd-verify-work. Sign-off means: base gold fixes the tower-first trap without making gold meaningless, the castle attack is simple and not too strong, the 12 m/s sprint and the night fast-forward are fast enough, the game is a bit easier but still tense, and the results spacing looks even. Otherwise a list of fixes and any of assumptions 12 to 15 to change. Read the Round 2 section of 02-PLAYTEST-GATE.md first (what changed for each point, the controls table with the Fast-forward row, the round-2 balance table)"
   status: failed
   reason: "User reported: Fixes first (owner decision, round 2, 2026-10-07): castle range should be double and arrow speed 1.5x faster (test 13); speed up should be togglable instead of hold (test 14); difficulty a little harder, balanced bot should lose 2-3 of 10 (test 15). Everything else passes: base gold, spacing, sprint, 2x pace, label, night-only. Phase 2 does not close until these land and the owner replays (round 3)"
   severity: major
   test: 12
-  artifacts: []
-  missing: []
+  root_cause: "Not a code defect: this row is the owner's round-2 gate decision ('fixes first', D-18). The three fixes it names are diagnosed as their own gaps and this gap closes when they land and the owner replays: G-02-13 (castle range 22 m, arrow speed 27 m/s), G-02-14 (fast-forward as a toggle), G-02-15 (a little harder: balanced bot wins 7 or 8 of 10). Everything else the owner judged passes: base gold, results spacing, sprint and braking, 2x pace, label, night-only rule, assumptions 12 (confirmed with the 7-8 of 10 target) and 15. No debugger was spawned for this row; the orchestrator recorded it."
+  artifacts:
+    - path: ".planning/phases/02-night-defense-playtest-gate/02-PLAYTEST-GATE.md"
+      issue: "needs a Round 3 section: what changed for the three fixes, the rewritten assumptions 13 (castle numbers, difficulty levers) and 14 (toggle), the round-3 balance table and the decision prompt"
+  missing:
+    - "Land G-02-13, G-02-14 and G-02-15, export a fresh build/windows/Duskhold.exe, write the round-3 packet, then the owner replays and decides through /gsd-verify-work (a new UAT round; this row is answered then)"
+  debug_session: none (gate record; see the three gap sessions)
