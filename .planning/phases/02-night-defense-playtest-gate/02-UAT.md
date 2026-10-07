@@ -1,9 +1,9 @@
 ---
-status: complete
+status: diagnosed
 phase: 02-night-defense-playtest-gate
 source: [02-VERIFICATION.md]
 started: 2026-10-05T15:26:33Z
-updated: 2026-10-07T09:08:33Z
+updated: 2026-10-07T09:31:15Z
 ---
 
 ## Current Test
@@ -286,5 +286,25 @@ blocked: 0
   reason: "User reported: Note: make the normal speed 1.5x current normal speed for the king. adjust the speedup to stay at the current magnitude"
   severity: major
   test: 18
-  artifacts: []  # Filled by diagnosis
-  missing: []    # Filled by diagnosis
+  root_cause: "Not a code defect: an owner tuning decision on shipped data (round 3, 2026-10-07, clarified once: walk 1.5x, sprint stays 12 m/s, night fast-forward stays 2x). The king's walk speed is data/king/king.tres:7 walk_speed = 5.0 and the 12 m/s sprint is :8 sprint_multiplier = 2.4, because King.move_speed returns walk_speed x sprint_multiplier (presentation/king/king.gd:27-30); the exported commit 2bdcbd4 carries the same values. The owner's numbers are walk_speed 7.5 and sprint_multiplier 1.6 (7.5 x 1.6 is exactly 12.0 in doubles), acceleration stays 60 (walk stop 0.47 m, sprint stop 1.2 m, both inside the 2.5 m build radius). Only King.move_speed and PlaytestBot._move_king read the two fields; nothing under simulation/ does and nothing hard-codes 5.0, 2.4 or 12. The bots ride at the sprint pace on every tick (KING_DEFEND_NEAREST_THREAT) or never move (no_build), so a temporary 7.5 / 1.6 edit left the smoke golden, the full_idle line (ticks=5140, bb9059c8...) and the 10-seed balance report byte-identical: balanced 8 of 10 losing seeds 3 and 9, towers_first 10 of 10, greedy 0 of 10, no_build 0 of 10; test_balance_acceptance 8 of 8 and test_king_ride 10 of 10 still pass. Exactly three tests fail on the edit because they pin the old decision literally: test_king_movement_config.gd walk 5.0 and multiplier 2.4, and test_prototype_map_data.gd's ride-time band 20 to 30 s (D-03, 01-CONTEXT.md:59: the farthest spot pair, 110 m, now takes 14.67 s at walk), so the owner's decision overrides D-03 and the fix must amend it rather than grow the map. Blind spot: the bots never walk at night, so only the owner can judge how a half-again more mobile walking king feels; the top speed is unchanged, so it can only make human play slightly easier."
+  artifacts:
+    - path: "data/king/king.tres"
+      issue: ":7 walk_speed 5.0 -> 7.5 and :8 sprint_multiplier 2.4 -> 1.6 (the whole mechanical change); acceleration 60 stays"
+    - path: "simulation/defs/king_def.gd"
+      issue: "script defaults :5 (5.0) and :8 (2.4) and the doc comments :6-7 ('12 m/s at walk 5.0') and :9-10 (braking note) quote the old decision"
+    - path: "tests/unit/test_king_movement_config.gd"
+      issue: "header :2-6, SOURCE_WALK_SPEED 5.0 (:10, asserted :22-23) and OWNER_SPRINT_MULTIPLIER 2.4 (:11, asserted :27) pin the old numbers; the 12 m/s floor and the stopping-distance test stay"
+    - path: "tests/unit/test_prototype_map_data.gd"
+      issue: "MIN_RIDE_S 20 / MAX_RIDE_S 30 (:12-13) and test_ride_across_the_map_takes_twenty_to_thirty_seconds (:72-86) encode D-03 at walk 5.0; the 110 m pair takes 14.67 s at 7.5"
+    - path: ".planning/phases/01-foundation-day-loop/01-CONTEXT.md"
+      issue: ":59 D-03 'edge to edge about 20-30 s at normal speed' needs a dated amendment to the owner's round-3 decision"
+    - path: ".planning/phases/02-night-defense-playtest-gate/02-PLAYTEST-GATE.md"
+      issue: ":31 controls row 'Sprint (12 m/s)' has no walk speed; :84 assumption 12 could say the bots never walk at night; a round-4 note is needed for the replay"
+    - path: ".planning/STATE.md"
+      issue: ":123 ('110 m, 22 s') and :174 (02-13 sprint decision) quote the old walk speed"
+  missing:
+    - "OWNER DECISION 2026-10-07 (asked once): walk_speed 7.5 (1.5x), sprint stays exactly 12 m/s (sprint_multiplier 1.6), acceleration 60 unchanged, night fast-forward stays 2x. Set the two data lines and the KingDef defaults; pin walk 7.5, multiplier 1.6 and a sprint of exactly 12.0 in test_king_movement_config.gd (RED first); keep the 12 >= 1.5 x 8 floor and the stopping-distance test"
+    - "Amend D-03 in 01-CONTEXT.md with a dated note (ride edge to edge about 15 s at the 7.5 m/s walk, 9 s at sprint) and move test_prototype_map_data.gd's ride band to about 12-18 s around the measured 14.67 s; do not grow the map (every balance number would move)"
+    - "No bot re-measurement is needed (the bots only sprint: full_idle, the smoke golden and the 10-seed balance report are byte-identical on the edit; test_balance_acceptance 8 of 8); record that fact in the SUMMARY and the balance report note instead of re-running the balance"
+    - "Refresh the docs quoting 5 m/s or 22 s (king_def.gd comments, STATE.md :123 :174, 02-PLAYTEST-GATE.md controls and assumption 12, a 02-BALANCE-REPORT.md note), re-run the screenshots (three hold-point scenes walk the bot king), export a fresh build and open a short round-4 packet for the owner's replay"
+  debug_session: .planning/debug/king-walk-speed-1-5x.md
