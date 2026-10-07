@@ -1,18 +1,14 @@
 ---
-status: testing
+status: complete
 phase: 02-night-defense-playtest-gate
 source: [02-VERIFICATION.md]
 started: 2026-10-05T15:26:33Z
-updated: 2026-10-07T09:01:04Z
+updated: 2026-10-07T09:08:33Z
 ---
 
 ## Current Test
 
-number: 19
-name: G-02-13 as seen on the real camera: the castle at 22 m reach and 27 m/s arrows
-expected: |
-  At night a gold arrow leaves the keep at an enemy up to 22 m away and flies visibly fast (an edge shot lands in 25 ticks, under the 45-tick interval, so one arrow is in the air at a time); three hits kill a grunt and two a skirmisher. The owner says whether this reads as simple and not too strong now that it covers the two inner House plots and the centres of houses 3 and 4
-awaiting: user response
+[testing complete]
 
 ## Tests
 
@@ -106,26 +102,27 @@ severity: major
 
 ### 19. G-02-13 as seen on the real camera: the castle at 22 m reach and 27 m/s arrows
 expected: At night a gold arrow leaves the keep at an enemy up to 22 m away and flies visibly fast (an edge shot lands in 25 ticks, under the 45-tick interval, so one arrow is in the air at a time); three hits kill a grunt and two a skirmisher. The owner says whether this reads as simple and not too strong now that it covers the two inner House plots and the centres of houses 3 and 4
-result: [pending]
+result: pass
+note: "Owner: castle range and arrow speed is good (2026-10-07)"
 
 ### 20. G-02-14: the fast-forward toggle on a real keyboard and a real gamepad trigger
 expected: At night one press of F (or one left-trigger pull) switches to 2x and it stays on after release with the 'Fast-forward 2x' label; the next press switches it off. A long hold, a quick tap and a trigger hovering near halfway each toggle once. It resets by itself at dawn, victory and defeat, so each night starts at real time, and presses by day or on the results screen do nothing
-result: [pending]
+result: pass
 
 ### 21. G-02-15: difficulty after the full wall, in the owner's hands
 expected: The owner decides whether the game is 'a little harder' rather than too hard, knowing the measured shape: the balanced bot wins 8 of 10 seeds (36 of 50 on seeds 1 to 50), every loss is a night-3 wall for a House opening that lost two Houses on night 2 (3 gold at dawn 2, below the 4-gold tower, then 21 grunts with no tower), and a tower opening is the strictly safer start
-result: [pending]
+result: pass
 
 ### 22. Assumptions 12 to 15 of the round-3 packet, on the owner's behalf
 expected: The owner confirms or changes: 12 (bot measurement rule restated with the 7-or-8 target), 13 and 14 (rewritten in round 3 for the castle numbers and the toggle), 15 (base income shown as a coin from the castle, still standing)
-result: [pending]
+result: pass
 
 ## Summary
 
 total: 22
-passed: 11
+passed: 15
 issues: 7
-pending: 4
+pending: 0
 skipped: 0
 blocked: 0
 
