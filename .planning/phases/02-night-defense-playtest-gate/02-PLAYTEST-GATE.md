@@ -2,6 +2,86 @@
 
 You are the gate (D-18, ROADMAP success criterion 4). Claude has checked everything it can observe and lists it below. It cannot tell you whether the loop is fun. Spend one or two full runs on that, then sign off or name the fixes. Nothing here counts as your sign-off.
 
+## Round 4 (after your playtest of 2026-10-07, round 3)
+
+In round 3 you passed the castle's 22 m reach and 27 m/s arrows, the fast-forward toggle, the full-wall difficulty and assumptions 12 to 15, and asked for one change: the king's normal speed 1.5x, with the sprint kept at its current magnitude, which you clarified as walk 7.5 m/s, sprint 12 m/s, fast-forward still 2x. It is in this build. The bots' numbers and Claude's screenshot review below are evidence only; **they are not your sign-off**. Your round-4 decision, recorded through `/gsd-verify-work`, answers the round-3 gate (G-02-18, ROADMAP success criterion 4, D-18).
+
+### How to play round 4
+
+- **Exported build:** `build/windows/Duskhold.exe`, freshly exported on 2026-10-07 (UTC) from the final round-4 state; it launched and quit cleanly in a headless check (`--headless --quit-after 120`, exit 0 in about 3 s). It replaces the round-3 export.
+- **From the editor binary, in PowerShell** (PowerShell's `bash` is WSL, so the Git Bash wrappers are not your entry point):
+
+  ```powershell
+  & ".\.tools\godot\4.7.2-stable\Godot_v4.7.2-stable_win64.exe" --path .
+  ```
+
+### What changed
+
+| Your fix (round 3) | What changed | Plan |
+|---|---|---|
+| The king's normal speed 1.5x, sprint kept at the same magnitude (G-02-18) | The walk is **7.5 m/s instead of 5**. The sprint is **exactly 12 m/s, unchanged**; its multiplier is now **1.6** (was 2.4), which is the source game's walk-to-sprint ratio again. Acceleration is 60, unchanged, so the king stops **0.47 m** after you let go at a walk (was 0.21 m) and **1.2 m** after a full sprint (unchanged), both well inside the 2.5 m build radius. The night fast-forward is still 2x. The map is the same size: D-03's ride budget was amended instead (edge to edge about 15 s at the walk and about 9 s at the sprint) | 02-21 |
+
+Ride times at the walk, before and after (the sprint is 12 m/s in both):
+
+| Ride | Distance | Walk before (5 m/s) | Walk after (7.5 m/s) |
+|---|---:|---:|---:|
+| King spawn to the inner Houses | 9.2 m | 1.84 s | 1.23 s |
+| King spawn to houses 3 and 4 | 26.2 m | 5.23 s | 3.49 s |
+| King spawn to house 5 | 31 m | 6.2 s | 4.13 s |
+| King spawn to tower_1 or tower_2 | 56.5 m | 11.3 s | 7.54 s |
+| King spawn to tower_3 | 62 m | 12.4 s | 8.27 s |
+| Farthest pair, tower_1 to tower_2 | 110 m | 22.0 s | 14.67 s (9.17 s at the sprint) |
+
+- Sprinting now adds 4.5 m/s instead of 7, so holding Shift matters less: it saves 37.5% of a ride instead of 58%.
+- At night the walking king is 2.3x as fast as a grunt (3.2 m/s); it was 1.6x. (Against a skirmisher's 2.8 m/s it is 2.7x, was 1.8x.)
+
+### Controls (round 4)
+
+| Action | Keyboard | Gamepad |
+|---|---|---|
+| Ride (walk 7.5 m/s, was 5) | WASD or arrow keys | left stick |
+| Sprint (12 m/s, unchanged) | Shift | right shoulder |
+| Fast-forward (press to switch on, press again to switch off; **night only**, 2x; off again when the night ends) | F | left trigger |
+| Build or upgrade (ride to a plot, hold) | E or Space | A |
+| Start the night (hold, by day) | N | Y |
+| Debug overlay (shows the run seed, wave state, enemy path lines) | F3 | Back |
+| Camera zoom | = and - (also keypad) | right stick up and down |
+
+### What Claude checked in round 4
+
+**Automated checks** (plan 02-22, on the final round-4 state; plan 02-21 changed two lines of `data/king/king.tres` and this plan changed no game data or code):
+
+- Test suite: 831 tests in 95 scripts, all passing; lint and format clean (`bash tools/test.sh`, `bash tools/lint.sh`).
+- Seeded replays, identical to round 3: smoke `REPLAY_OK scenario=smoke seed=1 outcome=won ticks=703 digest=2599c7c250f45b3dfe6653a8fc683918cbdce768a9afcaf8e3752d3454ccf31f` (golden unchanged); `full_idle` run twice `REPLAY_OK scenario=full_idle seed=1 outcome=won ticks=5140 digest=bb9059c884f649c3b2b869505e73b94d860dca372820d247d08eeee26fb82dac`.
+- Windows build: `bash tools/export.sh` exported `build/windows/Duskhold.exe` and `build/windows/Duskhold.exe --headless --quit-after 120` exits 0 in about 3 s. CI has not been run on this branch state (nothing was pushed).
+- **No bot number moved, and none was re-measured.** The building bots sprint on every tick at exactly 12.0 m/s (5.0 x 2.4 and 7.5 x 1.6 are both exactly 12.0), and the `no_build` bot never moves, so the bots cannot see a walk change. The diagnosis ran all five strategies on seeds 1 to 10 on this exact data and its report was byte-identical to the round-3 baseline. The Round 3 balance table (`02-BALANCE-REPORT.md`, with a short Round 4 note above it) stands.
+- **Screenshots** (all 15 scripted shots re-run in a real window on the round-4 data, "Saved 15 of 15"; the shot-list guard passes; no scenario had to change). Three of them walk the bot king to a hold point at the new walk pace:
+
+| Shot | What it shows | Result |
+|---|---|---|
+| `night_combat` | Night 5 of 8, 19 enemies left: red grunts and violet skirmishers at the lower left, a pink arrow in flight, the king beside the tower, Gold 0 | Pass; looks the same as the round-3 frame |
+| `king_down_countdown` | Night 7 of 8, 1 enemy left: the king as a cyan ghost capsule, "Knocked out - back in 6 s", a violet skirmisher, a cluster of yellow arrow streaks from the tower at the top right | Pass; the same as round 3 apart from one tower arrow a few pixels along its path |
+| `overlay_paths` | Debug overlay open on night 1 (2 enemies left): the stats panel, a white enemy path line running to the castle, one grunt at the left, the king at the castle front with an arrow beside him | Pass; the grunt and arrow sit slightly differently from round 3 and the panel's FPS reads 110 instead of 15, which is frame timing in a real window, not a changed state |
+
+**What nobody has checked:** how the 7.5 m/s walk and the smaller sprint step feel in your hands, and whether the king still stops where you mean him to on a plot, from a walk and from a sprint.
+
+### Assumptions (round 4; 12 is restated, 13 to 15 stand as in round 3)
+
+12. The bots build without riding to plots, sprint at 12 m/s at night on every tick and never walk, and the castle shoots for them too, so the faster walk cannot move a single bot number. The measurement rule and the target (the balanced bot wins 7 or 8 of 10 seeds) are the ones you confirmed, and the measured result is the Round 3 one: balanced 8 of 10 (seeds 3 and 9 lost on night 3), 36 of 50.
+
+### Your decision (round 4)
+
+Play one or two full runs on the new build, then tell Claude in the `/gsd-verify-work` session:
+
+- **Sign off:** the 7.5 m/s walk feels right with the sprint still at 12 m/s, and everything you passed in round 3 still holds. Phase 2 closes and Phase 3 can begin.
+- **Fixes first:** name what is still needed (for example: the walk still too slow or too fast, the king stopping short of or past a plot, the sprint feeling too small a step now), and any of assumptions 12 to 15 you want changed.
+
+The decision is recorded through `/gsd-verify-work`. No meta-progression work starts before it.
+
+---
+
+Round 3, Round 2 and Round 1 below are kept as they were; where they disagree with Round 4 (the walk speed, the ride and sprint rows of the controls table, assumption 12's wording, the export date), Round 4 wins.
+
 ## Round 3 (after your playtest of 2026-10-07)
 
 In round 2 you asked for three fixes and passed everything else (base gold, results spacing, sprint and braking, the 2x pace and its label, fast-forward by night only). All three fixes are in this build: the castle reaches farther and its arrows fly faster, fast-forward is now a toggle, and the game is harder through the night counts (the full wall you chose). The bots' numbers and Claude's screenshot review below are evidence only; **they are not your sign-off**. You decide again (D-18, ROADMAP success criterion 4), and only your decision, recorded through `/gsd-verify-work`, closes the round-2 gate (G-02-12).
