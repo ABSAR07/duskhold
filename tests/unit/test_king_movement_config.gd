@@ -1,14 +1,16 @@
 extends GutTest
 ## KingDef data contract (KING-01): speeds, acceleration and turning come from king.tres.
-## The sprint is the owner's, not the source game's 1.6 ratio: at the Phase 2 playtest (UAT
-## G-02-1, 2026-10-06) the owner asked for a sprint at least 1.5 times the 8 m/s they rode, so the
-## multiplier is 2.4 (12 m/s at walk 5.0) and the acceleration, which is also the braking rate,
-## is 60 so a king who lets go at full sprint still stops inside the build radius.
+## The owner raised the sprint to 12 m/s at the round-1 playtest (UAT G-02-1, 2026-10-06) and on
+## 2026-10-07 (UAT G-02-18) made the walk 1.5 times faster, 7.5 m/s, keeping the sprint at exactly
+## 12 m/s, so the multiplier is 1.6, which is the source game's walk/sprint ratio again. The
+## acceleration, which is also the braking rate, stays 60 so a king who lets go at full sprint
+## still stops inside the build radius.
 
 const KING_DEF_PATH := "res://data/king/king.tres"
 const TUNING_PATH := "res://data/tuning/loop_tuning.tres"
-const SOURCE_WALK_SPEED: float = 5.0
-const OWNER_SPRINT_MULTIPLIER: float = 2.4
+const OWNER_WALK_SPEED: float = 7.5
+const OWNER_SPRINT_MULTIPLIER: float = 1.6
+const OWNER_SPRINT_SPEED: float = 12.0
 const ORIGINAL_SPRINT_SPEED: float = 8.0
 const OWNER_ACCELERATION: float = 60.0
 
@@ -19,16 +21,28 @@ func before_each() -> void:
 	_def = load(KING_DEF_PATH)
 
 
-func test_walk_speed_is_five_metres_per_second() -> void:
-	assert_eq(_def.walk_speed, SOURCE_WALK_SPEED, "walk speed feeds the ride-time budget (D-03)")
+func test_walk_speed_is_seven_and_a_half_metres_per_second() -> void:
+	assert_eq(
+		_def.walk_speed,
+		OWNER_WALK_SPEED,
+		"the owner's walk, 1.5x the round-3 walk, feeds the ride-time budget of D-03 as amended"
+	)
 
 
 func test_sprint_is_at_least_one_and_a_half_times_the_original_sprint() -> void:
-	assert_eq(_def.sprint_multiplier, OWNER_SPRINT_MULTIPLIER, "sprint multiplier is 2.4")
+	assert_eq(_def.sprint_multiplier, OWNER_SPRINT_MULTIPLIER, "sprint multiplier is 1.6")
 	assert_gte(
 		King.move_speed(_def, true),
 		1.5 * ORIGINAL_SPRINT_SPEED,
 		"the sprint is at least 1.5 times the 8 m/s the owner played"
+	)
+
+
+func test_the_sprint_stays_exactly_twelve_metres_per_second() -> void:
+	assert_eq(
+		King.move_speed(_def, true),
+		OWNER_SPRINT_SPEED,
+		"the owner kept the sprint at 12 m/s when the walk went to 7.5; 7.5 x 1.6 is exactly 12.0"
 	)
 
 

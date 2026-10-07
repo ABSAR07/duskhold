@@ -9,8 +9,8 @@ const HOUSE_SPOT_COUNT: int = 5
 const TOWER_SPOT_COUNT: int = 3
 const HOUSE_TIER_COUNT: int = 3
 const TOWER_TIER_COUNT: int = 2
-const MIN_RIDE_S: float = 20.0
-const MAX_RIDE_S: float = 30.0
+const MIN_RIDE_S: float = 12.0
+const MAX_RIDE_S: float = 18.0
 
 
 func _map() -> MapConfig:
@@ -69,7 +69,7 @@ func test_spot_ids_are_unique_and_every_building_id_resolves() -> void:
 		assert_not_null(_building(map, spot.building_id), "%s has a building def" % spot.id)
 
 
-func test_ride_across_the_map_takes_twenty_to_thirty_seconds() -> void:
+func test_ride_across_the_map_takes_twelve_to_eighteen_seconds() -> void:
 	var map: MapConfig = _map()
 	var king: KingDef = load(KING)
 	var points: Array[Vector2] = [
@@ -83,7 +83,7 @@ func test_ride_across_the_map_takes_twenty_to_thirty_seconds() -> void:
 		for b: Vector2 in points:
 			farthest = maxf(farthest, a.distance_to(b))
 	var ride_s: float = farthest / king.walk_speed
-	assert_between(ride_s, MIN_RIDE_S, MAX_RIDE_S, "edge to edge ride time in seconds")
+	assert_between(ride_s, MIN_RIDE_S, MAX_RIDE_S, "ride time in s (D-03 as amended 2026-10-07)")
 
 
 func test_starting_gold_buys_two_houses_or_one_tower_but_not_both() -> void:
