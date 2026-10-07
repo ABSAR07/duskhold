@@ -3,15 +3,15 @@ status: testing
 phase: 02-night-defense-playtest-gate
 source: [02-VERIFICATION.md]
 started: 2026-10-05T15:26:33Z
-updated: 2026-10-07T00:55:13Z
+updated: 2026-10-07T09:01:04Z
 ---
 
 ## Current Test
 
-number: 18
-name: Owner round-3 playtest gate (ROADMAP SC4, D-18, G-02-12): replay one or two full runs on the fresh build/windows/Duskhold.exe (exported 2026-10-07 in plan 02-20) or the editor binary, then either sign off or name the fixes that must land first, covering the three round-2 fixes (castle 22 m and 27 m/s, the fast-forward toggle, the full-wall night counts)
+number: 19
+name: G-02-13 as seen on the real camera: the castle at 22 m reach and 27 m/s arrows
 expected: |
-  A recorded decision through /gsd-verify-work. Sign-off means: the castle's reach and arrows feel right, the toggle works the way the owner wants, and the game is 'a little harder' in a way the owner accepts. Otherwise a list of fixes (for example the alternatives k7pS4m or k4pS6m named in 02-PLAYTEST-GATE.md) and any of assumptions 12 to 15 to change
+  At night a gold arrow leaves the keep at an enemy up to 22 m away and flies visibly fast (an edge shot lands in 25 ticks, under the 45-tick interval, so one arrow is in the air at a time); three hits kill a grunt and two a skirmisher. The owner says whether this reads as simple and not too strong now that it covers the two inner House plots and the centres of houses 3 and 4
 awaiting: user response
 
 ## Tests
@@ -100,7 +100,9 @@ evidence: "owner, round 2, 2026-10-07: 12 confirmed as the measurement rule with
 
 ### 18. Owner round-3 playtest gate (ROADMAP SC4, D-18, G-02-12): replay one or two full runs on the fresh build/windows/Duskhold.exe (exported 2026-10-07 in plan 02-20) or the editor binary, then either sign off or name the fixes that must land first, covering the three round-2 fixes (castle 22 m and 27 m/s, the fast-forward toggle, the full-wall night counts)
 expected: A recorded decision through /gsd-verify-work. Sign-off means: the castle's reach and arrows feel right, the toggle works the way the owner wants, and the game is 'a little harder' in a way the owner accepts. Otherwise a list of fixes (for example the alternatives k7pS4m or k4pS6m named in 02-PLAYTEST-GATE.md) and any of assumptions 12 to 15 to change
-result: [pending]
+result: issue
+reported: "Note: make the normal speed 1.5x current normal speed for the king. adjust the speedup to stay at the current magnitude"
+severity: major
 
 ### 19. G-02-13 as seen on the real camera: the castle at 22 m reach and 27 m/s arrows
 expected: At night a gold arrow leaves the keep at an enemy up to 22 m away and flies visibly fast (an edge shot lands in 25 ticks, under the 45-tick interval, so one arrow is in the air at a time); three hits kill a grunt and two a skirmisher. The owner says whether this reads as simple and not too strong now that it covers the two inner House plots and the centres of houses 3 and 4
@@ -122,8 +124,8 @@ result: [pending]
 
 total: 22
 passed: 11
-issues: 6
-pending: 5
+issues: 7
+pending: 4
 skipped: 0
 blocked: 0
 
@@ -187,7 +189,9 @@ blocked: 0
   debug_session: .planning/debug/results-screen-button-gap.md
 - gap_id: G-02-13
   truth: "At dawn one coin starts from the top of the castle keep (4.5 m above the castle centre) and flies to the gold counter, read as the castle paying 1 gold. At night, when an enemy comes within 11 m of the castle, a gold arrow leaves the top of the keep; three hits kill a grunt and two a skirmisher. Judge whether the castle attack reads as simple and not too strong. Note: the balanced bot never lets an enemy within 11 m, so castle arrows appear mostly when the defence is thin"
-  status: failed
+  status: resolved
+  resolved_by: 02-17-PLAN.md, 02-20-PLAN.md
+  resolved_at: 2026-10-07
   reason: "User reported: castle range should be double what it is now, and arrow speed should be 1.5x faster (owner, round 2, 2026-10-07; given on the gate test, belongs to the castle attack)"
   severity: minor
   test: 13
@@ -213,7 +217,9 @@ blocked: 0
   debug_session: .planning/debug/castle-range-arrow-speed.md
 - gap_id: G-02-14
   truth: "The king still stops on a plot when the sprint key is released (full-sprint stop 1.2 m, inside the 2.5 m build radius) and is not uncontrollable at 12 m/s. Holding F or the gamepad left trigger at night runs the game at 2x and the 'Fast-forward 2x' label (top right) is legible. The game returns to real time at dawn, in the 1.2 s defeat beat and on the results screen. Say whether night-only is acceptable or you want it by day too or faster than 2x (assumption 14). Round-1 test 10 passed at 8 m/s; the sprint changed, so the handling judgement is partly reopened here"
-  status: failed
+  status: resolved
+  resolved_by: 02-18-PLAN.md, 02-20-PLAN.md
+  resolved_at: 2026-10-07
   reason: "User reported: speed up should be togglable instead of hold to speed up. everything else is pass (owner, round 2, 2026-10-07: sprint, braking, 2x, label and night-only all pass; the fast-forward input should be a toggle, not a hold)"
   severity: minor
   test: 14
@@ -237,7 +243,9 @@ blocked: 0
   debug_session: .planning/debug/fast-forward-toggle.md
 - gap_id: G-02-15
   truth: "Decide whether the run is now 'a bit easier' rather than too easy, and whether night 3 and the castle still feel fair. The bots now win 10 of 10 (balanced and tower-first); the balanced bot loses no building and is never knocked out, which is easier than 'a bit easier', and none of your two levers (night-3 east grunts 5 to 4, castle health 70 to 80) was applied because the balanced bot never lost. If it feels too easy, the levers in 02-BALANCE-REPORT.md are the night counts and the castle's damage, never grunt health"
-  status: failed
+  status: resolved
+  resolved_by: 02-19-PLAN.md, 02-20-PLAN.md
+  resolved_at: 2026-10-07
   reason: "User reported: difficulty should be tweaked to be little harder. I think balanced bot should lose 2-3 times out of 10 (owner, round 2, 2026-10-07: target for the balanced bot on seeds 1 to 10 is 7 or 8 wins, not 10; levers per 02-BALANCE-REPORT.md are the night counts and the castle's damage, never grunt health)"
   severity: minor
   test: 15
@@ -262,7 +270,9 @@ blocked: 0
   debug_session: .planning/debug/difficulty-balanced-7-of-10.md
 - gap_id: G-02-12
   truth: "A recorded decision through /gsd-verify-work. Sign-off means: base gold fixes the tower-first trap without making gold meaningless, the castle attack is simple and not too strong, the 12 m/s sprint and the night fast-forward are fast enough, the game is a bit easier but still tense, and the results spacing looks even. Otherwise a list of fixes and any of assumptions 12 to 15 to change. Read the Round 2 section of 02-PLAYTEST-GATE.md first (what changed for each point, the controls table with the Fast-forward row, the round-2 balance table)"
-  status: failed
+  status: resolved
+  resolved_by: 02-20-PLAN.md (with 02-17-PLAN.md, 02-18-PLAN.md, 02-19-PLAN.md); the owner's round-3 decision itself is test 18
+  resolved_at: 2026-10-07
   reason: "User reported: Fixes first (owner decision, round 2, 2026-10-07): castle range should be double and arrow speed 1.5x faster (test 13); speed up should be togglable instead of hold (test 14); difficulty a little harder, balanced bot should lose 2-3 of 10 (test 15). Everything else passes: base gold, spacing, sprint, 2x pace, label, night-only. Phase 2 does not close until these land and the owner replays (round 3)"
   severity: major
   test: 12
@@ -273,3 +283,11 @@ blocked: 0
   missing:
     - "Land G-02-13, G-02-14 and G-02-15, export a fresh build/windows/Duskhold.exe, write the round-3 packet, then the owner replays and decides through /gsd-verify-work (a new UAT round; this row is answered then)"
   debug_session: none (gate record; see the three gap sessions)
+- gap_id: G-02-18
+  truth: "A recorded decision through /gsd-verify-work. Sign-off means: the castle's reach and arrows feel right, the toggle works the way the owner wants, and the game is 'a little harder' in a way the owner accepts. Otherwise a list of fixes (for example the alternatives k7pS4m or k4pS6m named in 02-PLAYTEST-GATE.md) and any of assumptions 12 to 15 to change"
+  status: failed
+  reason: "User reported: Note: make the normal speed 1.5x current normal speed for the king. adjust the speedup to stay at the current magnitude"
+  severity: major
+  test: 18
+  artifacts: []  # Filled by diagnosis
+  missing: []    # Filled by diagnosis
