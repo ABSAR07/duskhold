@@ -1,14 +1,18 @@
 ---
-status: diagnosed
+status: testing
 phase: 02-night-defense-playtest-gate
 source: [02-VERIFICATION.md]
 started: 2026-10-05T15:26:33Z
-updated: 2026-10-07T09:31:15Z
+updated: 2026-10-07T11:45:57Z
 ---
 
 ## Current Test
 
-[testing complete]
+number: 23
+name: Owner round-4 playtest gate (ROADMAP SC4, D-18, G-02-12 and G-02-18): replay one or two full runs on the fresh build/windows/Duskhold.exe (exported 2026-10-07T11:10Z from the final source tree) or the editor binary, then either sign off or name the fixes that must land first
+expected: |
+  A recorded decision through /gsd-verify-work. Sign-off means the loop is fun: gold trade-offs by day feel meaningful and nights feel tense and readable, with the round-3 numbers (castle 22 m and 27 m/s, the fast-forward toggle, the full-wall nights) and the new 7.5 m/s walk all accepted. Otherwise a list of fixes and any of assumptions 12 to 15 to change
+awaiting: user response
 
 ## Tests
 
@@ -117,12 +121,32 @@ result: pass
 expected: The owner confirms or changes: 12 (bot measurement rule restated with the 7-or-8 target), 13 and 14 (rewritten in round 3 for the castle numbers and the toggle), 15 (base income shown as a coin from the castle, still standing)
 result: pass
 
+### 23. Owner round-4 playtest gate (ROADMAP SC4, D-18, G-02-12 and G-02-18): replay one or two full runs on the fresh build/windows/Duskhold.exe (exported 2026-10-07T11:10Z from the final source tree) or the editor binary, then either sign off or name the fixes that must land first
+expected: A recorded decision through /gsd-verify-work. Sign-off means the loop is fun: gold trade-offs by day feel meaningful and nights feel tense and readable, with the round-3 numbers (castle 22 m and 27 m/s, the fast-forward toggle, the full-wall nights) and the new 7.5 m/s walk all accepted. Otherwise a list of fixes and any of assumptions 12 to 15 to change
+result: [pending]
+
+### 24. G-02-18 walk feel: ride the king at the new 7.5 m/s walk (WASD or left stick, no sprint) between the castle and the plots, and let go on a plot from a walk and from a full sprint
+expected: The walk reads as 1.5x faster than round 3 and as the owner meant it. The king stops where the owner means him to: 0.47 m after letting go at a walk (was 0.21 m) and 1.2 m after a full sprint (unchanged), both inside the 2.5 m build radius, so a hold starts without a nudge. The ride times (castle area to the inner Houses 1.2 s, to the towers 7.5 to 8.3 s, edge to edge about 15 s) feel right on a map that was not grown
+result: [pending]
+
+### 25. G-02-18 sprint versus walk: use Shift (or the right shoulder) on long rides and at night
+expected: The sprint is still the 12 m/s the owner asked to keep, and the owner accepts that it now adds only 4.5 m/s over the walk (it saves about 37.5% of a ride, was 58%). The owner confirms the reading of the round-3 note (adjust the speedup to stay at the current magnitude) as the sprint staying at 12 m/s, with the night fast-forward unchanged at 2x
+result: [pending]
+
+### 26. Tension with a more mobile king: play full nights on the new walk, riding without sprint where natural
+expected: Nights stay tense and fair. The walking king is now 2.3x a grunt (3.2 m/s) and 2.7x a skirmisher (2.8 m/s), was 1.6x and 1.8x, so human play can only get slightly easier (the top speed is unchanged). The owner says whether the game is still 'a little harder' in the way accepted in round 3 (balanced bot 8 of 10, seeds 3 and 9 lost on night 3) or whether the walk made it too easy
+result: [pending]
+
+### 27. Assumption 12 of the round-4 packet, on the owner's behalf (13 to 15 stand from round 3)
+expected: The owner confirms or changes assumption 12: the bots build without riding to plots, sprint at 12 m/s at night on every tick and never walk, and the castle shoots for them too, so the faster walk cannot move a bot number; the measurement rule and the 7-or-8-of-10 target are unchanged
+result: [pending]
+
 ## Summary
 
-total: 22
+total: 27
 passed: 15
 issues: 7
-pending: 0
+pending: 5
 skipped: 0
 blocked: 0
 
@@ -130,6 +154,7 @@ blocked: 0
 
 > Round 2 (2026-10-06): plans 02-12 to 02-16 closed the code side of G-02-1 (points 1 to 3) and G-02-2, and re-measured point 4 under the owner's rule (no lever applied; balanced bot 10 of 10). The owner's re-check of each is tests 12 to 17 above; the gap rows below keep their round-1 wording until that decision is recorded.
 > Round 3 (2026-10-07): plans 02-17 to 02-20 closed the code side of G-02-13 (castle 22 m / 27 m/s), G-02-14 (fast-forward toggle) and G-02-15 (the full wall, balanced 8 of 10) and reopened the gate for G-02-12 with a fresh export and the round-3 packet. The owner's re-check of each is tests 18 to 22 above; the gap rows below keep their round-2 wording until that decision is recorded through /gsd-verify-work.
+> Round 4 (2026-10-07): plans 02-21 and 02-22 closed the code and packet side of G-02-18 (walk 7.5 m/s, sprint kept at exactly 12 m/s, D-03 amended; Round 4 report note, 15 screenshots, fresh export, Round 4 packet). The owner's re-check is tests 23 to 27 above; the gap row below keeps its round-3 wording until that decision is recorded through /gsd-verify-work.
 - gap_id: G-02-1
   truth: "A recorded decision through /gsd-verify-work: sign-off that gold trade-offs feel meaningful and nights feel tense and readable, or a list of tuning/feel fixes, plus any of the 13 assumptions to change"
   status: resolved
