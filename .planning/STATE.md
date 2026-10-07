@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 02
 current_phase_name: Night Defense & Playtest Gate
 status: executing
-stopped_at: Completed 02-21-PLAN.md
-last_updated: "2026-10-07T10:46:33.414Z"
+stopped_at: Completed 02-22-PLAN.md
+last_updated: "2026-10-07T11:14:44.875Z"
 last_activity: 2026-10-07
 last_activity_desc: Phase 02 round-3 gap closure complete (02-17 to 02-20), ready for verification
-state_head: c85fd9d482f2021c09c5aae1466cbf350b44bb53
+state_head: d9004d96f7838e97a90241c6c7138ad62cb0a1dd
 progress:
   total_phases: 13
   completed_phases: 1
   total_plans: 40
-  completed_plans: 39
+  completed_plans: 40
   percent: 8
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-03)
 ## Current Position
 
 Phase: 02 (Night Defense & Playtest Gate) — EXECUTING
-Plan: 2 of 22
+Plan: 3 of 22
 Status: Ready to execute
 Last activity: 2026-10-07 — Phase 02 execution started
 
@@ -95,6 +95,7 @@ Progress: [█░░░░░░░░░] 8%
 | Phase 02 P19 | 10 min | 2 tasks | 3 files |
 | Phase 02 P20 | 13 min | 2 tasks | 3 files |
 | Phase 02 P21 | 25 min | 2 tasks | 5 files |
+| Phase 02 P22 | 20 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -183,6 +184,7 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-19: shipped nights carry the owner exact full wall (night 2 east grunts 4; nights 3 to 5 at 21); balanced bot pinned 7 or 8 of seeds 1 to 10, losing seeds 3 and 9 on night 3 or later
 - [Phase 02]: 02-20: Round 3 sits above the kept Round 2 and Round 1 in the balance report and the packet and wins where they disagree; the night-3 wall (House opening losing 2 Houses on night 2 has 3 gold at dawn 2, below the 4-gold tower) is stated plainly; only the owner's /gsd-verify-work decision closes G-02-12
 - [Phase 02]: 02-21: king walk 5.0 -> 7.5 m/s with sprint kept at exactly 12 m/s (sprint_multiplier 2.4 -> 1.6, acceleration stays 60); D-03 amended 2026-10-07 (ride 14.67 s at walk), map not grown (owner decision G-02-18)
+- [Phase 02]: Plan 02-22: no bot re-measurement for the 7.5 m/s walk; the bots sprint at exactly 12.0 m/s or never move, so the Round 3 balance tables stand and Round 4 wins where older sections disagree — Diagnosis 10-seed report byte-identical; test_balance_acceptance, smoke golden and full_idle digest unchanged
 
 ### Pending Todos
 
@@ -217,6 +219,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-07T10:46:32.622Z
-Stopped at: Completed 02-21-PLAN.md
+Last session: 2026-10-07T11:14:43.814Z
+Stopped at: Completed 02-22-PLAN.md
 Resume file: None

@@ -108,7 +108,7 @@ Plans:
   3. From the command line and in CI, a seeded scripted night replays with identical results, and headless GUT tests cover waves, combat, and loop transitions (day → night → dawn, loss, win). During nights, the debug overlay shows live enemy counts, wave state, and enemy paths.
   4. Human playtest gate: the owner plays the prototype map through several full runs and either signs off that gold trade-offs feel meaningful and nights feel tense and readable, or records the tuning/feel fixes that must land before later phases begin. No meta-progression work is scheduled until this sign-off.
 
-**Plans**: 21/22 plans executed (02-12 to 02-16 closed the 2026-10-06 UAT gaps G-02-1 and G-02-2; 02-17 to 02-20 closed the 2026-10-07 round-2 UAT gaps G-02-13 to G-02-15 and reopened the gate for G-02-12; 02-21 and 02-22 close the 2026-10-07 round-3 UAT gap G-02-18 and reopen the gate for the round-4 replay)
+**Plans**: 22/22 plans executed (02-12 to 02-16 closed the 2026-10-06 UAT gaps G-02-1 and G-02-2; 02-17 to 02-20 closed the 2026-10-07 round-2 UAT gaps G-02-13 to G-02-15 and reopened the gate for G-02-12; 02-21 and 02-22 close the 2026-10-07 round-3 UAT gap G-02-18 and reopen the gate for the round-4 replay)
 **UI hint**: yes
 
 Plans:
@@ -174,7 +174,7 @@ Plans:
 - [x] 02-21: The king walks at 7.5 m/s and still sprints at exactly 12 m/s (multiplier 1.6), all three pinned; D-03 amended (edge-to-edge ride about 15 s, the map not grown); KingDef defaults and docs
 
 **Round-3 gap wave 2** *(blocked on 02-21)*
-- [ ] 02-22: Round-4 note in the balance report (no bot number moved, no re-measurement), 15 screenshots, fresh export and the round-4 owner packet
+- [x] 02-22: Round-4 note in the balance report (no bot number moved, no re-measurement), 15 screenshots, fresh export and the round-4 owner packet
 
 ### Phase 3: King Combat & Troops
 
@@ -355,7 +355,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Day Loop | 18/18 | Complete    | 2026-10-03 |
-| 2. Night Defense & Playtest Gate | 21/22 | In Progress|  |
+| 2. Night Defense & Playtest Gate | 22/22 | In Progress|  |
 | 3. King Combat & Troops | 0/TBD | Not started | - |
 | 4. Crowd-Scale Battles & Walls | 0/TBD | Not started | - |
 | 5. Castle Center & Economy Depth | 0/TBD | Not started | - |
