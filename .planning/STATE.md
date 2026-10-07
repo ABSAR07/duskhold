@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 02
 current_phase_name: Night Defense & Playtest Gate
 status: executing
-stopped_at: Completed 02-19-PLAN.md
-last_updated: "2026-10-07T00:06:03.790Z"
+stopped_at: Completed 02-20-PLAN.md
+last_updated: "2026-10-07T00:27:35.057Z"
 last_activity: 2026-10-07
 last_activity_desc: Phase 02 execution started
-state_head: 7d2584ad1342e44db9deb7436905676ac562abfe
+state_head: ee359e3efdfa0c5ed64ee0b6083aac91a7bb916e
 progress:
   total_phases: 13
   completed_phases: 1
   total_plans: 38
-  completed_plans: 37
+  completed_plans: 38
   percent: 8
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-03)
 ## Current Position
 
 Phase: 02 (Night Defense & Playtest Gate) — EXECUTING
-Plan: 4 of 20
+Plan: 5 of 20
 Status: Ready to execute
 Last activity: 2026-10-07 — Phase 02 execution started
 
@@ -93,6 +93,7 @@ Progress: [█░░░░░░░░░] 8%
 | Phase 02 P17 | 15 min | 2 tasks | 6 files |
 | Phase 02 P18 | 28 min | 2 tasks | 8 files |
 | Phase 02 P19 | 10 min | 2 tasks | 3 files |
+| Phase 02 P20 | 13 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -179,6 +180,7 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-17: CastleAttack.is_armed and MapConfig.validate both refuse non-finite and sub-step (below SimClock.STEP) castle numbers (WR-02)
 - [Phase 02]: 02-18: night fast-forward is a toggle latched in FastForwardController (press edge at night flips, phase_changed out of NIGHT clears); REARM_STRENGTH 0.25 raw-strength guard stops a trigger hovering at the 0.5 deadzone from re-toggling
 - [Phase 02]: 02-19: shipped nights carry the owner exact full wall (night 2 east grunts 4; nights 3 to 5 at 21); balanced bot pinned 7 or 8 of seeds 1 to 10, losing seeds 3 and 9 on night 3 or later
+- [Phase 02]: 02-20: Round 3 sits above the kept Round 2 and Round 1 in the balance report and the packet and wins where they disagree; the night-3 wall (House opening losing 2 Houses on night 2 has 3 gold at dawn 2, below the 4-gold tower) is stated plainly; only the owner's /gsd-verify-work decision closes G-02-12
 
 ### Pending Todos
 
@@ -213,6 +215,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-07T00:06:03.592Z
-Stopped at: Completed 02-19-PLAN.md
+Last session: 2026-10-07T00:27:34.851Z
+Stopped at: Completed 02-20-PLAN.md
 Resume file: None

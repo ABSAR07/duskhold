@@ -108,7 +108,7 @@ Plans:
   3. From the command line and in CI, a seeded scripted night replays with identical results, and headless GUT tests cover waves, combat, and loop transitions (day → night → dawn, loss, win). During nights, the debug overlay shows live enemy counts, wave state, and enemy paths.
   4. Human playtest gate: the owner plays the prototype map through several full runs and either signs off that gold trade-offs feel meaningful and nights feel tense and readable, or records the tuning/feel fixes that must land before later phases begin. No meta-progression work is scheduled until this sign-off.
 
-**Plans**: 19/20 plans executed (02-12 to 02-16 closed the 2026-10-06 UAT gaps G-02-1 and G-02-2; 02-17 to 02-20 close the 2026-10-07 round-2 UAT gaps G-02-13 to G-02-15 and reopen the gate for G-02-12)
+**Plans**: 20/20 plans executed (02-12 to 02-16 closed the 2026-10-06 UAT gaps G-02-1 and G-02-2; 02-17 to 02-20 close the 2026-10-07 round-2 UAT gaps G-02-13 to G-02-15 and reopen the gate for G-02-12)
 **UI hint**: yes
 
 Plans:
@@ -166,7 +166,7 @@ Plans:
 - [x] 02-19: The owner's full wall: night 2 opens the east road and nights 3 to 5 grow (totals 5, 12, 21, 21, 21, 22, 27, 33); balanced bot pinned at 7 or 8 of 10
 
 **Round-2 gap wave 3** *(blocked on 02-17 to 02-19)*
-- [ ] 02-20: Round-3 balance report, 15 screenshots, fresh export and the round-3 owner packet (the night-3 wall said plainly)
+- [x] 02-20: Round-3 balance report, 15 screenshots, fresh export and the round-3 owner packet (the night-3 wall said plainly)
 
 ### Phase 3: King Combat & Troops
 
@@ -347,7 +347,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Day Loop | 18/18 | Complete    | 2026-10-03 |
-| 2. Night Defense & Playtest Gate | 19/20 | In Progress|  |
+| 2. Night Defense & Playtest Gate | 20/20 | In Progress|  |
 | 3. King Combat & Troops | 0/TBD | Not started | - |
 | 4. Crowd-Scale Battles & Walls | 0/TBD | Not started | - |
 | 5. Castle Center & Economy Depth | 0/TBD | Not started | - |
