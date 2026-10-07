@@ -1,14 +1,18 @@
 ---
-status: diagnosed
+status: testing
 phase: 02-night-defense-playtest-gate
 source: [02-VERIFICATION.md]
 started: 2026-10-05T15:26:33Z
-updated: 2026-10-06T22:18:54Z
+updated: 2026-10-07T00:55:13Z
 ---
 
 ## Current Test
 
-[testing complete]
+number: 18
+name: Owner round-3 playtest gate (ROADMAP SC4, D-18, G-02-12): replay one or two full runs on the fresh build/windows/Duskhold.exe (exported 2026-10-07 in plan 02-20) or the editor binary, then either sign off or name the fixes that must land first, covering the three round-2 fixes (castle 22 m and 27 m/s, the fast-forward toggle, the full-wall night counts)
+expected: |
+  A recorded decision through /gsd-verify-work. Sign-off means: the castle's reach and arrows feel right, the toggle works the way the owner wants, and the game is 'a little harder' in a way the owner accepts. Otherwise a list of fixes (for example the alternatives k7pS4m or k4pS6m named in 02-PLAYTEST-GATE.md) and any of assumptions 12 to 15 to change
+awaiting: user response
 
 ## Tests
 
@@ -94,18 +98,39 @@ expected: Confirm or change: 12 (the bot measurement rule), 13 (base income of 1
 result: pass
 evidence: "owner, round 2, 2026-10-07: 12 confirmed as the measurement rule with the target changed to the balanced bot winning 7 or 8 of 10 seeds; 15 pass; 13 and 14 superseded by the answers on tests 13 (castle range x2, arrow speed x1.5), 14 (fast-forward toggle) and 15 (a little harder)"
 
+### 18. Owner round-3 playtest gate (ROADMAP SC4, D-18, G-02-12): replay one or two full runs on the fresh build/windows/Duskhold.exe (exported 2026-10-07 in plan 02-20) or the editor binary, then either sign off or name the fixes that must land first, covering the three round-2 fixes (castle 22 m and 27 m/s, the fast-forward toggle, the full-wall night counts)
+expected: A recorded decision through /gsd-verify-work. Sign-off means: the castle's reach and arrows feel right, the toggle works the way the owner wants, and the game is 'a little harder' in a way the owner accepts. Otherwise a list of fixes (for example the alternatives k7pS4m or k4pS6m named in 02-PLAYTEST-GATE.md) and any of assumptions 12 to 15 to change
+result: [pending]
+
+### 19. G-02-13 as seen on the real camera: the castle at 22 m reach and 27 m/s arrows
+expected: At night a gold arrow leaves the keep at an enemy up to 22 m away and flies visibly fast (an edge shot lands in 25 ticks, under the 45-tick interval, so one arrow is in the air at a time); three hits kill a grunt and two a skirmisher. The owner says whether this reads as simple and not too strong now that it covers the two inner House plots and the centres of houses 3 and 4
+result: [pending]
+
+### 20. G-02-14: the fast-forward toggle on a real keyboard and a real gamepad trigger
+expected: At night one press of F (or one left-trigger pull) switches to 2x and it stays on after release with the 'Fast-forward 2x' label; the next press switches it off. A long hold, a quick tap and a trigger hovering near halfway each toggle once. It resets by itself at dawn, victory and defeat, so each night starts at real time, and presses by day or on the results screen do nothing
+result: [pending]
+
+### 21. G-02-15: difficulty after the full wall, in the owner's hands
+expected: The owner decides whether the game is 'a little harder' rather than too hard, knowing the measured shape: the balanced bot wins 8 of 10 seeds (36 of 50 on seeds 1 to 50), every loss is a night-3 wall for a House opening that lost two Houses on night 2 (3 gold at dawn 2, below the 4-gold tower, then 21 grunts with no tower), and a tower opening is the strictly safer start
+result: [pending]
+
+### 22. Assumptions 12 to 15 of the round-3 packet, on the owner's behalf
+expected: The owner confirms or changes: 12 (bot measurement rule restated with the 7-or-8 target), 13 and 14 (rewritten in round 3 for the castle numbers and the toggle), 15 (base income shown as a coin from the castle, still standing)
+result: [pending]
+
 ## Summary
 
-total: 17
+total: 22
 passed: 11
 issues: 6
-pending: 0
+pending: 5
 skipped: 0
 blocked: 0
 
 ## Gaps
 
 > Round 2 (2026-10-06): plans 02-12 to 02-16 closed the code side of G-02-1 (points 1 to 3) and G-02-2, and re-measured point 4 under the owner's rule (no lever applied; balanced bot 10 of 10). The owner's re-check of each is tests 12 to 17 above; the gap rows below keep their round-1 wording until that decision is recorded.
+> Round 3 (2026-10-07): plans 02-17 to 02-20 closed the code side of G-02-13 (castle 22 m / 27 m/s), G-02-14 (fast-forward toggle) and G-02-15 (the full wall, balanced 8 of 10) and reopened the gate for G-02-12 with a fresh export and the round-3 packet. The owner's re-check of each is tests 18 to 22 above; the gap rows below keep their round-2 wording until that decision is recorded through /gsd-verify-work.
 - gap_id: G-02-1
   truth: "A recorded decision through /gsd-verify-work: sign-off that gold trade-offs feel meaningful and nights feel tense and readable, or a list of tuning/feel fixes, plus any of the 13 assumptions to change"
   status: resolved
