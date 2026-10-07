@@ -77,6 +77,25 @@ func test_turn_speed_is_defined_and_positive() -> void:
 		assert_gt(turn_speed, 0.0, "turn speed is positive")
 
 
+func test_the_script_defaults_are_the_shipped_movement() -> void:
+	var fresh: KingDef = KingDef.new()
+	assert_eq(
+		fresh.walk_speed,
+		_def.walk_speed,
+		"the script default and its doc comment describe the shipped walk"
+	)
+	assert_eq(
+		fresh.sprint_multiplier,
+		_def.sprint_multiplier,
+		"the script default and its doc comment describe the shipped sprint multiplier"
+	)
+	assert_eq(
+		fresh.acceleration,
+		_def.acceleration,
+		"the script default and its doc comment describe the shipped acceleration"
+	)
+
+
 func test_move_speed_walks_at_walk_speed() -> void:
 	assert_eq(King.move_speed(_def, false), _def.walk_speed, "walking uses walk_speed")
 
