@@ -108,7 +108,7 @@ Plans:
   3. From the command line and in CI, a seeded scripted night replays with identical results, and headless GUT tests cover waves, combat, and loop transitions (day → night → dawn, loss, win). During nights, the debug overlay shows live enemy counts, wave state, and enemy paths.
   4. Human playtest gate: the owner plays the prototype map through several full runs and either signs off that gold trade-offs feel meaningful and nights feel tense and readable, or records the tuning/feel fixes that must land before later phases begin. No meta-progression work is scheduled until this sign-off.
 
-**Plans**: 20/20 plans executed (02-12 to 02-16 closed the 2026-10-06 UAT gaps G-02-1 and G-02-2; 02-17 to 02-20 close the 2026-10-07 round-2 UAT gaps G-02-13 to G-02-15 and reopen the gate for G-02-12)
+**Plans**: 20/22 plans executed (02-12 to 02-16 closed the 2026-10-06 UAT gaps G-02-1 and G-02-2; 02-17 to 02-20 closed the 2026-10-07 round-2 UAT gaps G-02-13 to G-02-15 and reopened the gate for G-02-12; 02-21 and 02-22 close the 2026-10-07 round-3 UAT gap G-02-18 and reopen the gate for the round-4 replay)
 **UI hint**: yes
 
 Plans:
@@ -167,6 +167,14 @@ Plans:
 
 **Round-2 gap wave 3** *(blocked on 02-17 to 02-19)*
 - [x] 02-20: Round-3 balance report, 15 screenshots, fresh export and the round-3 owner packet (the night-3 wall said plainly)
+
+**Gap closure, round 3** *(UAT 2026-10-07 round 3: G-02-18 the king walks 1.5x faster, 7.5 m/s, with the sprint kept at exactly 12 m/s; G-02-18 is also the round-3 gate record, answered by the round-4 replay)*
+
+**Round-3 gap wave 1**
+- [ ] 02-21: The king walks at 7.5 m/s and still sprints at exactly 12 m/s (multiplier 1.6), all three pinned; D-03 amended (edge-to-edge ride about 15 s, the map not grown); KingDef defaults and docs
+
+**Round-3 gap wave 2** *(blocked on 02-21)*
+- [ ] 02-22: Round-4 note in the balance report (no bot number moved, no re-measurement), 15 screenshots, fresh export and the round-4 owner packet
 
 ### Phase 3: King Combat & Troops
 
