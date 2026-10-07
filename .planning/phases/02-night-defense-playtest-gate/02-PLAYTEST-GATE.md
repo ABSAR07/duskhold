@@ -2,6 +2,103 @@
 
 You are the gate (D-18, ROADMAP success criterion 4). Claude has checked everything it can observe and lists it below. It cannot tell you whether the loop is fun. Spend one or two full runs on that, then sign off or name the fixes. Nothing here counts as your sign-off.
 
+## Round 3 (after your playtest of 2026-10-07)
+
+In round 2 you asked for three fixes and passed everything else (base gold, results spacing, sprint and braking, the 2x pace and its label, fast-forward by night only). All three fixes are in this build: the castle reaches farther and its arrows fly faster, fast-forward is now a toggle, and the game is harder through the night counts (the full wall you chose). The bots' numbers and Claude's screenshot review below are evidence only; **they are not your sign-off**. You decide again (D-18, ROADMAP success criterion 4), and only your decision, recorded through `/gsd-verify-work`, closes the round-2 gate (G-02-12).
+
+### How to play round 3
+
+- **Exported build:** `build/windows/Duskhold.exe`, freshly exported on 2026-10-07 (UTC) from the final round-3 state; it launched and quit cleanly in a headless check (`--headless --quit-after 120`, exit 0 in about 1 s). It replaces the round-2 export.
+- **From the editor binary, in PowerShell** (PowerShell's `bash` is WSL, so the Git Bash wrappers are not your entry point):
+
+  ```powershell
+  & ".\.tools\godot\4.7.2-stable\Godot_v4.7.2-stable_win64.exe" --path .
+  ```
+
+### What changed for each of your fixes
+
+| Your fix (round 2) | What changed | Plan |
+|---|---|---|
+| Castle attack farther and faster (G-02-13) | The castle now reaches **22 m instead of 11**, and its arrows fly at **27 m/s instead of 18**. Its damage is unchanged: 2 every 1.5 s, so **3 hits per grunt and 2 per skirmisher**. It now covers the two inner House plots, so a lone grunt dies before it reaches the wall and a lone skirmisher before it shoots. It fires only when an enemy gets within 22 m: on the new night counts the balanced bot's castle kills about 4 of the 12 enemies of night 2 and about 2 of the 21 of night 3 (seeds 1 to 10), but a defence that stops every enemy farther out, as the balanced bot's did under the round-2 counts, still never makes it fire | 02-17 |
+| Fast-forward as a toggle (G-02-14) | During a night, press **F** (or pull the **left trigger**) once and the game runs at 2x and stays there after you let go, with the "Fast-forward 2x" label showing; press it again and it returns to normal speed and the label disappears. Each press counts once however long you hold it, and a trigger that hovers around halfway counts once until you let it go nearly all the way. It switches itself off the moment the night ends (dawn, victory or defeat), so every night starts at normal speed and the loss beat and results screen run in real seconds. Pressing the key by day, at dawn or on the results screen does nothing, and a key you are still holding when the night begins does not switch it on (you need a fresh press) | 02-18 |
+| Harder: "a little harder, the balanced bot should lose 2 to 3 times out of 10" (G-02-15) | Night 2 now comes from two roads, and nights 3 to 5 are heavier: night 2 W8 becomes W8 E4, night 3 W6 E5 becomes W11 E10, night 4 W7 E4 [E3] becomes W11 E7 [E3], night 5 W7 E7 [W2 E2] becomes W9 E8 [W2 E2] (grunts per road, skirmishers in brackets). Night totals go from 5, 8, 11, 14, 18, 22, 27, 33 to **5, 12, 21, 21, 21, 22, 27, 33**; nights 1 and 6 to 8 are unchanged. Measured: the balanced bot wins **8 of 10** (seeds 1 to 10), against your target of 7 or 8, and loses seeds 3 and 9, both on night 3. On seeds 1 to 50 it wins 36 of 50 (72%). The difficulty sits in one place, the night-3 wall explained below | 02-19 |
+
+### Controls (round 3)
+
+| Action | Keyboard | Gamepad |
+|---|---|---|
+| Ride | WASD or arrow keys | left stick |
+| Sprint (12 m/s) | Shift | right shoulder |
+| Fast-forward (press to switch on, press again to switch off; **night only**, 2x; off again when the night ends) | F | left trigger |
+| Build or upgrade (ride to a plot, hold) | E or Space | A |
+| Start the night (hold, by day) | N | Y |
+| Debug overlay (shows the run seed, wave state, enemy path lines) | F3 | Back |
+| Camera zoom | = and - (also keypad) | right stick up and down |
+
+### What Claude checked in round 3
+
+**Automated checks** (plan 02-20, on the final round-3 state; this plan changed no game data or code):
+
+- Test suite: 829 tests in 95 scripts, all passing; lint and format clean (`bash tools/test.sh`, `bash tools/lint.sh`).
+- Seeded replays: smoke `REPLAY_OK scenario=smoke seed=1 outcome=won ticks=703 digest=2599c7c250f45b3dfe6653a8fc683918cbdce768a9afcaf8e3752d3454ccf31f` (golden unchanged); `full_idle` run twice `REPLAY_OK scenario=full_idle seed=1 outcome=won ticks=5140 digest=bb9059c884f649c3b2b869505e73b94d860dca372820d247d08eeee26fb82dac` (was 4007 ticks in round 2: the heavier nights take the bot longer).
+- Windows build: `bash tools/export.sh` exported `build/windows/Duskhold.exe` and `build/windows/Duskhold.exe --headless --quit-after 120` exits 0 in about 1 s. CI has not been run on this branch state (nothing was pushed).
+- 50-seed balanced line (`bash tools/playtest.sh --strategies=balanced --seeds=50`): **36 of 50 won (72%)**; all 14 losses are on night 3.
+
+**Balance round 3, from scripted bots** (`02-BALANCE-REPORT.md` Round 3, seeds 1 to 10, shipped data; reproduce with `bash tools/playtest.sh`; rounds 2 and 1 are kept beside it in the report). The bots build instantly without riding, react perfectly and start every night at once, so this measures the data, not a player.
+
+| Strategy | Win rate | Nights survived (mean / min / max) | Median loss night | Gold earned (mean) | Buildings lost (mean) | Knockouts (mean) |
+|---|---:|---:|---:|---:|---:|---:|
+| no_build | 0% | 1.0 / 1 / 1 | 2 | 1.0 | 0.0 | 0.0 |
+| greedy_economy | 0% | 2.4 / 2 / 3 | 3 | 7.3 | 4.0 | 1.4 |
+| houses_first | 80% | 6.8 / 2 / 8 | 3 | 24.5 | 2.9 | 0.4 |
+| towers_first | 100% | 8.0 / 8 / 8 | - | 7.0 | 2.0 | 2.8 |
+| balanced | 80% | 6.8 / 2 / 8 | 3 | 22.3 | 2.7 | 0.4 |
+
+Reading: the balanced and House-first openings win 8 of 10 and lose the same two seeds (3 and 9) on night 3; the tower-first opening wins every run with the castle untouched until night 8; pure House greed (greedy_economy) now dies on night 3 or 4 on every seed; doing nothing dies on night 2 (the castle kills all five night-1 grunts for it). A person plays worse than these bots, so a human will be markedly worse than every row above.
+
+**Screenshot review** (Claude opened these seven of the 15 scripted shots on the round-3 data, real window, Forward+; all 15 were saved and the shot-list guard passes; no scenario had to change):
+
+| Shot | What it shows | Result |
+|---|---|---|
+| `spawn_telegraph` | Day, Tower II standing, Gold 26; one red marker with a "5" at the screen's lower left over the west road, "Hold N / (Y) to start Night 1" and "Night 1: 5 enemies from 1 direction" | Pass; it is night 1, which has one road, so one marker is right; the two-marker look of night 2 on is not in a still frame and is for you to see in play |
+| `night_combat` | Night 5 of 8, 19 enemies left: red grunts and violet skirmishers by the west side of the tower, a pink skirmisher arrow in flight, the king beside the tower, Gold 0 | Pass; no gold castle arrow in frame (the castle is off screen, nothing is within 22 m of it in this shot) |
+| `building_destroyed` | Night 3 of 8, 8 enemies left: a fallen House as dark slabs on its pale disc with grunts crowding the king, health bars on the king and a grunt, the castle at the top left, "+14 gold" | Pass |
+| `king_down_countdown` | Night 7 of 8, 1 enemy left: the king as a cyan ghost capsule, "Knocked out - back in 6 s" in cyan, a violet skirmisher, a cluster of yellow arrow streaks from a tower at the top right | Pass; the arrow cluster is the shot's fast-forward launching them in one frame (a shot artifact, as in round 1) |
+| `dawn_payout` | Dawn, Gold 23: gold coins in flight around the castle and the two House plots (two at the castle front and top, one over each House side), two Houses with teal roofs | Pass; a still frame cannot say which coin is the castle's base coin, so judge that in play |
+| `results_victory` | "Victory", Nights survived 1 of 1 (the shot keeps one night), four stat rows, then Play again (outlined) and Quit, the gaps even | Pass |
+| `results_defeat` | "Defeat", Nights survived 0 of 8, the same even spacing, grunts crowding the dark castle behind the panel | Pass |
+
+**What nobody has checked:** whether it is fun, whether the 22 m castle with 27 m/s arrows reads and feels right in a real fight, whether the toggle feels right on your keyboard and gamepad (the trigger edges were tested with synthetic input, never a physical trigger), and whether the game is now "a little harder" or a wall that is too abrupt.
+
+### The night-3 wall, plainly
+
+The extra difficulty is **one wall on night 3 that only a House opening can hit**:
+
+- **House opening (houses first, or a mix with no tower on night 2):** night 2 now comes from two roads. If it costs you 2 of your 3 Houses, dawn 2 pays only **3 gold**, because a House rebuilt that dawn pays nothing, and that is below the **4-gold** first tower. Night 3 then brings **21 grunts from two roads with no tower to help**, heavier than the 11 grunts of the round-1 night 3 you could not beat. That is how the balanced bot loses seeds 3 and 9. If night 2 costs only 1 House (or none), the tower stands and the same night 3 is won at full castle health.
+- **Tower opening:** stays safe and is now **the strictly safer start**: the tower-first bot wins every run with the castle at full health until night 8.
+- **Steepness:** the win rate is steep in the counts: one grunt more or less per road on night 3 moves it 10 to 20 points, so only your replay can say whether this is "a little harder" for a human.
+- **If it feels too hard or too abrupt:** two measured alternatives exist, neither applied. `k7pS4m` (night 2 east 7; night 3 W10 E9; night 4 W10 E6; night 5 W8) gives balanced 7 of 10 and 76% of 50, a gentler night 3 but closer wins (night 3 ends on 2 to 34 castle hp); `k4pS6m` (night 3 W12 E11 and more) gives 7 of 10 and 66% of 50 and is harsher (greedy dies on night 3 every time).
+
+### Assumptions (round 3; these replace 12 to 14 of round 2, 15 stands)
+
+12. The bots build without riding to plots and sprint at 12 m/s, and the castle shoots for them too. You confirmed this as the measurement rule in round 2, and the target is now **the balanced bot wins 7 or 8 of 10 seeds** (greedy economy at most 2 of 10 with its losses on nights 3 to 6; night 3 and the castle health change only through the night counts you chose). Measured: balanced 8 of 10 (seeds 3 and 9 lost on night 3), 36 of 50; greedy 0 of 10 (median loss night 3); no_build loses night 2; tower-first 10 of 10.
+13. **The castle attacks for 2 damage every 1.5 s at 22 m with 27 m/s arrows.** The difficulty was raised with the night counts only (the full wall you chose). Castle damage 2 and health 70, every building cost, the House incomes, the base income of 1 per dawn, the starting gold of 4 and the grunt's 6 hp are unchanged. Combat numbers are as in round 1 (king 50 hp, 5 damage per 0.7 s; Houses 12 / 18 / 24 hp; tower I 50 hp, 3 damage per 0.8 s, range 9; tower II 70 hp, 6 damage per 0.7 s, range 10.5).
+14. **Fast-forward is a toggle**, night only, at 2x: press F or the left trigger once to switch it on, press again to switch it off, and it switches itself off when the night ends (dawn, victory or defeat), so every night starts at real time. It is off by day, at dawn, during the defeat beat and on the results screen, and a key held from day into the night does not switch it on. It also works while the king is knocked out. It stays on if the game window loses focus (the old hold stopped when you alt-tabbed); press again to switch it off. Both bindings can be rebound in the Input Map.
+15. The base income is shown as a gold coin flying from the castle to the gold counter at dawn, not as a text line, and it is paid on every dawn including the first. (Unchanged from round 2.)
+
+### Your decision (round 3)
+
+Play one or two full runs on the new build, then tell Claude in the `/gsd-verify-work` session:
+
+- **Sign off:** the castle's 22 m reach and 27 m/s arrows feel right, the fast-forward toggle works the way you want on keyboard and gamepad, and the game is "a little harder" in a way you accept, knowing night 3 is a wall for a House opening that lost two Houses on night 2. Phase 2 closes and Phase 3 can begin.
+- **Fixes first:** name what is still needed (for example: the castle reach or arrow speed still off, the toggle still wrong somewhere, night 3 too abrupt or still too easy, one of the alternatives `k7pS4m` or `k4pS6m` preferred), and any of assumptions 12 to 15 you want changed.
+
+The decision is recorded through `/gsd-verify-work`. No meta-progression work starts before it.
+
+---
+
+Round 2 and Round 1 below are kept as they were; where they disagree with Round 3 (castle numbers, the fast-forward control, the night counts, the balance tables, assumptions 12 to 14, the export date), Round 3 wins.
+
 ## Round 2 (after your playtest of 2026-10-06)
 
 You played round 1 and named four points plus the results-screen spacing (`02-UAT.md`, G-02-1 and G-02-2). All five are fixed on the new build. The bots' numbers and Claude's screenshot review below are evidence only; **they are not your sign-off**. You decide again (D-18, ROADMAP success criterion 4).
