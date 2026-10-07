@@ -56,8 +56,9 @@ From the first commit, lint, headless GUT tests, scripted screenshot capture and
   - **Reversibility:** costly. The spot data schema, the interaction flow, the world label and every later map assume one type per spot. Switching to a picker would need new UI and input states, and a data migration for every map.
 - **D-03:** The **prototype map is small**:
   - The castle center plus about 8 build spots: about 5 House plots and about 3 tower plots.
-  - Riding from edge to edge takes about 20–30 s at normal speed.
+  - Riding from edge to edge takes about 20–30 s at normal speed. *(Superseded by the 2026-10-07 amendment below.)*
   - In Phase 1 the castle center is only a landmark and the king's start point. It has no health, loss logic or upgrades yet (those come in Phase 2 and Phase 5).
+  - **Amended 2026-10-07 (owner decision, Phase 2 UAT round 3, G-02-18):** the king walks at 7.5 m/s, 1.5x the 5 m/s the budget was set at, and the sprint stays exactly 12 m/s (sprint multiplier 1.6). The map is not grown, because moving spots would move every balance number. Riding from edge to edge (the farthest pair of spots, castle and king spawn, 110 m) now takes about 15 s at normal speed (14.7 s) and about 9 s at sprint (9.2 s); the ride-time contract test pins 12 to 18 s. The rest of D-03 is unchanged. Gap plan 02-21.
 - **D-04:** The **prototype map is a permanent test/sandbox map.**
   - Unit/integration tests, scripted screenshot scenes and (from Phase 2) seeded replays run against it.
   - It never ships as a campaign level. Campaign maps are designed fresh in Phase 9, so changing campaign content never breaks tests.
