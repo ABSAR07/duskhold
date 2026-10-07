@@ -3,30 +3,30 @@ phase: 02
 review: 02-REVIEW.md
 titles: json
 findings:
-  - id: WR-01
-    severity: warning
-    disposition: open
-    title: "A huge finite castle_attack_interval passes validate(), arms the castle and fires it every tick"
-  - id: WR-02
-    severity: warning
-    disposition: open
-    title: "The single-writer scan for Engine.time_scale misses compound assignments and set()"
   - id: IN-01
     severity: info
     disposition: open
-    title: "BALANCED_MIN_WINS = 7 is unreachable and one test name is stale"
+    title: "Redundant multiplier assertion left inside the \"1.5x original sprint\" test"
   - id: IN-02
     severity: info
     disposition: open
-    title: "CastleAttack.is_armed() does not check the projectile speed, unlike the doc's \"unvalidated data\" claim"
+    title: "Script-defaults test covers three of the four movement fields, with no note on the omission"
+  - id: WR-01
+    severity: warning
+    disposition: fixed
+    title: "The input grace gates the release of a press, so a press started inside the window and held past it still restarts"
+  - id: WR-02
+    severity: warning
+    disposition: fixed
+    title: "The new results-screen tests fail if the runner stalls longer than the grace window"
   - id: IN-03
     severity: info
-    disposition: open
-    title: "MapConfig.validate() accepts a NaN castle_radius (same defect class as the fixed WR-02)"
+    disposition: fixed
+    title: "The \"shipped grace is set in the data file\" test cannot see the data file"
   - id: IN-04
     severity: info
-    disposition: open
-    title: "Orphaned line in the fast_forward_scale doc comment"
+    disposition: fixed
+    title: "The grace value has no upper bound"
   - id: IN-05
     severity: info
     disposition: open
@@ -39,21 +39,21 @@ findings:
     severity: info
     disposition: open
     title: "Screenshot job worst-case time equals the job timeout"
-open: 8
+open: 4
 total: 9
-recorded: 2026-10-07T00:46:32.054Z
+recorded: 2026-10-07T11:29:54.251Z
 ---
 
 # Phase 02: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
-| WR-02 | warning | open | - |
 | IN-01 | info | open | - |
 | IN-02 | info | open | - |
-| IN-03 | info | open | - |
-| IN-04 | info | open | - |
+| WR-01 | warning | fixed | 02-REVIEW-FIX.md (not in the current review) |
+| WR-02 | warning | fixed | 02-REVIEW-FIX.md (not in the current review) |
+| IN-03 | info | fixed | 02-REVIEW-FIX.md (not in the current review) |
+| IN-04 | info | fixed | 02-REVIEW-FIX.md (not in the current review) |
 | IN-05 | info | open | - (not in the current review) |
 | WR-03 | warning | fixed | 02-REVIEW-FIX.md (not in the current review) |
 | IN-06 | info | open | - (not in the current review) |
