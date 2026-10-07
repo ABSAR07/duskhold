@@ -1,6 +1,6 @@
 # Phase 2 Balance Report (playtest gate evidence, D-18)
 
-Round 1 was produced by plan 02-10 (round 2 below by plan 02-16) with `bash tools/playtest.sh --seeds=10` on the shipped prototype map. The tables
+Round 1 was produced by plan 02-10 (round 2 below by plan 02-16, round 3 above it by plan 02-20) with `bash tools/playtest.sh --seeds=10` on the shipped prototype map. The tables
 below are measured by scripted bots; they show what the data does under those bots and nothing more.
 **They are not the owner's sign-off and not evidence that the loop is fun.** The gate decision stays
 with the owner (D-18) and is recorded through `/gsd-verify-work`.
@@ -8,6 +8,151 @@ with the owner (D-18) and is recorded through `/gsd-verify-work`.
 Reproduce: `bash tools/playtest.sh` (all five strategies, seeds 1 to 10, about 45 s) writes
 `build/playtest/report.json` and `report.md`. Seeds 1 to 10 are the acceptance set; a 30-seed run of the
 final data gave the same win rates for `balanced` and `houses_first` (100% each).
+
+## Round 3 (gap closure G-02-13 to G-02-15, 2026-10-07)
+
+Produced by plan 02-20 with `bash tools/playtest.sh` (all five strategies, seeds 1 to 10, about 1 minute) and
+`bash tools/playtest.sh --strategies=balanced --seeds=50 --out=build/playtest_round3_seeds50` (the balanced bot on
+seeds 1 to 50) on the shipped prototype map, after the three round-2 fixes landed (plans 02-17, 02-18, 02-19).
+Same disclaimer: these are scripted-bot measurements and Claude's own reading of them,
+**not the owner's sign-off**; only the owner's round-3 replay and decision, recorded through `/gsd-verify-work`,
+close G-02-12 (D-18). Where this section and the Round 2 or Round 1 sections below disagree, Round 3 wins; they
+stay as the record of what the owner played in those rounds.
+
+### What changed since round 2
+
+| Change | Plan | Effect on the bots |
+|---|---|---|
+| Castle reach 22 m (was 11) and arrow speed 27 m/s (was 18); damage 2, interval 1.5 s and castle health 70 unchanged (G-02-13) | 02-17 | It now covers both inner House plots and the centres of houses 3 and 4 (no tower's circle). A lone grunt dies before it reaches the wall and a lone skirmisher before it shoots. Under the old counts the balanced bot never let an enemy within reach, so the castle fired 0 shots and every replay was unchanged; under the new night counts it does fight: `balanced` castle kills 4.1 of 12 on night 2 and 1.7 of 21 on night 3, and `no_build` now lets the castle kill all 5 grunts of night 1 (it ends the night with 24.2 castle hp) before losing night 2 |
+| Night fast-forward is a toggle (F or the left trigger: press once for 2x, press again for real time, off again when the night ends) instead of a hold (G-02-14) | 02-18 | None. Fast-forward only scales the engine time outside the simulation, replays and the bots never involve the controller, so no digest and no table moved |
+| The full wall: night 2 opens the east road, nights 3 to 5 grow (G-02-15) | 02-19 | `balanced` 8 of 10 (round 2: 10 of 10), `houses_first` 8 of 10, `greedy_economy` 0 of 10 and now loses on nights 3 and 4, `no_build` loses night 2, `towers_first` 10 of 10 |
+
+What did not change: grunt health 6, every building cost, the House incomes, the base income of 1, the starting
+gold of 4, castle damage 2 and castle health 70, nights 1 and 6 to 8, and every skirmisher group. Nothing but the
+night counts of nights 2 to 5 (and the castle's two numbers above) moved the difficulty.
+
+### Night counts, before and after (grunts per road, skirmishers in brackets)
+
+| Night | Round 2 (before) | Round 3 (after) | Total before | Total after |
+|---:|---|---|---:|---:|
+| 1 | W5 | W5 (unchanged) | 5 | 5 |
+| 2 | W8 | W8 E4 | 8 | 12 |
+| 3 | W6 E5 | W11 E10 | 11 | 21 |
+| 4 | W7 E4 [E3] | W11 E7 [E3] | 14 | 21 |
+| 5 | W7 E7 [W2 E2] | W9 E8 [W2 E2] | 18 | 21 |
+| 6 | W6 E5 N7 [W2 E2] | unchanged | 22 | 22 |
+| 7 | W7 E7 N7 [W2 E2 N2] | unchanged | 27 | 27 |
+| 8 | W8 E8 N8 [W3 E3 N3] | unchanged | 33 | 33 |
+
+Totals per night, before: 5, 8, 11, 14, 18, 22, 27, 33. After: 5, 12, 21, 21, 21, 22, 27, 33. Night 2 now comes
+from two roads (the new east group starts 2.0 s in, one grunt every 1.5 s, like the other east groups), so the
+telegraph shows two markers from night 2 on. `test_night_data_contract` pins every changed count.
+
+### Acceptance checks (measured on the final data, seeds 1 to 10)
+
+| Check | Required (D-10, D-04, owner 2026-10-07) | Measured | Result |
+|---|---|---|---|
+| `balanced` wins | 7 or 8 of seeds 1 to 10 (the owner's round-2 target; D-10 minimum was 0.8) | 8 of 10 won (win rate 0.8); lost seeds 3 and 9 | pass |
+| `balanced` loses on night 3 or later | never earlier | both losses on night 3 (2 nights survived), none on night 1 or 2 | pass |
+| `greedy_economy` win rate | at most 0.2 | 0.0 (0 of 10 won) | pass |
+| `greedy_economy` median loss night | 3 to 6 | 3 (night 3 on six seeds, night 4 on four) | pass |
+| `no_build` loses by night 3 | max nights survived at most 2 | max 1 survived: every seed lost night 2 | pass |
+| `towers_first` gold earned | above 0.0 | mean 7.0, 7 in every run | pass |
+| `towers_first` result | winnable (owner's tower opening) | 10 of 10 won | pass |
+| King alone vs a group of 3 grunts | kills all, no knockout | passes (`test_king_sturdiness`) | pass |
+| King in the shipped night-4 wave | knocked out at least once | passes (`test_king_sturdiness`) | pass |
+| Every started night ends | DAWN, WON or LOST within 300 s, no timeout, seeds 1 to 10 | passes (`test_every_night_ends`) | pass |
+| Grunt health | stays 6 | 6 (`test_balance_acceptance`) | pass |
+| Smoke golden | digest unchanged | `REPLAY_OK scenario=smoke seed=1 outcome=won ticks=703 digest=2599c7c250f45b3dfe6653a8fc683918cbdce768a9afcaf8e3752d3454ccf31f` | pass |
+| `full_idle` replay | two runs agree | `REPLAY_OK scenario=full_idle seed=1 outcome=won ticks=5140 digest=bb9059c884f649c3b2b869505e73b94d860dca372820d247d08eeee26fb82dac` | pass |
+
+The seeded shape (balanced 7 or 8 of seeds 1 to 10, losing exactly seeds 3 and 9 on night 3 or later; seeds 1 to 3
+for the other strategies) is pinned by `tests/integration/test_balance_acceptance.gd`. The full suite is 829
+tests in 95 scripts, all passing, and lint is clean. The numbers match what the diagnosis
+(`.planning/debug/difficulty-balanced-7-of-10.md`) measured for this exact edit (balanced 8 of 10 losing seeds 3
+and 9 on night 3; greedy 0 of 10 on nights 3 and 4 with median 3; no_build night 2; towers_first 10 of 10 with 7.0
+gold; houses_first 8 of 10; 36 of 50 on seeds 1 to 50), so there is nothing to flag.
+
+### The 50-seed balanced line (the project's own CLI)
+
+`bash tools/playtest.sh --strategies=balanced --seeds=50`: **balanced wins 36 of 50 (72%)** on seeds 1 to 50
+(nights survived 6.3 mean, 2 to 8; median loss night 3). All 14 losses are on night 3 (seeds 3, 9, 14, 15, 16,
+19, 26, 28, 31, 33, 35, 38, 39, 42), which is exactly the figure the diagnosis got from its in-memory harness.
+A 72% win rate on 50 seeds is "loses 2 to 3 times in 10" at the upper end of the owner's ask; the 8 of 10 on
+seeds 1 to 10 is the acceptance set, and seeds 1 to 10 happen to be slightly kinder than seeds 11 to 50.
+
+### The night-3 wall, plainly
+
+The extra difficulty is **one wall on night 3 that only a House opening can hit**, and it works as an AND gate:
+
+- Night 2 now comes from two roads. When the king (alone, with no tower yet) lets it cost a House opening 2 of
+  its 3 Houses, dawn 2 pays only 3 gold, because a House rebuilt that dawn pays nothing: that is below the 4-gold
+  first tower, so night 3 is met with no tower at all.
+- Night 3 then brings 21 grunts from two roads, heavier than the 11 of the round-1 night 3 the owner could not
+  beat. The king and the 22 m castle cannot hold it, and the castle falls on night 3.
+- With 1 House lost (or none) on night 2, dawn 2 pays 4 gold or more, the first tower stands and night 3 is won
+  at full castle health. Measured on seeds 1 to 50: 28 of 28 such runs won with the castle at 70 hp after night
+  3; of the 22 runs that lost 2 Houses on night 2, 14 lost on night 3 and 8 won (the castle ended night 3 on
+  4, 30, 38, 14, 32, 4, 16 and 34 hp).
+- A **tower opening stays safe and is now the strictly safer start**: `towers_first` wins 10 of 10 (and 50 of 50
+  in the diagnosis) with the castle at 70 hp until night 8. `houses_first` loses the same two seeds as
+  `balanced` (3 and 9), and `greedy_economy` dies on night 3 or 4 on every seed.
+- The castle's 22 m reach is what fights the wall when enemies get close: `balanced` castle kills 4.1 of 12 on
+  night 2 and 1.7 of 21 on night 3.
+- The win rate is steep in the counts: one grunt more or less per road on night 3 moves it 10 to 20 points (the
+  diagnosis's measured alternatives: `k7pS4m`, night 2 east 7, night 3 W10 E9, night 4 W10 E6, night 5 W8, gives
+  balanced 7 of 10 and 76% of 50 with wins that end night 3 on 2 to 34 castle hp; `k4pS6m`, night 3 W12 E11 and
+  more, gives 7 of 10 and 66% of 50 with greedy dying on night 3 every time; neither is applied). Whether this
+  is "a little harder" or a wall that is too abrupt for a human is for the owner's replay to say; the bot has
+  a perfect king and builds instantly, so a person will be markedly worse than every row below.
+
+### Round 3 summary (seeds 1 to 10)
+
+| Strategy | Win rate | Nights survived (mean / min / max) | Median loss night | Gold earned (mean) | Buildings lost (mean) | Knockouts (mean) |
+|---|---:|---:|---:|---:|---:|---:|
+| no_build | 0% | 1.0 / 1 / 1 | 2 | 1.0 | 0.0 | 0.0 |
+| greedy_economy | 0% | 2.4 / 2 / 3 | 3 | 7.3 | 4.0 | 1.4 |
+| houses_first | 80% | 6.8 / 2 / 8 | 3 | 24.5 | 2.9 | 0.4 |
+| towers_first | 100% | 8.0 / 8 / 8 | - | 7.0 | 2.0 | 2.8 |
+| balanced | 80% | 6.8 / 2 / 8 | 3 | 22.3 | 2.7 | 0.4 |
+
+### Round 3 per night: balanced
+
+| Night | Runs | Enemies | Kills king | Kills towers | Kills castle | Buildings lost | Knockouts | Castle hp at end | Night seconds | Gold at dawn |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1 | 10 | 5.0 | 5.0 | 0.0 | 0.0 | 0.0 | 0.0 | 70.0 | 11.1 | 3.0 |
+| 2 | 10 | 12.0 | 7.9 | 0.0 | 4.1 | 1.2 | 0.0 | 70.0 | 31.4 | 3.8 |
+| 3 | 10 | 21.0 | 10.4 | 7.6 | 1.7 | 0.6 | 0.3 | 49.4 | 28.8 | 4.0 |
+| 4 | 8 | 21.0 | 2.3 | 18.8 | 0.0 | 0.3 | 0.1 | 70.0 | 20.3 | 4.3 |
+| 5 | 8 | 21.0 | 1.4 | 19.6 | 0.0 | 0.0 | 0.0 | 70.0 | 18.7 | 4.3 |
+| 6 | 8 | 22.0 | 0.5 | 21.5 | 0.0 | 0.0 | 0.0 | 70.0 | 14.7 | 7.8 |
+| 7 | 8 | 27.0 | 2.6 | 24.4 | 0.0 | 0.0 | 0.0 | 70.0 | 17.1 | 5.6 |
+| 8 | 8 | 33.0 | 7.1 | 25.9 | 0.0 | 0.9 | 0.0 | 70.0 | 23.3 | 3.9 |
+
+### Round 3 per night: greedy_economy
+
+| Night | Runs | Enemies | Kills king | Kills towers | Kills castle | Buildings lost | Knockouts | Castle hp at end | Night seconds | Gold at dawn |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1 | 10 | 5.0 | 5.0 | 0.0 | 0.0 | 0.0 | 0.0 | 70.0 | 11.1 | 3.0 |
+| 2 | 10 | 12.0 | 7.9 | 0.0 | 4.1 | 1.2 | 0.0 | 70.0 | 31.4 | 3.8 |
+| 3 | 10 | 21.0 | 11.7 | 0.0 | 5.7 | 2.0 | 1.0 | 3.4 | 41.9 | 1.9 |
+| 4 | 4 | 21.0 | 10.0 | 0.0 | 4.3 | 2.0 | 1.0 | 0.0 | 38.4 | 1.3 |
+
+### Round 3 per night: towers_first
+
+| Night | Runs | Enemies | Kills king | Kills towers | Kills castle | Buildings lost | Knockouts | Castle hp at end | Night seconds | Gold at dawn |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1 | 10 | 5.0 | 2.1 | 2.9 | 0.0 | 0.0 | 0.0 | 70.0 | 8.0 | 1.0 |
+| 2 | 10 | 12.0 | 4.4 | 7.6 | 0.0 | 0.0 | 0.0 | 70.0 | 15.5 | 2.0 |
+| 3 | 10 | 21.0 | 10.0 | 11.0 | 0.0 | 0.0 | 0.0 | 70.0 | 22.9 | 3.0 |
+| 4 | 10 | 21.0 | 10.0 | 11.0 | 0.0 | 0.0 | 1.0 | 70.0 | 26.7 | 4.0 |
+| 5 | 10 | 21.0 | 1.3 | 19.7 | 0.0 | 0.1 | 0.0 | 70.0 | 19.2 | 1.0 |
+| 6 | 10 | 22.0 | 7.0 | 15.0 | 0.0 | 0.0 | 0.0 | 70.0 | 18.9 | 2.0 |
+| 7 | 10 | 27.0 | 9.0 | 18.0 | 0.0 | 0.0 | 0.8 | 70.0 | 26.0 | 3.0 |
+| 8 | 10 | 33.0 | 14.1 | 16.1 | 2.8 | 1.9 | 1.0 | 56.4 | 39.2 | 3.0 |
+
+(The per-night tables of the other two strategies are in `build/playtest/report.md` after
+`bash tools/playtest.sh`.)
 
 ## Round 2 (gap closure G-02-1, 2026-10-06)
 
