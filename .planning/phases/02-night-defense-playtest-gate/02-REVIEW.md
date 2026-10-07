@@ -1,132 +1,133 @@
 ---
 phase: 02-night-defense-playtest-gate
-reviewed: 2026-10-06T14:31:33Z
+reviewed: 2026-10-07T00:45:45Z
 depth: standard
-files_reviewed: 50
+files_reviewed: 16
 files_reviewed_list:
-  - data/king/king.tres
   - data/maps/prototype_map.tres
-  - data/tuning/loop_tuning.tres
   - input/fast_forward_controller.gd
-  - input/fast_forward_controller.gd.uid
-  - presentation/map/prototype_map.tscn
-  - presentation/vfx/projectile_vfx.gd
-  - project.godot
-  - simulation/defs/king_def.gd
   - simulation/defs/loop_tuning.gd
   - simulation/defs/map_config.gd
+  - simulation/events/sim_events.gd
   - simulation/night/castle_attack.gd
-  - simulation/night/castle_attack.gd.uid
-  - simulation/night/night_sim.gd
-  - simulation/run/run_context.gd
-  - simulation/run/run_manager.gd
-  - tests/e2e/test_dawn_payout.gd
-  - tests/e2e/test_dawn_payout_castle.gd
-  - tests/e2e/test_dawn_payout_castle.gd.uid
   - tests/e2e/test_fast_forward.gd
-  - tests/e2e/test_fast_forward.gd.uid
-  - tests/e2e/test_king_ride.gd
-  - tests/e2e/test_projectiles_visible.gd
-  - tests/e2e/test_results_layout.gd
-  - tests/e2e/test_results_layout.gd.uid
-  - tests/e2e/test_start_night_hold.gd
   - tests/integration/test_balance_acceptance.gd
-  - tests/integration/test_balance_acceptance.gd.uid
-  - tests/integration/test_balance_report.gd
-  - tests/integration/test_loop_gold_carryover.gd
-  - tests/unit/test_building_damage.gd
   - tests/unit/test_castle_attack.gd
-  - tests/unit/test_castle_attack.gd.uid
-  - tests/unit/test_dawn_income.gd
-  - tests/unit/test_dawn_rebuild.gd
   - tests/unit/test_fast_forward_rules.gd
-  - tests/unit/test_fast_forward_rules.gd.uid
+  - tests/unit/test_fast_forward_toggle.gd
+  - tests/unit/test_fast_forward_toggle.gd.uid
   - tests/unit/test_input_map.gd
-  - tests/unit/test_king_movement_config.gd
   - tests/unit/test_loop_tuning_contract.gd
   - tests/unit/test_map_validate_castle.gd
-  - tests/unit/test_map_validate_castle.gd.uid
-  - tests/unit/test_map_validate_income.gd
-  - tests/unit/test_map_validate_income.gd.uid
-  - tools/replay/balance_report.gd
-  - tools/replay/replay_driver.gd
-  - ui/hud/dawn_payout_vfx.gd
-  - ui/hud/hud.gd
-  - ui/hud/hud.tscn
-  - ui/results/results_screen.tscn
+  - tests/unit/test_night_data_contract.gd
 findings:
   critical: 0
   warning: 2
-  info: 2
-  total: 4
+  info: 4
+  total: 6
 status: issues_found
 ---
 
-# Phase 2: Code Review Report (fourth review, gap-closure plans 02-12 to 02-16)
+# Phase 02: Code Review Report (incremental, since 3517f83)
 
-**Reviewed:** 2026-10-06T14:31:33Z
+**Reviewed:** 2026-10-07T00:45:45Z
 **Depth:** standard
-**Files Reviewed:** 50
+**Files Reviewed:** 16
 **Status:** issues_found
 
 ## Summary
 
-Scope was the diff `2adf91a..HEAD` on the listed files: the base dawn income (RunManager, MapConfig, DawnPayoutVfx), the 12 m/s sprint, the night-only hold-to-fast-forward (FastForwardController, HUD label, input action), the castle ranged attack (CastleAttack, NightSim order, ProjectileVfx), the results-button margin and the seeded balance acceptance test.
+Reviewed the round-3 gap-closure changes: castle reach 22 m / arrows 27 m/s with the hardened
+arming and validation (02-17), the night fast-forward toggle with its re-arm guard (02-18) and
+the "full wall" night counts with the balanced-bot pins (02-19). The toggle logic
+(`_press_counts`, the latch, the reset inside the phase-change step, the `_exit_tree` restore)
+traced clean for key hold, sub-frame tap, day-to-night held key, trigger pull and trigger hover.
+The night totals in prototype_map.tres match the pins (5, 12, 21, 21, 21, 22, 27, 33), and the
+castle doc claims (22/27 s edge flight of 25 ticks, grunt and skirmisher kill timing, House plot
+coverage) check out against the shipped data. No structural findings were supplied.
 
-The simulation changes hold up. CastleAttack uses only integer ticks, SimClock and TargetQuery, steps between towers and enemies as DR-8 requires, resets in begin_night, and is off at the data defaults, so the smoke golden is unaffected. The base income is added to a fresh Dictionary returned by `dawn_income_by_spot()` (checked: no shared state is mutated), is listed last, and the total equals the sum of per_spot. FastForwardController is the only writer of Engine.time_scale, nothing under simulation/ reads it, the scale drops inside the same step that leaves NIGHT (including defeat), and `_exit_tree` restores 1.0. The HUD scale text was checked against Godot 4.7.2 directly (2.0 reads "2", 1.5 reads "1.5", 2.5 reads "2.5"). No new test uses `pending()`, and no new test budgets real seconds tightly against the clamped clock (the dawn and arrow waits give 3 s or more against a 0.5 s simulated night).
-
-Two things need attention. The castle-attack validation claims a guarantee it does not give (a data value can make the castle fire on every tick). Separately, the leaked controllers in test_fast_forward_rules.gd make one of its tests unable to fail on the behaviour it names.
+The WR-02 hardening is incomplete: the one remaining way to make the castle fire every tick (a
+huge finite interval) still passes both validate() and is_armed(). I reproduced it headless.
+The "single writer of Engine.time_scale" scan can also be bypassed by a compound assignment.
 
 ## Warnings
 
-### WR-01: Leaked FastForwardControllers make "a held key resumes fast-forward as the night begins" unable to fail
+### WR-01: A huge finite castle_attack_interval passes validate(), arms the castle and fires it every tick
 
-**File:** `tests/unit/test_fast_forward_rules.gd:54-59` (helper), `tests/unit/test_fast_forward_rules.gd:113-121` (affected test)
-**Issue:** `_controller_on` does `add_child(controller)` with no autofree. GUT keeps one test-script node for the whole file, so every controller created by an earlier test stays in the tree for the rest of the file, still polling `Input.is_action_pressed` each frame against its own old RunContext. The first controller test (`test_fast_forward_held_by_day_changes_nothing_then_runs_the_night_at_2x`) leaves its context in NIGHT, so that stale controller applies `Engine.time_scale = 2.0` whenever the action is held, for every later test.
-
-`test_a_night_that_starts_while_the_key_is_already_down_runs_fast` presses the action, awaits one frame (during which the stale controller from the earlier test already sets 2.0, because its own night is running), and only then submits StartNightIntent. Its assertion `Engine.time_scale == 2.0` is therefore already true before the new controller's `phase_changed` handler runs. If that handler were deleted or disconnected the test would still pass. The same masking applies to the "fast at night" pre-assertions in `test_freeing_the_controller_while_fast_restores_real_time` and `test_the_scale_drops_inside_the_step_that_reaches_dawn`. The three whole-feature-off mutation probes would not expose this, because a partial regression (the handler only) is what slips through.
-**Fix:** Own each controller with the test, so nothing outlives it:
+**File:** `simulation/defs/map_config.gd:172-194`, `simulation/night/castle_attack.gd:38-45`, root cause `simulation/clock/sim_clock.gd:20-23`
+**Issue:** The WR-02 fix rejects INF, NaN and sub-step intervals, and the doc claims "neither bad nor
+unvalidated data can make the castle fire every tick". A finite but enormous interval still does.
+`SimClock.ticks(1e30)` overflows `ceili` and returns 1 (the `maxi(..., 1)` floor swallows the
+overflowed value). Probe run with Godot 4.7.2 headless on a map with damage 2, range 22 and
+interval 1e30: `ticks(1e30)=1`, `ticks(1e300)=1`, `validate()` returned `[]`, `is_armed()` returned
+true. `CastleAttack.step` then sets `_ready_at = tick + 1`, so the castle shoots every tick, which is
+the exact failure T-02-33 / WR-02 exist to prevent. A typo such as `castle_attack_interval = 1e30` or
+an unvalidated resource reaches this silently. The same overflow makes any projectile speed tiny
+enough (1e-300) land in 1 tick instead of never.
+**Fix:** Saturate the conversion once so every timer benefits, and bound the data:
 ```gdscript
-func _controller_on(ctx: RunContext) -> FastForwardController:
-	var controller: FastForwardController = FastForwardController.new()
-	add_child_autofree(controller)
-	controller.bind_run(ctx, null)
-	controller.changed.connect(_on_changed)
-	return controller
+# sim_clock.gd
+const MAX_TICKS: int = 1 << 30
+static func ticks(duration: float) -> int:
+	if duration <= 0.0:
+		return 0
+	return clampi(ceili(minf(duration / STEP, float(MAX_TICKS)) - TICK_ROUNDING_SLACK), 1, MAX_TICKS)
 ```
-`test_freeing_the_controller_while_fast_restores_real_time` frees the controller itself, which autofree tolerates (GUT checks for a freed instance). Then confirm by mutation that removing the `phase_changed` connection fails `test_a_night_that_starts_while_the_key_is_already_down_runs_fast`.
+and add an upper bound (for example `castle_attack_interval > MAX_CASTLE_INTERVAL_S`, 3600 s) to
+`_validate_castle_attack()` and to `is_armed()`, plus a DISARMING case (`["castle_attack_interval", 1e30]`)
+in test_castle_attack.gd and a validate case in test_map_validate_castle.gd.
 
-### WR-02: Castle attack validation does not prevent a castle that fires on every tick (non-finite or sub-step interval), contradicting T-02-33
+### WR-02: The single-writer scan for Engine.time_scale misses compound assignments and set()
 
-**File:** `simulation/defs/map_config.gd:164-184` (`_validate_castle_attack`), `simulation/night/castle_attack.gd:38-43` (`is_armed`), `simulation/night/castle_attack.gd:66`
-**Issue:** The class comment and the map comment say bad data can never make the castle fire every tick. The check only rejects negatives and exact zeros. I ran it on 4.7.2-stable. With `castle_attack_damage = 1`, `castle_attack_range = INF` and `castle_attack_interval = INF`, `validate()` returns `[]`. `SimClock.ticks(INF)` is 1, so `_ready_at = tick + 1` and the castle shoots every 33 ms. `castle_attack_interval = 0.001` (also valid) does the same, since `ticks()` has a floor of 1. With a NaN range or interval `validate()` is also clean, but `is_armed()` is false (NaN > 0 is false), so the castle is silently off with no error. The sibling control, `FastForwardController.scale_for`, does handle NaN and INF (T-02-29), so the castle numbers are the inconsistent case. A shipped .tres is authored data, so this is not exploitable, but it breaks the stated invariant and can swing balance or flood PendingHits and the projectile cap.
-**Fix:** In `_validate_castle_attack` reject non-finite values and require at least one step:
-```gdscript
-for field: String in ["castle_attack_range", "castle_attack_interval", "castle_projectile_speed"]:
-	var value: float = get(field)
-	if is_nan(value) or is_inf(value):
-		errors.append("%s is not finite (%s)" % [field, value])
-if castle_attack_damage > 0 and castle_attack_interval > 0.0 and castle_attack_interval < SimClock.STEP:
-	errors.append("castle_attack_interval is below one simulation step (%s)" % castle_attack_interval)
-```
-Also make `CastleAttack.is_armed` use `is_finite()` on the range and interval so a map that was never validated cannot arm the castle with INF. Add the INF, NaN and 0.001 cases to `tests/unit/test_map_validate_castle.gd`. If a sub-step interval is meant to be legal, correct the "can never fire every tick" wording in `castle_attack.gd` and `map_config.gd` instead.
+**File:** `tests/unit/test_fast_forward_rules.gd:20` (WRITE_PATTERN), scan at lines 275-286
+**Issue:** `Engine\.time_scale\s*=[^=]` only matches a plain `=`. `Engine.time_scale *= 2.0`,
+`Engine.time_scale += x` and `Engine.set("time_scale", x)` are not matched (after the name there is a
+`*`, `+` or `(`, not an `=`), so a second writer of the time scale added that way passes the guard
+that the controller doc advertises as "the only writer". The same pattern then requires one character
+after the `=`, so a line that ends right after it also slips through.
+**Fix:** Match any assignment operator and the reflective setters, for example
+`WRITE_PATTERN := "Engine\.time_scale\s*([-+*/%]?=(?!=)|\b)"` (or simply flag every non-comment
+occurrence of `time_scale` outside WRITER_PATH, as test_nothing_under_simulation_mentions_the_time_scale
+already does for simulation/), and extend the self-check lines 277-278 with `*=`, `+=` and `set(` samples.
 
 ## Info
 
-### IN-01: The dawn_payout signal documentation still says per_spot maps only spot ids
+### IN-01: BALANCED_MIN_WINS = 7 is unreachable and one test name is stale
 
-**File:** `simulation/events/sim_events.gd:16` (related: `simulation/run/run_manager.gd:196-205`)
-**Issue:** The doc reads "`per_spot` maps spot_id to amount in MapConfig order, amount > 0 only". Since 02-12 it can also carry `MapConfig.CASTLE_PAYOUT_KEY` (&"castle"), listed last, which is not a spot. Consumers were checked and cope (DawnPayoutVfx projects the key above the castle, SimRecorder logs it, the others ignore the dictionary), but the next consumer that does `get_spot(key)` will get null.
-**Fix:** Update the comment: "...in MapConfig order, then `MapConfig.CASTLE_PAYOUT_KEY` for the castle's base income when the map pays one."
+**File:** `tests/integration/test_balance_acceptance.gd:14,62-66`, `tests/unit/test_night_data_contract.gd:313`
+**Issue:** test_balanced_loses_only_seeds_three_and_nine pins exactly two losses (8 wins), so the
+7-or-8 window in test_balanced_wins_seven_or_eight_of_seeds_one_to_ten can never fail on the low side
+and BALANCED_MIN_WINS is dead tolerance. Separately, `test_the_per_night_totals_are_unchanged_by_the_ranged_type`
+now pins the whole new ramp (21 21 21 on nights 3 to 5), so "unchanged" is stale.
+**Fix:** Drop the two tests' overlap (keep the exact-seed pin and derive the win count, or keep 7 to 8 and
+remove the seed pin if seed-exactness is not wanted) and rename the totals test to
+`test_the_per_night_totals_match_the_owner_s_wall`.
 
-### IN-02: test_results_layout pins the 11 px constant rather than measuring the visible gap it exists for
+### IN-02: CastleAttack.is_armed() does not check the projectile speed, unlike the doc's "unvalidated data" claim
 
-**File:** `tests/e2e/test_results_layout.gd:49-57`
-**Issue:** `test_buttons_sit_the_row_gap_plus_the_leading_below_the_last_stat` asserts `play_again.y == knockouts.end.y + separation + 11`, which restates the scene's `margin_top = 11`. The owner's complaint (the visible gap from the last stat's capitals to the button edge equals the stat-row gap) is not measured; the font-leading arithmetic lives in a comment and in a debug note. A theme or font change that alters the leading passes this test and re-introduces the uneven gap. The file comment says so openly, so this is a limitation, not a defect.
-**Fix:** Optional. Derive the leading from the font (`font.get_ascent(size)` minus cap height) for a font with known metrics and assert the visible gap against the row gap within 1 px. Otherwise keep the current test and the focus-expand sentinel.
+**File:** `simulation/night/castle_attack.gd:38-45`
+**Issue:** A NaN `castle_projectile_speed` (reported by validate()) still arms the castle, and
+`SimClock.flight_ticks(d, NAN)` returns 1 (probe run) from an undefined `ceili(NaN)`, so the arrow
+lands next tick regardless of distance. Benign in effect, but it contradicts "neither bad nor
+unvalidated data".
+**Fix:** Add `and is_finite(_map.castle_projectile_speed)` to is_armed() and a DISARMING case for
+NaN/INF speed, or make flight_ticks reject non-finite input.
+
+### IN-03: MapConfig.validate() accepts a NaN castle_radius (same defect class as the fixed WR-02)
+
+**File:** `simulation/defs/map_config.gd:137` (outside the incremental diff, noted for the next pass)
+**Issue:** `castle_radius <= 0.0` is false for NaN, so a NaN radius validates clean; the enemy fields in
+`_validate_enemy` (`<= 0.0` / `< 0.0` checks) have the same hole.
+**Fix:** Reuse `_castle_number_errors`-style `is_finite` checks for radius and the enemy floats.
+
+### IN-04: Orphaned line in the fast_forward_scale doc comment
+
+**File:** `simulation/defs/loop_tuning.gd:54-57`
+**Issue:** The reflow left "## Read through" alone on its own line before the `FastForwardController.scale_for` sentence.
+**Fix:** Reflow to "## Read through FastForwardController.scale_for, which clamps it to 1.0 .. FAST_FORWARD_MAX_SCALE."
 
 ---
 
-_Reviewed: 2026-10-06T14:31:33Z_
+_Reviewed: 2026-10-07T00:45:45Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
