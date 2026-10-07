@@ -1,6 +1,6 @@
 # Phase 2 Balance Report (playtest gate evidence, D-18)
 
-Round 1 was produced by plan 02-10 (round 2 below by plan 02-16, round 3 above it by plan 02-20) with `bash tools/playtest.sh --seeds=10` on the shipped prototype map. The tables
+Round 1 was produced by plan 02-10 (round 2 below by plan 02-16, round 3 above it by plan 02-20, round 4 above that by plan 02-22) with `bash tools/playtest.sh --seeds=10` on the shipped prototype map. The tables
 below are measured by scripted bots; they show what the data does under those bots and nothing more.
 **They are not the owner's sign-off and not evidence that the loop is fun.** The gate decision stays
 with the owner (D-18) and is recorded through `/gsd-verify-work`.
@@ -8,6 +8,50 @@ with the owner (D-18) and is recorded through `/gsd-verify-work`.
 Reproduce: `bash tools/playtest.sh` (all five strategies, seeds 1 to 10, about 45 s) writes
 `build/playtest/report.json` and `report.md`. Seeds 1 to 10 are the acceptance set; a 30-seed run of the
 final data gave the same win rates for `balanced` and `houses_first` (100% each).
+
+## Round 4 (gap closure G-02-18, 2026-10-07)
+
+Written by plan 02-22 after plan 02-21 changed the king's walk. Nothing was re-measured with the bots, on purpose,
+and this section says why nothing in the tables below could have moved. Same disclaimer as above: scripted bots and
+Claude's reading of them are **not the owner's sign-off**; only the owner's round-4 replay and decision, recorded
+through `/gsd-verify-work`, answer the round-3 gate (G-02-18, D-18). The Round 3 tables below are the current
+balance. Where Round 4 and the older sections disagree (the walk speed, the sprint multiplier), Round 4 wins.
+
+### What changed
+
+The king's walk went from 5.0 to 7.5 m/s (1.5x) and his sprint stays at exactly 12 m/s, so the sprint multiplier
+went from 2.4 to 1.6. Acceleration (60) and the night fast-forward (2x) are unchanged, and D-03's ride budget was
+amended to match (edge to edge about 15 s at the walk and about 9 s at the sprint, the map not grown). This is plan
+02-21 and it is two lines of `data/king/king.tres`; no other data file moved.
+
+### Why no bot number moved
+
+- Every building strategy (`balanced`, `greedy_economy`, `houses_first`, `towers_first`) moves its king only as the
+  defender, and the defender's step is `walk_speed x sprint_multiplier` on every tick. 5.0 x 2.4 and 7.5 x 1.6 are
+  both exactly 12.0 in doubles, so the per-tick step is bit-identical before and after.
+- `no_build` never leaves the king spawn, so its king never moves at all.
+- So the bots cannot see a walk change: they either sprint at exactly 12.0 m/s or stand still.
+
+### Evidence
+
+- The diagnosis (`.planning/debug/king-walk-speed-1-5x.md`) ran all five strategies on seeds 1 to 10 on this exact
+  7.5 / 1.6 data and diffed the result against a baseline taken on the round-3 data: `report.md` and `report.json`
+  were byte-identical (diff exit 0).
+- In this plan, on the final tree, the full suite passes (831 tests in 95 scripts, lint clean) with `test_balance_acceptance` unchanged
+  (balanced 7 or 8 of 10, seeds 3 and 9 lost on night 3 or later), the smoke replay equals its golden
+  (`REPLAY_OK scenario=smoke seed=1 outcome=won ticks=703 digest=2599c7c250f45b3dfe6653a8fc683918cbdce768a9afcaf8e3752d3454ccf31f`)
+  and `full_idle` prints the same line as round 3
+  (`REPLAY_OK scenario=full_idle seed=1 outcome=won ticks=5140 digest=bb9059c884f649c3b2b869505e73b94d860dca372820d247d08eeee26fb82dac`).
+- No playtest was re-run in this plan, on purpose: a re-run could only reproduce the byte-identical report.
+
+### The blind spot
+
+The bots never walk at night, so no number here says what a walking king does. A human who rides without holding
+sprint is now half again as mobile between sprints (2.3x a grunt's 3.2 m/s instead of 1.6x; 2.7x a skirmisher's
+2.8 m/s instead of 1.8x). Because the top speed is unchanged, this can only make human play slightly easier, never
+harder. Only the owner's replay can judge how much.
+
+The Round 3 tables below are the current balance.
 
 ## Round 3 (gap closure G-02-13 to G-02-15, 2026-10-07)
 
