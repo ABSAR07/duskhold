@@ -3,30 +3,30 @@ phase: 02
 review: 02-REVIEW.md
 titles: json
 findings:
-  - id: IN-01
-    severity: info
-    disposition: fixed
-    title: "Redundant multiplier assertion left inside the \"1.5x original sprint\" test"
-  - id: IN-02
-    severity: info
-    disposition: fixed
-    title: "Script-defaults test covers three of the four movement fields, with no note on the omission"
   - id: WR-01
     severity: warning
     disposition: fixed
-    title: "The input grace gates the release of a press, so a press started inside the window and held past it still restarts"
+    title: "A huge finite castle_attack_interval passes validate(), arms the castle and fires it every tick"
   - id: WR-02
     severity: warning
     disposition: fixed
-    title: "The new results-screen tests fail if the runner stalls longer than the grace window"
+    title: "The single-writer scan for Engine.time_scale misses compound assignments and reflective setters"
+  - id: IN-01
+    severity: info
+    disposition: fixed
+    title: "BALANCED_MIN_WINS = 7 is unreachable, and one test name is stale"
+  - id: IN-02
+    severity: info
+    disposition: fixed
+    title: "CastleAttack.is_armed() does not check the projectile speed, contradicting its \"unvalidated data\" claim"
   - id: IN-03
     severity: info
     disposition: fixed
-    title: "The \"shipped grace is set in the data file\" test cannot see the data file"
+    title: "MapConfig.validate() accepts a NaN or infinite castle_radius and NaN enemy floats"
   - id: IN-04
     severity: info
     disposition: fixed
-    title: "The grace value has no upper bound"
+    title: "Orphaned line in the fast_forward_scale doc comment"
   - id: IN-05
     severity: info
     disposition: open
@@ -41,19 +41,19 @@ findings:
     title: "Screenshot job worst-case time equals the job timeout"
 open: 2
 total: 9
-recorded: 2026-10-08T05:05:57.289Z
+recorded: 2026-10-08T05:57:02.845Z
 ---
 
 # Phase 02: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
+| WR-01 | warning | fixed | 02-REVIEW-FIX.md |
+| WR-02 | warning | fixed | 02-REVIEW-FIX.md |
 | IN-01 | info | fixed | 02-REVIEW-FIX.md |
 | IN-02 | info | fixed | 02-REVIEW-FIX.md |
-| WR-01 | warning | fixed | 02-REVIEW-FIX.md (not in the current review) |
-| WR-02 | warning | fixed | 02-REVIEW-FIX.md (not in the current review) |
-| IN-03 | info | fixed | 02-REVIEW-FIX.md (not in the current review) |
-| IN-04 | info | fixed | 02-REVIEW-FIX.md (not in the current review) |
+| IN-03 | info | fixed | 02-REVIEW-FIX.md |
+| IN-04 | info | fixed | 02-REVIEW-FIX.md |
 | IN-05 | info | open | - (not in the current review) |
 | WR-03 | warning | fixed | 02-REVIEW-FIX.md (not in the current review) |
 | IN-06 | info | open | - (not in the current review) |
