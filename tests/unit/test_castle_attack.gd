@@ -34,6 +34,8 @@ const DISARMING: Array = [
 	["castle_attack_interval", INF],
 	["castle_attack_interval", NAN],
 	["castle_attack_interval", 0.001],
+	["castle_attack_interval", 1e30],
+	["castle_attack_interval", 3600.5],
 ]
 
 var _map: MapConfig

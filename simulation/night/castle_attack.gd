@@ -14,10 +14,11 @@ extends RefCounted
 ##
 ## It is stepped by NightSim.step only, between the towers and the enemies (DR-8), so it never acts
 ## by day, at dawn or after the run ends. It is armed only with damage above 0, a finite reach above
-## 0 and a finite interval of at least one simulation step; MapConfig.validate() reports every
-## other value, so neither bad nor unvalidated data can make the castle fire every tick (T-02-33,
-## review WR-02). With the fields at their default 0 it does nothing, which keeps every fixture and
-## the smoke golden unchanged. The castle's attacker id in PendingHits is always 0.
+## 0 and a finite interval from one simulation step to MapConfig.MAX_CASTLE_ATTACK_INTERVAL_S;
+## MapConfig.validate() reports every other value, so neither bad nor unvalidated data can make
+## the castle fire every tick (T-02-33, review WR-02 and WR-01).
+## With the fields at their default 0 it does nothing, which keeps every fixture and the smoke
+## golden unchanged. The castle's attacker id in PendingHits is always 0.
 
 var _map: MapConfig
 var _castle: CastleState
@@ -33,15 +34,16 @@ func _init(map: MapConfig, castle: CastleState, events: SimEvents) -> void:
 
 
 ## True when the map gives the castle a real attack: damage above 0, a finite range above 0 and a
-## finite interval of at least one simulation step (an infinite or sub-step interval would fire
-## every tick, because SimClock.ticks floors at one tick).
+## interval of at least one simulation step and at most MapConfig.MAX_CASTLE_ATTACK_INTERVAL_S (a
+## sub-step interval would fire every tick, because SimClock.ticks floors at one tick; an infinite
+## or NaN one fails the bounds).
 func is_armed() -> bool:
 	return (
 		_map.castle_attack_damage > 0
 		and is_finite(_map.castle_attack_range)
 		and _map.castle_attack_range > 0.0
-		and is_finite(_map.castle_attack_interval)
 		and _map.castle_attack_interval >= SimClock.STEP
+		and _map.castle_attack_interval <= MapConfig.MAX_CASTLE_ATTACK_INTERVAL_S
 	)
 
 

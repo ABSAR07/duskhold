@@ -40,6 +40,18 @@ func test_a_projectile_flight_takes_distance_over_speed_in_whole_ticks() -> void
 	assert_eq(SimClock.flight_ticks(15.0, 14.0), 33, "a partial tick rounds up")
 
 
+func test_a_huge_duration_saturates_instead_of_wrapping_to_one_tick() -> void:
+	assert_eq(SimClock.ticks(1e30), SimClock.MAX_TICKS, "1e30 s is the longest timer")
+	assert_eq(SimClock.ticks(1e300), SimClock.MAX_TICKS, "1e300 s is the longest timer")
+	assert_eq(SimClock.ticks(INF), SimClock.MAX_TICKS, "an infinite duration saturates")
+	assert_eq(SimClock.ticks(NAN), 0, "NaN is no duration at all")
+	assert_eq(SimClock.ticks(3600.0), 108000, "an hour is still exact")
+	assert_eq(SimClock.flight_ticks(1e30, 27.0), SimClock.MAX_TICKS, "a huge distance saturates")
+	assert_eq(SimClock.flight_ticks(10.0, 1e-300), SimClock.MAX_TICKS, "a crawl saturates")
+	assert_eq(SimClock.flight_ticks(10.0, NAN), 0, "a NaN speed is no speed")
+	assert_eq(SimClock.flight_ticks(NAN, 27.0), 0, "a NaN distance is no flight")
+
+
 func test_a_melee_or_unarmed_flight_is_zero_ticks() -> void:
 	assert_eq(SimClock.flight_ticks(5.0, 0.0), 0, "speed 0 means the hit lands at once")
 	assert_eq(SimClock.flight_ticks(5.0, -3.0), 0, "a negative speed is the same as none")

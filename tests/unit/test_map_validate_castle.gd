@@ -163,6 +163,16 @@ func test_an_attacking_castle_with_an_interval_below_one_step_is_reported() -> v
 			assert_string_contains(errors[0], "step", "%s s is below one step" % interval)
 
 
+func test_a_castle_interval_above_the_longest_allowed_is_reported() -> void:
+	for interval: float in [1e30, 1e300, MapConfig.MAX_CASTLE_ATTACK_INTERVAL_S + 1.0]:
+		var map: MapConfig = _map()
+		map.castle_attack_interval = interval
+		_assert_one_error(map, "castle_attack_interval", "an interval of %s s" % interval)
+	var longest: MapConfig = _map()
+	longest.castle_attack_interval = MapConfig.MAX_CASTLE_ATTACK_INTERVAL_S
+	assert_eq(longest.validate(), PackedStringArray(), "the longest allowed interval is clean")
+
+
 func test_an_interval_of_one_step_or_no_damage_is_accepted() -> void:
 	var one_step: MapConfig = _map()
 	one_step.castle_attack_interval = SimClock.STEP

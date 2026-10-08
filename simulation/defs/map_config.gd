@@ -6,6 +6,11 @@ extends Resource
 ## file (threat T-02-04), not a tuning value: a night above it is a validate() error.
 const MAX_ENEMIES_PER_NIGHT: int = 300
 
+## The longest castle_attack_interval in seconds (one hour). Like MAX_ENEMIES_PER_NIGHT a guard
+## against a bad data file, not a tuning value: a longer interval, such as a typo with an extra
+## exponent digit, is a validate() error and never arms the castle (review WR-01).
+const MAX_CASTLE_ATTACK_INTERVAL_S: float = 3600.0
+
 ## The reserved dawn_payout per_spot key the base income is listed under. No spot may use this id
 ## (validate() reports it), so a House entry can never be merged with the base income.
 const CASTLE_PAYOUT_KEY: StringName = &"castle"
@@ -167,8 +172,9 @@ func _validate_night_data() -> PackedStringArray:
 ## finite, and a castle that attacks (damage above 0) needs a range and an interval above 0, else
 ## it would never or always shoot. An infinite interval, or one below a simulation step, would make
 ## the castle fire every tick because SimClock.ticks floors at one tick, and a NaN would silently
-## disarm it, so all of them are reported. A value that is not finite or is negative is reported
-## once, as that, not again as missing.
+## disarm it, so all of them are reported. An interval above MAX_CASTLE_ATTACK_INTERVAL_S is
+## reported too (review WR-01). A value that is not finite or is negative is reported once, as
+## that, not again as missing.
 func _validate_castle_attack() -> PackedStringArray:
 	var errors: PackedStringArray = PackedStringArray()
 	if castle_attack_damage < 0:
@@ -190,6 +196,13 @@ func _validate_castle_attack() -> PackedStringArray:
 	):
 		errors.append(
 			"castle_attack_interval is below one simulation step (%s)" % castle_attack_interval
+		)
+	if is_finite(castle_attack_interval) and castle_attack_interval > MAX_CASTLE_ATTACK_INTERVAL_S:
+		errors.append(
+			(
+				"castle_attack_interval (%s) is above the longest allowed (%s s)"
+				% [castle_attack_interval, MAX_CASTLE_ATTACK_INTERVAL_S]
+			)
 		)
 	return errors
 
