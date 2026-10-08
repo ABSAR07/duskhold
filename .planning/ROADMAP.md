@@ -178,15 +178,15 @@ Plans:
 
 ### Phase 3: King Combat & Troops
 
-**Goal**: The king leads an army. The player builds a Barracks and an Archery Range whose squads fight on their own, commands them with hotkeys, and fires the weapon's active ability. All of it is fully playable on keyboard or gamepad with a complete in-run HUD.
+**Goal**: The king leads an army. The player builds a Barracks and an Archery Range whose squads fight on their own, commands them RTS-style with hotkeys, mouse selection and control groups, and fires the weapon's active ability. All of it is fully playable on keyboard and mouse or on gamepad with a complete in-run HUD.
 **Mode:** mvp
 **Depends on**: Phase 2
-**Requirements**: KING-04, KING-05, UNIT-04, UNIT-05, UNIT-06, UNIT-07, INPT-01, INPT-02, UI-01
+**Requirements**: KING-04, KING-05, UNIT-04, UNIT-05, UNIT-06, UNIT-07, UNIT-09, UNIT-10, INPT-01, INPT-02, UI-01
 **Success Criteria** (what must be TRUE):
   1. The player can build a Barracks (default melee squad) and an Archery Range (default ranged squad). Their units stay near their post and fight nearby enemies on their own, committing to targets instead of constantly switching. Units killed at night trickle back from their building, and every unit is fully restored at dawn.
-  2. The player can press a hotkey to make units hold their current position, or to follow the king (all units or only one unit type).
+  2. The player can select whole squads (click, drag box, Ctrl to add; cycling on gamepad), store and recall them as numbered control groups, and order the selection to hold its position, follow the king (all squads or one unit type), rally to the king, move, attack-move or patrol a path, with Shift queuing orders. Stances persist across dawn. (Amended 2026-10-09, owner decision; see 03-CONTEXT.md D-09 to D-16.)
   3. The player can trigger the king's weapon active ability and see its cooldown on the HUD. The king's health regenerates after a short time without taking damage.
-  4. Every in-run action (move, sprint, hold-to-build/upgrade, active ability, unit commands, start night) works on keyboard and on gamepad. The player can switch devices at any moment, and on-screen prompts update to match the active device.
+  4. Every in-run action (move, sprint, hold-to-build/upgrade, active ability, unit selection and commands, start night) works on keyboard and mouse and on gamepad. The player can switch devices at any moment, and on-screen prompts update to match the active device.
   5. The HUD shows gold, current night out of total, king health, ability cooldown, and unit group status without cluttering the play area.
 
 **Plans**: TBD

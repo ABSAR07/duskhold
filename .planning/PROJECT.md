@@ -55,7 +55,7 @@ Full, testable list with REQ-IDs: `.planning/REQUIREMENTS.md`. Summary:
 **Presentation & platform**
 - [ ] Minimal HUD; menus (main, map select, loadout, pause, settings, results)
 - [ ] Settings: key/button rebinding, display, audio volume, graphics quality
-- [ ] Keyboard and gamepad play; mouse for menus only
+- [ ] Keyboard and mouse, or gamepad, for every in-run action; the mouse selects and commands squads (decision reversed 2026-10-09)
 - [ ] Stylized low-poly 3D using normalized CC0 asset packs; readable at night
 - [ ] SFX for core feedback
 - [ ] Versioned save of campaign progress
@@ -65,7 +65,7 @@ Full, testable list with REQ-IDs: `.planning/REQUIREMENTS.md`. Summary:
 
 - Thronefall's name, art, maps, UI, or other assets — IP; original codename + CC0 assets only
 - Click-to-build / remote building — dropped in favor of Thronefall's ride-up-and-hold building (keeps travel time as a cost and the camera on the king)
-- Mouse unit commands and mouse-aimed king attacks — mouse is for menus only; faithful to Thronefall's controls
+- Mouse-aimed king attacks and mouse building — attacks stay automatic and building stays ride-up-and-hold; mouse unit commands returned on 2026-10-09 (see Context)
 - Music — SFX only in v1; music deferred to a later milestone
 - Multiplayer / co-op — Thronefall is single-player; large added complexity
 - Mac / Linux / Switch / mobile / web builds — Windows itch.io build only for v1
@@ -92,6 +92,8 @@ Full, testable list with REQ-IDs: `.planning/REQUIREMENTS.md`. Summary:
 
 **Controls change (2026-09-28):** The project was first scoped with keyboard + mouse controls (mouse click on build spots to build/upgrade, mouse unit commands). During requirements scoping, research flagged click-to-build as the #1 design risk, and the owner switched to Thronefall's original scheme: WASD / left stick moves the king, riding to a build spot and holding the action key builds or upgrades, hotkeys command units (hold position; follow the king — all or one unit type), gameplay works on keyboard and gamepad, and **the mouse is used only in menus**. Research documents written before the change carry an inline "Controls decision update" note.
 
+**Controls change (2026-10-09):** While discussing Phase 3 the owner brought the mouse back for unit commands: "mouse use is kind of a necessity now i realize in hindsight." Squads are selected by click, drag box and Ctrl, stored as numbered control groups, and ordered to move, rally, attack-move or patrol with mouse-supplied ground points, Age of Empires style; the gamepad reaches the same commands by cycling squads and a right-stick cursor. Building stays ride-up-and-hold, the king's attacks stay automatic, and the follow camera stays locked on the king. Recorded in `.planning/phases/03-king-combat-troops/03-CONTEXT.md` (D-09 to D-16, D-25) and REQUIREMENTS.md (UNIT-09, UNIT-10, INPT-01, INPT-03).
+
 **Development context:**
 - Portfolio/learning project; Claude writes most of the code, so the project favors text-editable scenes/data and headless/CLI test runs
 - Engine chosen by research: Godot 4.7.2-stable + GDScript (see `.planning/research/STACK.md`)
@@ -103,7 +105,7 @@ Full, testable list with REQ-IDs: `.planning/REQUIREMENTS.md`. Summary:
 - **Tech stack**: Godot 4.7.2-stable, GDScript (standard build), GUT 9.7.1 tests, gdtoolkit lint/format — text-based scenes/resources and headless CLI for AI-driven development
 - **Assets**: CC0 (or equally permissive) only — clean licensing for a public portfolio; attribution log maintained
 - **IP**: No Thronefall trademarks, names, or assets; the mechanics are recreated, the content is original
-- **Platform**: Windows PC; keyboard and gamepad gameplay (Thronefall-style: ride up and hold the action key to build, hotkeys for units); mouse for menus only — the earlier click-to-build and mouse unit-command plan was dropped
+- **Platform**: Windows PC; keyboard and mouse, or gamepad, for all gameplay (Thronefall-style: ride up and hold the action key to build; RTS-style squad selection, control groups and orders with the mouse or a pad cursor); click-to-build stays dropped, mouse unit commands returned 2026-10-09
 - **Budget**: Zero-cost tools and assets (no code-signing certificate)
 - **Performance**: Modest hardware (roughly GTX 970 / 4 GB RAM); 60 fps with hundreds of units and projectiles on screen
 
@@ -116,7 +118,8 @@ Full, testable list with REQ-IDs: `.planning/REQUIREMENTS.md`. Summary:
 | v1 = 5-map campaign with large meta content (5 weapons, 30+ perks, 10+ mutators) and full-depth upgrade trees | Owner wants full system depth and breadth in v1 | — Pending |
 | All optional buildings in v1, including Blacksmith/Royal Forge | Owner choice; research flags research buildings as the safest cut if scope pressure hits | — Pending |
 | Boss nights on maps 3, 4 and 5 | Owner choice; research warns about boss difficulty cliffs — tune carefully | — Pending |
-| Thronefall-style controls: ride up + hold action key to build; hotkeys for units; keyboard + gamepad; mouse for menus only | Research flagged click-to-build as the #1 design risk (removes travel cost and king-centric camera); owner chose to stay true to Thronefall | ✓ Good — build hold validated in Phase 1 UAT |
+| Thronefall-style controls: ride up + hold action key to build; hotkeys for units; keyboard + gamepad; mouse for menus only | Research flagged click-to-build as the #1 design risk (removes travel cost and king-centric camera); owner chose to stay true to Thronefall | ✓ Good — build hold validated in Phase 1 UAT; the mouse-for-menus-only half was reversed for unit commands on 2026-10-09 (next row) |
+| Mouse returns for squad commands (selection, control groups, move / rally / attack-move / patrol points), Age of Empires style; gamepad parity by squad cycling and a right-stick cursor; building and king attacks unchanged | Owner decision at the Phase 3 discussion ("mouse use is kind of a necessity now i realize in hindsight"); hotkeys alone could not express custom control groups and point orders | — Pending (Phase 3) |
 | Player level (XP from map runs) instead of separate per-map levels | Matches Thronefall's actual progression model | — Pending |
 | Low-poly 3D, CC0 asset packs | Matches Thronefall's look; zero cost; fast cohesive visuals | — Pending |
 | SFX only in v1 | Core feedback matters most; music can be added later | — Pending |

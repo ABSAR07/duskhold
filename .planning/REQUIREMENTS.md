@@ -59,10 +59,12 @@ Requirements for the initial release (5-map campaign). Each maps to exactly one 
 - [ ] **UNIT-02**: When building an Archery Range, player picks one of four ranged unit types, produced the same way
 - [ ] **UNIT-03**: When building a Hero's Quarter, player picks one of four heroes; the single hero grows stronger with each tier and revives after a long timer when killed
 - [ ] **UNIT-04**: Units fight autonomously near their post, committing to targets rather than constantly switching
-- [ ] **UNIT-05**: Player can order units to hold their current position with a hotkey
-- [ ] **UNIT-06**: Player can order units to follow the king with a hotkey, for all units or for a selected unit type
+- [ ] **UNIT-05**: Player can order the selected squads to hold their current position with a hotkey; a held squad fights what comes near that spot and returns to it
+- [ ] **UNIT-06**: Player can order squads to follow the king with a hotkey, for all squads, for one unit type, or for the current selection
 - [ ] **UNIT-07**: Units killed during the night slowly respawn at their building, and all units are fully restored at dawn
 - [ ] **UNIT-08**: Unit types have distinct roles and counters (e.g. anti-air, anti-siege, anti-armor, healing)
+- [ ] **UNIT-09**: Player selects whole squads (click, drag box and Ctrl to add on keyboard and mouse; cycling on gamepad), stores the selection as a numbered control group (Ctrl + 0–9) and recalls it (0–9); selected squads show a ground ring and a highlighted HUD slot
+- [ ] **UNIT-10**: Player can order the selected squads to move to a point, rally to the king, attack-move to a point or patrol a path, with Shift queuing commands; points come from the mouse or a right-stick cursor, and stances persist across dawn
 
 ### Enemies & Waves
 
@@ -97,10 +99,12 @@ Requirements for the initial release (5-map campaign). Each maps to exactly one 
 ### Input
 
 > **Controls scheme (changed 2026-09-28):** Gameplay uses Thronefall's original controls on keyboard and gamepad — ride the king to a build spot and hold the action key to build/upgrade (BLDG-03/04), hotkeys for unit commands (UNIT-05/06). **The mouse is used for menus only (INPT-03).** The earlier keyboard + mouse plan (click-to-build, mouse unit commands) was dropped — see Out of Scope.
+>
+> **Amended 2026-10-09 (owner decision, Phase 3 discuss-phase, 03-CONTEXT.md D-11):** the mouse returns to runs for **unit commands only**: it selects squads (click, drag box, Ctrl to add), stores and recalls control groups (Ctrl + 0–9, 0–9) and supplies the ground point of move, attack-move and patrol (UNIT-09/10). Building stays ride-up-and-hold and the king's attacks stay automatic. The gamepad reaches the same commands by cycling squads and a right-stick ground cursor (INPT-02).
 
-- [ ] **INPT-01**: Player can play the game entirely on keyboard: move, sprint, action (hold to build or upgrade), active ability, unit commands, and start night
+- [ ] **INPT-01**: Player can play the game entirely on keyboard and mouse: move, sprint, action (hold to build or upgrade), active ability, unit selection and commands, and start night
 - [ ] **INPT-02**: Player can play the game entirely on a gamepad with equivalent bindings, switching between keyboard and gamepad at any time with on-screen prompts matching the active device
-- [ ] **INPT-03**: Player can navigate every menu with mouse, keyboard, or gamepad (menus are the only place the mouse is used)
+- [ ] **INPT-03**: Player can navigate every menu with mouse, keyboard, or gamepad (amended 2026-10-09: the mouse is also used in runs for squad selection and commands, UNIT-09/10, never for building or aiming)
 
 ### Interface & Presentation
 
@@ -156,7 +160,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | Feature | Reason |
 |---------|--------|
 | Click-to-build / remote building | Dropped for Thronefall's ride-up-and-hold building, which keeps travel time as a cost and the camera on the king |
-| Mouse unit commands, mouse-aimed king attacks | Mouse is for menus only; faithful to Thronefall's controls |
+| Mouse-aimed king attacks, mouse building | The king's attacks are automatic and building stays ride-up-and-hold; mouse unit commands were brought back on 2026-10-09 (UNIT-09/10) as the owner judged them a necessity |
 | Free building placement | Fixed build spots are Thronefall's core, dev-validated design lever |
 | Multiple currencies | Single-gold minimalism keeps the economy legible |
 | Per-kill gold bounties | Income comes from buildings surviving the night; bounties would change the game's identity |
@@ -215,6 +219,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UNIT-06 | Phase 3 | Pending |
 | UNIT-07 | Phase 3 | Pending |
 | UNIT-08 | Phase 7 | Pending |
+| UNIT-09 | Phase 3 | Pending |
+| UNIT-10 | Phase 3 | Pending |
 | ENMY-01 | Phase 6 | Pending |
 | ENMY-02 | Phase 6 | Pending |
 | ENMY-03 | Phase 6 | Pending |
