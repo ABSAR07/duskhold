@@ -4,7 +4,21 @@ extends GutTest
 ## and a real night has no clock) or that are plainly meaningless. Each case edits a deep copy of
 ## the shipped map and calls validate() directly, never through RunContext, whose push_error would
 ## fail the test. The shipped map reports nothing, and each bad item adds exactly one error that
-## names it.
+## names it. A number that is NaN or infinite (castle radius, enemy floats) slips past every
+## `<= 0` comparison, so it is reported once as not finite (review IN-03).
+
+## The enemy float fields that must be finite, and the values that are not.
+const ENEMY_FLOAT_FIELDS: Array[String] = [
+	"move_speed",
+	"radius",
+	"attack_range",
+	"attack_interval",
+	"aggro_range",
+	"leash_range",
+	"retarget_interval_seconds",
+	"projectile_speed",
+]
+const NOT_FINITE_VALUES: Array[float] = [INF, -INF, NAN]
 
 
 func _map() -> MapConfig:
@@ -75,6 +89,28 @@ func test_a_castle_with_no_radius_is_reported() -> void:
 	var map: MapConfig = _map()
 	map.castle_radius = 0.0
 	_assert_one_error(map, "castle_radius", "a zero castle radius")
+
+
+func test_a_castle_radius_that_is_not_finite_is_reported_once() -> void:
+	for value: float in NOT_FINITE_VALUES:
+		var map: MapConfig = _map()
+		map.castle_radius = value
+		_assert_one_error(map, "castle_radius", "a castle radius of %s" % value)
+		var errors: PackedStringArray = map.validate()
+		if errors.size() == 1:
+			assert_string_contains(errors[0], "finite", "%s is not finite" % value)
+
+
+func test_an_enemy_number_that_is_not_finite_is_reported_once() -> void:
+	for field: String in ENEMY_FLOAT_FIELDS:
+		for value: float in NOT_FINITE_VALUES:
+			var map: MapConfig = _map()
+			map.enemies[0].set(field, value)
+			var label: String = "enemy %s at %s" % [field, value]
+			_assert_one_error(map, field, label)
+			var errors: PackedStringArray = map.validate()
+			if errors.size() == 1:
+				assert_string_contains(errors[0], "finite", "%s is not finite" % label)
 
 
 func test_a_tower_tier_that_never_fires_again_is_reported() -> void:

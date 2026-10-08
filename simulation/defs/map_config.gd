@@ -139,7 +139,9 @@ func _validate_night_data() -> PackedStringArray:
 	var errors: PackedStringArray = PackedStringArray()
 	if castle_max_health <= 0:
 		errors.append("castle_max_health is %d" % castle_max_health)
-	if castle_radius <= 0.0:
+	if not is_finite(castle_radius):
+		errors.append("castle_radius is not finite (%s)" % castle_radius)
+	elif castle_radius <= 0.0:
 		errors.append("castle_radius is %s" % castle_radius)
 	errors.append_array(_validate_castle_attack())
 	var enemy_ids: Dictionary = {}
@@ -221,11 +223,31 @@ func _castle_number_errors(field: String, value: float) -> PackedStringArray:
 ## gets one when the target's edge is within aggro_range, yet it stops walking at attack_range from
 ## that edge: with aggro_range at or below attack_range it would stand there forever, and a real
 ## night has no clock to end it (WR-01). The comparison is strict because at equality float
-## rounding in the stop position can leave the edge a hair beyond aggro_range.
+## rounding in the stop position can leave the edge a hair beyond aggro_range. A float that is NaN
+## or infinite passes every one of those comparisons, so it is reported once, as that, and the
+## range comparisons are skipped (review IN-03).
 func _validate_enemy(enemy: EnemyDef) -> PackedStringArray:
 	var errors: PackedStringArray = PackedStringArray()
 	if enemy.max_health <= 0:
 		errors.append("enemy '%s' max_health is %d" % [enemy.id, enemy.max_health])
+	var enemy_floats: Dictionary = {
+		"move_speed": enemy.move_speed,
+		"radius": enemy.radius,
+		"attack_range": enemy.attack_range,
+		"attack_interval": enemy.attack_interval,
+		"aggro_range": enemy.aggro_range,
+		"leash_range": enemy.leash_range,
+		"retarget_interval_seconds": enemy.retarget_interval_seconds,
+		"projectile_speed": enemy.projectile_speed,
+	}
+	var all_finite: bool = true
+	for field: String in enemy_floats:
+		var value: float = enemy_floats[field]
+		if not is_finite(value):
+			all_finite = false
+			errors.append("enemy '%s' %s is not finite (%s)" % [enemy.id, field, value])
+	if not all_finite:
+		return errors
 	if enemy.move_speed <= 0.0:
 		errors.append("enemy '%s' move_speed is %s" % [enemy.id, enemy.move_speed])
 	if enemy.attack_interval <= 0.0:
