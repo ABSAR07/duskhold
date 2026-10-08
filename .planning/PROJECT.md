@@ -18,21 +18,19 @@ The day/night build-then-defend loop must feel as tight and satisfying as Throne
 - ✓ Gold as the single currency, with House income paid at dawn and unspent gold carried over — Phase 1 (other economic buildings follow later)
 - ✓ Deliberately triggered night and dawn payout loop, with an enemy-free placeholder night — Phase 1 (wave defense follows in Phase 2)
 - ✓ Agent-verification tooling: headless GUT suite, lint, CI with Windows export and screenshots, debug overlay, CC0 asset log — Phase 1
+- ✓ Full day → night → dawn loop: telegraphed per-spawn-point enemy counts, hold-to-confirm night start, escalating waves, dawn rebuild of destroyed buildings (marked as paying nothing that morning) and House income, loss the instant the castle falls, win after the final night on a results screen — Phase 2
+- ✓ King passive auto-attack, knockout and respawn at the castle after a visible countdown; castle attack and base dawn income added at the owner's playtest gate — Phase 2 (active ability follows in Phase 3)
+- ✓ Seeded deterministic simulation with an event recorder, golden replays, bot playtests and a CI replay step; the owner signed off the core loop after four playtest rounds (2026-10-08) — Phase 2
 
 ### Active
 
 Full, testable list with REQ-IDs: `.planning/REQUIREMENTS.md`. Summary:
 
 **Core loop**
-- [ ] Day/night cycle: build phase → deliberately triggered night → wave defense → dawn payout
-- [ ] Castle center is the loss condition; surviving the final night of a map is the win condition
-- [ ] Destroyed buildings are restored free at dawn (no income that morning)
-- [ ] Next night's enemy counts per spawn point are telegraphed during the day
 - [ ] Retry a failed night at a score penalty
 
 **King (player avatar)**
-- [ ] Mounted king moves with WASD / left stick and fights directly (weapon passive auto-attack + active ability)
-- [ ] King can be knocked out and respawns after a delay (does not end the run)
+- [ ] King fires the weapon's active ability (movement and the passive auto-attack shipped in Phases 1 and 2)
 
 **Economy & building**
 - [ ] Single currency (gold); economic buildings (House, Gold Mine, Mill + Fields, Fishing Harbor, Shrine) pay at dawn with distinct income curves
@@ -125,6 +123,8 @@ Full, testable list with REQ-IDs: `.planning/REQUIREMENTS.md`. Summary:
 | Godot 4.7.2-stable + GDScript | Text-based scenes/resources + headless CLI best suit AI-agent-driven development; MIT license; verified latest stable (2026-08-18) | ✓ Good — Phase 1 shipped on it (363 headless tests, CI export) |
 | Codename "Duskhold" | Placeholder; must not reuse Thronefall branding | — Pending |
 | Build hold pacing: first coin after 0.25 s, accelerating (decay 0.9) to one coin every 0.05 s, no time cap, all-or-nothing refund | Owner feel checks in Phase 1 UAT (tests 58 to 60); expensive buildings must not drag, and nothing is fast-forwarded | ✓ Good — Phase 1 |
+| Playtest-gate tuning after four owner rounds: base income 1 gold per dawn, castle attack (2 damage every 1.5 s, 22 m reach, 27 m/s arrows), walk 7.5 m/s with a 12 m/s sprint, night-only 2x fast-forward toggle, full-wall night counts (balanced bot wins 7 or 8 of 10 seeds) | Owner feel decisions recorded through /gsd-verify-work rounds 1 to 4; the balance bots measure, only the owner judges fun | ✓ Good — owner signed off the core loop 2026-10-08 |
+| Deterministic fixed-step simulation (SimClock 1/30 s, seeded RNG, integer event recorder, golden replays) under simulation/, with a presentation layer that never writes the sim | Seeded replays and bot playtests are the agent's own playtest (DEV-05); nothing under simulation/ may read time, OS or the time scale | ✓ Good — the smoke golden held across 22 plans and Linux matched the Windows digest |
 
 ## Evolution
 
@@ -144,4 +144,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-03 after Phase 1*
+*Last updated: 2026-10-08 after Phase 2*

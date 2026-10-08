@@ -25,7 +25,7 @@ Sequencing rules this roadmap honors:
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation & Day Loop** - Godot project with headless test/lint/CI/screenshot/debug tooling, plus a playable day of riding, building, upgrading, and earning gold on the prototype map (completed 2026-10-03)
-- [ ] **Phase 2: Night Defense & Playtest Gate** - Telegraphed nights, combat, king knockout, dawn rebuild and income, win/loss, and seeded replays; ends in a human playtest gate
+- [x] **Phase 2: Night Defense & Playtest Gate** - Telegraphed nights, combat, king knockout, dawn rebuild and income, win/loss, and seeded replays; ends in a human playtest gate (completed 2026-10-08)
 - [ ] **Phase 3: King Combat & Troops** - Barracks and Archery Range squads with hold/follow hotkeys, king active ability, full HUD, keyboard + gamepad
 - [ ] **Phase 4: Crowd-Scale Battles & Walls** - Walls and barricades, jam-free pathing, and hundreds of units/enemies/projectiles at 60 fps
 - [ ] **Phase 5: Castle Center & Economy Depth** - Branching choice-card upgrades, castle tiers with run-wide abilities, stat-modifier order, four new income curves
@@ -108,7 +108,7 @@ Plans:
   3. From the command line and in CI, a seeded scripted night replays with identical results, and headless GUT tests cover waves, combat, and loop transitions (day → night → dawn, loss, win). During nights, the debug overlay shows live enemy counts, wave state, and enemy paths.
   4. Human playtest gate: the owner plays the prototype map through several full runs and either signs off that gold trade-offs feel meaningful and nights feel tense and readable, or records the tuning/feel fixes that must land before later phases begin. No meta-progression work is scheduled until this sign-off.
 
-**Plans**: 22/22 plans executed (02-12 to 02-16 closed the 2026-10-06 UAT gaps G-02-1 and G-02-2; 02-17 to 02-20 closed the 2026-10-07 round-2 UAT gaps G-02-13 to G-02-15 and reopened the gate for G-02-12; 02-21 and 02-22 close the 2026-10-07 round-3 UAT gap G-02-18 and reopen the gate for the round-4 replay)
+**Plans**: 22/22 plans complete (02-12 to 02-16 closed the 2026-10-06 UAT gaps G-02-1 and G-02-2; 02-17 to 02-20 closed the 2026-10-07 round-2 UAT gaps G-02-13 to G-02-15 and reopened the gate for G-02-12; 02-21 and 02-22 close the 2026-10-07 round-3 UAT gap G-02-18 and reopen the gate for the round-4 replay)
 **UI hint**: yes
 
 Plans:
@@ -355,7 +355,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Day Loop | 18/18 | Complete    | 2026-10-03 |
-| 2. Night Defense & Playtest Gate | 22/22 | In Progress|  |
+| 2. Night Defense & Playtest Gate | 22/22 | Complete    | 2026-10-08 |
 | 3. King Combat & Troops | 0/TBD | Not started | - |
 | 4. Crowd-Scale Battles & Walls | 0/TBD | Not started | - |
 | 5. Castle Center & Economy Depth | 0/TBD | Not started | - |
