@@ -1,30 +1,28 @@
 ---
-status: testing
+status: complete
 phase: 02-night-defense-playtest-gate
 source: [02-VERIFICATION.md]
 started: 2026-10-05T15:26:33Z
-updated: 2026-10-07T11:45:57Z
+updated: 2026-10-08T03:52:30Z
 ---
 
 ## Current Test
 
-number: 23
-name: Owner round-4 playtest gate (ROADMAP SC4, D-18, G-02-12 and G-02-18): replay one or two full runs on the fresh build/windows/Duskhold.exe (exported 2026-10-07T11:10Z from the final source tree) or the editor binary, then either sign off or name the fixes that must land first
-expected: |
-  A recorded decision through /gsd-verify-work. Sign-off means the loop is fun: gold trade-offs by day feel meaningful and nights feel tense and readable, with the round-3 numbers (castle 22 m and 27 m/s, the fast-forward toggle, the full-wall nights) and the new 7.5 m/s walk all accepted. Otherwise a list of fixes and any of assumptions 12 to 15 to change
-awaiting: user response
+[testing complete]
 
 ## Tests
 
 ### 1. Owner playtest gate (ROADMAP SC4, D-18): play one or two full 8-night runs on the exported build and either sign off or record the fixes that must land before Phase 3
 expected: A recorded decision through /gsd-verify-work: sign-off that gold trade-offs feel meaningful and nights feel tense and readable, or a list of tuning/feel fixes, plus any of the 13 assumptions to change
-result: issue
+result: pass
+superseded_note: "superseded: G-02-1 (base gold, castle attack, speed-up, difficulty) resolved by 02-12 to 02-16 and re-checked in rounds 2 to 4 (tests 13 to 15 then 19 to 21 and 23 to 26 pass); owner approved the supersede 2026-10-08"
 reported: "(1) there needs to be some base gold gain at each wave. I made a tower the first wave and then had 0 gold for all waves after that. (2) castle should also have a simple attack, not too strong though. Maybe takes three shots to kill a grunt and two to kill the ranged units. (3) the speed up should be at least 1.5x faster too (4) i cant currently win lol make it just a bit easier"
 severity: major
 
 ### 2. Results screen layout and the accidental-restart tap (WR-03, and the second review's WR-01, both now fixed in the code)
 expected: Stat rows have a clear gap above the buttons; Quit is distinguishable from the panel. Tapping or mashing Space or gamepad A as Victory/Defeat appears does not restart the run or quit: for the first 0.6 s of the screen both buttons ignore every press, and Play again works after that. A press that BEGINS inside the 0.6 s window and is released after it also does nothing (the code stamps when a press began, on button_down, and counts it only if it began after the window), and so does a key that was already held when the screen appeared. A fresh press that begins after the window works. Judge the feel: that 0.6 s neither lets a mash through nor feels sluggish before Play again responds, and that a held or straddling press does nothing
-result: issue
+result: pass
+superseded_note: "superseded: G-02-2 (results spacing) resolved by 02-14 and re-checked as test 16 pass (round 2); owner approved the supersede 2026-10-08"
 reported: "stat rows have a gap between each other and between them and the buttons but the gap between the stat rows and the buttons is smaller than the gap within the stat rows. I think it should be equal. The rest is all good and passes (accidental-restart tap and press feel pass)."
 severity: cosmetic
 
@@ -66,25 +64,29 @@ result: pass
 
 ### 12. Owner round-2 playtest gate (ROADMAP SC4, D-18): replay one or two runs on the fresh build/windows/Duskhold.exe (exported in 02-16) and either sign off or name further fixes, covering the four G-02-1 points and the G-02-2 spacing
 expected: A recorded decision through /gsd-verify-work. Sign-off means: base gold fixes the tower-first trap without making gold meaningless, the castle attack is simple and not too strong, the 12 m/s sprint and the night fast-forward are fast enough, the game is a bit easier but still tense, and the results spacing looks even. Otherwise a list of fixes and any of assumptions 12 to 15 to change. Read the Round 2 section of 02-PLAYTEST-GATE.md first (what changed for each point, the controls table with the Fast-forward row, the round-2 balance table)
-result: issue
+result: pass
+superseded_note: "superseded: G-02-12 (round-2 gate, fixes first) resolved by 02-17 to 02-20 and re-checked as test 18 then test 23 pass (round 4); owner approved the supersede 2026-10-08"
 reported: "Fixes first (owner decision, round 2, 2026-10-07): castle range should be double and arrow speed 1.5x faster (test 13); speed up should be togglable instead of hold (test 14); difficulty a little harder, balanced bot should lose 2-3 of 10 (test 15). Everything else passes: base gold, spacing, sprint, 2x pace, label, night-only. Phase 2 does not close until these land and the owner replays (round 3)"
 severity: major
 
 ### 13. G-02-1 points 1 and 2 as seen on the real camera: the castle's base-income coin at dawn and the castle's arrows at night
 expected: At dawn one coin starts from the top of the castle keep (4.5 m above the castle centre) and flies to the gold counter, read as the castle paying 1 gold. At night, when an enemy comes within 11 m of the castle, a gold arrow leaves the top of the keep; three hits kill a grunt and two a skirmisher. Judge whether the castle attack reads as simple and not too strong. Note: the balanced bot never lets an enemy within 11 m, so castle arrows appear mostly when the defence is thin
-result: issue
+result: pass
+superseded_note: "superseded: G-02-13 (castle 22 m / 27 m/s) resolved by 02-17 and 02-20 and re-checked as test 19 pass (round 3); owner approved the supersede 2026-10-08"
 reported: "castle range should be double what it is now, and arrow speed should be 1.5x faster (owner, round 2, 2026-10-07; given on the gate test, belongs to the castle attack)"
 severity: minor
 
 ### 14. G-02-1 point 3: how the 12 m/s sprint, the 60 m/s^2 braking and the night 2x fast-forward feel in the owner's hands
 expected: The king still stops on a plot when the sprint key is released (full-sprint stop 1.2 m, inside the 2.5 m build radius) and is not uncontrollable at 12 m/s. Holding F or the gamepad left trigger at night runs the game at 2x and the 'Fast-forward 2x' label (top right) is legible. The game returns to real time at dawn, in the 1.2 s defeat beat and on the results screen. Say whether night-only is acceptable or you want it by day too or faster than 2x (assumption 14). Round-1 test 10 passed at 8 m/s; the sprint changed, so the handling judgement is partly reopened here
-result: issue
+result: pass
+superseded_note: "superseded: G-02-14 (fast-forward toggle) resolved by 02-18 and 02-20 and re-checked as test 20 pass (round 3); owner approved the supersede 2026-10-08"
 reported: "speed up should be togglable instead of hold to speed up. everything else is pass (owner, round 2, 2026-10-07: sprint, braking, 2x, label and night-only all pass; the fast-forward input should be a toggle, not a hold)"
 severity: minor
 
 ### 15. G-02-1 point 4: difficulty for a human after the three fixes
 expected: Decide whether the run is now 'a bit easier' rather than too easy, and whether night 3 and the castle still feel fair. The bots now win 10 of 10 (balanced and tower-first); the balanced bot loses no building and is never knocked out, which is easier than 'a bit easier', and none of your two levers (night-3 east grunts 5 to 4, castle health 70 to 80) was applied because the balanced bot never lost. If it feels too easy, the levers in 02-BALANCE-REPORT.md are the night counts and the castle's damage, never grunt health
-result: issue
+result: pass
+superseded_note: "superseded: G-02-15 (the full wall, balanced 8 of 10) resolved by 02-19 and 02-20 and re-checked as test 21 pass (round 3); owner approved the supersede 2026-10-08"
 reported: "difficulty should be tweaked to be little harder. I think balanced bot should lose 2-3 times out of 10 (owner, round 2, 2026-10-07: target for the balanced bot on seeds 1 to 10 is 7 or 8 wins, not 10; levers per 02-BALANCE-REPORT.md are the night counts and the castle's damage, never grunt health)"
 severity: minor
 
@@ -100,7 +102,8 @@ evidence: "owner, round 2, 2026-10-07: 12 confirmed as the measurement rule with
 
 ### 18. Owner round-3 playtest gate (ROADMAP SC4, D-18, G-02-12): replay one or two full runs on the fresh build/windows/Duskhold.exe (exported 2026-10-07 in plan 02-20) or the editor binary, then either sign off or name the fixes that must land first, covering the three round-2 fixes (castle 22 m and 27 m/s, the fast-forward toggle, the full-wall night counts)
 expected: A recorded decision through /gsd-verify-work. Sign-off means: the castle's reach and arrows feel right, the toggle works the way the owner wants, and the game is 'a little harder' in a way the owner accepts. Otherwise a list of fixes (for example the alternatives k7pS4m or k4pS6m named in 02-PLAYTEST-GATE.md) and any of assumptions 12 to 15 to change
-result: issue
+result: pass
+superseded_note: "superseded: G-02-18 (walk 7.5 m/s, sprint kept at 12 m/s) resolved by 02-21 and 02-22 and re-checked as tests 23 to 27 pass (round 4); owner approved the supersede 2026-10-08"
 reported: "Note: make the normal speed 1.5x current normal speed for the king. adjust the speedup to stay at the current magnitude"
 severity: major
 
@@ -123,30 +126,36 @@ result: pass
 
 ### 23. Owner round-4 playtest gate (ROADMAP SC4, D-18, G-02-12 and G-02-18): replay one or two full runs on the fresh build/windows/Duskhold.exe (exported 2026-10-07T11:10Z from the final source tree) or the editor binary, then either sign off or name the fixes that must land first
 expected: A recorded decision through /gsd-verify-work. Sign-off means the loop is fun: gold trade-offs by day feel meaningful and nights feel tense and readable, with the round-3 numbers (castle 22 m and 27 m/s, the fast-forward toggle, the full-wall nights) and the new 7.5 m/s walk all accepted. Otherwise a list of fixes and any of assumptions 12 to 15 to change
-result: [pending]
+result: pass
+note: "Owner: pass (2026-10-08): round-4 replay on the 2026-10-07T11:10Z export; the 7.5 m/s walk with the 12 m/s sprint, the castle 22 m / 27 m/s, the toggle and the full-wall nights accepted"
 
 ### 24. G-02-18 walk feel: ride the king at the new 7.5 m/s walk (WASD or left stick, no sprint) between the castle and the plots, and let go on a plot from a walk and from a full sprint
 expected: The walk reads as 1.5x faster than round 3 and as the owner meant it. The king stops where the owner means him to: 0.47 m after letting go at a walk (was 0.21 m) and 1.2 m after a full sprint (unchanged), both inside the 2.5 m build radius, so a hold starts without a nudge. The ride times (castle area to the inner Houses 1.2 s, to the towers 7.5 to 8.3 s, edge to edge about 15 s) feel right on a map that was not grown
-result: [pending]
+result: pass
+note: "Owner: pass (2026-10-08)"
+evidence: "Scripted real-window probe 2026-10-07: walk 7.500 m/s, stop 0.41 m after release; sprint 12.000 m/s, stop 1.10 m; both inside the 2.5 m build radius"
 
 ### 25. G-02-18 sprint versus walk: use Shift (or the right shoulder) on long rides and at night
 expected: The sprint is still the 12 m/s the owner asked to keep, and the owner accepts that it now adds only 4.5 m/s over the walk (it saves about 37.5% of a ride, was 58%). The owner confirms the reading of the round-3 note (adjust the speedup to stay at the current magnitude) as the sprint staying at 12 m/s, with the night fast-forward unchanged at 2x
-result: [pending]
+result: pass
+note: "Owner: pass (2026-10-08): the sprint stays 12 m/s, the night fast-forward stays 2x"
 
 ### 26. Tension with a more mobile king: play full nights on the new walk, riding without sprint where natural
 expected: Nights stay tense and fair. The walking king is now 2.3x a grunt (3.2 m/s) and 2.7x a skirmisher (2.8 m/s), was 1.6x and 1.8x, so human play can only get slightly easier (the top speed is unchanged). The owner says whether the game is still 'a little harder' in the way accepted in round 3 (balanced bot 8 of 10, seeds 3 and 9 lost on night 3) or whether the walk made it too easy
-result: [pending]
+result: pass
+note: "Owner: pass (2026-10-08): nights still tense and fair at the 7.5 m/s walk"
 
 ### 27. Assumption 12 of the round-4 packet, on the owner's behalf (13 to 15 stand from round 3)
 expected: The owner confirms or changes assumption 12: the bots build without riding to plots, sprint at 12 m/s at night on every tick and never walk, and the castle shoots for them too, so the faster walk cannot move a bot number; the measurement rule and the 7-or-8-of-10 target are unchanged
-result: [pending]
+result: pass
+note: "Owner: pass (2026-10-08): assumption 12 confirmed; 13 to 15 stand"
 
 ## Summary
 
 total: 27
-passed: 15
-issues: 7
-pending: 5
+passed: 27
+issues: 0
+pending: 0
 skipped: 0
 blocked: 0
 
@@ -307,7 +316,9 @@ blocked: 0
   debug_session: none (gate record; see the three gap sessions)
 - gap_id: G-02-18
   truth: "A recorded decision through /gsd-verify-work. Sign-off means: the castle's reach and arrows feel right, the toggle works the way the owner wants, and the game is 'a little harder' in a way the owner accepts. Otherwise a list of fixes (for example the alternatives k7pS4m or k4pS6m named in 02-PLAYTEST-GATE.md) and any of assumptions 12 to 15 to change"
-  status: failed
+  status: resolved
+  resolved_by: 02-21-PLAN.md, 02-22-PLAN.md
+  resolved_at: 2026-10-07
   reason: "User reported: Note: make the normal speed 1.5x current normal speed for the king. adjust the speedup to stay at the current magnitude"
   severity: major
   test: 18

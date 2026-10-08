@@ -1,7 +1,7 @@
 ---
 phase: 02-night-defense-playtest-gate
 verified: 2026-10-07T11:44:47Z
-status: human_needed
+status: passed
 score: 3/4 roadmap success criteria verified (SC4, the owner playtest gate, awaits the owner's round-4 replay); 11/11 requirement IDs have implementation evidence; 2/2 round-4 gap-closure plans (02-21, 02-22) verified in code and documents
 covered_files:
   - .planning/phases/02-night-defense-playtest-gate/02-01-PLAN.md
@@ -102,7 +102,8 @@ covered_files:
   - ui/hud/hud.tscn
   - ui/results/results_screen.gd
   - ui/results/results_screen.tscn
-covered_digest: "v2:sha256:bcf3e4dfb76ec6434ae9f311ce88d8705ee3b3165c6c212037c22004af5d9821"
+
+covered_digest: "v2:sha256:a22e86cbf193a52a539fbe6bf79b658447e035028c00604fae9039a8f82a882d"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
