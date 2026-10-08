@@ -92,6 +92,11 @@ func test_the_script_defaults_are_the_shipped_movement() -> void:
 		_def.acceleration,
 		"the script default and its doc comment describe the shipped acceleration"
 	)
+	assert_eq(
+		fresh.turn_speed,
+		_def.turn_speed,
+		"the script default and its doc comment describe the shipped turn speed"
+	)
 
 
 func test_move_speed_walks_at_walk_speed() -> void:
