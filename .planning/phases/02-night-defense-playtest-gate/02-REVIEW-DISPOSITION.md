@@ -5,11 +5,11 @@ titles: json
 findings:
   - id: IN-01
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Redundant multiplier assertion left inside the \"1.5x original sprint\" test"
   - id: IN-02
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Script-defaults test covers three of the four movement fields, with no note on the omission"
   - id: WR-01
     severity: warning
@@ -39,17 +39,17 @@ findings:
     severity: info
     disposition: open
     title: "Screenshot job worst-case time equals the job timeout"
-open: 4
+open: 2
 total: 9
-recorded: 2026-10-07T11:29:54.251Z
+recorded: 2026-10-08T05:05:57.289Z
 ---
 
 # Phase 02: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| IN-01 | info | open | - |
-| IN-02 | info | open | - |
+| IN-01 | info | fixed | 02-REVIEW-FIX.md |
+| IN-02 | info | fixed | 02-REVIEW-FIX.md |
 | WR-01 | warning | fixed | 02-REVIEW-FIX.md (not in the current review) |
 | WR-02 | warning | fixed | 02-REVIEW-FIX.md (not in the current review) |
 | IN-03 | info | fixed | 02-REVIEW-FIX.md (not in the current review) |
