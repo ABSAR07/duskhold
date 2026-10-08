@@ -187,7 +187,7 @@ func test_the_ranged_type_first_appears_on_night_four_and_stays() -> void:
 	assert_eq(first, FIRST_RANGED_NIGHT, "D-08: the first ranged night")
 
 
-func test_the_per_night_totals_are_unchanged_by_the_ranged_type() -> void:
+func test_the_per_night_totals_match_the_owner_s_wall() -> void:
 	var map: MapConfig = _map()
 	var totals: Array[int] = []
 	for night_number: int in range(1, map.nights.size() + 1):

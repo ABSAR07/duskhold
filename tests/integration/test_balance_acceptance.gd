@@ -11,8 +11,6 @@ extends GutTest
 const SEEDS: Array[int] = [1, 2, 3]
 ## The balanced bot is measured on ten seeds (owner decision 2026-10-07: it loses 2 or 3 of 10).
 const BALANCED_SEEDS: Array[int] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-const BALANCED_MIN_WINS: int = 7
-const BALANCED_MAX_WINS: int = 8
 ## Measured losses: exactly these seeds, never before night 3 (greedy shares nights 1 and 2).
 const BALANCED_LOST_SEEDS: Array[int] = [3, 9]
 const BALANCED_FIRST_LOSS_NIGHT: int = 3
@@ -59,10 +57,20 @@ func test_the_matrix_ran_every_strategy_on_every_seed() -> void:
 		assert_eq(_runs_of(strategy).size(), SEEDS.size(), "%s ran every seed" % strategy)
 
 
-func test_balanced_wins_seven_or_eight_of_seeds_one_to_ten() -> void:
-	var wins: int = _runs_of(&"balanced").size() - _lost_balanced_runs().size()
-	assert_between(
-		wins, BALANCED_MIN_WINS, BALANCED_MAX_WINS, "G-02-15: the balanced bot wins 7 or 8 of 10"
+func test_balanced_wins_every_seed_it_is_not_pinned_to_lose() -> void:
+	var wins: int = 0
+	for entry: Dictionary in _runs_of(&"balanced"):
+		if not BALANCED_LOST_SEEDS.has(int(entry["seed"])):
+			assert_eq(
+				entry["outcome"],
+				BalanceReport.OUTCOME_WON,
+				"balanced seed %d is won" % entry["seed"]
+			)
+			wins += 1
+	assert_eq(
+		wins,
+		BALANCED_SEEDS.size() - BALANCED_LOST_SEEDS.size(),
+		"G-02-15: the balanced bot wins 8 of 10 (loses 2, inside the owner's 2 or 3)"
 	)
 
 
