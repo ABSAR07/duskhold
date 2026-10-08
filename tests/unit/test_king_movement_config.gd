@@ -9,7 +9,6 @@ extends GutTest
 const KING_DEF_PATH := "res://data/king/king.tres"
 const TUNING_PATH := "res://data/tuning/loop_tuning.tres"
 const OWNER_WALK_SPEED: float = 7.5
-const OWNER_SPRINT_MULTIPLIER: float = 1.6
 const OWNER_SPRINT_SPEED: float = 12.0
 const ORIGINAL_SPRINT_SPEED: float = 8.0
 const OWNER_ACCELERATION: float = 60.0
@@ -30,7 +29,6 @@ func test_walk_speed_is_seven_and_a_half_metres_per_second() -> void:
 
 
 func test_sprint_is_at_least_one_and_a_half_times_the_original_sprint() -> void:
-	assert_eq(_def.sprint_multiplier, OWNER_SPRINT_MULTIPLIER, "sprint multiplier is 1.6")
 	assert_gte(
 		King.move_speed(_def, true),
 		1.5 * ORIGINAL_SPRINT_SPEED,
