@@ -17,7 +17,31 @@ const MAX_NIGHT_STEPS: int = 1500
 const KING_AT := Vector2(-4.5, 0.0)
 const NIGHT: int = RunManager.RunPhase.NIGHT
 const SCAN_SKIP_DIRS: Array[String] = ["addons", "tests", ".godot", ".tools", "build"]
-const WRITE_PATTERN := "Engine\\.time_scale\\s*=[^=]"
+## Any assignment operator on Engine.time_scale, even one that ends the line, and the reflective
+## setters (review WR-02); a comparison or a read does not match.
+const ASSIGN_PATTERN := "Engine\\.time_scale\\s*[-+*/%]?=(?!=)"
+const REFLECT_PATTERN := "Engine\\.set(_indexed)?\\(\\s*[\"']time_scale"
+const WRITE_PATTERN := ASSIGN_PATTERN + "|" + REFLECT_PATTERN
+const WRITE_SAMPLES: Array[String] = [
+	"Engine.time_scale = 2.0",
+	"Engine.time_scale=2.0",
+	"Engine.time_scale *= 2.0",
+	"Engine.time_scale += x",
+	"Engine.time_scale -= 1",
+	"Engine.time_scale /= 2.0",
+	"Engine.time_scale =",
+	'Engine.set("time_scale", x)',
+	"Engine.set('time_scale', x)",
+	'Engine.set_indexed("time_scale", x)',
+]
+const READ_SAMPLES: Array[String] = [
+	"if Engine.time_scale == 1.0:",
+	"if Engine.time_scale != 1.0:",
+	"if Engine.time_scale <= 1.0:",
+	"if Engine.time_scale >= 1.0:",
+	"var scale: float = Engine.time_scale",
+	'Engine.get("time_scale")',
+]
 const WRITER_PATH := "res://input/fast_forward_controller.gd"
 
 var _tuning: LoopTuning
@@ -270,6 +294,14 @@ func _code_lines(path: String) -> Array[String]:
 		if not line.strip_edges().begins_with("#"):
 			lines.append(line)
 	return lines
+
+
+func test_the_write_pattern_finds_every_form_of_assignment_and_no_read() -> void:
+	var pattern: RegEx = RegEx.create_from_string(WRITE_PATTERN)
+	for write: String in WRITE_SAMPLES:
+		assert_not_null(pattern.search(write), "finds the write: %s" % write)
+	for read: String in READ_SAMPLES:
+		assert_null(pattern.search(read), "ignores the read: %s" % read)
 
 
 func test_only_the_fast_forward_controller_assigns_the_engine_time_scale() -> void:
