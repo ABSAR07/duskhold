@@ -481,13 +481,18 @@ The Mini Characters zip lists `Models/GLB format/character-male-a..f.glb` and `c
    - What we know: D-15 is locked ("A attack-move"); `move_left` is physical A and Left arrow; the king is driven by polling; the hint strip reads the Input Map so any final key is shown correctly.
    - What's unclear: whether the owner accepts the king drifting left on every A press, or prefers a different attack-move key.
    - Recommendation: ship the action with a **data default that is not WASD** (suggest `C`, "charge") and put a one-line `checkpoint:human-verify` in the plan so the owner confirms; or keep `A` verbatim and accept the drift (a 0.1 s tap moves the king about half a metre at walk speed with acceleration 60 m/s^2). Do not suppress `move_left` while squads are selected: selection is permanent, so that would remove A-steering for the whole run.
+   - Resolution: (RESOLVED) plan 03-07 Task 1 is a blocking `checkpoint:decision` (keep-a recommended because D-15 is locked, use-c or another key as the alternatives); 03-07 Task 3 binds the chosen key and the test_input_map allow-list follows it.
 2. **Control groups after a squad is lost or added (UI-SPEC unresolved row).**
    - Recommendation: as A12. It is a pure `SelectionModel` property, covered by unit tests, and needs no simulation support.
+   - Resolution: (RESOLVED) plan 03-08 Task 3 adopts A12: groups hold squad ids, keep members at 0 alive, a new squad joins no group, and recalling an empty group keeps the selection.
 3. **Pad layout beyond the D-pad verbs (D-12 leaves it to the planner).**
    - Free pad bindings today [VERIFIED: project.godot]: B, X, LB, RT (axis 5), Start, L3, R3, D-pad up/down (11, 12); D-pad left/right (13, 14) are `ui_left`/`ui_right` menu bindings (harmless in a run because no HUD control takes focus, but the results screen uses them); right stick Y (axis 3) is zoom, right stick X (axis 2) is free. Taken: A (build/`ui_accept`), Y (start night), RB (sprint), LT axis 4 (fast-forward), Back (debug).
    - Recommendation: A11. Chords on a pad are a code-level modifier (`Input.is_action_pressed(&"command_layer")`), never an Input Map modifier, so twin actions bound to the same D-pad button need an explicit exception in the "no two actions share a binding" test. While the ground cursor is active, suppress zoom (a flag on `CameraRig`).
+   - Resolution: (RESOLVED) plan 03-09 adopts A11: D-pad verbs, the LB command layer, R3 and LB + R3 selection, Start group mode, RT queue and B cancel (Task 1), and the right-stick ground cursor with zoom suppressed through `CameraRig.set_zoom_suppressed` (Task 2).
 4. **Where `NightSim.step_day` lives.** Pattern 5 states the constraint (same slot order, empty enemy set); naming and file split are the planner's.
+   - Resolution: (RESOLVED) plan 03-01 Task 1 adds `NightSim.step_day(tick)` in `simulation/night/night_sim.gd`, called by `RunContext.step()` in every phase except NIGHT and a finished run.
 5. **Do the owner's own runs get recorded for replay?** Phase 2 said no. Because intents are already integer-only, a `CommandProcessor` intent log (`[tick, intent fields]`) is a cheap optional add that makes a played run replayable; not required.
+   - Resolution: (RESOLVED) left out of Phase 3 as optional; owner runs stay unrecorded, as in Phase 2, and no plan adds an intent log.
 
 ## Environment Availability
 

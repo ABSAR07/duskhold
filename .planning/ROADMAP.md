@@ -189,8 +189,41 @@ Plans:
   4. Every in-run action (move, sprint, hold-to-build/upgrade, active ability, unit selection and commands, start night) works on keyboard and mouse and on gamepad. The player can switch devices at any moment, and on-screen prompts update to match the active device.
   5. The HUD shows gold, current night out of total, king health, ability cooldown, and unit group status without cluttering the play area.
 
-**Plans**: TBD
+**Plans**: 12 plans
 **UI hint**: yes
+
+Plans:
+**Wave 1**
+- [ ] 03-01: Tracer — a Barracks squad end to end on the fixed step (guard, commit, enemies target units, puppets, double-run digest); archers, arrows and Mini Characters models
+- [ ] 03-03: HUD foundation — canvas_items stretch with every suite green; HudRoot, theme, four-size type scale, "Night N of T" counter and the clear-centre contract
+
+**Wave 2** *(blocked on 03-01)*
+- [ ] 03-02: Squad life cycle — night trickle 10/7/4 s, full restore at dawn, posts by day; military data validated and pinned (4/8/14, 4/8/16), "Squad of N" labels and tier models
+
+**Wave 3** *(blocked on 03-02 and 03-03)*
+- [ ] 03-04: The sword as WeaponDef, the slam on Q / pad X with a 9 s cooldown, regeneration after 1 s, and the bottom-left king widget
+
+**Wave 4** *(blocked on 03-04)*
+- [ ] 03-05: Squad strip bottom-centre (icon, alive / max, stance glyph, replacement fill) and the Squads overlay section
+
+**Wave 5** *(blocked on 03-05)*
+- [ ] 03-06: Follow, hold and rally on a selection — order gate and persistence, click / Ctrl / double-click / slot selection with rings, F H R Tab F2 keys, toast, fast-forward to T
+
+**Wave 6** *(blocked on 03-06)*
+- [ ] 03-07: Attack-move key decision (owner checkpoint); move, attack-move, patrol and Shift queue on centimetre points; right-click and armed mouse commands with pings
+
+**Wave 7** *(blocked on 03-07)*
+- [ ] 03-08: Patrol lines and queued discs, drag-box selection, Ctrl + digit control groups with slot badges
+- [ ] 03-11: Army replay golden in CI, army-building bots, and the D-08 night retune to 7 or 8 wins of 10
+
+**Wave 8** *(blocked on 03-08)*
+- [ ] 03-09: Gamepad parity — D-pad verbs with an LB layer, Start group mode, right-stick ground cursor, capability table
+
+**Wave 9** *(blocked on 03-09)*
+- [ ] 03-10: Device-following prompts — Kenney Input Prompts glyphs, device tracker, glyph start-night prompt and slam badge, command hint strip
+
+**Wave 10** *(blocked on 03-10 and 03-11)*
+- [ ] 03-12: 18 real-window screenshots with the clear-centre check, green CI, a launch-checked export and the owner's gate packet
 
 ### Phase 4: Crowd-Scale Battles & Walls
 
