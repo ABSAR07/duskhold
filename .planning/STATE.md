@@ -3,11 +3,11 @@ gsd_state_version: "1.0"
 current_phase: 3
 current_phase_name: King Combat & Troops
 status: planning
-stopped_at: Phase 3 context gathered
-last_updated: "2026-10-08T23:44:43.219Z"
+stopped_at: Phase 3 UI-SPEC approved
+last_updated: "2026-10-09T00:58:14.824Z"
 last_activity: 2026-10-08
 last_activity_desc: Phase 02 complete, transitioned to Phase 3
-state_head: 7a6832dec121445f1db1859310569cf1c6466f43
+state_head: e1995d03a5eff70222f4bb4e534bc0269a1cf565
 progress:
   total_phases: 13
   completed_phases: 2
@@ -219,6 +219,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-08T23:44:42.270Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-king-combat-troops/03-CONTEXT.md
+Last session: 2026-10-09T00:58:14.546Z
+Stopped at: Phase 3 UI-SPEC approved
+Resume file: .planning/phases/03-king-combat-troops/03-UI-SPEC.md
