@@ -16,6 +16,7 @@ const MAX_WIDTH: float = 720.0
 const FADE_SECONDS: float = 0.15
 
 var _ctx: RunContext
+var _selection: SelectionModel
 var _slots: Dictionary = {}
 
 
@@ -25,10 +26,14 @@ func _ready() -> void:
 
 
 ## Binds the strip to one run. A repeat call is ignored.
-func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
+func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
 	if _ctx != null:
 		return
 	_ctx = ctx
+	if map_root != null:
+		_selection = map_root.get_selection()
+	if _selection != null:
+		_selection.changed.connect(_on_selection_changed)
 	_sync()
 
 
@@ -68,7 +73,17 @@ func _add_slot(squad_id: StringName) -> void:
 	slot.modulate.a = 0.0
 	add_child(slot)
 	_slots[squad_id] = slot
+	slot.bind_selection(_selection)
+	if _selection != null:
+		slot.set_selected(_selection.is_selected(squad_id))
 	slot.create_tween().tween_property(slot, "modulate:a", 1.0, FADE_SECONDS)
+
+
+## A selection change lights exactly the slots of the selected squads.
+func _on_selection_changed() -> void:
+	for squad_id: StringName in _slots:
+		var slot: SquadSlot = _slots[squad_id]
+		slot.set_selected(_selection.is_selected(squad_id))
 
 
 ## Scales the strip down uniformly to MAX_WIDTH once its natural width passes FULL_WIDTH (more than

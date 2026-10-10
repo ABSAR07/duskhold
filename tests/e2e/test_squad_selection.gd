@@ -1,22 +1,31 @@
 extends GutTest
 ## UNIT-09, D-10, D-11, D-16: mouse selection in the real scene on the squad fixture, both squads
-## built. Events are sent with Input.parse_input_event at the screen point a unit projects to, in
-## the stretched 2D space. A left click within 32 px of a unit selects its squad, Ctrl + click
-## toggles, a double-click selects every squad of the same unit type, a click on empty ground
-## clears, a click on a squad slot selects that squad, and a HUD control set to STOP swallows the
-## click. Selected units wear a ring and the squad slot shows the selected border.
+## built, laid out in a 1280x720 SubViewport. Events are pushed into that viewport with push_input
+## at the screen point a unit projects to: the GUT output panel covers the root window and would
+## take a click aimed at the HUD, and the root window is stretched from 64 px in the headless
+## runner, so a SubViewport is the one place pointer coordinates are exact. A left click within
+## 32 px of a unit selects its squad, Ctrl + click toggles, a double-click selects every squad of
+## the same unit type, a click on empty ground clears, a click on a squad slot selects that squad,
+## and a HUD control set to STOP swallows the click. Selected units wear a ring and the squad slot
+## shows the selected border.
 
 const FIXTURE := "res://tests/fixtures/fixture_map_squads.tres"
 const BARRACKS: StringName = &"barracks_1"
 const ARCHERY: StringName = &"archery_1"
 const SELECTED_BORDER := Color("#8CEBFF")
+const HOVER_BORDER := Color("#C8CCD4")
+const IDLE_BORDER := Color("#3A3F4B")
 const SETTLE_FRAMES: int = 3
 const RAISE_TIMEOUT_S: float = 2.0
 const KING_SPOT := Vector3(-8.0, 0.0, 0.0)
+## Ground well clear of every unit, between the squads and the castle.
+const EMPTY_SPOT := Vector3(-1.0, 0.0, 0.0)
 const CAMERA_SETTLE_FRAMES: int = 30
 const SAFE_MARGIN_PX: float = 60.0
 const BLOCKER_SIZE := Vector2(140.0, 140.0)
+const VIEW_SIZE := Vector2i(1280, 720)
 
+var _view: SubViewport
 var _map: MapRoot
 var _ctx: RunContext
 var _views: UnitViews
@@ -33,12 +42,15 @@ func after_each() -> void:
 ## The real scene with both squads built, their puppets up and the camera settled on the king, who
 ## stands between the two squads.
 func _setup() -> void:
+	_view = SubViewport.new()
+	_view.size = VIEW_SIZE
+	add_child_autofree(_view)
 	var scene: PackedScene = load(E2eSupport.MAP_SCENE_PATH)
 	_map = scene.instantiate()
 	_map.map_config = load(FIXTURE)
 	_map.fixed_run_seed = 1
 	_map.handle_results_actions = false
-	add_child_autofree(_map)
+	_view.add_child(_map)
 	await wait_process_frames(SETTLE_FRAMES)
 	_ctx = _map.get_context()
 	_views = _map.get_node("UnitViews")
@@ -48,7 +60,7 @@ func _setup() -> void:
 	assert_true(await E2eSupport.wait_until(self, raised, RAISE_TIMEOUT_S), "eight puppets")
 	E2eSupport.teleport_king(_map, KING_SPOT)
 	await wait_process_frames(CAMERA_SETTLE_FRAMES)
-	_camera = get_viewport().get_camera_3d()
+	_camera = _view.get_camera_3d()
 	_selection = _map.get_selection()
 	_rings = _map.get_node_or_null("SelectionRings") as SelectionRings
 	_strip = _map.find_child("SquadStrip", true, false) as SquadStrip
@@ -63,7 +75,7 @@ func _unit_point(squad: StringName, index: int = 0) -> Vector2:
 
 
 func _empty_point() -> Vector2:
-	return _camera.unproject_position(KING_SPOT)
+	return _camera.unproject_position(EMPTY_SPOT)
 
 
 func _mouse(position: Vector2, pressed: bool, ctrl: bool = false, double: bool = false) -> void:
@@ -75,7 +87,7 @@ func _mouse(position: Vector2, pressed: bool, ctrl: bool = false, double: bool =
 	event.ctrl_pressed = ctrl
 	event.double_click = double
 	event.button_mask = MOUSE_BUTTON_MASK_LEFT if pressed else 0
-	Input.parse_input_event(event)
+	_view.push_input(event)
 
 
 func _click(position: Vector2, ctrl: bool = false, double: bool = false) -> void:
@@ -177,3 +189,23 @@ func test_a_click_on_a_stop_control_never_reaches_the_selection() -> void:
 	assert_eq(_selected(), [] as Array[StringName], "the STOP control took the click")
 	await _click(_unit_point(ARCHERY))
 	assert_eq(_selected(), [ARCHERY] as Array[StringName], "a click beside it still selects")
+
+
+func test_hovering_a_slot_draws_the_grey_border_and_selected_keeps_the_cyan_one() -> void:
+	await _setup()
+	var slot: SquadSlot = _strip.slot_for(BARRACKS)
+	var motion: InputEventMouseMotion = InputEventMouseMotion.new()
+	motion.position = slot.get_global_rect().get_center()
+	motion.global_position = motion.position
+	_view.push_input(motion)
+	await wait_process_frames(2)
+	assert_eq(slot.border_color(), HOVER_BORDER, "hover draws the secondary-text border")
+	await _click(slot.get_global_rect().get_center())
+	assert_eq(slot.border_color(), SELECTED_BORDER, "selected wins over hover")
+	motion.position = _empty_point()
+	motion.global_position = motion.position
+	_view.push_input(motion)
+	await wait_process_frames(2)
+	assert_eq(slot.border_color(), SELECTED_BORDER, "and stays after the pointer leaves")
+	await _click(_empty_point())
+	assert_eq(slot.border_color(), IDLE_BORDER, "cleared, the slot is idle again")

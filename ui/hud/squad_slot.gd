@@ -8,19 +8,26 @@ extends PanelContainer
 ## fill simply stops because the simulation countdown does). At dawn the border flashes once.
 ## Display only: it polls the simulation read getters through `refresh` and never writes it.
 ##
-## Selection styling arrives with plan 03-06 (`set_selected`) and the group digit with plan 03-08
-## (`set_group`); both setters exist now and only remember their value.
+## Selection (D-10, D-16): a left click selects only this squad, Ctrl + click toggles it in the
+## selection, and a selected slot draws a 4 px #8CEBFF border over a bluer plate, inside the 8 px
+## padding so nothing moves. Hover draws a 2 px #C8CCD4 border. The group digit arrives with plan
+## 03-08 (`set_group`), which for now only remembers its value.
 
 const ALIVE_TEXT := "%d / %d"
 const SLOT_SIZE := Vector2(136.0, 72.0)
 const ICON_PIXELS: int = 32
 const PLATE_RADIUS: int = 6
 const BORDER_WIDTH: int = 2
+const SELECTED_BORDER_WIDTH: int = 4
 const OUTLINE_SIZE: int = 6
 ## #14141A at alpha 0.78.
 const PLATE_COLOR := Color(0.0784, 0.0784, 0.1019, 0.78)
 const IDLE_BORDER_COLOR := Color("#3A3F4B")
 const FLASH_COLOR := Color("#8CEBFF")
+const SELECTED_BORDER_COLOR := Color("#8CEBFF")
+const HOVER_BORDER_COLOR := Color("#C8CCD4")
+## #1B2830 at alpha 0.85, the selected plate: the idle plate lightened and bluer.
+const SELECTED_PLATE_COLOR := Color(0.1059, 0.1569, 0.1882, 0.85)
 const DANGER_COLOR := Color("#FF4040")
 const DIMMED_COLOR := Color("#7A808C")
 ## #2A2D36 at alpha 0.9.
@@ -42,6 +49,9 @@ var _shown_max: int = -1
 var _flashes: int = 0
 var _flash_tween: Tween
 var _selected: bool = false
+var _hovered: bool = false
+var _flashing: bool = false
+var _selection: SelectionModel
 var _group_digit: int = -1
 
 @onready var _icon: TextureRect = %UnitIcon
@@ -57,6 +67,8 @@ func _ready() -> void:
 	focus_mode = Control.FOCUS_NONE
 	_plate = _make_plate()
 	add_theme_stylebox_override("panel", _plate)
+	mouse_entered.connect(_on_mouse_entered)
+	mouse_exited.connect(_on_mouse_exited)
 	_alive_label.add_theme_color_override("font_outline_color", Color.BLACK)
 	_alive_label.add_theme_constant_override("outline_size", OUTLINE_SIZE)
 	_fill.add_theme_stylebox_override("background", _make_bar(TRACK_COLOR))
@@ -90,9 +102,15 @@ func refresh(ctx: RunContext) -> void:
 	_glyph.stance = verb if verb != &"" else squads.resting_stance(squad_id)
 
 
-## Plan 03-06 lights the selection border here; for now the value is only remembered.
+## Lights or clears the selection border and plate; the strip calls it on SelectionModel.changed.
 func set_selected(selected: bool) -> void:
 	_selected = selected
+	_apply_look()
+
+
+## Lets a click on the slot change the selection.
+func bind_selection(model: SelectionModel) -> void:
+	_selection = model
 
 
 ## Plan 03-08 shows the control-group digit here (the lowest group, 0 meaning group 10); for now
@@ -182,11 +200,56 @@ func _on_squad_restored(restored_id: StringName, _alive: int) -> void:
 	_flashes += 1
 	if _flash_tween != null:
 		_flash_tween.kill()
-	_plate.border_color = FLASH_COLOR
+	_flashing = true
+	_apply_look()
 	_flash_tween = create_tween()
 	_flash_tween.tween_interval(FLASH_SECONDS)
 	_flash_tween.tween_callback(_end_flash)
 
 
 func _end_flash() -> void:
-	_plate.border_color = IDLE_BORDER_COLOR
+	_flashing = false
+	_apply_look()
+
+
+func _gui_input(event: InputEvent) -> void:
+	var button: InputEventMouseButton = event as InputEventMouseButton
+	if button == null or button.button_index != MOUSE_BUTTON_LEFT or not button.pressed:
+		return
+	accept_event()
+	if _selection == null or _ctx == null:
+		return
+	var all_ids: Array[StringName] = _ctx.squads.squad_ids()
+	if button.ctrl_pressed:
+		_selection.toggle(squad_id, all_ids)
+	else:
+		_selection.select_only([squad_id] as Array[StringName], all_ids)
+
+
+func _on_mouse_entered() -> void:
+	_hovered = true
+	_apply_look()
+
+
+func _on_mouse_exited() -> void:
+	_hovered = false
+	_apply_look()
+
+
+## Border and plate for the state right now: the dawn flash beats selected, selected beats hover,
+## hover beats idle. Widths and colours only; the layout never changes (content margins are 0).
+func _apply_look() -> void:
+	if _plate == null:
+		return
+	var width: int = BORDER_WIDTH
+	var border: Color = IDLE_BORDER_COLOR
+	if _selected:
+		width = SELECTED_BORDER_WIDTH
+		border = SELECTED_BORDER_COLOR
+	elif _hovered:
+		border = HOVER_BORDER_COLOR
+	if _flashing:
+		border = FLASH_COLOR
+	_plate.set_border_width_all(width)
+	_plate.border_color = border
+	_plate.bg_color = SELECTED_PLATE_COLOR if _selected else PLATE_COLOR
