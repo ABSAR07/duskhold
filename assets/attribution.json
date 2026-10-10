@@ -64,6 +64,22 @@
       "notes": "Author's asset page states CC0 (https://kenney.nl/assets/fantasy-town-kit); the pack's own License.txt is kept beside the files (CC0, House tiers I-III (composed from wall and roof pieces in text wrapper scenes; the kit has no complete house model)). Archive downloaded from https://kenney.nl/media/pages/assets/fantasy-town-kit/efe948d309-1754222374/kenney_fantasy-town-kit_2.0.zip (3854691 bytes); sha256 is of that zip. Kept files (GLBs in models/ plus Textures/colormap.png): wall, wall-door, wall-window-small, wall-window-shutters, roof-gable, roof-high-gable, chimney. Used for Fantasy Town Kit 2.0. Attribution to Kenney is optional under CC0; the Phase 13 credits still list it."
     },
     {
+      "id": "kenney-input-prompts",
+      "name": "Kenney Input Prompts 1.5",
+      "kind": "ui",
+      "license": "CC0-1.0",
+      "author": "Kenney (www.kenney.nl)",
+      "source_url": "https://kenney.nl/assets/input-prompts",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "paths": [
+        "res://assets/third_party/kenney_input_prompts/"
+      ],
+      "retrieved": "2026-10-10",
+      "sha256": "ac2fcf599080b0f3ba2d174c9474db6df1a0e96ff0662580e2da79a122ab78a1",
+      "ships_in_build": true,
+      "notes": "Author's asset page states CC0 (https://kenney.nl/assets/input-prompts); the pack's own License.txt is kept beside the files (CC0). Archive downloaded from https://kenney.nl/media/pages/assets/input-prompts/8de120163f-1783763952/kenney_input-prompts_1.5.zip (5070075 bytes, fetched with curl --fail and no redirects); sha256 is of that zip and was checked before extraction. Only the Default (white on transparent, 64x64) tiles the glyph resolver uses were kept, and no .url file. keyboard_mouse/: keyboard_ tiles a-z, 0-9, space, shift, ctrl, tab, escape, enter, arrow_up, arrow_down, arrow_left, arrow_right, f2, f3, equals, minus, numpad_plus, and mouse_left and mouse_right. xbox/: xbox_button_a, xbox_button_b, xbox_button_x, xbox_button_y and their xbox_button_color_ twins, xbox_lb, xbox_rb, xbox_lt, xbox_rt, xbox_dpad_up, xbox_dpad_down, xbox_dpad_left, xbox_dpad_right, xbox_button_back, xbox_button_start, xbox_ls, xbox_rs, xbox_stick_r_press. The sticks use the text tiles xbox_ls and xbox_rs, which read more clearly at 24 px than the pictorial xbox_stick_l and xbox_stick_r. Used for the on-screen key and button prompts, each drawn on a dark plate because the tiles are white on transparent. Attribution to Kenney is optional under CC0; the Phase 13 credits still list it."
+    },
+    {
       "id": "kenney-mini-characters",
       "name": "Kenney Mini Characters 1.0",
       "kind": "model",

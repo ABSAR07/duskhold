@@ -16,6 +16,7 @@ table lists them in the same order.
 | GUT (Godot Unit Test) 9.7.1 | code | MIT | Tom "Butch" Wesley (bitwes) and contributors | https://github.com/bitwes/Gut/releases/tag/v9.7.1 | `addons/gut/` (test only, not shipped) | 2026-09-29 | `14969aa46adc84aa08cdd21b9f6d1a64addd92ae60b36f02d0521ed305aa4086` |
 | Kenney Castle Kit 2.0 | model | CC0-1.0 | Kenney (www.kenney.nl) | https://kenney.nl/assets/castle-kit | `assets/third_party/kenney_castle_kit/` (7 GLBs + colormap; tower tiers I-II, castle center) | 2026-09-29 | `921f3f73927bb23106cae34bc21d5ab4b033a9fc120475e96f714a406e3169df` |
 | Kenney Fantasy Town Kit 2.0 | model | CC0-1.0 | Kenney (www.kenney.nl) | https://kenney.nl/assets/fantasy-town-kit | `assets/third_party/kenney_fantasy_town_kit/` (7 GLBs + colormap; House tiers I-III) | 2026-09-29 | `1a7530c09f4d2fa2cdee259876f089334f8b1f27fa86a0c4f54ef86cdd8676ef` |
+| Kenney Input Prompts 1.5 | ui | CC0-1.0 | Kenney (www.kenney.nl) | https://kenney.nl/assets/input-prompts | `assets/third_party/kenney_input_prompts/` (53 keyboard and mouse tiles + 21 Xbox tiles; the on-screen key and button prompts) | 2026-10-10 | `ac2fcf599080b0f3ba2d174c9474db6df1a0e96ff0662580e2da79a122ab78a1` |
 | Kenney Mini Characters 1.0 | model | CC0-1.0 | Kenney (www.kenney.nl) | https://kenney.nl/assets/mini-characters | `assets/third_party/kenney_mini_characters/` (3 GLBs + colormap; the king's rider, the footman and archer puppets) | 2026-09-29 | `9e1d48e6d7b8479ebbe84df71eb5bd8e1b3f0da546dea641890dccc8a02d0999` |
 | Horse (animated), Quaternius 2021 | model | CC0-1.0 | Quaternius | https://poly.pizza/m/qvTrSG9pZF (file: https://static.poly.pizza/d37dbc87-ca61-4b2c-a2da-d2f0c4240bef.glb) | `assets/third_party/quaternius_horse/` (1 GLB; the king's horse) | 2026-09-29 | `fae7a7ec91e0d6a33554efb896fac9c4e8c632644183bcb8cc962f673d3ce609` (of the GLB itself) |
 
@@ -30,6 +31,10 @@ What each SHA256 in the table covers (all retrieved 2026-09-29; each entry's `no
   listed in each entry's `notes` were extracted into the repository, so the archives themselves are not
   here and the hash cannot be recomputed from the repository. Each pack's `License.txt` (CC0, with the
   Creative Commons Zero link) sits beside its files.
+- Kenney Input Prompts 1.5 (retrieved 2026-10-10): the zip archive as downloaded with `curl --fail`, no redirects,
+  5,070,075 bytes; the size and the SHA256 were checked against the recorded values before anything was extracted
+  (plan 03-10). Only the tiles the glyph resolver uses and the pack's `License.txt` (CC0) were kept; the archive is
+  not in the repository, so the hash cannot be recomputed from it.
 - GUT 9.7.1: the v9.7.1 source zip. The zip is not in the repository; its contents are vendored under
   `addons/gut/`, so the hash does not match any file here. It was fetched by `tools/bootstrap.py` (plan
   01-01), not by the `curl` downloads above.
