@@ -142,6 +142,7 @@ func validate() -> PackedStringArray:
 		if not building_ids.has(spot.building_id):
 			errors.append("spot '%s' uses unknown building id '%s'" % [spot.id, spot.building_id])
 	errors.append_array(_validate_night_data())
+	errors.append_array(_validate_squads())
 	return errors
 
 
@@ -216,6 +217,170 @@ func _validate_castle_attack() -> PackedStringArray:
 				% [castle_attack_interval, MAX_CASTLE_ATTACK_INTERVAL_S]
 			)
 		)
+	return errors
+
+
+## The errors of the friendly army's data (T-03-04, T-03-05): every unit type, then every military
+## building. Reported, never armed: a corrupted file must not silently field a squad of zero-health
+## units, spawn a replacement every tick or allocate without bound.
+func _validate_squads() -> PackedStringArray:
+	var errors: PackedStringArray = PackedStringArray()
+	var unit_ids: Dictionary = {}
+	for unit: UnitDef in units:
+		if unit == null:
+			errors.append("a unit entry is empty")
+			continue
+		if unit.id == &"":
+			errors.append("a unit has an empty id")
+		if unit_ids.has(unit.id):
+			errors.append("duplicate unit id '%s'" % unit.id)
+		unit_ids[unit.id] = true
+		errors.append_array(_validate_unit(unit))
+	for building_def: BuildingDef in buildings:
+		if building_def != null:
+			errors.append_array(_validate_squad_building(building_def))
+	return errors
+
+
+## The errors of one unit type's numbers. A float that is NaN or infinite passes every comparison
+## below, so it is reported once, as that, and the comparisons are skipped. The attack interval
+## shares the castle's bounds: at least one simulation step (SimClock.ticks floors at one tick) and
+## at most one hour.
+func _validate_unit(unit: UnitDef) -> PackedStringArray:
+	var errors: PackedStringArray = PackedStringArray()
+	var unit_floats: Dictionary = {
+		"move_speed": unit.move_speed,
+		"radius": unit.radius,
+		"attack_range": unit.attack_range,
+		"attack_interval": unit.attack_interval,
+		"guard_range": unit.guard_range,
+		"leash_range": unit.leash_range,
+		"retarget_interval_seconds": unit.retarget_interval_seconds,
+		"projectile_speed": unit.projectile_speed,
+		"formation_spacing": unit.formation_spacing,
+	}
+	var all_finite: bool = true
+	for field: String in unit_floats:
+		var value: float = unit_floats[field]
+		if not is_finite(value):
+			all_finite = false
+			errors.append("unit '%s' %s is not finite (%s)" % [unit.id, field, value])
+	if unit.max_health <= 0:
+		errors.append("unit '%s' max_health is %d" % [unit.id, unit.max_health])
+	if unit.attack_damage <= 0:
+		errors.append("unit '%s' attack_damage is %d" % [unit.id, unit.attack_damage])
+	if all_finite:
+		errors.append_array(_unit_range_errors(unit))
+	return errors
+
+
+## The comparisons of one unit whose floats are all finite.
+func _unit_range_errors(unit: UnitDef) -> PackedStringArray:
+	var errors: PackedStringArray = PackedStringArray()
+	var positive: Dictionary = {
+		"move_speed": unit.move_speed,
+		"radius": unit.radius,
+		"guard_range": unit.guard_range,
+		"retarget_interval_seconds": unit.retarget_interval_seconds,
+		"formation_spacing": unit.formation_spacing,
+	}
+	for field: String in positive:
+		if float(positive[field]) <= 0.0:
+			errors.append("unit '%s' %s is %s" % [unit.id, field, positive[field]])
+	var not_negative: Dictionary = {
+		"attack_range": unit.attack_range, "projectile_speed": unit.projectile_speed
+	}
+	for field: String in not_negative:
+		if float(not_negative[field]) < 0.0:
+			errors.append("unit '%s' %s is %s" % [unit.id, field, not_negative[field]])
+	if unit.leash_range < unit.guard_range:
+		errors.append(
+			(
+				"unit '%s' leash_range (%s) is below guard_range (%s)"
+				% [unit.id, unit.leash_range, unit.guard_range]
+			)
+		)
+	errors.append_array(
+		_seconds_errors("unit '%s' attack_interval" % unit.id, unit.attack_interval)
+	)
+	return errors
+
+
+## The errors of a finite number of seconds that must lie between one simulation step and one hour.
+func _seconds_errors(label: String, seconds: float) -> PackedStringArray:
+	var errors: PackedStringArray = PackedStringArray()
+	if not is_finite(seconds):
+		errors.append("%s is not finite (%s)" % [label, seconds])
+	elif seconds < SimClock.STEP:
+		errors.append("%s (%s) is below one simulation step" % [label, seconds])
+	elif seconds > MAX_CASTLE_ATTACK_INTERVAL_S:
+		errors.append(
+			(
+				"%s (%s) is above the longest allowed (%s s)"
+				% [label, seconds, MAX_CASTLE_ATTACK_INTERVAL_S]
+			)
+		)
+	return errors
+
+
+## The errors of one building's squad data. A military building (non-empty unit_id) must name a
+## unit of this map, keep its post at a finite distance of 0 or more, and field 1 to
+## SquadSystem.MAX_UNITS_PER_SQUAD units at a sane pace on every tier; any other building fields
+## none.
+func _validate_squad_building(building_def: BuildingDef) -> PackedStringArray:
+	var errors: PackedStringArray = PackedStringArray()
+	var military: bool = building_def.unit_id != &""
+	if military:
+		if find_unit(building_def.unit_id) == null:
+			errors.append(
+				(
+					"building '%s' unit_id '%s' is not a unit of this map"
+					% [building_def.id, building_def.unit_id]
+				)
+			)
+		if not is_finite(building_def.post_distance):
+			errors.append(
+				(
+					"building '%s' post_distance is not finite (%s)"
+					% [building_def.id, building_def.post_distance]
+				)
+			)
+		elif building_def.post_distance < 0.0:
+			errors.append(
+				(
+					"building '%s' post_distance is negative (%s)"
+					% [building_def.id, building_def.post_distance]
+				)
+			)
+	for index: int in range(building_def.tiers.size()):
+		var tier: BuildingTierDef = building_def.tiers[index]
+		if tier != null:
+			errors.append_array(_squad_tier_errors(building_def.id, index, tier, military))
+	return errors
+
+
+## The squad errors of one building tier.
+func _squad_tier_errors(
+	building_id: StringName, index: int, tier: BuildingTierDef, military: bool
+) -> PackedStringArray:
+	var errors: PackedStringArray = PackedStringArray()
+	var label: String = "building '%s' tier %d" % [building_id, index + 1]
+	if not military:
+		if tier.squad_size != 0:
+			errors.append(
+				"%s squad_size is %d but the building fields no unit" % [label, tier.squad_size]
+			)
+		return errors
+	if tier.squad_size < 1 or tier.squad_size > SquadSystem.MAX_UNITS_PER_SQUAD:
+		errors.append(
+			(
+				"%s squad_size is %d (a squad needs 1 to %d)"
+				% [label, tier.squad_size, SquadSystem.MAX_UNITS_PER_SQUAD]
+			)
+		)
+	errors.append_array(
+		_seconds_errors(label + " squad_respawn_seconds", tier.squad_respawn_seconds)
+	)
 	return errors
 
 
