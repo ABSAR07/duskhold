@@ -11,6 +11,7 @@ var tuning: LoopTuning
 var events: SimEvents
 var economy: Economy
 var buildings: BuildingSystem
+var squads: SquadSystem
 var castle: CastleState
 var king: KingState
 var night: NightSim
@@ -41,16 +42,18 @@ func _init(
 	king = KingState.new(
 		def, Vector2(map_config.king_spawn.x, map_config.king_spawn.z), events, tuning
 	)
-	night = NightSim.new(map_config, events, king, run_seed, castle, buildings)
+	squads = SquadSystem.new(map_config, buildings, events)
+	night = NightSim.new(map_config, events, king, run_seed, castle, buildings, squads)
 	run_manager = RunManager.new(
 		events, economy, buildings, tuning, night, king, castle, map_config.base_dawn_income
 	)
 	commands = CommandProcessor.new(economy, buildings, run_manager, events)
 
 
-## Runs one fixed simulation step: the night (only while it is NIGHT), then the loop clock. A castle
-## that fell during the night step ends the run before the clock ticks, so the loss beats a win the
-## same step would have made (LOOP-06, DR-8). Once the run is over a step does nothing at all.
+## Runs one fixed simulation step: the night while it is NIGHT, the army alone in every other
+## phase, then the loop clock. A castle that fell during the night step ends the run before the
+## clock ticks, so the loss beats a win the same step would have made (LOOP-06, DR-8). Once the run
+## is over a step does nothing at all.
 func step() -> void:
 	if run_manager.is_run_over():
 		return
@@ -58,6 +61,8 @@ func step() -> void:
 		night.step(tick_count)
 		if castle.is_destroyed():
 			run_manager.end_run_in_defeat()
+	else:
+		night.step_day(tick_count)
 	run_manager.tick(SimClock.STEP)
 	tick_count += 1
 
@@ -81,9 +86,9 @@ func alpha() -> float:
 	return clampf(_accumulator / SimClock.STEP, 0.0, 0.999999)
 
 
-## Number of friendly units alive. Phase 1 spawns none; later phases read their manager here.
+## Number of friendly units alive.
 func get_unit_count() -> int:
-	return 0
+	return squads.get_units().count()
 
 
 ## Number of enemies alive.

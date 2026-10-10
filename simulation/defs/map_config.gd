@@ -33,6 +33,8 @@ const CASTLE_PAYOUT_KEY: StringName = &"castle"
 @export var spots: Array[BuildSpotDef] = []
 ## The enemy types this map's nights use.
 @export var enemies: Array[EnemyDef] = []
+## The friendly unit types this map's military buildings field.
+@export var units: Array[UnitDef] = []
 ## Where enemies arrive from. Order is significant: it fixes the telegraph and preview order.
 @export var spawn_points: Array[SpawnPointDef] = []
 ## The hand-authored nights. `nights[0]` is night 1 and the total number of nights is
@@ -59,6 +61,14 @@ func find_enemy(enemy_id: StringName) -> EnemyDef:
 	for enemy: EnemyDef in enemies:
 		if enemy != null and enemy.id == enemy_id:
 			return enemy
+	return null
+
+
+## The friendly unit type with this id, or null.
+func find_unit(unit_id: StringName) -> UnitDef:
+	for unit: UnitDef in units:
+		if unit != null and unit.id == unit_id:
+			return unit
 	return null
 
 

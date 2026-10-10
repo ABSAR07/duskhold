@@ -27,4 +27,7 @@ const ALL: Array[String] = [
 	"king_damaged",
 	"king_downed",
 	"king_respawned",
+	"unit_spawned",
+	"unit_damaged",
+	"unit_died",
 ]

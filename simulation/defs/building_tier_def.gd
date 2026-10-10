@@ -16,6 +16,10 @@ extends Resource
 @export var attack_interval: float = 1.0
 ## Metres per second of a tower's arrow (towers only; read by the tower plan).
 @export var projectile_speed: float = 0.0
+## Units this tier fields; 0 for non-military buildings.
+@export var squad_size: int = 0
+## Seconds per replacement unit at night (read by the squad respawn rule).
+@export var squad_respawn_seconds: float = 0.0
 
 
 ## One-line effect text shown next to the cost, e.g. "+2 gold at dawn".
@@ -24,4 +28,6 @@ func effect_line() -> String:
 		return "+%d gold at dawn" % dawn_income
 	if attack_damage > 0:
 		return "Range %s · Damage %d" % [String.num(attack_range), attack_damage]
+	if squad_size > 0:
+		return "Squad of %d" % squad_size
 	return ""

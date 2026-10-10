@@ -53,11 +53,40 @@ func test_castle_sits_at_the_middle_of_the_map() -> void:
 	assert_eq(map.castle_position, Vector3.ZERO, "castle center is the map origin")
 
 
-func test_map_has_eight_spots_five_house_and_three_tower_plots() -> void:
+func test_the_first_eight_spots_are_unchanged_and_military_plots_come_after() -> void:
 	var map: MapConfig = _map()
-	assert_eq(map.spots.size(), HOUSE_SPOT_COUNT + TOWER_SPOT_COUNT, "8 fixed spots (D-03)")
+	var original: Array[StringName] = [
+		&"house_1",
+		&"house_2",
+		&"house_3",
+		&"house_4",
+		&"house_5",
+		&"tower_1",
+		&"tower_2",
+		&"tower_3"
+	]
+	var original_positions: Array[Vector3] = [
+		Vector3(-9, 0, 9),
+		Vector3(9, 0, 9),
+		Vector3(-18, 0, -12),
+		Vector3(18, 0, -12),
+		Vector3(0, 0, -24),
+		Vector3(-55, 0, 20),
+		Vector3(55, 0, 20),
+		Vector3(0, 0, -55),
+	]
+	assert_gte(map.spots.size(), original.size(), "the Phase 1 plots are still there (D-03)")
+	for index: int in range(original.size()):
+		assert_eq(map.spots[index].id, original[index], "plot %d keeps its place" % index)
+		assert_eq(map.spots[index].position, original_positions[index], "and its position")
 	assert_eq(_spot_count_for(map, &"house"), HOUSE_SPOT_COUNT, "5 House plots")
 	assert_eq(_spot_count_for(map, &"tower"), TOWER_SPOT_COUNT, "3 tower plots")
+	assert_gt(map.spots.size(), original.size(), "military plots were appended")
+	for index: int in range(original.size(), map.spots.size()):
+		var building: BuildingDef = _building(map, map.spots[index].building_id)
+		assert_not_null(building, "%s has a building def" % map.spots[index].id)
+		assert_ne(building.unit_id, &"", "%s fields a unit" % map.spots[index].id)
+		assert_not_null(map.find_unit(building.unit_id), "and the map lists that unit")
 
 
 func test_spot_ids_are_unique_and_every_building_id_resolves() -> void:

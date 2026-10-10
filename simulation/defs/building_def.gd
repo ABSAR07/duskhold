@@ -9,6 +9,10 @@ const ROMAN_NUMERALS: Array[String] = ["I", "II", "III", "IV", "V"]
 @export var tiers: Array[BuildingTierDef] = []
 ## Radius of the building's footprint in metres; enemies stop at this plus their own attack range.
 @export var body_radius: float = 1.0
+## The unit this building's squad fields; empty for non-military buildings.
+@export var unit_id: StringName = &""
+## Metres from the plot centre toward the castle where the squad's formation centres.
+@export var post_distance: float = 0.0
 
 
 func max_tier() -> int:

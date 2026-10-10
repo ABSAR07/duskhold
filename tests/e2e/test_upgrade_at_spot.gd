@@ -75,29 +75,26 @@ func test_scene_has_a_castle_landmark_and_a_marker_for_every_spot() -> void:
 	for spot_id: StringName in ctx.buildings.spot_ids():
 		var marker: Node = map_root.get_node_or_null("BuildingViews/Spot_%s" % spot_id)
 		assert_not_null(marker, "marker Spot_%s exists" % spot_id)
-	assert_eq(ctx.buildings.spot_ids().size(), 8, "the prototype map has 8 spots")
+	assert_gte(ctx.buildings.spot_ids().size(), 8, "the Phase 1 plots are all still there")
 
 
 func test_markers_are_colour_coded_by_building_type() -> void:
 	var map_root: MapRoot = await _spawn_map()
 	var ctx: RunContext = map_root.get_context()
-	var house_color: Color = Color.BLACK
-	var tower_color: Color = Color.BLACK
-	var have_house: bool = false
-	var have_tower: bool = false
+	var colors: Dictionary = {}
 	for spot_id: StringName in ctx.buildings.spot_ids():
 		var color: Color = _marker_color(map_root, spot_id)
-		if ctx.buildings.get_spot(spot_id).building_id == &"house":
-			if have_house:
-				assert_eq(color, house_color, "%s matches the other House plots" % spot_id)
-			house_color = color
-			have_house = true
-		else:
-			if have_tower:
-				assert_eq(color, tower_color, "%s matches the other tower plots" % spot_id)
-			tower_color = color
-			have_tower = true
-	assert_ne(house_color, tower_color, "House and tower plots read differently at a glance")
+		var building: BuildingDef = ctx.buildings.get_building_def_for_spot(spot_id)
+		var kind: StringName = &"military" if building.unit_id != &"" else building.id
+		if colors.has(kind):
+			assert_eq(color, colors[kind], "%s matches the other %s plots" % [spot_id, kind])
+		colors[kind] = color
+	assert_true(colors.has(&"house") and colors.has(&"tower"), "both Phase 1 kinds are present")
+	assert_true(colors.has(&"military"), "the military plots are present")
+	assert_eq(colors.size(), 3, "three kinds of plot")
+	assert_ne(colors[&"house"], colors[&"tower"], "House and tower plots read differently")
+	assert_ne(colors[&"military"], colors[&"house"], "military plots differ from House plots")
+	assert_ne(colors[&"military"], colors[&"tower"], "and from tower plots")
 
 
 ## Plan 01-07 ships CC0 models in the default catalog, so this test clears the catalog to keep

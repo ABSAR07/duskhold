@@ -9,13 +9,14 @@ const KIND_KING := &"king"
 const KIND_ENEMY := &"enemy"
 const KIND_CASTLE := &"castle"
 const KIND_BUILDING := &"building"
+const KIND_UNIT := &"unit"
 
 var _hits: Array[Hit] = []
 var _next_seq: int = 0
 
 
-## Queues a hit. For KIND_BUILDING the id is the spot's index in BuildingSystem.spot_ids();
-## KIND_KING and KIND_CASTLE use id 0.
+## Queues a hit. For KIND_BUILDING the id is the spot's index in BuildingSystem.spot_ids(); for
+## KIND_UNIT the id is the unit id; KIND_KING and KIND_CASTLE use id 0.
 func enqueue(
 	arrival_tick: int,
 	attacker_kind: StringName,

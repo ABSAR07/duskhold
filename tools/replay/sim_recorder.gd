@@ -30,6 +30,9 @@ const HANDLED: Array[String] = [
 	"king_damaged",
 	"king_downed",
 	"king_respawned",
+	"unit_spawned",
+	"unit_damaged",
+	"unit_died",
 ]
 ## Written in place of an empty id so every token is non-empty.
 const EMPTY_TOKEN := "-"
@@ -64,6 +67,9 @@ static func attach(ctx: RunContext) -> SimRecorder:
 	events.king_damaged.connect(recorder._on_king_damaged)
 	events.king_downed.connect(recorder._on_king_downed)
 	events.king_respawned.connect(recorder._on_king_respawned)
+	events.unit_spawned.connect(recorder._on_unit_spawned)
+	events.unit_damaged.connect(recorder._on_unit_damaged)
+	events.unit_died.connect(recorder._on_unit_died)
 	return recorder
 
 
@@ -210,3 +216,17 @@ func _on_king_downed(respawn_ticks: int, knockout_number: int) -> void:
 
 func _on_king_respawned() -> void:
 	_record("king_respawned", [])
+
+
+func _on_unit_spawned(unit_id: int, squad_id: StringName, def_id: StringName, pos: Vector2) -> void:
+	_record("unit_spawned", [unit_id, squad_id, def_id, pos])
+
+
+func _on_unit_damaged(unit_id: int, amount: int, hp: int) -> void:
+	_record("unit_damaged", [unit_id, amount, hp])
+
+
+func _on_unit_died(
+	unit_id: int, squad_id: StringName, pos: Vector2, killer_kind: StringName
+) -> void:
+	_record("unit_died", [unit_id, squad_id, pos, killer_kind])

@@ -1,9 +1,10 @@
 class_name NightSim
 extends RefCounted
-## Orchestrates one night in a fixed order (DR-8): spawn, king, towers (spot order), castle,
-## enemies (id order), resolve due hits, remove the dead. Pure RefCounted code on integer ticks
-## (DR-1, DR-3); the only randomness is the night's seeded spawn stream, drawn at spawn time in
-## spawn order (DR-4).
+## Orchestrates one night in a fixed order (DR-8): spawn, king, squads (creation order, units in id
+## order), towers (spot order), castle, enemies (id order), resolve due hits, remove the dead
+## enemies, remove the dead units. Outside the night `step_day` steps the army alone. Pure
+## RefCounted code on integer ticks (DR-1, DR-3); the only randomness is the night's seeded spawn
+## stream, drawn at spawn time in spawn order (DR-4).
 
 var _map: MapConfig
 var _events: SimEvents
@@ -13,6 +14,7 @@ var _buildings: BuildingSystem
 var _run_seed: int
 var _enemies: EnemySystem
 var _towers: TowerSystem
+var _squads: SquadSystem
 var _castle_attack: CastleAttack
 var _hits: PendingHits = PendingHits.new()
 var _schedule: WaveSchedule
@@ -29,7 +31,8 @@ func _init(
 	king: KingState,
 	run_seed: int,
 	castle: CastleState = null,
-	buildings: BuildingSystem = null
+	buildings: BuildingSystem = null,
+	squads: SquadSystem = null
 ) -> void:
 	_map = map
 	_events = events
@@ -37,6 +40,7 @@ func _init(
 	_castle = castle if castle != null else CastleState.new(map, events)
 	_buildings = buildings if buildings != null else BuildingSystem.new(map, events)
 	_run_seed = run_seed
+	_squads = squads if squads != null else SquadSystem.new(map, _buildings, events)
 	_enemies = EnemySystem.new(events)
 	_towers = TowerSystem.new(_buildings, events)
 	_castle_attack = CastleAttack.new(map, _castle, events)
@@ -60,6 +64,7 @@ func begin_night(night_number: int) -> void:
 	_hits.clear()
 	_enemies.clear()
 	_king.begin_night()
+	_squads.begin_night()
 	_towers.begin_night()
 	_castle_attack.begin_night()
 	_next_night_tick = 0
@@ -76,12 +81,21 @@ func step(tick: int) -> void:
 	var night_tick: int = tick - _start_tick
 	_spawn_due(night_tick)
 	_king.step(night_tick, _enemies, _hits)
+	_squads.step(night_tick, _enemies, _hits, true)
 	_towers.step(night_tick, _enemies, _hits)
 	_castle_attack.step(night_tick, _enemies, _hits)
-	_enemies.step(night_tick, _castle, _king, _hits, _buildings)
+	_enemies.step(night_tick, _castle, _king, _hits, _buildings, _squads.get_units())
 	_resolve_hits(night_tick)
 	_enemies.remove_dead()
+	_squads.remove_dead()
 	_next_night_tick = night_tick + 1
+
+
+## Advances the army by one step outside the night: units fill their seats and settle at their
+## slots. `tick` is the run tick. Nothing here touches enemies or the hit queue.
+func step_day(tick: int) -> void:
+	_squads.step(tick, _enemies, _hits, false)
+	_squads.remove_dead()
 
 
 ## True once every group has finished spawning and no enemy is alive.
@@ -117,6 +131,10 @@ func get_enemies() -> EnemySystem:
 	return _enemies
 
 
+func get_squads() -> SquadSystem:
+	return _squads
+
+
 func get_night_number() -> int:
 	return _night_number
 
@@ -148,3 +166,5 @@ func _resolve_hits(night_tick: int) -> void:
 			_king.take_damage(hit.amount)
 		elif hit.target_kind == PendingHits.KIND_BUILDING:
 			_buildings.damage_building(_buildings.spot_at_index(hit.target_id), hit.amount)
+		elif hit.target_kind == PendingHits.KIND_UNIT:
+			_squads.damage_unit(hit.target_id, hit.amount, hit.attacker_kind)

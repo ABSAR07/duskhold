@@ -12,6 +12,8 @@ const MARKER_HEIGHT: float = 0.1
 ## D-02: one building type per plot, so the plot colour says which type it takes.
 const HOUSE_MARKER_COLOR := Color(0.82, 0.7, 0.48)
 const TOWER_MARKER_COLOR := Color(0.36, 0.44, 0.62)
+## Plots of military buildings (Barracks, Archery Range): a muted red between the other two.
+const MILITARY_MARKER_COLOR := Color(0.62, 0.3, 0.28)
 const HOUSE_COLOR := Color(0.78, 0.66, 0.45)
 const TOWER_COLOR := Color(0.42, 0.5, 0.68)
 const KEEP_COLOR := Color(0.55, 0.55, 0.58)
@@ -168,7 +170,7 @@ func _add_marker(spot_id: StringName) -> void:
 	mesh.bottom_radius = MARKER_RADIUS
 	mesh.height = MARKER_HEIGHT
 	var spot: BuildSpotDef = _ctx.buildings.get_spot(spot_id)
-	mesh.material = _make_material(_marker_color(spot.building_id))
+	mesh.material = _make_material(_marker_color(spot_id, spot.building_id))
 	var marker: MeshInstance3D = MeshInstance3D.new()
 	marker.name = "Spot_%s" % spot_id
 	marker.mesh = mesh
@@ -176,7 +178,10 @@ func _add_marker(spot_id: StringName) -> void:
 	marker.position = spot.position
 
 
-func _marker_color(building_id: StringName) -> Color:
+func _marker_color(spot_id: StringName, building_id: StringName) -> Color:
+	var building_def: BuildingDef = _ctx.buildings.get_building_def_for_spot(spot_id)
+	if building_def != null and building_def.unit_id != &"":
+		return MILITARY_MARKER_COLOR
 	if building_id == &"tower":
 		return TOWER_MARKER_COLOR
 	return HOUSE_MARKER_COLOR

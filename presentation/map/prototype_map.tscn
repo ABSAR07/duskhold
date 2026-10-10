@@ -1,9 +1,10 @@
-[gd_scene load_steps=23 format=3]
+[gd_scene load_steps=24 format=3]
 
 [ext_resource type="Script" path="res://presentation/map/map_root.gd" id="1_map"]
 [ext_resource type="Script" path="res://input/build_hold_controller.gd" id="2_hold"]
 [ext_resource type="Script" path="res://presentation/buildings/building_views.gd" id="3_views"]
 [ext_resource type="Script" path="res://presentation/enemies/enemy_views.gd" id="13_enemies"]
+[ext_resource type="Script" path="res://presentation/units/unit_views.gd" id="17_units"]
 [ext_resource type="Script" path="res://presentation/camera/camera_rig.gd" id="8_rig"]
 [ext_resource type="PackedScene" path="res://presentation/king/king.tscn" id="4_king"]
 [ext_resource type="PackedScene" path="res://ui/hud/hud.tscn" id="5_hud"]
@@ -77,6 +78,9 @@ script = ExtResource("3_views")
 
 [node name="EnemyViews" type="Node3D" parent="." groups=["run_bound"]]
 script = ExtResource("13_enemies")
+
+[node name="UnitViews" type="Node3D" parent="." groups=["run_bound"]]
+script = ExtResource("17_units")
 
 [node name="HUD" parent="." groups=["run_bound"] instance=ExtResource("5_hud")]
 

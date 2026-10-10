@@ -53,3 +53,9 @@ signal king_damaged(amount: int, hp: int, max_hp: int)
 signal king_downed(respawn_ticks: int, knockout_number: int)
 ## The king is back at the castle with full health (the countdown ended, or dawn came).
 signal king_respawned
+## A friendly unit was raised in squad `squad_id` (the military spot id) at `pos`.
+signal unit_spawned(unit_id: int, squad_id: StringName, def_id: StringName, pos: Vector2)
+## A unit lost `amount` hit points and has `hp` left.
+signal unit_damaged(unit_id: int, amount: int, hp: int)
+## A unit died and was removed; `killer_kind` is the attacker kind that landed the last hit.
+signal unit_died(unit_id: int, squad_id: StringName, pos: Vector2, killer_kind: StringName)
