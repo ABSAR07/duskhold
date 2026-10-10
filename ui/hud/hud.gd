@@ -11,7 +11,10 @@ extends CanvasLayer
 ## Player-facing copy. The banner counts down the enemies of a real night; a map without authored
 ## nights keeps the plain Phase 1 timed-night banner. The preview line sits under the start-night
 ## prompt and tells the player what the coming night brings (LOOP-02).
+## The start-night line reads "Hold [glyph] to start Night N": the words before and after the glyph.
 const START_NIGHT_PROMPT := "Hold %s to start Night %d"
+const START_NIGHT_PROMPT_PRE := "Hold"
+const START_NIGHT_PROMPT_POST := "to start Night %d"
 const NIGHT_BANNER := "Night %d of %d — %d enemies left"
 const TIMED_NIGHT_BANNER := "Night %d"
 const NIGHT_PREVIEW := "Night %d: %d enemies from %d directions"

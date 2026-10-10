@@ -18,6 +18,7 @@ var _selection: SelectionModel
 
 @onready var _king: King = $King
 @onready var _build_hold: BuildHoldController = $BuildHold
+@onready var _device_tracker: LastDeviceTracker = get_node_or_null("LastDeviceTracker")
 
 
 func _ready() -> void:
@@ -81,3 +82,9 @@ func get_build_hold() -> BuildHoldController:
 ## carries the selected ids explicitly.
 func get_selection() -> SelectionModel:
 	return _selection
+
+
+## The node that knows which device the player touched last; every on-screen prompt follows it. Null
+## on a map scene that has none.
+func get_device_tracker() -> LastDeviceTracker:
+	return _device_tracker

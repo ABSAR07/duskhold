@@ -43,8 +43,27 @@ func _hud(map_root: MapRoot) -> Node:
 	return map_root.get_node("HUD")
 
 
-func _prompt(map_root: MapRoot) -> Label:
-	return _hud(map_root).get_node_or_null("%StartNightPrompt") as Label
+func _prompt(map_root: MapRoot) -> Control:
+	return _hud(map_root).get_node_or_null("%StartNightPrompt") as Control
+
+
+## The glyph in the middle of the "Hold [glyph] to start Night N" line.
+func _glyph(map_root: MapRoot) -> PromptGlyph:
+	return _hud(map_root).get_node_or_null("%StartNightGlyph") as PromptGlyph
+
+
+## The words after the glyph: "to start Night N".
+func _post(map_root: MapRoot) -> Label:
+	return _hud(map_root).get_node_or_null("%StartNightPost") as Label
+
+
+## What the glyph shows for `device` once the HUD has noticed a rebind to `event`.
+func _glyph_text_after_rebind(map_root: MapRoot, event: InputEvent, device: int) -> String:
+	InputMap.action_erase_events(ACTION)
+	InputMap.action_add_event(ACTION, event)
+	_glyph(map_root).render(device)
+	await wait_process_frames(2)
+	return _glyph(map_root).shown_text()
 
 
 func _fill(map_root: MapRoot) -> ProgressBar:
@@ -121,7 +140,7 @@ func test_a_full_hold_starts_the_night_with_its_banner_and_mood() -> void:
 	var ctx: RunContext = map_root.get_context()
 	var night_hold: StartNightHoldController = _night_hold(map_root)
 	var lighting: DayNightLighting = _lighting(map_root)
-	var prompt: Label = _prompt(map_root)
+	var prompt: Control = _prompt(map_root)
 	var banner: Label = _banner(map_root)
 	var fill: ProgressBar = _fill(map_root)
 	var spot_label: Node3D = _spot_label(map_root)
@@ -168,7 +187,7 @@ func test_the_night_hands_back_to_a_new_day_through_dawn() -> void:
 	var map_root: MapRoot = await E2eSupport.spawn_map(self)
 	var ctx: RunContext = map_root.get_context()
 	var lighting: DayNightLighting = _lighting(map_root)
-	var prompt: Label = _prompt(map_root)
+	var prompt: Control = _prompt(map_root)
 	var banner: Label = _banner(map_root)
 	var gold_label: Label = _gold_label(map_root)
 	assert_not_null(lighting, "the Lighting node runs DayNightLighting")
@@ -176,7 +195,7 @@ func test_the_night_hands_back_to_a_new_day_through_dawn() -> void:
 	assert_not_null(banner, "the HUD has a phase banner")
 	if lighting == null or prompt == null or banner == null:
 		return
-	assert_string_contains(prompt.text, "Night 1", "the prompt names the coming night")
+	assert_string_contains(_post(map_root).text, "Night 1", "the prompt names the coming night")
 	_start_night_now(ctx)
 
 	var dawn: bool = await E2eSupport.wait_until(
@@ -195,7 +214,7 @@ func test_the_night_hands_back_to_a_new_day_through_dawn() -> void:
 	assert_eq(ctx.run_manager.get_day_number(), 2, "day two")
 	assert_eq(lighting.get_mood(), &"day", "day mood again")
 	assert_true(prompt.visible, "the prompt is back")
-	assert_string_contains(prompt.text, "Night 2", "the prompt names the next night")
+	assert_string_contains(_post(map_root).text, "Night 2", "the prompt names the next night")
 	assert_eq(gold_label.text, "Gold: %d" % ctx.economy.get_gold(), "HUD gold matches the ledger")
 
 
@@ -328,8 +347,23 @@ func test_a_key_still_held_when_the_day_returns_needs_a_fresh_press() -> void:
 	Input.action_release(ACTION)
 
 
+func test_the_prompt_reads_hold_glyph_to_start_night_n() -> void:
+	var map_root: MapRoot = await E2eSupport.spawn_map(self, null, _tuning)
+	var row: Control = _prompt(map_root)
+	var pre: Label = _hud(map_root).get_node("%StartNightPre") as Label
+
+	assert_eq(pre.text, Hud.START_NIGHT_PROMPT_PRE, "the words before the glyph")
+	assert_eq(Hud.START_NIGHT_PROMPT_PRE, "Hold", "the UI-SPEC copy")
+	assert_eq(_post(map_root).text, "to start Night 1", "and after it")
+	assert_eq(Hud.START_NIGHT_PROMPT_POST, "to start Night %d", "the UI-SPEC copy")
+	assert_eq(row.get_child(0), pre, "the words come first")
+	assert_eq(row.get_child(1), _glyph(map_root), "then the glyph")
+	assert_eq(row.get_child(2), _post(map_root), "then the rest")
+	assert_eq(_glyph(map_root).glyph_size, 32, "a 32 px glyph")
+
+
 func test_the_prompt_names_the_default_start_night_bindings() -> void:
-	# The project.godot defaults, set here so no rebind left by another test can change the text.
+	# The project.godot defaults, set here so no rebind left by another test can change the glyph.
 	var key: InputEventKey = InputEventKey.new()
 	key.physical_keycode = KEY_N
 	var button: InputEventJoypadButton = InputEventJoypadButton.new()
@@ -339,9 +373,9 @@ func test_the_prompt_names_the_default_start_night_bindings() -> void:
 	InputMap.action_add_event(ACTION, button)
 	var map_root: MapRoot = await E2eSupport.spawn_map(self, null, _tuning)
 
-	assert_eq(
-		_prompt(map_root).text, "Hold N / (Y) to start Night 1", "keyboard key, then gamepad button"
-	)
+	assert_eq(_glyph(map_root).shown_text(), "keyboard_n", "the keyboard key first")
+	_glyph(map_root).render(GlyphResolver.DEVICE_PAD)
+	assert_eq(_glyph(map_root).shown_text(), "xbox_button_y", "the gamepad button on the pad")
 
 
 func test_the_prompt_names_the_key_by_the_layout_label_not_the_qwerty_position() -> void:
@@ -354,9 +388,16 @@ func test_the_prompt_names_the_key_by_the_layout_label_not_the_qwerty_position()
 	hud.physical_label_resolver = func(physical: int) -> int:
 		return KEY_B if physical == KEY_N else physical
 
-	var text: String = await _prompt_after_rebind(map_root, key)
+	var text: String = await _glyph_text_after_rebind(map_root, key, GlyphResolver.DEVICE_KEYBOARD)
 
-	assert_eq(text, "Hold Ctrl+B to start Night 1", "the cap's label, modifier kept")
+	assert_eq(text, "Ctrl+B", "the label on the keycap, modifier kept, on a keycap")
+	assert_true(_glyph(map_root).is_keycap(), "a chord has no single tile")
+	var plain: InputEventKey = InputEventKey.new()
+	plain.physical_keycode = KEY_N
+	var tile: String = await _glyph_text_after_rebind(
+		map_root, plain, GlyphResolver.DEVICE_KEYBOARD
+	)
+	assert_eq(tile, "keyboard_b", "the same layout label picks the tile")
 
 
 func test_the_prompt_follows_a_runtime_rebind_of_start_night() -> void:
@@ -368,7 +409,9 @@ func test_the_prompt_follows_a_runtime_rebind_of_start_night() -> void:
 
 	await wait_process_frames(2)
 
-	assert_eq(_prompt(map_root).text, "Hold M to start Night 1", "the new key is named, no pad")
+	assert_eq(_glyph(map_root).shown_text(), "keyboard_m", "the new key is shown")
+	_glyph(map_root).render(GlyphResolver.DEVICE_PAD)
+	assert_eq(_glyph(map_root).shown_text(), GlyphResolver.UNBOUND_TEXT, "and the pad has none")
 
 
 func test_the_prompt_follows_a_bound_key_edited_in_place() -> void:
@@ -378,58 +421,87 @@ func test_the_prompt_follows_a_bound_key_edited_in_place() -> void:
 	InputMap.action_erase_events(ACTION)
 	InputMap.action_add_event(ACTION, key)
 	await wait_process_frames(2)
-	assert_eq(_prompt(map_root).text, "Hold N to start Night 1", "the first key is named")
+	assert_eq(_glyph(map_root).shown_text(), "keyboard_n", "the first key is shown")
 
-	# The same event object, edited: the InputMap's event list still holds the identical instance.
+	# The same event object, edited: the InputMap event list still holds the identical instance.
 	key.physical_keycode = KEY_M
 	await wait_process_frames(2)
 
-	assert_eq(_prompt(map_root).text, "Hold M to start Night 1", "the edit shows up in the prompt")
+	assert_eq(_glyph(map_root).shown_text(), "keyboard_m", "the edit shows up in the prompt")
 
 
-## Rebinds start_night to `event` alone and returns the prompt text once the HUD has noticed.
-func _prompt_after_rebind(map_root: MapRoot, event: InputEvent) -> String:
-	InputMap.action_erase_events(ACTION)
-	InputMap.action_add_event(ACTION, event)
-	await wait_process_frames(2)
-	return _prompt(map_root).text
-
-
-func test_the_prompt_names_a_trigger_or_mouse_button_binding() -> void:
+func test_the_prompt_shows_a_trigger_a_mouse_button_and_a_stick() -> void:
 	var map_root: MapRoot = await E2eSupport.spawn_map(self, null, _tuning)
 	var trigger: InputEventJoypadMotion = InputEventJoypadMotion.new()
 	trigger.axis = JOY_AXIS_TRIGGER_RIGHT
 	trigger.axis_value = 1.0
 	var click: InputEventMouseButton = InputEventMouseButton.new()
 	click.button_index = MOUSE_BUTTON_MIDDLE
-
 	var stick_left: InputEventJoypadMotion = InputEventJoypadMotion.new()
 	stick_left.axis = JOY_AXIS_LEFT_X
 	stick_left.axis_value = -1.0
 	var stick_right: InputEventJoypadMotion = InputEventJoypadMotion.new()
 	stick_right.axis = JOY_AXIS_LEFT_X
 	stick_right.axis_value = 1.0
+	var pad: int = GlyphResolver.DEVICE_PAD
+	var keyboard: int = GlyphResolver.DEVICE_KEYBOARD
 
-	var trigger_text: String = await _prompt_after_rebind(map_root, trigger)
-	var click_text: String = await _prompt_after_rebind(map_root, click)
-	var left_text: String = await _prompt_after_rebind(map_root, stick_left)
-	var right_text: String = await _prompt_after_rebind(map_root, stick_right)
+	var trigger_tile: String = await _glyph_text_after_rebind(map_root, trigger, pad)
+	var trigger_on_keys: String = await _glyph_text_after_rebind(map_root, trigger, keyboard)
+	var click_text: String = await _glyph_text_after_rebind(map_root, click, keyboard)
+	var left_tile: String = await _glyph_text_after_rebind(map_root, stick_left, pad)
+	var right_tile: String = await _glyph_text_after_rebind(map_root, stick_right, pad)
 
-	assert_eq(trigger_text, "Hold (RT) to start Night 1", "a trigger binding is named, not unbound")
-	assert_eq(click_text, "Hold %s to start Night 1" % click.as_text(), "a mouse button is named")
-	assert_eq(left_text, "Hold (Axis 0-) to start Night 1", "a stick pushed one way")
-	assert_eq(right_text, "Hold (Axis 0+) to start Night 1", "and the other way reads differently")
+	assert_eq(trigger_tile, "xbox_rt", "a trigger binding is shown, not unbound")
+	assert_eq(trigger_on_keys, GlyphResolver.UNBOUND_TEXT, "but only on the pad")
+	assert_eq(click_text, click.as_text(), "a mouse button with no tile is named")
+	assert_eq(left_tile, "xbox_ls", "a stick pushed one way")
+	assert_eq(right_tile, "xbox_ls", "and the other way share the stick tile")
+	var identity: Callable = func(physical: int) -> int: return physical
+	assert_ne(
+		GlyphResolver.keycap_text(stick_left, identity),
+		GlyphResolver.keycap_text(stick_right, identity),
+		"while their texts still tell the two ways apart"
+	)
 
 
-func test_the_prompt_keeps_key_modifiers_and_skips_an_event_that_names_no_key() -> void:
+func test_the_prompt_keeps_key_modifiers_and_reads_unbound_for_an_event_naming_no_key() -> void:
 	var map_root: MapRoot = await E2eSupport.spawn_map(self, null, _tuning)
 	var chord: InputEventKey = InputEventKey.new()
 	chord.physical_keycode = KEY_N
 	chord.ctrl_pressed = true
 	var blank: InputEventKey = InputEventKey.new()
+	var keyboard: int = GlyphResolver.DEVICE_KEYBOARD
 
-	var chord_text: String = await _prompt_after_rebind(map_root, chord)
-	var blank_text: String = await _prompt_after_rebind(map_root, blank)
+	var chord_text: String = await _glyph_text_after_rebind(map_root, chord, keyboard)
+	var blank_text: String = await _glyph_text_after_rebind(map_root, blank, keyboard)
 
-	assert_eq(chord_text, "Hold Ctrl+N to start Night 1", "the modifier is part of the hint")
-	assert_eq(blank_text, "Hold (unbound) to start Night 1", "no stray separator or blank name")
+	assert_eq(chord_text, "Ctrl+N", "the modifier is part of the keycap")
+	assert_eq(blank_text, GlyphResolver.UNBOUND_TEXT, "no stray separator or blank name")
+
+
+func test_a_device_switch_during_the_hold_swaps_the_glyph_and_leaves_the_hold_alone() -> void:
+	var map_root: MapRoot = await E2eSupport.spawn_map(self, null, _tuning)
+	var night_hold: StartNightHoldController = _night_hold(map_root)
+	var tracker: LastDeviceTracker = map_root.get_device_tracker()
+	var now: Array[float] = [1.0]
+	tracker.time_source = func() -> float: return now[0]
+	assert_eq(_glyph(map_root).shown_text(), "keyboard_n", "the keyboard glyph first")
+	Input.action_press(ACTION)
+	await wait_process_frames(3)
+	var before: float = night_hold.get_ratio()
+	assert_gt(before, 0.0, "the hold is running")
+
+	var touch: InputEventJoypadButton = InputEventJoypadButton.new()
+	touch.button_index = JOY_BUTTON_LEFT_STICK
+	touch.pressed = true
+	Input.parse_input_event(touch)
+	Input.flush_buffered_events()
+	assert_eq(_glyph(map_root).shown_text(), "xbox_button_y", "the glyph swapped at once")
+	assert_eq(night_hold.get_ratio(), before, "the fill is untouched by the switch")
+	await wait_process_frames(3)
+	assert_gt(night_hold.get_ratio(), before, "and the hold keeps filling")
+	Input.action_release(ACTION)
+	touch.pressed = false
+	Input.parse_input_event(touch)
+	Input.flush_buffered_events()

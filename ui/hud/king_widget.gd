@@ -122,6 +122,11 @@ func get_caption() -> Label:
 	return _caption
 
 
+## The glyph of the slam key or button on the ability badge. Test hook.
+func get_ability_glyph() -> PromptGlyph:
+	return null
+
+
 func _process(_delta: float) -> void:
 	if _ctx == null:
 		return

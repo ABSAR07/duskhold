@@ -78,6 +78,11 @@ func current_text() -> String:
 	return text if visible else ""
 
 
+## True while a toast or an armed line holds the slot (the command hints yield it).
+func is_occupied() -> bool:
+	return false
+
+
 ## An empty prompt clears the line.
 func _on_prompt(message: String) -> void:
 	if message.is_empty():
