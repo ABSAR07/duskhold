@@ -11,6 +11,12 @@ const MAX_ENEMIES_PER_NIGHT: int = 300
 ## exponent digit, is a validate() error and never arms the castle (review WR-01).
 const MAX_CASTLE_ATTACK_INTERVAL_S: float = 3600.0
 
+## The ground half-extent a map may declare, in metres. A guard against a bad data file: a larger
+## value would overflow the centimetre points of a squad order, and validate() reports it.
+const MAX_GROUND_HALF_EXTENT: float = 10000.0
+## The half-extent a map gets when it names none: the 180 m ground of the prototype map.
+const DEFAULT_GROUND_HALF_EXTENT: float = 90.0
+
 ## The reserved dawn_payout per_spot key the base income is listed under. No spot may use this id
 ## (validate() reports it), so a House entry can never be merged with the base income.
 const CASTLE_PAYOUT_KEY: StringName = &"castle"
@@ -56,7 +62,7 @@ const CASTLE_PAYOUT_KEY: StringName = &"castle"
 @export var castle_projectile_speed: float = 0.0
 ## Half the side of the square ground in metres. Squad command points outside it are refused
 ## (RESEARCH A8); the shipped ground is 180 m wide.
-@export var ground_half_extent: float = 90.0
+@export var ground_half_extent: float = DEFAULT_GROUND_HALF_EXTENT
 
 
 ## The enemy type with this id, or null.
@@ -97,6 +103,17 @@ func validate() -> PackedStringArray:
 		errors.append("starting_gold is negative (%d)" % starting_gold)
 	if base_dawn_income < 0:
 		errors.append("base_dawn_income is negative (%d)" % base_dawn_income)
+	if (
+		not is_finite(ground_half_extent)
+		or ground_half_extent <= 0.0
+		or ground_half_extent > MAX_GROUND_HALF_EXTENT
+	):
+		errors.append(
+			(
+				"ground_half_extent is %s, expected above 0 and at most %s"
+				% [ground_half_extent, MAX_GROUND_HALF_EXTENT]
+			)
+		)
 	var building_ids: Dictionary = {}
 	for building_def: BuildingDef in buildings:
 		if building_def == null:

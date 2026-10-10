@@ -191,5 +191,5 @@ func test_a_patrol_with_nobody_alive_waits_at_its_start() -> void:
 	_squads.remove_dead()
 	_patrol([FIRST] as Array[Vector2])
 	var start: Vector2 = _squads.patrol_path_of(BARRACKS)[0]
-	_steps(30, false)
+	_steps(30, true)
 	assert_eq(_squads.anchor_of(BARRACKS), start, "no leg is walked with nobody to walk it")

@@ -47,7 +47,9 @@ func _init(
 	run_manager = RunManager.new(
 		events, economy, buildings, tuning, night, king, castle, map_config.base_dawn_income, squads
 	)
-	commands = CommandProcessor.new(economy, buildings, run_manager, events, king, squads)
+	commands = CommandProcessor.new(
+		economy, buildings, run_manager, events, king, squads, map_config
+	)
 
 
 ## Runs one fixed simulation step: the king's timers, then the night while it is NIGHT or the army

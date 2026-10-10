@@ -9,8 +9,10 @@ extends RefCounted
 ## walks back to its slot when nothing is valid. Losses trickle back during the night at the tier
 ## pace while the building stands and the dawn restore makes every squad whole. Squads are stepped
 ## in creation order and their units in ascending id (DR-6), between the king and the towers (DR-8).
-## Whole-squad orders (follow, hold, rally) change a squad anchor and resting stance; they persist
-## through nights and dawns until the player gives another (D-14).
+## Whole-squad orders change a squad anchor and resting stance and persist through nights and dawns
+## until the player gives another (D-14). Follow, hold and patrol act at once; move and attack-move
+## are walks that wait in the squad queue (at most SquadOrder.MAX_QUEUE) and run one after the
+## other, each ending in post at its point unless a hold, follow or patrol comes next (D-09).
 ## No trigonometry, no engine clock, no global RNG (DR-1 to DR-10).
 
 ## Guard against a bad data file, not a tuning value: a squad never raises more units than this,
@@ -80,32 +82,50 @@ func unit_ids_of(squad_id: StringName) -> Array[int]:
 	return result
 
 
-## The stance the squad rests in, one of the SquadOrder STANCE_ names; &"" for an unknown squad. A
-## rally reports hold at once: the stance it will rest in when it arrives.
+## The stance the squad will rest in once its queue is done, one of the SquadOrder STANCE_ names;
+## &"" for an unknown squad. A rally reports hold at once, and a squad walking to a point reports
+## post.
 func resting_stance(squad_id: StringName) -> StringName:
 	var squad: Squad = _squads.get(squad_id) as Squad
-	return squad.resting_stance if squad != null else &""
-
-
-## The one-shot verb (a SquadOrder VERB_ name) the squad is carrying out until it arrives; &"" when
-## it is carrying none out, and for an unknown squad. Follow, hold and rally carry none out (rally
-## shows the hold it ends in); move and attack-move report here from plan 03-07.
-func executing_verb(squad_id: StringName) -> StringName:
-	if not _squads.has(squad_id):
+	if squad == null:
 		return &""
+	if not squad.queue.is_empty():
+		return SquadOrders.stance_after(squad.queue.back().verb)
+	return squad.resting_stance
+
+
+## The one-shot verb (a SquadOrder VERB_ name) the squad is carrying out until it arrives:
+## attack_move while an attack-move runs, otherwise &"" (and for an unknown squad). Follow, hold,
+## patrol and rally carry none out (rally shows the hold it ends in) and a plain move shows none:
+## the UI-SPEC glyph set has no move shape.
+func executing_verb(squad_id: StringName) -> StringName:
+	var squad: Squad = _squads.get(squad_id) as Squad
+	if squad == null or squad.queue.is_empty():
+		return &""
+	if squad.queue[0].verb == SquadOrder.VERB_ATTACK_MOVE:
+		return SquadOrder.VERB_ATTACK_MOVE
 	return &""
 
 
 ## The squad's orders, the running one first, as {verb, points} snapshots (points in metres).
 ## Hold, follow and patrol act at once and leave the queue, so only waiting walks remain. Empty for
 ## an unknown squad.
-func orders_of(_squad_id: StringName) -> Array[Dictionary]:
-	return []
+func orders_of(squad_id: StringName) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var squad: Squad = _squads.get(squad_id) as Squad
+	if squad == null:
+		return result
+	for order: SquadOrder in squad.queue:
+		result.append({"verb": order.verb, "points": order.points.duplicate()})
+	return result
 
 
 ## The patrol path the squad walks, centroid first, as a copy; empty unless it is patrolling.
-func patrol_path_of(_squad_id: StringName) -> Array[Vector2]:
-	return []
+func patrol_path_of(squad_id: StringName) -> Array[Vector2]:
+	var squad: Squad = _squads.get(squad_id) as Squad
+	if squad == null or squad.resting_stance != SquadOrder.STANCE_PATROL:
+		return [] as Array[Vector2]
+	return squad.patrol_path.duplicate()
 
 
 ## Where the squad formation centres; the zero vector for an unknown squad.
@@ -182,28 +202,34 @@ func step(
 		for unit_id: int in squad.unit_ids:
 			if _units.is_alive(unit_id):
 				_step_unit(squad, unit_id, tick, enemies, hits, night)
-		if squad.moving:
-			_update_walk(squad)
+		_advance_orders(squad, king_position)
 	_units.separate()
 
 
 ## Gives whole squads a verb (D-09). The squads named in `squad_ids` act in creation order and
 ## squad_ordered is emitted in that order, whatever order the ids arrive in. `king_position` is the
 ## king where he stood at the apply tick. Follow takes the king as its anchor each step, hold
-## freezes the anchor at the centroid of the living units (the post when none is alive) and rally
-## walks to the king position, ignoring enemies, and holds there. A verb this plan does not know is
-## ignored.
-## The caller (CommandProcessor) has already validated the ids and the verb. `points` (metres) are
-## for the point verbs of plan 03-07.
+## freezes the anchor at the centroid of the living units (the post when none is alive), rally
+## walks to the king position, ignoring enemies, and holds there (a move then a hold). Move walks to
+## the point ignoring enemies and rests in post there; attack-move walks to it fighting what comes
+## within guard_range of each unit; patrol walks a path that starts at the squad centroid.
+## A non-queued order clears the queue first. A queued one is appended: it runs when the walks
+## before it are done, a tenth replaces the last, and one that would follow a hold, follow or patrol
+## still waiting in the queue is skipped (the command gate has already refused it, QUEUE_CLOSED).
+## The caller (CommandProcessor) has already validated the ids, the verb and the points; a point
+## verb without a point is ignored here.
 func apply_order(
 	squad_ids: Array[StringName],
 	verb: StringName,
-	_points: Array[Vector2],
+	points: Array[Vector2],
 	queued: bool,
 	king_position: Vector2
 ) -> void:
 	if not SquadOrders.is_supported(verb):
 		return
+	if SquadOrders.needs_points(verb) and points.is_empty():
+		return
+	var carried: Array[Vector2] = _carried_points(verb, points, king_position)
 	var wanted: Dictionary = {}
 	for squad_id: StringName in squad_ids:
 		wanted[squad_id] = true
@@ -211,9 +237,22 @@ func apply_order(
 		if not wanted.has(squad_id):
 			continue
 		var squad: Squad = _squads[squad_id]
+		if (
+			queued
+			and not squad.queue.is_empty()
+			and SquadOrders.is_terminal(squad.queue.back().verb)
+		):
+			continue
 		if not queued:
 			squad.queue.clear()
-		_events.squad_ordered.emit(squad_id, verb, queued, _begin_order(squad, verb, king_position))
+		var was_idle: bool = squad.queue.is_empty()
+		_enqueue(squad, verb, carried)
+		if was_idle:
+			_run_queue(squad, king_position, true)
+		var resolved: Array[Vector2] = carried.duplicate()
+		if verb == SquadOrder.VERB_HOLD and was_idle:
+			resolved.append(squad.anchor)
+		_events.squad_ordered.emit(squad_id, verb, queued, resolved)
 
 
 ## Forwards a landed hit to the unit; a hit on a gone unit drops silently.
@@ -256,26 +295,77 @@ func _sync(night: bool) -> void:
 			_fill(squad)
 
 
-## Starts `verb` on the squad and returns the metres it resolved: none for follow, the frozen anchor
-## for hold, the king position for rally.
-func _begin_order(squad: Squad, verb: StringName, king_position: Vector2) -> Array[Vector2]:
-	var resolved: Array[Vector2] = []
+## The ground points an order carries once resolved: one for a move or attack-move, at most
+## MAX_PATROL_POINTS - 1 for a patrol, the king's position for a rally, none for follow and hold.
+func _carried_points(
+	verb: StringName, points: Array[Vector2], king_position: Vector2
+) -> Array[Vector2]:
+	var carried: Array[Vector2] = []
+	if SquadOrders.is_walk(verb):
+		carried.append(points[0])
+	elif verb == SquadOrder.VERB_PATROL:
+		carried.append_array(points.slice(0, SquadOrder.MAX_PATROL_POINTS - 1))
+	elif verb == SquadOrder.VERB_RALLY:
+		carried.append(king_position)
+	return carried
+
+
+## Appends the order (a rally as a move to its point then a hold) to the queue. When the queue is
+## too full for the new entries, the last entries make room: a tenth order replaces the ninth.
+func _enqueue(squad: Squad, verb: StringName, carried: Array[Vector2]) -> void:
+	var entries: Array[SquadOrder] = []
+	if verb == SquadOrder.VERB_RALLY:
+		entries.append(SquadOrder.new(SquadOrder.VERB_MOVE, carried))
+		entries.append(SquadOrder.new(SquadOrder.VERB_HOLD))
+	else:
+		entries.append(SquadOrder.new(verb, carried))
+	squad.queue.resize(mini(squad.queue.size(), SquadOrder.MAX_QUEUE - entries.size()))
+	squad.queue.append_array(entries)
+
+
+## Starts the order at the head of the queue. A walk stays at the head until it is done; hold,
+## follow and patrol take effect and leave the queue, and so would anything queued behind them (the
+## gate lets nothing in). `at_apply` is true for the order that was given this very tick: a hold
+## then freezes the centroid, while a hold reached at the end of a walk keeps the spot it walked to.
+func _run_queue(squad: Squad, king_position: Vector2, at_apply: bool) -> void:
+	var fresh: bool = at_apply
+	while not squad.queue.is_empty():
+		var head: SquadOrder = squad.queue[0]
+		_begin(squad, head, king_position, fresh)
+		fresh = false
+		if SquadOrders.is_walk(head.verb):
+			return
+		squad.queue.pop_front()
 	squad.moving = false
 	squad.moving_ticks_left = 0
-	if verb == SquadOrder.VERB_FOLLOW:
+
+
+func _begin(squad: Squad, order: SquadOrder, king_position: Vector2, at_apply: bool) -> void:
+	squad.moving = false
+	squad.moving_ticks_left = 0
+	squad.settled = false
+	if order.verb != SquadOrder.VERB_PATROL:
+		squad.patrol_path.clear()
+	if order.verb == SquadOrder.VERB_FOLLOW:
 		squad.resting_stance = SquadOrder.STANCE_FOLLOW
 		squad.anchor = king_position
-	elif verb == SquadOrder.VERB_HOLD:
+	elif order.verb == SquadOrder.VERB_HOLD:
 		squad.resting_stance = SquadOrder.STANCE_HOLD
-		squad.anchor = SquadOrders.centroid(_units, squad.unit_ids, squad.home)
-		resolved.append(squad.anchor)
-	elif verb == SquadOrder.VERB_RALLY:
-		squad.resting_stance = SquadOrder.STANCE_HOLD
-		squad.anchor = king_position
-		squad.moving = true
+		if at_apply:
+			squad.anchor = SquadOrders.centroid(_units, squad.unit_ids, squad.home)
+	elif SquadOrders.is_walk(order.verb):
+		squad.resting_stance = SquadOrder.STANCE_POST
+		squad.anchor = order.points[0]
+		squad.moving = order.verb == SquadOrder.VERB_MOVE
 		squad.moving_ticks_left = _walk_budget_ticks(squad)
-		resolved.append(king_position)
-	return resolved
+	elif order.verb == SquadOrder.VERB_PATROL:
+		squad.resting_stance = SquadOrder.STANCE_PATROL
+		squad.patrol_path = [SquadOrders.centroid(_units, squad.unit_ids, squad.anchor)]
+		squad.patrol_path.append_array(order.points)
+		squad.patrol_index = 0
+		squad.patrol_direction = 1
+		squad.anchor = squad.patrol_path[0]
+		squad.moving_ticks_left = _walk_budget_ticks(squad)
 
 
 ## Steps a one-shot walk may take: the time the farthest unit needs to reach its slot plus the
@@ -295,12 +385,54 @@ func _formation_reached(squad: Squad) -> bool:
 	)
 
 
-## Ends a walk when everyone has arrived or the budget ran out.
-func _update_walk(squad: Squad) -> void:
-	squad.moving_ticks_left -= 1
-	if squad.moving_ticks_left <= 0 or _formation_reached(squad):
-		squad.moving = false
-		squad.moving_ticks_left = 0
+## After the units moved: ends the walk at the head of the queue when everyone has arrived or its
+## budget ran out and starts the next order, or moves a patrolling squad on to its next waypoint.
+func _advance_orders(squad: Squad, king_position: Vector2) -> void:
+	if not squad.queue.is_empty():
+		if _leg_done(squad):
+			squad.queue.pop_front()
+			_run_queue(squad, king_position, false)
+	elif squad.resting_stance == SquadOrder.STANCE_PATROL:
+		_advance_patrol(squad)
+
+
+## Counts the leg budget down (a step spent fighting is not counted) and says whether the leg is
+## over: the formation is at its slots or the budget ran out.
+func _leg_done(squad: Squad) -> bool:
+	if not _any_engaged(squad):
+		squad.moving_ticks_left -= 1
+	return squad.moving_ticks_left <= 0 or _formation_reached(squad)
+
+
+## Ping-pong: from the last waypoint the squad turns back, from the first it turns round again. A
+## squad with nobody alive waits where it is.
+func _advance_patrol(squad: Squad) -> void:
+	if squad.patrol_path.size() < 2 or _living_count(squad) == 0:
+		return
+	if not _leg_done(squad):
+		return
+	var next: int = squad.patrol_index + squad.patrol_direction
+	if next < 0 or next >= squad.patrol_path.size():
+		squad.patrol_direction = -squad.patrol_direction
+		next = squad.patrol_index + squad.patrol_direction
+	squad.patrol_index = next
+	squad.anchor = squad.patrol_path[next]
+	squad.moving_ticks_left = _walk_budget_ticks(squad)
+
+
+func _any_engaged(squad: Squad) -> bool:
+	for unit_id: int in squad.unit_ids:
+		if _units.is_alive(unit_id) and _units.target_of(unit_id) >= 0:
+			return true
+	return false
+
+
+## True while a unit measures its guard and leash from its own position instead of the anchor: on an
+## attack-move and on a patrol the squad is on the way somewhere.
+func _is_mobile(squad: Squad) -> bool:
+	if squad.queue.is_empty():
+		return squad.resting_stance == SquadOrder.STANCE_PATROL
+	return squad.queue[0].verb == SquadOrder.VERB_ATTACK_MOVE
 
 
 func _make_squad(spot_id: StringName, building_def: BuildingDef, unit_def: UnitDef) -> Squad:
@@ -430,19 +562,24 @@ func _step_unit(
 
 ## Keeps a committed target while it is alive and within leash_range of the anchor; otherwise looks
 ## for the nearest enemy within guard_range of the anchor, but only on the unit own staggered
-## rescan tick (Pitfall 5). Returns the enemy id, or -1.
+## rescan tick (Pitfall 5). On an attack-move and on a patrol both are measured from the unit's own
+## position instead, so a squad fights what it meets on the way (Pattern 3). Returns the enemy id,
+## or -1.
 func _choose_target(
 	squad: Squad, unit_id: int, current: int, tick: int, enemies: EnemySystem
 ) -> int:
 	var def: UnitDef = squad.unit_def
+	var origin: Vector2 = squad.anchor
+	if _is_mobile(squad):
+		origin = _units.position_of(unit_id)
 	if current >= 0 and enemies.is_alive(current):
 		var limit: float = def.leash_range * def.leash_range
-		if squad.anchor.distance_squared_to(enemies.position_of(current)) <= limit:
+		if origin.distance_squared_to(enemies.position_of(current)) <= limit:
 			return current
 	var rescan_ticks: int = maxi(SimClock.ticks(def.retarget_interval_seconds), 1)
 	if not EnemySystem.is_rescan_tick(tick, unit_id, rescan_ticks):
 		return -1
-	return TargetQuery.nearest_enemy(enemies, squad.anchor, def.guard_range)
+	return TargetQuery.nearest_enemy(enemies, origin, def.guard_range)
 
 
 ## With nothing to fight a unit walks back to its formation slot around the anchor.

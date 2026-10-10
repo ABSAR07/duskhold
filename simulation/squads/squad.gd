@@ -36,5 +36,13 @@ var moving_ticks_left: int = 0
 ## distance of its slot, so units with nothing to fight keep still instead of creeping to the exact
 ## slot. Recomputed at the start of the squad turn each step; false for any other stance.
 var settled: bool = false
-## Orders waiting behind the running one; used from plan 03-07.
+## The order queue, the running order first. Only walks (move, attack-move) wait here while they
+## run: hold, follow and patrol act at once and leave it, so a terminal verb is in the queue only
+## while it waits behind a walk. Empty when the squad has nothing left to do.
 var queue: Array[SquadOrder] = []
+## The patrol path, the centroid at the start first; empty unless the squad rests on a patrol.
+var patrol_path: Array[Vector2] = []
+## The waypoint of `patrol_path` the squad is walking to (or standing at).
+var patrol_index: int = 0
+## +1 walking toward the end of the path, -1 walking back.
+var patrol_direction: int = 1

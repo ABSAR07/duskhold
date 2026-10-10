@@ -383,3 +383,4 @@ castle_attack_damage = 2
 castle_attack_range = 22.0
 castle_attack_interval = 1.5
 castle_projectile_speed = 27.0
+ground_half_extent = 90.0

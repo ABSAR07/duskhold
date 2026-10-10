@@ -12,14 +12,50 @@ const ARRIVE_DISTANCE: float = 0.25
 const WALK_GRACE_SECONDS: float = 2.0
 
 
-## True for the verbs the order state machine carries out in this plan: follow, hold and rally.
-## The point verbs (move, attack-move, patrol) join in plan 03-07.
+## True for the verbs the order state machine carries out: follow, hold, rally and the point verbs
+## move, attack-move and patrol.
 static func is_supported(verb: StringName) -> bool:
 	return (
 		verb == SquadOrder.VERB_FOLLOW
 		or verb == SquadOrder.VERB_HOLD
 		or verb == SquadOrder.VERB_RALLY
+		or needs_points(verb)
 	)
+
+
+## True for the verbs that carry ground points: move, attack-move and patrol.
+static func needs_points(verb: StringName) -> bool:
+	return (
+		verb == SquadOrder.VERB_MOVE
+		or verb == SquadOrder.VERB_ATTACK_MOVE
+		or verb == SquadOrder.VERB_PATROL
+	)
+
+
+## True for the walks that stay in the queue while they run: move and attack-move.
+static func is_walk(verb: StringName) -> bool:
+	return verb == SquadOrder.VERB_MOVE or verb == SquadOrder.VERB_ATTACK_MOVE
+
+
+## True for the verbs nothing can follow in a queue (D-09): hold, follow and patrol never end.
+static func is_terminal(verb: StringName) -> bool:
+	return (
+		verb == SquadOrder.VERB_HOLD
+		or verb == SquadOrder.VERB_FOLLOW
+		or verb == SquadOrder.VERB_PATROL
+	)
+
+
+## The stance a squad rests in once an order with this verb is its last: hold, follow and patrol
+## rest in their own stance, a walk ends in post at the point it walked to.
+static func stance_after(verb: StringName) -> StringName:
+	if verb == SquadOrder.VERB_HOLD:
+		return SquadOrder.STANCE_HOLD
+	if verb == SquadOrder.VERB_FOLLOW:
+		return SquadOrder.STANCE_FOLLOW
+	if verb == SquadOrder.VERB_PATROL:
+		return SquadOrder.STANCE_PATROL
+	return SquadOrder.STANCE_POST
 
 
 ## The mean position of the living units in `unit_ids` (ascending ids, so the float sum is the same

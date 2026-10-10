@@ -26,6 +26,8 @@ var _run_manager: RunManager
 var _events: SimEvents
 var _king: KingState
 var _squads: SquadSystem
+## The map whose ground bounds the squad command points; null falls back to the default extent.
+var _map: MapConfig
 ## Intent script -> handler Callable; one return path for every intent.
 var _handlers: Dictionary = {}
 
@@ -36,7 +38,8 @@ func _init(
 	run_manager: RunManager,
 	events: SimEvents,
 	king: KingState = null,
-	squads: SquadSystem = null
+	squads: SquadSystem = null,
+	map: MapConfig = null
 ) -> void:
 	_economy = economy
 	_buildings = buildings
@@ -44,6 +47,7 @@ func _init(
 	_events = events
 	_king = king
 	_squads = squads
+	_map = map
 	_handlers = {
 		BuildIntent: _submit_build,
 		StartNightIntent: _submit_start_night,
@@ -101,8 +105,9 @@ func _ability_rejection() -> StringName:
 	return OK
 
 
-## Check order: RUN_OVER, NO_SQUADS, UNKNOWN_SQUAD, UNKNOWN_VERB. A rejection returns the reason,
-## announces command_rejected and changes nothing (T-03-10). CommandProcessor is the only place
+## Check order: RUN_OVER, NO_SQUADS, UNKNOWN_SQUAD, UNKNOWN_VERB, BAD_POINT or TOO_MANY_POINTS,
+## QUEUE_CLOSED. A rejection returns the reason, announces command_rejected and changes nothing
+## (T-03-10, T-03-12). CommandProcessor is the only place
 ## centimetres become metres: one IEEE division per component. The order is applied at once, between
 ## two steps, so it reads the state the last completed step left (it carries no tick).
 func _submit_squad_order(intent: RefCounted) -> StringName:
@@ -121,6 +126,19 @@ func _submit_squad_order(intent: RefCounted) -> StringName:
 
 
 func _squad_order_rejection(order: SquadOrderIntent) -> StringName:
+	var reason: StringName = _order_target_rejection(order)
+	if reason != OK:
+		return reason
+	reason = _point_rejection(order)
+	if reason != OK:
+		return reason
+	if order.queued and _queue_is_closed(order.squad_ids):
+		return QUEUE_CLOSED
+	return OK
+
+
+## RUN_OVER, NO_SQUADS, UNKNOWN_SQUAD, UNKNOWN_VERB: who is ordered and what.
+func _order_target_rejection(order: SquadOrderIntent) -> StringName:
 	if _run_manager.is_run_over():
 		return RUN_OVER
 	if order.squad_ids.is_empty():
@@ -132,6 +150,49 @@ func _squad_order_rejection(order: SquadOrderIntent) -> StringName:
 	if not SquadOrders.is_supported(order.verb):
 		return UNKNOWN_VERB
 	return OK
+
+
+## A move or attack-move needs exactly one point, a patrol one to MAX_PATROL_POINTS - 1 (the path
+## also starts at the squad centroid); every point must lie on the ground, within the map's half
+## extent on both axes. Follow, hold and rally carry none, and any given are ignored.
+func _point_rejection(order: SquadOrderIntent) -> StringName:
+	var count: int = order.points.size()
+	if SquadOrders.is_walk(order.verb):
+		if count != 1:
+			return BAD_POINT
+	elif order.verb == SquadOrder.VERB_PATROL:
+		if count == 0:
+			return BAD_POINT
+		if count > SquadOrder.MAX_PATROL_POINTS - 1:
+			return TOO_MANY_POINTS
+	else:
+		return OK
+	var limit: int = _ground_limit_cm()
+	for point: Vector2i in order.points:
+		if point.x < -limit or point.x > limit or point.y < -limit or point.y > limit:
+			return BAD_POINT
+	return OK
+
+
+## The half extent of the ground in whole centimetres. A bad extent (validate() reports one) bounds
+## nothing: every point is refused.
+func _ground_limit_cm() -> int:
+	var extent: float = MapConfig.DEFAULT_GROUND_HALF_EXTENT
+	if _map != null:
+		extent = _map.ground_half_extent
+	if not is_finite(extent) or extent <= 0.0:
+		return -1
+	return roundi(minf(extent, MapConfig.MAX_GROUND_HALF_EXTENT) * 100.0)
+
+
+## True when a squad's queue still ends in a hold, follow or patrol that has not run yet: nothing
+## can be queued behind it (D-09).
+func _queue_is_closed(squad_ids: Array[StringName]) -> bool:
+	for squad_id: StringName in squad_ids:
+		var pending: Array[Dictionary] = _squads.orders_of(squad_id)
+		if not pending.is_empty() and SquadOrders.is_terminal(pending.back()["verb"] as StringName):
+			return true
+	return false
 
 
 func _submit_start_night(_intent: RefCounted) -> StringName:
