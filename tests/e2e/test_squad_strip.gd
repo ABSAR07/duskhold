@@ -395,7 +395,7 @@ func test_upgraded_twice_by_day_the_slot_reads_14_of_14_on_one_line_and_keeps_it
 	assert_true(padded.encloses(local), "the text sits inside the 8 px padding")
 
 
-func test_the_group_badge_is_a_hidden_twenty_by_twenty_box_for_plan_03_08() -> void:
+func test_the_group_badge_is_a_twenty_by_twenty_box_hidden_until_a_group_digit_is_set() -> void:
 	await _setup()
 	if _strip == null:
 		return
@@ -412,8 +412,16 @@ func test_the_group_badge_is_a_hidden_twenty_by_twenty_box_for_plan_03_08() -> v
 	slot.set_selected(true)
 	slot.set_group(3)
 	await _settle()
-	assert_false(badge.visible, "the setters exist but this plan draws no badge")
-	assert_eq(slot.get_alive_label().text, "4 / 4", "and change nothing else")
+	assert_true(badge.visible, "a group digit shows the badge")
+	assert_eq((badge.get_child(0) as Label).text, "3", "with that digit")
+	assert_eq(badge.size, Vector2(20.0, 20.0), "still 20x20")
+	slot.set_group(0)
+	await _settle()
+	assert_eq((badge.get_child(0) as Label).text, "0", "0 is group 10")
+	slot.set_group(-1)
+	await _settle()
+	assert_false(badge.visible, "-1 hides it again")
+	assert_eq(slot.get_alive_label().text, "4 / 4", "and none of it changed anything else")
 
 
 func test_six_slots_fit_in_856_px_without_scaling() -> void:

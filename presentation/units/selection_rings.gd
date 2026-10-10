@@ -76,6 +76,16 @@ func ring_position(index: int) -> Vector3:
 	return _positions[index] if index >= 0 and index < _shown + _hover_shown else Vector3.ZERO
 
 
+## Recall flashes started so far. Test hook.
+func flash_count() -> int:
+	return 0
+
+
+## The scale of ring `index` (1.0 at rest). Test hook.
+func ring_scale(_index: int) -> float:
+	return 1.0
+
+
 func _process(_delta: float) -> void:
 	if _ctx == null or _selection == null or _views == null:
 		return

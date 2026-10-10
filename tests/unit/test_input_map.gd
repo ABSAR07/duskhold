@@ -105,6 +105,22 @@ const COMMAND_BUTTONS: Dictionary = {
 	&"command_queue": [],
 	&"command_cancel": [JOY_BUTTON_B],
 }
+## The control-group actions of plan 03-08 (D-10, Pitfall 5): ten digit actions and one Ctrl
+## modifier, branched in code. Keyboard only; their pad path is plan 03-09's group mode. Their
+## key table lives in test_input_map_groups (this file is at the public-method cap).
+const GROUP_ACTIONS: Array[StringName] = [
+	&"group_1",
+	&"group_2",
+	&"group_3",
+	&"group_4",
+	&"group_5",
+	&"group_6",
+	&"group_7",
+	&"group_8",
+	&"group_9",
+	&"group_0",
+	&"selection_modifier",
+]
 ## Bindings two actions may share on purpose, as [first action, second action, binding token]. Each
 ## pair has a reason; every other collision fails the shared-binding test.
 const SHARED_BINDINGS_ALLOWED: Array[Array] = [
@@ -250,6 +266,7 @@ func test_no_two_gameplay_actions_share_a_key_button_or_stick_direction() -> voi
 	var owners: Dictionary = {}
 	var every_action: Array[StringName] = GAMEPLAY_ACTIONS.duplicate()
 	every_action.append_array(COMMAND_ACTIONS)
+	every_action.append_array(GROUP_ACTIONS)
 	for action: StringName in every_action:
 		for event: InputEvent in InputMap.action_get_events(action):
 			var token: String = ""

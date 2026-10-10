@@ -7,6 +7,11 @@ extends RefCounted
 ## no-op. A squad that dies down to 0 alive stays selected (squads are never deleted).
 
 signal changed
+## A control group was recalled (1..10, key 0 is group 10).
+signal group_recalled(group: int)
+
+## Control groups: keys 1 to 9 and 0, the last being group 10.
+const GROUP_COUNT: int = 10
 
 var _selected: Array[StringName] = []
 var _last_cycled: StringName = &""
@@ -81,3 +86,29 @@ func _store(ids: Array[StringName]) -> void:
 		return
 	_selected = ids
 	changed.emit()
+
+
+## Stores the selection as control group `group` (1..10). False, with nothing changed, when the
+## selection is empty.
+func store_group(_group: int) -> bool:
+	return false
+
+
+## Selects the members of control group `group`. False, with the selection kept, when it is empty.
+func recall_group(_group: int, _all_ids: Array[StringName]) -> bool:
+	return false
+
+
+## The squad ids stored in `group`, in creation order. A copy.
+func group_members(_group: int) -> Array[StringName]:
+	return [] as Array[StringName]
+
+
+## The lowest group number (1..10) `squad_id` belongs to, or -1 when it is in no group.
+func lowest_group_of(_squad_id: StringName) -> int:
+	return -1
+
+
+## The digit a badge shows for `group`: 1..9, and 0 for group 10.
+static func badge_digit(group: int) -> int:
+	return group % 10
