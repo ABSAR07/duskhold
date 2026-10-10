@@ -13,6 +13,9 @@ const RUN_OVER := &"run_over"
 const NO_ABILITY := &"no_ability"
 const KING_DOWN := &"king_down"
 const ABILITY_COOLING := &"ability_cooling"
+const NO_SQUADS := &"no_squads"
+const UNKNOWN_SQUAD := &"unknown_squad"
+const UNKNOWN_VERB := &"unknown_verb"
 
 var _economy: Economy
 var _buildings: BuildingSystem

@@ -36,6 +36,7 @@ const HANDLED: Array[String] = [
 	"squad_restored",
 	"king_ability_used",
 	"king_healed",
+	"squad_ordered",
 ]
 ## Written in place of an empty id so every token is non-empty.
 const EMPTY_TOKEN := "-"
@@ -76,6 +77,7 @@ static func attach(ctx: RunContext) -> SimRecorder:
 	events.squad_restored.connect(recorder._on_squad_restored)
 	events.king_ability_used.connect(recorder._on_king_ability_used)
 	events.king_healed.connect(recorder._on_king_healed)
+	events.squad_ordered.connect(recorder._on_squad_ordered)
 	return recorder
 
 
@@ -248,3 +250,10 @@ func _on_king_ability_used(hit_count: int) -> void:
 
 func _on_king_healed(amount: int, hp: int, max_hp: int) -> void:
 	_record("king_healed", [amount, hp, max_hp])
+
+
+## The squad, the verb, whether it was queued, then each resolved point (two quantised ints each).
+func _on_squad_ordered(squad_id: StringName, verb: StringName, queued: bool, points: Array) -> void:
+	var tokens: Array = [squad_id, verb, queued]
+	tokens.append_array(points)
+	_record("squad_ordered", tokens)

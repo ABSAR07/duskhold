@@ -68,3 +68,8 @@ signal king_ability_used(hit_count: int)
 ## The king regenerated `amount` points (D-20) and now has `hp` of `max_hp`. Emitted only on a step
 ## where his whole-point health changed.
 signal king_healed(amount: int, hp: int, max_hp: int)
+## A squad order was accepted for squad `squad_id` (D-09). `verb` is a SquadOrder VERB_ name and
+## `queued` says whether it was added to the squad queue instead of replacing it. `points` are the
+## metres (Vector2) the simulation resolved for the verb: none for follow, the frozen anchor for
+## hold, the king position for rally. The recorder quantises them like every other position.
+signal squad_ordered(squad_id: StringName, verb: StringName, queued: bool, points: Array)

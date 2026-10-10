@@ -149,7 +149,13 @@ func begin_night() -> void:
 ## One step of the whole army. `tick` is the night tick at night and the run tick otherwise;
 ## `night` says whether enemies are to be fought. By day every free seat is filled at once and
 ## units only settle at their slots.
-func step(tick: int, enemies: EnemySystem, hits: PendingHits, night: bool) -> void:
+func step(
+	tick: int,
+	enemies: EnemySystem,
+	hits: PendingHits,
+	night: bool,
+	_king_position: Vector2 = Vector2.ZERO
+) -> void:
 	_units.begin_step()
 	_sync(night)
 	if night:
@@ -160,6 +166,17 @@ func step(tick: int, enemies: EnemySystem, hits: PendingHits, night: bool) -> vo
 			if _units.is_alive(unit_id):
 				_step_unit(squad, unit_id, tick, enemies, hits, night)
 	_units.separate()
+
+
+## Gives whole squads a verb (D-09). Inert until the order logic lands.
+func apply_order(
+	_squad_ids: Array[StringName],
+	_verb: StringName,
+	_points: Array[Vector2],
+	_queued: bool,
+	_king_position: Vector2
+) -> void:
+	pass
 
 
 ## Forwards a landed hit to the unit; a hit on a gone unit drops silently.
