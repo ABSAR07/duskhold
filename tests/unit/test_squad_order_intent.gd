@@ -93,9 +93,7 @@ func test_an_unknown_squad_is_rejected_even_beside_a_known_one() -> void:
 
 
 func test_a_verb_outside_the_allow_list_is_rejected() -> void:
-	for verb: StringName in [
-		&"dance", &"", SquadOrder.VERB_MOVE, SquadOrder.VERB_ATTACK_MOVE, SquadOrder.VERB_PATROL
-	]:
+	for verb: StringName in [&"dance", &"", &"teleport"]:
 		_rejected = []
 		_assert_rejected(
 			SquadOrderIntent.new(_ids([BARRACKS]), verb), CommandProcessor.UNKNOWN_VERB, BARRACKS

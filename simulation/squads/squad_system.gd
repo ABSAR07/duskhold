@@ -96,6 +96,18 @@ func executing_verb(squad_id: StringName) -> StringName:
 	return &""
 
 
+## The squad's orders, the running one first, as {verb, points} snapshots (points in metres).
+## Hold, follow and patrol act at once and leave the queue, so only waiting walks remain. Empty for
+## an unknown squad.
+func orders_of(_squad_id: StringName) -> Array[Dictionary]:
+	return []
+
+
+## The patrol path the squad walks, centroid first, as a copy; empty unless it is patrolling.
+func patrol_path_of(_squad_id: StringName) -> Array[Vector2]:
+	return []
+
+
 ## Where the squad formation centres; the zero vector for an unknown squad.
 func anchor_of(squad_id: StringName) -> Vector2:
 	var squad: Squad = _squads.get(squad_id) as Squad

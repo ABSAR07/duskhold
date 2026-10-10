@@ -16,6 +16,9 @@ const ABILITY_COOLING := &"ability_cooling"
 const NO_SQUADS := &"no_squads"
 const UNKNOWN_SQUAD := &"unknown_squad"
 const UNKNOWN_VERB := &"unknown_verb"
+const BAD_POINT := &"bad_point"
+const TOO_MANY_POINTS := &"too_many_points"
+const QUEUE_CLOSED := &"queue_closed"
 
 var _economy: Economy
 var _buildings: BuildingSystem

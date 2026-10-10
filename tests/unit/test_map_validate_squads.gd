@@ -48,6 +48,18 @@ func _assert_one_error(map: MapConfig, needles: Array[String], label: String) ->
 			assert_string_contains(errors[0], needle, "%s names '%s'" % [label, needle])
 
 
+func test_a_ground_half_extent_that_cannot_bound_a_command_point_is_reported() -> void:
+	for bad: float in [0.0, -1.0, -90.0, NAN, INF, -INF, 1.0e30]:
+		var map: MapConfig = _map()
+		map.ground_half_extent = bad
+		_assert_one_error(map, ["ground_half_extent"], "an extent of %s" % bad)
+
+
+func test_the_shipped_ground_half_extent_is_ninety_metres() -> void:
+	assert_eq(_map().ground_half_extent, 90.0, "the 180 m ground")
+	assert_eq(MapConfig.new().ground_half_extent, 90.0, "and the default")
+
+
 func test_the_shipped_map_and_the_squad_fixture_report_no_squad_error() -> void:
 	assert_eq(_map().validate(), PackedStringArray(), "the shipped map is clean")
 	var fixture: MapConfig = (load(SQUAD_FIXTURE) as MapConfig).duplicate_deep(

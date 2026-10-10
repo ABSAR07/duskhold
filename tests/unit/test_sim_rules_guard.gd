@@ -30,6 +30,14 @@ const FORBIDDEN: Array[Array] = [
 	["NavigationServer", "NavigationServer", "NavigationServer3D.map_get_path()"],
 	["PhysicsServer", "PhysicsServer", "PhysicsServer3D.body_create()"],
 	["Engine", WORD_START + "Engine\\.get_", "Engine.get_frames_drawn()"],
+	# Pattern 6, T-03-13: no input or camera API crosses into the simulation. A ground point enters
+	# only as a whole-centimetre Vector2i inside a SquadOrderIntent.
+	["Input", WORD_START + "Input\\.", 'Input.is_action_pressed(&"squad_move")'],
+	["InputEvent", WORD_START + "InputEvent", "func apply(event: InputEvent) -> void:"],
+	["Camera3D", WORD_START + "Camera3D", "var camera: Camera3D = null"],
+	["Viewport", WORD_START + "Viewport", "var view: Viewport = null"],
+	["get_viewport", "get_viewport\\(", "var size: Vector2 = get_viewport().size"],
+	["DisplayServer", WORD_START + "DisplayServer", "DisplayServer.window_get_size()"],
 ]
 const TRANSCENDENTAL: Array[Array] = [
 	["sin", GLOBAL_RAND + "sin\\(", "var s: float = sin(angle)"],

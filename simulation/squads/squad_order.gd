@@ -27,6 +27,14 @@ const STANCE_HOLD := &"hold"
 ## Resting on a patrol path.
 const STANCE_PATROL := &"patrol"
 
+## The most orders a squad queue holds, the running one included: a tenth queued order replaces
+## the last. A resource-exhaustion guard like MAX_ENEMIES_PER_NIGHT (threat T-03-12), not a tuning
+## value.
+const MAX_QUEUE: int = 9
+## The most points a patrol order may carry plus one: the path also starts at the squad's centroid,
+## so a patrol accepts at most MAX_PATROL_POINTS - 1 points. A guard like MAX_QUEUE.
+const MAX_PATROL_POINTS: int = 8
+
 ## One order record: a verb and the ground points it carries, in metres.
 var verb: StringName = &""
 var points: Array[Vector2] = []

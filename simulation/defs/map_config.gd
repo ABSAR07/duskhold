@@ -54,6 +54,9 @@ const CASTLE_PAYOUT_KEY: StringName = &"castle"
 @export var castle_attack_range: float = 0.0
 @export var castle_attack_interval: float = 0.0
 @export var castle_projectile_speed: float = 0.0
+## Half the side of the square ground in metres. Squad command points outside it are refused
+## (RESEARCH A8); the shipped ground is 180 m wide.
+@export var ground_half_extent: float = 90.0
 
 
 ## The enemy type with this id, or null.
