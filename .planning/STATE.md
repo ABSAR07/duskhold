@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 03
 current_phase_name: King Combat & Troops
 status: executing
-stopped_at: Completed 03-07-PLAN.md
-last_updated: "2026-10-10T14:49:04.208Z"
+stopped_at: Completed 03-08-PLAN.md
+last_updated: "2026-10-10T16:02:59.898Z"
 last_activity: 2026-10-10
 last_activity_desc: Phase 03 execution started
-state_head: bf72ca50fe6034027ef59b2f68395cb5c1aafd98
+state_head: 1c2ba0046418f51289684eb926111e198a693311
 progress:
   total_phases: 13
   completed_phases: 2
   total_plans: 52
-  completed_plans: 47
+  completed_plans: 48
   percent: 15
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-08)
 ## Current Position
 
 Phase: 03 (King Combat & Troops) — EXECUTING
-Plan: 8 of 12
+Plan: 9 of 12
 Status: Ready to execute
 Last activity: 2026-10-10 — Phase 03 execution started
 
@@ -104,6 +104,7 @@ Progress: [██░░░░░░░░] 15%
 | Phase 03 P05 | 36 min | 2 tasks | 23 files |
 | Phase 03 P06 | 72 min | 3 tasks | 48 files |
 | Phase 03 P07 | 45 min | 3 tasks | 39 files |
+| Phase 03 P08 | 64 min | 3 tasks | 29 files |
 
 ## Accumulated Context
 
@@ -213,6 +214,8 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-06: pointer e2e tests use a 1280x720 SubViewport and push_input, and the longest toast measures 526 px at Body 22, not 460 — GUT output panel and the 64 px stretched headless window defeat Input.parse_input_event; Godot default font measures wider than the UI-SPEC estimate
 - [Phase 03]: 03-07: attack-move stays on A (keep-a, owner choice at the checkpoint, not auto-mode); while a squad is selected all movement input (keyboard and stick) goes to the selection and the king does not move, with nothing selected he steers as before, Escape with nothing armed clears the selection — Owner decision 2026-10-10 amending D-15 and D-11; implemented where the king reads move_* (King.steered_direction); pad button B carries command_cancel until 03-09
 - [Phase 03]: 03-07: the squad queue holds only walks while they run (hold, follow and patrol act at once), QUEUE_CLOSED is decided at the gate from orders_of before anything applies, a hold reached after a walk keeps the walk point, and a leg budget is not spent while a unit is engaged — Keeps multi-squad orders atomic, makes a rally hold exactly at the king position and stops a fight from ending an attack-move or a patrol leg
+- [Phase 03]: 03-08: control groups hold squad ids, never drop a member at 0 alive, a newly built squad joins no group, recalling an empty group keeps the selection and toasts Group N is empty, storing nothing toasts Select a squad first (RESEARCH A12; owner may ask for auto-join at the UAT)
+- [Phase 03]: 03-08: a drag released with no ground under it is dropped like a cancel with no toast; Ctrl+digit stores and the bare digit recalls through ten digit actions plus selection_modifier; the store toast names the key digit (key 0 reads Group 0 saved)
 
 ### Pending Todos
 
@@ -245,6 +248,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-10T14:49:03.879Z
-Stopped at: Completed 03-07-PLAN.md
+Last session: 2026-10-10T16:02:59.583Z
+Stopped at: Completed 03-08-PLAN.md
 Resume file: None

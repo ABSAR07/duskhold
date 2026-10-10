@@ -189,7 +189,7 @@ Plans:
   4. Every in-run action (move, sprint, hold-to-build/upgrade, active ability, unit selection and commands, start night) works on keyboard and mouse and on gamepad. The player can switch devices at any moment, and on-screen prompts update to match the active device.
   5. The HUD shows gold, current night out of total, king health, ability cooldown, and unit group status without cluttering the play area.
 
-**Plans**: 7/12 plans executed
+**Plans**: 8/12 plans executed
 **UI hint**: yes
 
 Plans:
@@ -213,7 +213,7 @@ Plans:
 - [x] 03-07: Attack-move key decision (owner checkpoint); move, attack-move, patrol and Shift queue on centimetre points; right-click and armed mouse commands with pings
 
 **Wave 7** *(blocked on 03-07)*
-- [ ] 03-08: Patrol lines and queued discs, drag-box selection, Ctrl + digit control groups with slot badges
+- [x] 03-08: Patrol lines and queued discs, drag-box selection, Ctrl + digit control groups with slot badges
 - [ ] 03-11: Army replay golden in CI, army-building bots, and the D-08 night retune to 7 or 8 wins of 10
 
 **Wave 8** *(blocked on 03-08)*
@@ -389,7 +389,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 |-------|----------------|--------|-----------|
 | 1. Foundation & Day Loop | 18/18 | Complete    | 2026-10-03 |
 | 2. Night Defense & Playtest Gate | 22/22 | Complete    | 2026-10-08 |
-| 3. King Combat & Troops | 7/12 | In Progress|  |
+| 3. King Combat & Troops | 8/12 | In Progress|  |
 | 4. Crowd-Scale Battles & Walls | 0/TBD | Not started | - |
 | 5. Castle Center & Economy Depth | 0/TBD | Not started | - |
 | 6. Enemy Roster & Tower Specializations | 0/TBD | Not started | - |
