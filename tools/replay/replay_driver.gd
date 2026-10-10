@@ -19,7 +19,9 @@ const OUTCOME_LOST := &"lost"
 ## Result: {outcome, ticks, digest, line_count, nights_started, lines, stats, per_night}. `stats`
 ## holds the RunStats values {nights_survived, gold_earned, buildings_lost, king_knockouts, outcome}
 ## and per_night has one Dictionary per started night: {night, enemies, kills_king, kills_towers,
-## kills_castle, buildings_lost, knockouts, castle_hp_end, duration_s, gold_at_dawn, end}. `end` is
+## kills_castle, kills_units, buildings_lost, units_lost, knockouts, castle_hp_end, duration_s,
+## gold_at_dawn, end}. `kills_units` counts enemies a squad unit killed and `units_lost` the squad
+## units that died. `end` is
 ## "dawn", "won" or "lost" for a night that finished and "" for one the tick bound cut short;
 ## `gold_at_dawn` is the gold after the dawn payout, or the gold when the night ended without one.
 ## `stop_after_dawns` of 0 means run until the run ends or `max_ticks` runs out.
@@ -88,6 +90,7 @@ class Tally:
 		events.night_started.connect(on_night_started)
 		events.enemy_spawned.connect(_on_enemy_spawned)
 		events.enemy_died.connect(_on_enemy_died)
+		events.unit_died.connect(_on_unit_died)
 		events.building_destroyed.connect(_on_building_destroyed)
 		events.king_downed.connect(_on_king_downed)
 		events.dawn_payout.connect(_on_dawn_payout)
@@ -142,6 +145,13 @@ class Tally:
 			_bump("kills_towers")
 		elif killer_kind == PendingHits.KIND_CASTLE:
 			_bump("kills_castle")
+		elif killer_kind == PendingHits.KIND_UNIT:
+			_bump("kills_units")
+
+	func _on_unit_died(
+		_unit_id: int, _squad_id: StringName, _pos: Vector2, _killer_kind: StringName
+	) -> void:
+		_bump("units_lost")
 
 	func _on_building_destroyed(_spot_id: StringName, _building_id: StringName, _tier: int) -> void:
 		_bump("buildings_lost")

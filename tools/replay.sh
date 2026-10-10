@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Bounded wrapper around the headless replay CLI (DEV-05): warms the import cache, runs
 # tools/replay/replay_cli.gd under a timeout and passes only when the run really finished well.
-# Usage: bash tools/replay.sh --scenario=<smoke|full_idle> [--seed=<int>] [--twice]
+# Usage: bash tools/replay.sh --scenario=<smoke|army|full_idle> [--seed=<int>] [--twice]
 #          [--expect-file=tests/golden/<scenario>.json] [--out=build/<dir>] [--write-golden]
 #   e.g. bash tools/replay.sh --scenario=smoke --twice --expect-file=tests/golden/smoke.json
 #        bash tools/replay.sh --scenario=full_idle --twice

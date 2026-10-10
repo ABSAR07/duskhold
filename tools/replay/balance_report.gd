@@ -23,7 +23,9 @@ const NIGHT_COLUMNS: Array[String] = [
 	"Kills king",
 	"Kills towers",
 	"Kills castle",
+	"Kills units",
 	"Buildings lost",
+	"Units lost",
 	"Knockouts",
 	"Castle hp at end",
 	"Night seconds",
@@ -210,7 +212,7 @@ static func _night_rows(runs: Array) -> Array[String]:
 			rows
 			. append(
 				(
-					"| %d | %d | %.1f | %.1f | %.1f | %.1f | %.1f | %.1f | %.1f | %.1f | %.1f |"
+					"| %d | %d | %.1f | %.1f | %.1f | %.1f | %.1f | %.1f | %.1f | %.1f | %.1f | %.1f | %.1f |"
 					% [
 						night_number,
 						started.size(),
@@ -218,7 +220,9 @@ static func _night_rows(runs: Array) -> Array[String]:
 						_mean(started, "kills_king"),
 						_mean(started, "kills_towers"),
 						_mean(started, "kills_castle"),
+						_mean(started, "kills_units"),
 						_mean(started, "buildings_lost"),
+						_mean(started, "units_lost"),
 						_mean(started, "knockouts"),
 						_mean(started, "castle_hp_end"),
 						_mean(started, "duration_s"),

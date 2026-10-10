@@ -3,7 +3,9 @@ extends RefCounted
 ## A scripted player for headless runs (D-18). It touches the simulation only through intents and
 ## the king-position input (DR-10) and uses no random function, so a run with a given bot, map and
 ## seed is reproducible. Bots build without riding to plots: the balance report says so, because
-## the real player pays for the ride in time. tools/ is excluded from the export.
+## the real player pays for the ride in time. Squad orders (`scripted_orders`, `night_orders`) and
+## the slam (`slam_min_enemies`) go through the same intents a player's keys and clicks produce.
+## tools/ is excluded from the export.
 
 const KING_IDLE_AT_CASTLE := &"idle_at_castle"
 const KING_HOLD_POINT := &"hold_point"
@@ -25,9 +27,20 @@ var start_nights: bool = true
 ## Whether, each day, the bot moves the tower plots on the roads the coming night uses to the front
 ## of its remaining tower entries (the telegraph icons tell a player the same thing).
 var prefer_telegraphed_towers: bool = false
+## Squad orders given on fixed ticks: {"tick": int, "squads": Array[StringName], "verb": StringName,
+## "points": Array[Vector2i] (centimetres), "queued": bool}. "points" and "queued" may be left out.
+## An order for a squad that does not exist yet is simply refused by the command gate.
+var scripted_orders: Array[Dictionary] = []
+## Squad orders given once at the start of every night: {"squads": Array[StringName], "verb":
+## StringName}, plus the optional "points" and "queued" of scripted_orders.
+var night_orders: Array[Dictionary] = []
+## The king slams when the slam is ready and at least this many living enemies are within its
+## radius. 0 never slams.
+var slam_min_enemies: int = 0
 
 var _cursor: int = 0
 var _ordered_for_night: int = -1
+var _night_orders_given_for: int = -1
 
 
 ## One decision per simulation tick, before `ctx.step()`.
@@ -38,7 +51,57 @@ func think(ctx: RunContext) -> void:
 		_build(ctx)
 		if start_nights:
 			ctx.commands.submit(StartNightIntent.new())
+	_give_orders(ctx)
+	_slam(ctx)
 	_move_king(ctx)
+
+
+## Submits the scripted orders whose tick is this one and, on the first think of each night, the
+## night orders. Rejections are returned values and are ignored: an order for a squad that has not
+## been raised yet is simply refused.
+func _give_orders(ctx: RunContext) -> void:
+	for order: Dictionary in scripted_orders:
+		if int(order.get("tick", -1)) == ctx.tick_count:
+			_submit_order(ctx, order)
+	if ctx.run_manager.get_phase() != RunManager.RunPhase.NIGHT:
+		return
+	var night_number: int = ctx.run_manager.get_night_number()
+	if _night_orders_given_for == night_number:
+		return
+	_night_orders_given_for = night_number
+	for order: Dictionary in night_orders:
+		_submit_order(ctx, order)
+
+
+func _submit_order(ctx: RunContext, order: Dictionary) -> void:
+	var squads: Array[StringName] = []
+	squads.assign(order.get("squads", []))
+	var points: Array[Vector2i] = []
+	points.assign(order.get("points", []))
+	var verb: StringName = order.get("verb", &"")
+	ctx.commands.submit(
+		SquadOrderIntent.new(squads, verb, points, bool(order.get("queued", false)))
+	)
+
+
+## Uses the king's slam when it is ready and enough enemies stand inside its radius.
+func _slam(ctx: RunContext) -> void:
+	if slam_min_enemies <= 0 or not ctx.king.has_ability() or ctx.king.is_down():
+		return
+	if ctx.king.ability_ticks_left() > 0:
+		return
+	var enemies: EnemySystem = ctx.night.get_enemies()
+	var reach: float = ctx.king.get_weapon().slam_radius
+	var here: Vector2 = ctx.king.get_position()
+	var in_reach: int = 0
+	for id: int in enemies.ids():
+		if (
+			enemies.is_alive(id)
+			and here.distance_squared_to(enemies.position_of(id)) <= reach * reach
+		):
+			in_reach += 1
+	if in_reach >= slam_min_enemies:
+		ctx.commands.submit(ActivateAbilityIntent.new())
 
 
 ## Builds the next entries of build_order while they are accepted. An entry that can never be
