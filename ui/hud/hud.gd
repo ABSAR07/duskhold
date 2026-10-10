@@ -16,36 +16,16 @@ const NIGHT_BANNER := "Night %d of %d — %d enemies left"
 const TIMED_NIGHT_BANNER := "Night %d"
 const NIGHT_PREVIEW := "Night %d: %d enemies from %d directions"
 const NIGHT_PREVIEW_ONE := "Night %d: %d enemies from 1 direction"
-const UNBOUND_HINT := "(unbound)"
+const UNBOUND_HINT := GlyphResolver.UNBOUND_TEXT
 ## KING-06: the visible respawn countdown, whole seconds rounded up so it never reads 0 while
 ## the king is still down.
 const RESPAWN_TEXT := "Knocked out — back in %d s"
 ## The corner label shown while the night is fast-forwarded (owner decision 2026-10-06). The
 ## scale prints with String.num and a trailing ".0" trimmed, so 2.0 reads 2 and 1.5 reads 1.5.
 const FAST_FORWARD_TEXT := "Fast-forward %sx"
-## Gamepad button names shown in the start-night hint, by JoyButton index. These are Xbox-style
-## labels: on a PlayStation or Switch pad they are wrong (button 3 reads "Y", not "Triangle"/"X").
-## Known Phase-1 limitation; later, key the names off Input.get_joy_name.
-const PAD_BUTTON_NAMES: Dictionary = {
-	JOY_BUTTON_A: "A",
-	JOY_BUTTON_B: "B",
-	JOY_BUTTON_X: "X",
-	JOY_BUTTON_Y: "Y",
-	JOY_BUTTON_BACK: "Back",
-	JOY_BUTTON_START: "Start",
-	JOY_BUTTON_LEFT_SHOULDER: "LB",
-	JOY_BUTTON_RIGHT_SHOULDER: "RB",
-}
-## Gamepad trigger names shown in the start-night hint, by JoyAxis index. Xbox-style like the
-## buttons above, with the same limitation.
-const AXIS_NAMES: Dictionary = {
-	JOY_AXIS_TRIGGER_LEFT: "LT",
-	JOY_AXIS_TRIGGER_RIGHT: "RT",
-}
-
 ## Maps a physical keycode to the keycode the current keyboard layout prints on that key. A
 ## Callable so a test can stand in for a non-QWERTY layout, which headless Godot cannot switch to.
-var physical_label_resolver: Callable = _layout_label
+var physical_label_resolver: Callable = GlyphResolver.layout_label
 
 var _ctx: RunContext
 var _pending: int = 0
@@ -244,56 +224,22 @@ func _start_night_hint() -> String:
 	for event: InputEvent in InputMap.action_get_events(&"start_night"):
 		if event is InputEventKey:
 			# Modifiers are part of the text ("Ctrl+N"), so the prompt names what actually triggers it.
-			var key_text: String = _key_text(event as InputEventKey)
+			var key_text: String = GlyphResolver.key_text(
+				event as InputEventKey, physical_label_resolver
+			)
 			if not key_text.is_empty():
 				keys.append(key_text)
 		elif event is InputEventMouseButton:
 			keys.append(event.as_text())
 		elif event is InputEventJoypadButton:
 			var button: int = (event as InputEventJoypadButton).button_index
-			pad.append("(%s)" % PAD_BUTTON_NAMES.get(button, "Pad %d" % button))
+			pad.append("(%s)" % GlyphResolver.PAD_BUTTON_NAMES.get(button, "Pad %d" % button))
 		elif event is InputEventJoypadMotion:
-			pad.append("(%s)" % _axis_text(event as InputEventJoypadMotion))
+			pad.append("(%s)" % GlyphResolver.axis_text(event as InputEventJoypadMotion))
 	var parts: PackedStringArray = keys + pad
 	if parts.is_empty():
 		return UNBOUND_HINT
 	return " / ".join(parts)
-
-
-## A joypad axis binding's name: a trigger by its name, any other axis by index and direction
-## ("Axis 0-" and "Axis 0+" are the two ways to push one stick axis).
-func _axis_text(motion: InputEventJoypadMotion) -> String:
-	if AXIS_NAMES.has(motion.axis):
-		return AXIS_NAMES[motion.axis]
-	return "Axis %d%s" % [motion.axis, "-" if motion.axis_value < 0.0 else "+"]
-
-
-## The default resolver. The headless display server has no keyboard layout (its call errors), so
-## a physical key stays as it is there.
-func _layout_label(physical: int) -> int:
-	if DisplayServer.get_name() == "headless":
-		return physical
-	return DisplayServer.keyboard_get_label_from_physical(physical as Key)
-
-
-## A key event's text, with modifiers; empty when it names no key at all. A physical key is named
-## by the label the player's layout prints on that keycap, not by its US-QWERTY position, so the
-## hint stays right on Dvorak or AZERTY.
-func _key_text(key_event: InputEventKey) -> String:
-	if key_event.physical_keycode != KEY_NONE:
-		var label_key: int = physical_label_resolver.call(key_event.physical_keycode)
-		if label_key != KEY_NONE:
-			var labelled: String = OS.get_keycode_string(
-				(label_key | key_event.get_modifiers_mask()) as Key
-			)
-			if not labelled.is_empty():
-				return labelled
-		return key_event.as_text_physical_keycode()
-	if key_event.keycode != KEY_NONE:
-		return key_event.as_text_keycode()
-	if key_event.key_label != KEY_NONE:
-		return key_event.as_text_key_label()
-	return ""
 
 
 func _refresh() -> void:
