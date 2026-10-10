@@ -11,6 +11,11 @@ extends GutTest
 const SEEDS: Array[int] = [1, 2, 3]
 ## The balanced bot is measured on ten seeds (owner decision 2026-10-07: it loses 2 or 3 of 10).
 const BALANCED_SEEDS: Array[int] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+## The army-building bot is measured on the same ten seeds (D-08, plan 03-11): it must win 7 or 8
+## of them, the bar the owner set in Phase 2.
+const ARMY_BALANCED_SEEDS: Array[int] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+const ARMY_BALANCED_MIN_WINS: int = 7
+const ARMY_BALANCED_MAX_WINS: int = 8
 ## Measured losses: exactly these seeds, never before night 3 (greedy shares nights 1 and 2).
 ## Re-measured after D-20 regeneration (plan 03-04): the king now heals a second after a hit, so
 ## seed 3 (lost on night 3 before) is won and only seed 9 is lost; the balanced bot wins 9 of 10,
@@ -29,17 +34,23 @@ const TOWERS_FIRST_MIN_WINS: int = 2
 
 var _report: Dictionary = {}
 var _balanced_report: Dictionary = {}
+var _army_report: Dictionary = {}
 
 
 func before_all() -> void:
 	var strategies: Array[StringName] = [&"greedy_economy", &"no_build", &"towers_first"]
 	_report = BalanceReport.run(strategies, SEEDS)
 	_balanced_report = BalanceReport.run([&"balanced"] as Array[StringName], BALANCED_SEEDS)
+	_army_report = BalanceReport.run([&"army_balanced"] as Array[StringName], ARMY_BALANCED_SEEDS)
 
 
 func _runs_of(strategy: StringName) -> Array:
 	var matching: Array = []
-	var source: Dictionary = _balanced_report if strategy == &"balanced" else _report
+	var source: Dictionary = _report
+	if strategy == &"balanced":
+		source = _balanced_report
+	elif strategy == &"army_balanced":
+		source = _army_report
 	for entry: Dictionary in source.get("runs", []):
 		if entry["strategy"] == str(strategy):
 			matching.append(entry)
@@ -89,6 +100,26 @@ func test_balanced_loses_only_seed_nine_and_never_before_night_three() -> void:
 		)
 	lost_seeds.sort()
 	assert_eq(lost_seeds, BALANCED_LOST_SEEDS, "the balanced losses are exactly seed 9")
+
+
+func test_the_army_bot_ran_every_seed() -> void:
+	assert_eq(_runs_of(&"army_balanced").size(), ARMY_BALANCED_SEEDS.size(), "ten seeds")
+
+
+func test_the_army_building_bot_wins_seven_or_eight_of_ten_seeds() -> void:
+	var wins: int = 0
+	var lost_seeds: Array[int] = []
+	for entry: Dictionary in _runs_of(&"army_balanced"):
+		if entry["outcome"] == BalanceReport.OUTCOME_WON:
+			wins += 1
+		else:
+			lost_seeds.append(int(entry["seed"]))
+	assert_between(
+		wins,
+		ARMY_BALANCED_MIN_WINS,
+		ARMY_BALANCED_MAX_WINS,
+		"army_balanced wins 7 or 8 of 10 (lost seeds %s)" % [lost_seeds]
+	)
 
 
 func test_greedy_economy_never_wins_and_loses_on_the_middle_nights() -> void:

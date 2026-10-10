@@ -21,9 +21,14 @@ func _building_of(map: MapConfig, spot_id: StringName) -> StringName:
 	return &""
 
 
-func test_the_five_named_strategies_are_listed() -> void:
+func test_the_six_named_strategies_are_listed() -> void:
 	var expected: Array[StringName] = [
-		&"no_build", &"greedy_economy", &"houses_first", &"towers_first", &"balanced"
+		&"no_build",
+		&"greedy_economy",
+		&"houses_first",
+		&"towers_first",
+		&"balanced",
+		&"army_balanced"
 	]
 	assert_eq(PlaytestStrategies.NAMES, expected, "the names the CLI may select")
 
@@ -85,10 +90,11 @@ func test_the_tower_and_house_orders_differ_in_what_they_build_first() -> void:
 	assert_eq(houses_before_tower, 3, "houses_first builds three Houses, then towers")
 
 
-func test_only_balanced_prefers_telegraphed_towers() -> void:
+func test_only_the_balanced_pair_prefers_telegraphed_towers() -> void:
 	for strategy: StringName in PlaytestStrategies.NAMES:
 		var bot: PlaytestBot = PlaytestStrategies.make(strategy)
-		assert_eq(bot.prefer_telegraphed_towers, strategy == &"balanced", "%s" % strategy)
+		var expected: bool = strategy == &"balanced" or strategy == &"army_balanced"
+		assert_eq(bot.prefer_telegraphed_towers, expected, "%s" % strategy)
 
 
 func test_every_strategy_except_no_build_defends_with_the_king() -> void:
@@ -148,6 +154,55 @@ func test_balanced_builds_the_tower_on_the_coming_nights_road_first() -> void:
 	assert_eq(ctx.buildings.current_tier(&"tower_1"), 1, "night 1 comes from the west road")
 	assert_eq(ctx.buildings.current_tier(&"tower_3"), 0, "the north plot waits")
 	assert_eq(ctx.buildings.current_tier(&"tower_2"), 0, "and so does the east plot")
+
+
+func _index_of(order: Array[StringName], spot_id: StringName) -> int:
+	return order.find(spot_id)
+
+
+func test_army_balanced_builds_the_barracks_early_and_the_range_soon_after() -> void:
+	var bot: PlaytestBot = PlaytestStrategies.make(&"army_balanced")
+	assert_not_null(bot, "the strategy exists")
+	if bot == null:
+		return
+	var barracks: int = _index_of(bot.build_order, &"barracks_1")
+	var archery: int = _index_of(bot.build_order, &"archery_1")
+	assert_between(barracks, 0, 2, "barracks_1 is within the first three entries")
+	assert_between(archery, 0, 5, "archery_1 is within the first six entries")
+	assert_gt(bot.build_order.count(&"barracks_1"), 1, "and the Barracks is upgraded")
+	assert_gt(bot.build_order.count(&"archery_1"), 1, "and so is the Archery Range")
+	var map: MapConfig = E2eSupport.shipped_prototype_map()
+	for spot_id: StringName in bot.build_order:
+		assert_ne(_building_of(map, spot_id), &"", "spot %s exists" % spot_id)
+	assert_gt(bot.build_order.count(&"tower_1"), 0, "it still builds towers")
+	assert_gt(bot.build_order.count(&"house_1"), 0, "and Houses")
+
+
+func test_army_balanced_follows_with_the_footmen_and_holds_the_archers_each_night() -> void:
+	var bot: PlaytestBot = PlaytestStrategies.make(&"army_balanced")
+	assert_not_null(bot, "the strategy exists")
+	if bot == null:
+		return
+	assert_eq(bot.king_mode, PlaytestBot.KING_DEFEND_NEAREST_THREAT, "the king defends")
+	assert_eq(bot.slam_min_enemies, 3, "it slams when three enemies are in reach")
+	assert_eq(bot.night_orders.size(), 2, "one order per squad")
+	var verbs: Dictionary = {}
+	for order: Dictionary in bot.night_orders:
+		for squad_id: StringName in order["squads"]:
+			verbs[squad_id] = order["verb"]
+	assert_eq(verbs.get(&"barracks_1"), &"follow", "the melee squad follows the king")
+	assert_eq(verbs.get(&"archery_1"), &"hold", "the archers hold their post")
+	assert_eq(bot.scripted_orders.size(), 0, "nothing is ordered on a fixed tick")
+
+
+func test_the_five_phase_two_strategies_give_no_orders_and_never_slam() -> void:
+	for strategy: StringName in PlaytestStrategies.NAMES:
+		if strategy == &"army_balanced":
+			continue
+		var bot: PlaytestBot = PlaytestStrategies.make(strategy)
+		assert_eq(bot.night_orders.size(), 0, "%s gives no night orders" % strategy)
+		assert_eq(bot.scripted_orders.size(), 0, "%s gives no scripted orders" % strategy)
+		assert_eq(bot.slam_min_enemies, 0, "%s never slams" % strategy)
 
 
 func test_a_strategy_run_is_reproducible() -> void:
