@@ -24,8 +24,8 @@ const DISC_ALPHA: float = 0.9
 ## A flashing patrol line blinks between full strength and this alpha.
 const FLASH_LOW_ALPHA: float = 0.25
 const FLASH_BLINKS_PER_SECOND: float = 4.0
-const LABEL_HEIGHT: float = 0.3
-const LABEL_PIXEL_SIZE: float = 0.012
+const LABEL_HEIGHT: float = 0.15
+const LABEL_PIXEL_SIZE: float = 0.02
 const LABEL_FONT_SIZE: int = 18
 const LABEL_OUTLINE_SIZE: int = 12
 const MOVE_COLOR := Color(0.549, 0.9216, 1.0)
