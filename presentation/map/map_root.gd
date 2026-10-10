@@ -14,6 +14,7 @@ extends Node3D
 
 var _ctx: RunContext
 var _run_seed: int = 0
+var _selection: SelectionModel
 
 @onready var _king: King = $King
 @onready var _build_hold: BuildHoldController = $BuildHold
@@ -27,6 +28,7 @@ func _ready() -> void:
 		seed_rng.randomize()
 		_run_seed = seed_rng.randi()
 	_ctx = RunContext.new(map_config, loop_tuning, _run_seed, _king.def)
+	_selection = SelectionModel.new()
 	_king.global_position = map_config.king_spawn
 	# Bind only this map's own subtree: a second MapRoot in the tree must not re-bind our nodes.
 	for node: Node in get_tree().get_nodes_in_group(&"run_bound"):
@@ -73,3 +75,9 @@ func get_king() -> King:
 
 func get_build_hold() -> BuildHoldController:
 	return _build_hold
+
+
+## The squads the player has selected. Presentation state: it never reaches the simulation, an order
+## carries the selected ids explicitly.
+func get_selection() -> SelectionModel:
+	return _selection

@@ -101,6 +101,10 @@ func set_group(digit: int) -> void:
 	_group_digit = digit
 
 
+func is_selected() -> bool:
+	return _selected
+
+
 func get_alive_label() -> Label:
 	return _alive_label
 
