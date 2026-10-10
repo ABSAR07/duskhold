@@ -1,8 +1,10 @@
 extends GutTest
 ## Input Map contract (T-01-09, T-01-18): every gameplay action has a keyboard and a gamepad
-## binding, no gameplay action has a mouse binding, build / start-night share no key or button
-## (D-11), and no two gameplay actions (zoom included) share a key, button or stick direction.
-## Values are compared against engine constants, never integer literals.
+## binding, no gameplay action has a mouse binding yet (the squad point commands of plan 03-07 add
+## them, D-11), build / start-night share no key or button, and no two gameplay actions (zoom
+## included) share a key, button or stick direction. The squad verbs (D-15) are F follow, H hold,
+## R rally, Tab cycle and F2 select all, carried on the bare D-pad and R3; fast-forward moved from
+## F to T to make room. Values are compared against engine constants, never integer literals.
 
 const GAMEPLAY_ACTIONS: Array[StringName] = [
 	&"move_left",
@@ -17,6 +19,11 @@ const GAMEPLAY_ACTIONS: Array[StringName] = [
 	&"zoom_out",
 	&"fast_forward",
 	&"ability",
+	&"squad_follow",
+	&"squad_hold",
+	&"squad_rally",
+	&"squad_cycle",
+	&"select_all",
 ]
 
 const EXPECTED_KEYS: Dictionary = {
@@ -30,8 +37,13 @@ const EXPECTED_KEYS: Dictionary = {
 	&"toggle_debug_overlay": [KEY_F3],
 	&"zoom_in": [KEY_EQUAL, KEY_KP_ADD],
 	&"zoom_out": [KEY_MINUS, KEY_KP_SUBTRACT],
-	&"fast_forward": [KEY_F],
+	&"fast_forward": [KEY_T],
 	&"ability": [KEY_Q],
+	&"squad_follow": [KEY_F],
+	&"squad_hold": [KEY_H],
+	&"squad_rally": [KEY_R],
+	&"squad_cycle": [KEY_TAB],
+	&"select_all": [KEY_F2],
 }
 
 const EXPECTED_BUTTONS: Dictionary = {
@@ -43,6 +55,11 @@ const EXPECTED_BUTTONS: Dictionary = {
 	&"zoom_out": [],
 	&"fast_forward": [],
 	&"ability": [JOY_BUTTON_X],
+	&"squad_follow": [JOY_BUTTON_DPAD_UP],
+	&"squad_hold": [JOY_BUTTON_DPAD_DOWN],
+	&"squad_rally": [JOY_BUTTON_DPAD_LEFT],
+	&"squad_cycle": [JOY_BUTTON_DPAD_RIGHT],
+	&"select_all": [JOY_BUTTON_RIGHT_STICK],
 }
 
 # Stick bindings as [axis, sign].
@@ -60,6 +77,9 @@ const MOVE_DEADZONE: float = 0.2
 const ZOOM_DEADZONE: float = 0.3
 const FAST_FORWARD_DEADZONE: float = 0.5
 const ABILITY_DEADZONE: float = 0.5
+const SQUAD_ACTIONS: Array[StringName] = [
+	&"squad_follow", &"squad_hold", &"squad_rally", &"squad_cycle", &"select_all"
+]
 
 
 func _keys_of(action: StringName) -> Array[int]:
@@ -157,6 +177,26 @@ func test_fast_forward_deadzone_is_point_five() -> void:
 ## other buttons: halfway counts.
 func test_ability_deadzone_is_point_five() -> void:
 	assert_almost_eq(InputMap.action_get_deadzone(&"ability"), ABILITY_DEADZONE, 0.0001, "deadzone")
+
+
+## The squad verbs are key and button presses, so halfway counts, like the other buttons.
+func test_squad_command_deadzone_is_point_five() -> void:
+	for action: StringName in SQUAD_ACTIONS:
+		assert_almost_eq(
+			InputMap.action_get_deadzone(action), ABILITY_DEADZONE, 0.0001, str(action)
+		)
+
+
+## F moved from fast-forward to follow: the F key no longer reaches fast-forward and T does.
+func test_f_follows_and_t_fast_forwards() -> void:
+	var key: InputEventKey = InputEventKey.new()
+	key.pressed = true
+	key.physical_keycode = KEY_F
+	assert_true(InputMap.event_is_action(key, &"squad_follow"), "F is follow")
+	assert_false(InputMap.event_is_action(key, &"fast_forward"), "F is no longer fast-forward")
+	key.physical_keycode = KEY_T
+	assert_true(InputMap.event_is_action(key, &"fast_forward"), "T is fast-forward")
+	assert_false(InputMap.event_is_action(key, &"squad_follow"), "T is not follow")
 
 
 func test_no_two_gameplay_actions_share_a_key_button_or_stick_direction() -> void:
