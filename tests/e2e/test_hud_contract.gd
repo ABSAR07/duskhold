@@ -18,6 +18,8 @@ const CENTRE_TOLERANCE_PX: float = 1.0
 const SETTLE_FRAMES: int = 3
 const LONG_NIGHT: int = 12
 const RUN_SEED: int = 11
+const MAX_NIGHT_STEPS: int = 20000
+const KILL_DAMAGE: int = 100000
 ## The dev-only overlay is not part of the player HUD and keeps its own 16 px text.
 const EXEMPT_SUBTREE := "DebugOverlay"
 
@@ -65,11 +67,14 @@ func _day_counter_of(map_root: MapRoot) -> DayCounter:
 	return map_root.get_node("HUD").find_child("DayCounter", true, false) as DayCounter
 
 
-func _single_night_map() -> MapConfig:
-	var map: MapConfig = E2eSupport.shipped_prototype_map()
-	var no_groups: Array[SpawnGroupDef] = []
-	map.nights[0].groups = no_groups
-	return map
+## Steps the sim, killing every enemy as it appears, until the night is cleared into dawn.
+func _clear_the_night(ctx: RunContext) -> void:
+	var steps: int = 0
+	while ctx.run_manager.get_phase() == RunManager.RunPhase.NIGHT and steps < MAX_NIGHT_STEPS:
+		for enemy_id: int in ctx.night.get_enemies().ids():
+			ctx.night.get_enemies().damage(enemy_id, KILL_DAMAGE, &"test")
+		ctx.step()
+		steps += 1
 
 
 func test_hud_root_is_a_full_rect_ignore_control_with_the_hud_theme() -> void:
@@ -199,11 +204,11 @@ func test_the_counter_hides_while_the_night_banner_shows() -> void:
 
 
 func test_after_a_cleared_night_the_counter_reads_the_next_night_at_dawn_and_by_day() -> void:
-	var map_root: MapRoot = await _spawn(_single_night_map())
+	var map_root: MapRoot = await _spawn(E2eSupport.shipped_prototype_map())
 	var ctx: RunContext = map_root.get_context()
 	var counter: DayCounter = _day_counter_of(map_root)
 	assert_eq(ctx.commands.submit(StartNightIntent.new()), CommandProcessor.OK, "night started")
-	ctx.run_manager.tick(0.1)
+	_clear_the_night(ctx)
 	assert_eq(ctx.run_manager.get_phase(), RunManager.RunPhase.DAWN, "dawn began")
 	assert_true(counter.visible, "shown at dawn")
 	assert_eq(counter.get_label().text, "Night 2 of 8", "the next night at dawn")

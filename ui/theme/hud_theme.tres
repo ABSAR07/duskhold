@@ -1,0 +1,11 @@
+[gd_resource type="Theme" load_steps=2 format=3]
+
+[sub_resource type="FontVariation" id="FontVariation_bold"]
+variation_embolden = 0.5
+
+[resource]
+Label/colors/font_color = Color(1, 1, 1, 1)
+Label/colors/font_outline_color = Color(0, 0, 0, 1)
+Label/constants/outline_size = 6
+HudBoldLabel/base_type = &"Label"
+HudBoldLabel/fonts/font = SubResource("FontVariation_bold")
