@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 03
 current_phase_name: King Combat & Troops
 status: executing
-stopped_at: Completed 03-09-PLAN.md
-last_updated: "2026-10-10T18:59:58.241Z"
+stopped_at: Completed 03-10-PLAN.md
+last_updated: "2026-10-10T20:19:49.784Z"
 last_activity: 2026-10-10
 last_activity_desc: Phase 03 execution started
-state_head: f351b8d60c2e78a2382fc508d5bf523f3c9fda44
+state_head: 000488fd939845efb572615398fae72218fd1280
 progress:
   total_phases: 13
   completed_phases: 2
   total_plans: 52
-  completed_plans: 50
+  completed_plans: 51
   percent: 15
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-08)
 ## Current Position
 
 Phase: 03 (King Combat & Troops) — EXECUTING
-Plan: 10 of 12
+Plan: 11 of 12
 Status: Ready to execute
 Last activity: 2026-10-10 — Phase 03 execution started
 
@@ -107,6 +107,7 @@ Progress: [██░░░░░░░░] 15%
 | Phase 03 P08 | 64 min | 3 tasks | 29 files |
 | Phase 03 P11 | 90 min | 2 tasks | 22 files |
 | Phase 03 P09 | 68 min | 2 tasks | 29 files |
+| Phase 03 P10 | 66 min | 2 tasks | 178 files |
 
 ## Accumulated Context
 
@@ -223,6 +224,9 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-11 finding for the owner gate: squads are not stronger than towers per gold under the bots, and the balanced bot still loses 1 of 10, not the owner target of 2 or 3 — Night counts alone cannot move both without breaking the early-night wall; see 03-BALANCE-REPORT.md
 - [Phase 03]: 03-09: pad layout adopted (RESEARCH A11): D-pad verbs, LB layer for move/attack-move/patrol with the right-stick cursor, R3 select all and LB + R3 select one type, Start group mode, RT queue, B cancel — A D-pad button bound to a bare verb and its LB twin fires both actions; PadChords resolves the pair so keyboard keys keep their meaning; the owner judges feel on a real pad at the UAT
 - [Phase 03]: 03-09: a pad point order carries one point (pad patrol is a single point); B and Escape cancel the cursor through CommandKeyController before the selection-clearing escape — Multi-point patrol stays a mouse gesture; letting the cursor and the pointer both poll B would have deselected the squads on a cancel
+- [Phase 03]: 03-10: sticks use the text tiles xbox_ls and xbox_rs (clearer than the pictorial sticks at 24 px), R3 uses xbox_stick_r_press, both stick directions share one tile — viewed on a dark plate at 24 px; keycap_text still tells Axis 0- from Axis 0+
+- [Phase 03]: 03-10: the command hint row fades in over 0.15 s but hides at once, and a glyph wider than its tile is anchored on the slam plate corner and may reach 12 px left of it — no overlap with a toast fading in over 0.1 s; a Backspace or unbound keycap stays on screen
+- [Phase 03]: 03-10: LastDeviceTracker is the last child of the map and exposes cursor_hidden() because headless Godot does not store Input.mouse_mode — input reaches later nodes first so a handled event cannot hide a switch; the real mode was read in a real-window probe
 
 ### Pending Todos
 
@@ -255,6 +259,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-10T18:59:57.624Z
-Stopped at: Completed 03-09-PLAN.md
+Last session: 2026-10-10T20:19:49.166Z
+Stopped at: Completed 03-10-PLAN.md
 Resume file: None
