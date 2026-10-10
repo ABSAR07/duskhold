@@ -83,6 +83,16 @@ func anchor_of(squad_id: StringName) -> Vector2:
 	return squad.anchor if squad != null else Vector2.ZERO
 
 
+## Dawn: every squad is back to full numbers and health. Inert until the life cycle lands.
+func restore_for_dawn() -> void:
+	pass
+
+
+## 0..1 toward the next replacement; 0 when none runs.
+func replacement_progress(_squad_id: StringName) -> float:
+	return 0.0
+
+
 ## A new night: attack cooldowns and targets are cleared. Stance, orders and the anchor are never
 ## touched here (D-14). A building finished in the very step the night began has had no day step to
 ## raise its squad, so its free seats are filled now; once the night runs they are never refilled

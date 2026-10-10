@@ -17,3 +17,9 @@ var tier: int = 0
 var cap: int = 0
 ## Ids of the units raised by this squad, ascending. May still list a unit that died this step.
 var unit_ids: Array[int] = []
+## Night steps left until the next replacement arrives; 0 while no countdown runs.
+var replacement_ticks_left: int = 0
+## Length in steps of the countdown that is running, kept for the progress readout; 0 when none.
+var replacement_total_ticks: int = 0
+## Seconds between replacements at the current tier.
+var respawn_seconds: float = 0.0

@@ -59,3 +59,7 @@ signal unit_spawned(unit_id: int, squad_id: StringName, def_id: StringName, pos:
 signal unit_damaged(unit_id: int, amount: int, hp: int)
 ## A unit died and was removed; `killer_kind` is the attacker kind that landed the last hit.
 signal unit_died(unit_id: int, squad_id: StringName, pos: Vector2, killer_kind: StringName)
+## Dawn made squad `squad_id` whole again: every survivor is back at full health and every missing
+## seat is filled, so the squad has `alive` units. Emitted once per squad per dawn, after the
+## rebuild and before the payout.
+signal squad_restored(squad_id: StringName, alive: int)
