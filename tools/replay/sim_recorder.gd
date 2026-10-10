@@ -35,6 +35,7 @@ const HANDLED: Array[String] = [
 	"unit_died",
 	"squad_restored",
 	"king_ability_used",
+	"king_healed",
 ]
 ## Written in place of an empty id so every token is non-empty.
 const EMPTY_TOKEN := "-"
@@ -74,6 +75,7 @@ static func attach(ctx: RunContext) -> SimRecorder:
 	events.unit_died.connect(recorder._on_unit_died)
 	events.squad_restored.connect(recorder._on_squad_restored)
 	events.king_ability_used.connect(recorder._on_king_ability_used)
+	events.king_healed.connect(recorder._on_king_healed)
 	return recorder
 
 
@@ -242,3 +244,7 @@ func _on_squad_restored(squad_id: StringName, alive: int) -> void:
 
 func _on_king_ability_used(hit_count: int) -> void:
 	_record("king_ability_used", [hit_count])
+
+
+func _on_king_healed(amount: int, hp: int, max_hp: int) -> void:
+	_record("king_healed", [amount, hp, max_hp])

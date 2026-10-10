@@ -194,10 +194,18 @@ func test_the_count_resets_each_night_but_the_total_does_not() -> void:
 	assert_signal_emitted_with_parameters(_events, "king_downed", [_down_ticks(1), 1])
 
 
-func test_there_is_no_regeneration_during_a_night() -> void:
+## D-20 supersedes Phase 2 D-05 ("health never regenerates during a night"): the shipped king now
+## heals after a second without a hit (test_king_regen pins that). What stays true is that
+## regeneration is data: with it switched off a king's damage stays until dawn or a respawn.
+func test_with_regeneration_off_by_data_health_stays_put_through_a_night() -> void:
 	_build_king(6)
+	_def.regen_delay_seconds = 0.0
+	_def.regen_fraction_per_second = 0.0
 	_king.take_damage(4)
-	_steps(SimClock.ticks(60.0))
+	for _i: int in range(SimClock.ticks(60.0)):
+		_king.tick_timers()
+		_king.step(_tick, _enemies, _hits)
+		_tick += 1
 	assert_eq(_king.get_health(), 2, "damage taken stays until dawn or a respawn")
 
 

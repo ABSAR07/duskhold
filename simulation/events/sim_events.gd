@@ -65,3 +65,6 @@ signal unit_died(unit_id: int, squad_id: StringName, pos: Vector2, killer_kind: 
 signal squad_restored(squad_id: StringName, alive: int)
 ## The king used his weapon's slam and it struck `hit_count` enemies (0 by day).
 signal king_ability_used(hit_count: int)
+## The king regenerated `amount` points (D-20) and now has `hp` of `max_hp`. Emitted only on a step
+## where his whole-point health changed.
+signal king_healed(amount: int, hp: int, max_hp: int)

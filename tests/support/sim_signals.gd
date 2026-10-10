@@ -32,4 +32,5 @@ const ALL: Array[String] = [
 	"unit_died",
 	"squad_restored",
 	"king_ability_used",
+	"king_healed",
 ]

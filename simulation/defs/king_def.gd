@@ -22,5 +22,12 @@ extends Resource
 @export var max_health: int = 30
 ## Radius of the king's body in metres.
 @export var body_radius: float = 0.6
+## Seconds after the last hit taken before he starts to heal (D-20). 0 together with a fraction of
+## 0 switches regeneration off, which keeps fixtures and the smoke golden unchanged; a negative or
+## non-finite delay counts as 0.
+@export var regen_delay_seconds: float = 0.0
+## Share of his maximum health he regains per second once the delay has passed (D-20), as whole
+## points. 0, a negative or a non-finite value switches regeneration off.
+@export var regen_fraction_per_second: float = 0.0
 ## The weapon the king carries (D-18). Null falls back to the WeaponDef defaults.
 @export var weapon: WeaponDef
