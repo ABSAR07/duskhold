@@ -11,12 +11,22 @@ extends RefCounted
 ## at the spawn with full health. A knockout costs nothing but that time, and dawn restores his
 ## health fully.
 ##
+## Regeneration (D-20, KING-05): SimClock.ticks(regen_delay_seconds) steps after the last hit taken
+## he regains regen_fraction_per_second of his maximum health per second, as whole points through a
+## float accumulator (`+ - * /` only, DR-7), until full, by day and by night, and never while he is
+## down. Every hit restarts the delay and drops the partial point; a respawn and the dawn still
+## return full health. A fraction that is zero, negative or not finite switches it off.
+##
 ## The slam (D-17, D-19): CommandProcessor validates the press and calls `activate_ability`, which
 ## starts the cooldown of SimClock.ticks(slam_cooldown_seconds) and arms the slam. The next
 ## `resolve_ability` (the night step, or the day step when it is day) queues one hit of slam_damage
 ## on every living enemy whose centre is within slam_radius (inclusive, ascending id), with the king
 ## as attacker, and emits king_ability_used. The cooldown is a countdown that `tick_timers` runs
 ## once per simulation step in every phase (DR-3: counters, no tick base).
+
+## Guards the floor of the regeneration accumulator against float noise: 0.9999999999999999 of a
+## point is a point (a quantisation guard, not a tuning value).
+const REGEN_EPSILON: float = 0.000001
 
 var _def: KingDef
 var _weapon: WeaponDef
@@ -33,6 +43,8 @@ var _knockouts_total: int = 0
 var _ability_ticks_left: int = 0
 var _ability_total_ticks: int = 0
 var _slam_pending: bool = false
+var _regen_delay_ticks_left: int = 0
+var _regen_progress: float = 0.0
 
 
 func _init(def: KingDef, spawn: Vector2, events: SimEvents, tuning: LoopTuning = null) -> void:
@@ -54,11 +66,12 @@ func get_weapon() -> WeaponDef:
 	return _weapon
 
 
-## Runs the king's countdowns by one simulation step. RunContext.step calls it once per step in
-## every phase, so the slam cooldown runs by day and by night.
+## Runs the king's countdowns by one simulation step: the slam cooldown and the regeneration.
+## RunContext.step calls it once per step in every phase, so both run by day and by night.
 func tick_timers() -> void:
 	if _ability_ticks_left > 0:
 		_ability_ticks_left -= 1
+	_regenerate()
 
 
 ## True when the weapon has a usable slam (WeaponDef.is_slam_armed).
@@ -145,6 +158,8 @@ func take_damage(amount: int) -> void:
 		return
 	var lost: int = mini(amount, _health)
 	_health -= lost
+	_regen_delay_ticks_left = _regen_delay_ticks()
+	_regen_progress = 0.0
 	_events.king_damaged.emit(lost, _health, get_max_health())
 	if _health > 0:
 		return
@@ -177,6 +192,7 @@ func knockouts_total() -> int:
 ## second case; an up king is healed in place.
 func restore_for_dawn() -> void:
 	_health = get_max_health()
+	_regen_progress = 0.0
 	if _down:
 		_respawn()
 
@@ -203,6 +219,37 @@ func step(tick: int, enemies: EnemySystem, hits: PendingHits) -> void:
 	resolve_ability(tick, enemies, hits)
 
 
+## One step of regeneration: skipped while down, at full health or with the feature off; counts the
+## delay down, then adds the share of one step to the accumulator and heals its whole points, capped
+## at the missing health. king_healed is emitted only when the integer health changed.
+func _regenerate() -> void:
+	var fraction: float = _def.regen_fraction_per_second
+	var max_hp: int = get_max_health()
+	if _down or _health >= max_hp or not is_finite(fraction) or fraction <= 0.0:
+		_regen_progress = 0.0
+		return
+	if _regen_delay_ticks_left > 0:
+		_regen_delay_ticks_left -= 1
+		return
+	_regen_progress += float(max_hp) * fraction * SimClock.STEP
+	var gained: int = mini(floori(_regen_progress + REGEN_EPSILON), max_hp - _health)
+	if gained <= 0:
+		return
+	_regen_progress -= float(gained)
+	_health += gained
+	if _health >= max_hp:
+		_regen_progress = 0.0
+	_events.king_healed.emit(gained, _health, max_hp)
+
+
+## The delay after a hit in whole ticks; a negative or non-finite delay counts as none.
+func _regen_delay_ticks() -> int:
+	var seconds: float = _def.regen_delay_seconds
+	if not is_finite(seconds) or seconds <= 0.0:
+		return 0
+	return SimClock.ticks(seconds)
+
+
 func _passive_attack(tick: int, enemies: EnemySystem, hits: PendingHits) -> void:
 	if tick < _cooldown_ready_tick:
 		return
@@ -222,5 +269,6 @@ func _respawn() -> void:
 	_respawn_ticks_left = 0
 	_position = _spawn
 	_health = get_max_health()
+	_regen_progress = 0.0
 	_cooldown_ready_tick = 0
 	_events.king_respawned.emit()

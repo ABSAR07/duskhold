@@ -11,4 +11,6 @@ acceleration = 60.0
 turn_speed = 12.0
 max_health = 50
 body_radius = 0.6
+regen_delay_seconds = 1.0
+regen_fraction_per_second = 0.1
 weapon = ExtResource("2_sword")
