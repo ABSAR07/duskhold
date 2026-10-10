@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 03
 current_phase_name: King Combat & Troops
 status: executing
-stopped_at: Completed 03-04-PLAN.md
-last_updated: "2026-10-10T11:11:43.282Z"
+stopped_at: Completed 03-05-PLAN.md
+last_updated: "2026-10-10T11:59:17.777Z"
 last_activity: 2026-10-10
 last_activity_desc: Phase 03 execution started
-state_head: 12bdbaf68f2ad8037c22c5cc59a7f9d927d393ee
+state_head: 6400d120e9ae64179714246abb08b7535fa01c09
 progress:
   total_phases: 13
   completed_phases: 2
   total_plans: 52
-  completed_plans: 44
+  completed_plans: 45
   percent: 15
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-08)
 ## Current Position
 
 Phase: 03 (King Combat & Troops) — EXECUTING
-Plan: 5 of 12
+Plan: 6 of 12
 Status: Ready to execute
 Last activity: 2026-10-10 — Phase 03 execution started
 
@@ -101,6 +101,7 @@ Progress: [██░░░░░░░░] 15%
 | Phase 03 P03 | 17 min | 2 tasks | 8 files |
 | Phase 03 P02 | 29 min | 2 tasks | 28 files |
 | Phase 03 P04 | 60 min | 3 tasks | 32 files |
+| Phase 03 P05 | 36 min | 2 tasks | 23 files |
 
 ## Accumulated Context
 
@@ -202,6 +203,9 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-04: regeneration counts the delay down inside KingState.tick_timers (1 s = 30 steps with no heal, then 10 percent of max health per second as whole points); a zero, negative or non-finite fraction switches it off and a bad delay counts as 0
 - [Phase 03]: 03-04: KingState is at the 20 public-method gdlint cap; later king methods must be private or live in a new file. The ability glyph on the king widget is left to 03-10 (the Slam caption is the fallback)
 - [Phase 03]: 03-04: D-20 regeneration moved the balanced bot from losing seeds 3 and 9 to losing only seed 9 (9 of 10 won); test_balance_acceptance re-pinned, 03-11 retunes toward the owner's 2 or 3 losses in 10
+- [Phase 03]: 03-05: the SquadStrip scales (to 720 px about its bottom centre) only past six slots (width above 856 px); six slots stay unscaled — UI-SPEC Squad group slots section and plan 03-05: up to six slots fit in 856 px
+- [Phase 03]: 03-05: resting_stance returns post and executing_verb none until plan 03-06 adds orders; move and rally have no glyph among the five and fall back to a dot — The UI-SPEC glyph table lists five shapes; 03-06 owns the order record
+- [Phase 03]: 03-05: SquadSystem.replacement_seconds_left (ticks left times SimClock.STEP) feeds the overlay countdown; a rubble building shows 'rubble' — Avoids a float round trip from replacement_progress and tier data
 
 ### Pending Todos
 
@@ -234,6 +238,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-10T11:11:42.569Z
-Stopped at: Completed 03-04-PLAN.md
+Last session: 2026-10-10T11:59:17.472Z
+Stopped at: Completed 03-05-PLAN.md
 Resume file: None

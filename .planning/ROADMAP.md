@@ -189,7 +189,7 @@ Plans:
   4. Every in-run action (move, sprint, hold-to-build/upgrade, active ability, unit selection and commands, start night) works on keyboard and mouse and on gamepad. The player can switch devices at any moment, and on-screen prompts update to match the active device.
   5. The HUD shows gold, current night out of total, king health, ability cooldown, and unit group status without cluttering the play area.
 
-**Plans**: 4/12 plans executed
+**Plans**: 5/12 plans executed
 **UI hint**: yes
 
 Plans:
@@ -204,7 +204,7 @@ Plans:
 - [x] 03-04: The sword as WeaponDef, the slam on Q / pad X with a 9 s cooldown, regeneration after 1 s, and the bottom-left king widget
 
 **Wave 4** *(blocked on 03-04)*
-- [ ] 03-05: Squad strip bottom-centre (icon, alive / max, stance glyph, replacement fill) and the Squads overlay section
+- [x] 03-05: Squad strip bottom-centre (icon, alive / max, stance glyph, replacement fill) and the Squads overlay section
 
 **Wave 5** *(blocked on 03-05)*
 - [ ] 03-06: Follow, hold and rally on a selection — order gate and persistence, click / Ctrl / double-click / slot selection with rings, F H R Tab F2 keys, toast, fast-forward to T
@@ -389,7 +389,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 |-------|----------------|--------|-----------|
 | 1. Foundation & Day Loop | 18/18 | Complete    | 2026-10-03 |
 | 2. Night Defense & Playtest Gate | 22/22 | Complete    | 2026-10-08 |
-| 3. King Combat & Troops | 4/12 | In Progress|  |
+| 3. King Combat & Troops | 5/12 | In Progress|  |
 | 4. Crowd-Scale Battles & Walls | 0/TBD | Not started | - |
 | 5. Castle Center & Economy Depth | 0/TBD | Not started | - |
 | 6. Enemy Roster & Tower Specializations | 0/TBD | Not started | - |
