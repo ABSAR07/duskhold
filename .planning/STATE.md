@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 03
 current_phase_name: King Combat & Troops
 status: executing
-stopped_at: Completed 03-08-PLAN.md
-last_updated: "2026-10-10T16:02:59.898Z"
+stopped_at: Completed 03-11-PLAN.md
+last_updated: "2026-10-10T17:34:42.550Z"
 last_activity: 2026-10-10
 last_activity_desc: Phase 03 execution started
-state_head: 1c2ba0046418f51289684eb926111e198a693311
+state_head: 5dae9d1a354b23caeb454a4cdf4a95a2e530d105
 progress:
   total_phases: 13
   completed_phases: 2
   total_plans: 52
-  completed_plans: 48
+  completed_plans: 49
   percent: 15
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-08)
 ## Current Position
 
 Phase: 03 (King Combat & Troops) — EXECUTING
-Plan: 9 of 12
+Plan: 10 of 12
 Status: Ready to execute
 Last activity: 2026-10-10 — Phase 03 execution started
 
@@ -105,6 +105,7 @@ Progress: [██░░░░░░░░] 15%
 | Phase 03 P06 | 72 min | 3 tasks | 48 files |
 | Phase 03 P07 | 45 min | 3 tasks | 39 files |
 | Phase 03 P08 | 64 min | 3 tasks | 29 files |
+| Phase 03 P11 | 90 min | 2 tasks | 22 files |
 
 ## Accumulated Context
 
@@ -216,6 +217,9 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-07: the squad queue holds only walks while they run (hold, follow and patrol act at once), QUEUE_CLOSED is decided at the gate from orders_of before anything applies, a hold reached after a walk keeps the walk point, and a leg budget is not spent while a unit is engaged — Keeps multi-squad orders atomic, makes a rally hold exactly at the king position and stops a fight from ending an attack-move or a patrol leg
 - [Phase 03]: 03-08: control groups hold squad ids, never drop a member at 0 alive, a newly built squad joins no group, recalling an empty group keeps the selection and toasts Group N is empty, storing nothing toasts Select a squad first (RESEARCH A12; owner may ask for auto-join at the UAT)
 - [Phase 03]: 03-08: a drag released with no ground under it is dropped like a cancel with no toast; Ctrl+digit stores and the bare digit recalls through ten digit actions plus selection_modifier; the store toast names the key digit (key 0 reads Group 0 saved)
+- [Phase 03]: 03-11: nights 5 to 8 raised to 25, 31, 39, 39 enemies by group counts so army_balanced wins 8 of 10 seeds; no economy or squad number moved — Counts alone reached the Phase 2 bar of 7 or 8; night 8 equals night 7 because totals must not decrease and a larger night 8 ends the tower opening on every seed
+- [Phase 03]: 03-11: army golden tests/golden/army.json (seed 1, digest f7a967ed...) on frozen fixtures, checked in CI beside the unchanged smoke golden — Pins every Phase 3 simulation rule; fixtures inline copies of shipped numbers so data retunes never move it
+- [Phase 03]: 03-11 finding for the owner gate: squads are not stronger than towers per gold under the bots, and the balanced bot still loses 1 of 10, not the owner target of 2 or 3 — Night counts alone cannot move both without breaking the early-night wall; see 03-BALANCE-REPORT.md
 
 ### Pending Todos
 
@@ -248,6 +252,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-10T16:02:59.583Z
-Stopped at: Completed 03-08-PLAN.md
+Last session: 2026-10-10T17:34:41.336Z
+Stopped at: Completed 03-11-PLAN.md
 Resume file: None
