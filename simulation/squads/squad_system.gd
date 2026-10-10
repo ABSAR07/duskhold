@@ -125,9 +125,14 @@ func replacement_progress(squad_id: StringName) -> float:
 	return 1.0 - float(squad.replacement_ticks_left) / float(squad.replacement_total_ticks)
 
 
-## RED skeleton: seconds to the next replacement.
-func replacement_seconds_left(_squad_id: StringName) -> float:
-	return -1.0
+## Seconds until the squad's next replacement arrives, counted from the countdown that runs
+## now; 0 when no countdown runs (the squad is at its cap, the night has not stepped it yet, or it
+## is unknown). A fallen building freezes the countdown, so the value stops falling with it.
+func replacement_seconds_left(squad_id: StringName) -> float:
+	var squad: Squad = _squads.get(squad_id) as Squad
+	if squad == null or squad.replacement_ticks_left <= 0:
+		return 0.0
+	return float(squad.replacement_ticks_left) * SimClock.STEP
 
 
 ## A new night: attack cooldowns and targets are cleared. Stance, orders and the anchor are never

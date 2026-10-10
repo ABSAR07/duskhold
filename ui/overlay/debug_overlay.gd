@@ -52,9 +52,11 @@ func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
 			continue
 		_model.register_section(entry["title"], entry["provider"], lifetime_owner)
 	_pending.clear()
-	# The night sections come after the defaults and every section registered before the bind, so
-	# earlier registrations keep their place. `map_root` is null for a bare overlay (no gizmo then).
+	# The night and squad sections come after the defaults and every section registered before the
+	# bind, so earlier registrations keep their place. `map_root` is null for a bare overlay (no
+	# gizmo then).
 	NightOverlaySections.register(self, ctx, map_root)
+	SquadOverlaySections.register(self, ctx, map_root)
 	# Toggled on before this bind, _refresh() found no model and left the label empty; fill it now
 	# rather than showing nothing until the next refresh tick.
 	if visible and _text != null:

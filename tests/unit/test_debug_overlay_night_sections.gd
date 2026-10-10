@@ -273,6 +273,6 @@ func test_the_overlay_lists_wave_king_and_paths_after_the_defaults_and_earlier_s
 			order.append(line)
 	assert_eq(
 		order,
-		["Perf", "Loop", "Agents", "Early", "Wave", "King", "Paths"] as Array[String],
-		"the defaults first, registration order kept, the night sections after them"
+		["Perf", "Loop", "Agents", "Early", "Wave", "King", "Paths", "Squads"] as Array[String],
+		"the defaults first, registration order kept, the night sections then the squads after them"
 	)
