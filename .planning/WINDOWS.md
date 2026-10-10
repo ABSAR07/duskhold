@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 1
+open_count: 3
 waived_count: 0
 fixed_count: 0
-total_count: 1
-last_updated: 2026-09-29T08:22:35.384Z
+total_count: 3
+last_updated: 2026-10-10T09:03:53.157Z
 ---
 
 # Broken Windows Ledger
@@ -16,6 +16,8 @@ last_updated: 2026-09-29T08:22:35.384Z
 | id | phase | kind | file | line | description | status | reason | recorded_at | resolved_at |
 |----|-------|------|------|------|-------------|--------|--------|-------------|-------------|
 | 1 | 01 | stub | presentation/buildings/building_views.gd |  | Placeholder primitive shapes for spots/buildings until CC0 models (plan 01-07) | open |  | 2026-09-29T08:22:35.384Z |  |
+| 2 | 03 | stub | presentation/buildings/building_views.gd |  | Barracks and Archery Range draw as the House-style primitive box (no building_view_catalog entry); only the plot marker is distinct. A later Phase 3 plan owns military building visuals | open |  | 2026-10-10T09:03:52.508Z |  |
+| 3 | 03 | stub | simulation/defs/building_tier_def.gd |  | squad_respawn_seconds is authored (10/7/4 s) but not read until the night respawn rule in plan 03-02 | open |  | 2026-10-10T09:03:53.157Z |  |
 
 ````json
 [
@@ -29,6 +31,32 @@ last_updated: 2026-09-29T08:22:35.384Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-29T08:22:35.384Z",
+    "resolved_at": null,
+    "milestone": null
+  },
+  {
+    "id": 2,
+    "kind": "stub",
+    "phase": "03",
+    "file": "presentation/buildings/building_views.gd",
+    "line": null,
+    "description": "Barracks and Archery Range draw as the House-style primitive box (no building_view_catalog entry); only the plot marker is distinct. A later Phase 3 plan owns military building visuals",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-10T09:03:52.508Z",
+    "resolved_at": null,
+    "milestone": null
+  },
+  {
+    "id": 3,
+    "kind": "stub",
+    "phase": "03",
+    "file": "simulation/defs/building_tier_def.gd",
+    "line": null,
+    "description": "squad_respawn_seconds is authored (10/7/4 s) but not read until the night respawn rule in plan 03-02",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-10T09:03:53.157Z",
     "resolved_at": null,
     "milestone": null
   }

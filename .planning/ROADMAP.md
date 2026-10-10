@@ -189,12 +189,12 @@ Plans:
   4. Every in-run action (move, sprint, hold-to-build/upgrade, active ability, unit selection and commands, start night) works on keyboard and mouse and on gamepad. The player can switch devices at any moment, and on-screen prompts update to match the active device.
   5. The HUD shows gold, current night out of total, king health, ability cooldown, and unit group status without cluttering the play area.
 
-**Plans**: 12 plans
+**Plans**: 1/12 plans executed
 **UI hint**: yes
 
 Plans:
 **Wave 1**
-- [ ] 03-01: Tracer — a Barracks squad end to end on the fixed step (guard, commit, enemies target units, puppets, double-run digest); archers, arrows and Mini Characters models
+- [x] 03-01: Tracer — a Barracks squad end to end on the fixed step (guard, commit, enemies target units, puppets, double-run digest); archers, arrows and Mini Characters models
 - [ ] 03-03: HUD foundation — canvas_items stretch with every suite green; HudRoot, theme, four-size type scale, "Night N of T" counter and the clear-centre contract
 
 **Wave 2** *(blocked on 03-01)*
@@ -389,7 +389,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 |-------|----------------|--------|-----------|
 | 1. Foundation & Day Loop | 18/18 | Complete    | 2026-10-03 |
 | 2. Night Defense & Playtest Gate | 22/22 | Complete    | 2026-10-08 |
-| 3. King Combat & Troops | 0/TBD | Not started | - |
+| 3. King Combat & Troops | 1/12 | In Progress|  |
 | 4. Crowd-Scale Battles & Walls | 0/TBD | Not started | - |
 | 5. Castle Center & Economy Depth | 0/TBD | Not started | - |
 | 6. Enemy Roster & Tower Specializations | 0/TBD | Not started | - |
