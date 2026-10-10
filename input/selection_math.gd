@@ -25,3 +25,9 @@ static func nearest_squad_at(
 				best_distance = distance
 				best_id = squad_id
 	return best_id
+
+
+## Every squad with at least one unit point inside `rect` (corners in either order, edges
+## included), in the dictionary's insertion (creation) order.
+static func squads_in_rect(_points_by_squad: Dictionary, _rect: Rect2) -> Array[StringName]:
+	return [] as Array[StringName]

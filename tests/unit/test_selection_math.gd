@@ -59,3 +59,57 @@ func test_an_empty_dictionary_returns_nothing() -> void:
 func test_a_squad_with_no_visible_units_is_never_hit() -> void:
 	var by_squad: Dictionary = _points([] as Array[Vector2], [CLICK] as Array[Vector2])
 	assert_eq(SelectionMath.nearest_squad_at(by_squad, CLICK, RADIUS), &"archery_1", "the other")
+
+
+func test_the_drag_threshold_is_eight_pixels() -> void:
+	assert_eq(SelectionController.DRAG_THRESHOLD_PX, 8.0, "UI-SPEC drag box")
+
+
+func test_squads_in_rect_returns_every_squad_with_a_unit_inside_in_creation_order() -> void:
+	var by_squad: Dictionary = _points(
+		[Vector2(300.0, 300.0), Vector2(900.0, 900.0)] as Array[Vector2],
+		[Vector2(320.0, 310.0)] as Array[Vector2]
+	)
+	var hit: Array[StringName] = SelectionMath.squads_in_rect(
+		by_squad, Rect2(Vector2(250.0, 250.0), Vector2(100.0, 100.0))
+	)
+	assert_eq(hit, [&"barracks_1", &"archery_1"] as Array[StringName], "both, created order")
+
+
+func test_one_unit_inside_is_enough_and_a_squad_wholly_outside_is_left_out() -> void:
+	var by_squad: Dictionary = _points(
+		[Vector2(10.0, 10.0), Vector2(900.0, 900.0)] as Array[Vector2],
+		[Vector2(800.0, 800.0)] as Array[Vector2]
+	)
+	var hit: Array[StringName] = SelectionMath.squads_in_rect(
+		by_squad, Rect2(Vector2.ZERO, Vector2(100.0, 100.0))
+	)
+	assert_eq(hit, [&"barracks_1"] as Array[StringName], "only the squad with a unit inside")
+
+
+func test_an_empty_rectangle_over_no_unit_selects_nothing() -> void:
+	var by_squad: Dictionary = _points([Vector2(300.0, 300.0)] as Array[Vector2])
+	var hit: Array[StringName] = SelectionMath.squads_in_rect(
+		by_squad, Rect2(Vector2(10.0, 10.0), Vector2.ZERO)
+	)
+	assert_true(hit.is_empty(), "a zero-size rectangle away from every unit")
+	assert_true(
+		SelectionMath.squads_in_rect({}, Rect2(0.0, 0.0, 50.0, 50.0)).is_empty(), "no squads"
+	)
+
+
+func test_a_rectangle_given_with_its_corners_reversed_selects_the_same_squads() -> void:
+	var by_squad: Dictionary = _points([Vector2(300.0, 300.0)] as Array[Vector2])
+	var reversed: Rect2 = Rect2(Vector2(350.0, 350.0), Vector2(-100.0, -100.0))
+	var hit: Array[StringName] = SelectionMath.squads_in_rect(by_squad, reversed)
+	assert_eq(hit, [&"barracks_1"] as Array[StringName], "negative size is normalised")
+
+
+func test_a_unit_exactly_on_an_edge_counts_as_inside() -> void:
+	var by_squad: Dictionary = _points(
+		[Vector2(100.0, 50.0)] as Array[Vector2], [Vector2(0.0, 0.0)] as Array[Vector2]
+	)
+	var hit: Array[StringName] = SelectionMath.squads_in_rect(
+		by_squad, Rect2(Vector2.ZERO, Vector2(100.0, 100.0))
+	)
+	assert_eq(hit, [&"barracks_1", &"archery_1"] as Array[StringName], "edges are included")

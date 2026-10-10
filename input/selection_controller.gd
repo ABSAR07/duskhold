@@ -28,8 +28,10 @@ enum Armed { NONE, ATTACK_MOVE, PATROL }
 
 ## Pixels around a unit's projected ground point that count as a hit (UI-SPEC click select).
 const CLICK_RADIUS_PX := 32.0
+## Motion farther than this from a press starts a drag box.
+const DRAG_THRESHOLD_PX := 8.0
 ## A release farther than this from the press is not a click.
-const CLICK_SLOP_PX: float = 8.0
+const CLICK_SLOP_PX: float = DRAG_THRESHOLD_PX
 
 var _ctx: RunContext
 var _selection: SelectionModel
