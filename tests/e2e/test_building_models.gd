@@ -8,6 +8,17 @@ const HOUSE_PATHS: Array[String] = [
 ]
 const TOWER_PATHS: Array[String] = [MODEL_DIR + "tower_t1.tscn", MODEL_DIR + "tower_t2.tscn"]
 const CASTLE_PATH := MODEL_DIR + "castle_center.tscn"
+const BARRACKS_PATHS: Array[String] = [
+	MODEL_DIR + "barracks_t1.tscn", MODEL_DIR + "barracks_t2.tscn", MODEL_DIR + "barracks_t3.tscn"
+]
+const ARCHERY_PATHS: Array[String] = [
+	MODEL_DIR + "archery_range_t1.tscn",
+	MODEL_DIR + "archery_range_t2.tscn",
+	MODEL_DIR + "archery_range_t3.tscn",
+]
+const BARRACKS_SPOT: StringName = &"barracks_1"
+const ARCHERY_SPOT: StringName = &"archery_1"
+const SIZE_SLACK: float = 0.001
 const KING_MODEL_PATH := "res://presentation/king/king_model.tscn"
 const EXTRA_GOLD: int = 500
 const HOUSE_SPOT: StringName = &"house_1"
@@ -125,3 +136,38 @@ func test_king_reads_as_a_rider_smaller_than_a_house() -> void:
 	assert_between(king_size.y, 2.0, 3.0, "rider plus horse is about 2.5 m tall")
 	assert_lt(king_size.y, house_size.y, "the king is shorter than a tier I House")
 	await wait_process_frames(1)
+
+
+## Builds the military spot up tier by tier and checks each tier's wrapper scene and that its model
+## is at least as large as the one below on every axis and larger on at least one.
+func _check_military_tiers(spot_id: StringName, paths: Array[String]) -> void:
+	var setup: Array = await _spawn_views()
+	var ctx: RunContext = setup[1]
+	var views: BuildingViews = setup[2]
+	var previous: Vector3 = Vector3.ZERO
+	for tier: int in range(1, paths.size() + 1):
+		_build(ctx, spot_id)
+		var view: Node3D = views.get_view(spot_id)
+		assert_not_null(view, "tier %d of %s has a view" % [tier, spot_id])
+		assert_eq(view.get_meta(&"view_source"), paths[tier - 1], "tier %d wrapper" % tier)
+		var size: Vector3 = _mesh_size(view)
+		assert_gt(size.y, 0.0, "tier %d has real mesh geometry" % tier)
+		assert_gt(size.x, previous.x - SIZE_SLACK, "tier %d is no narrower" % tier)
+		assert_gt(size.y, previous.y - SIZE_SLACK, "tier %d is no shorter" % tier)
+		assert_gt(size.z, previous.z - SIZE_SLACK, "tier %d is no shallower" % tier)
+		if tier > 1:
+			assert_gt(
+				size.x + size.y + size.z,
+				previous.x + previous.y + previous.z,
+				"tier %d grew" % tier
+			)
+		previous = size
+		await wait_process_frames(1)
+
+
+func test_every_barracks_tier_uses_its_wrapper_scene_and_grows() -> void:
+	await _check_military_tiers(BARRACKS_SPOT, BARRACKS_PATHS)
+
+
+func test_every_archery_range_tier_uses_its_wrapper_scene_and_grows() -> void:
+	await _check_military_tiers(ARCHERY_SPOT, ARCHERY_PATHS)

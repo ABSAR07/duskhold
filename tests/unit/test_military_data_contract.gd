@@ -1,0 +1,120 @@
+extends GutTest
+## The shipped military numbers, pinned on purpose (D-01, D-02, D-03, D-05, D-06, D-07): costs
+## 4/8/16, squad sizes 4/8/14 with a smaller but larger-in-magnitude last step, respawn 10/7/4 s,
+## the footman at a fifth of the king's health, and the two military plots last on the map, inside
+## the tower ring and clear of everything. Plan 03-11 re-pins a number here deliberately if the
+## owner's retune moves it; any other change that breaks this test is a regression.
+
+const MAP_PATH := "res://data/maps/prototype_map.tres"
+const KING_PATH := "res://data/king/king.tres"
+const BARRACKS_PATH := "res://data/buildings/barracks.tres"
+const ARCHERY_PATH := "res://data/buildings/archery_range.tres"
+const FOOTMAN_PATH := "res://data/units/footman.tres"
+const ARCHER_PATH := "res://data/units/archer.tres"
+const GRUNT_PATH := "res://data/enemies/grunt.tres"
+const COSTS: Array[int] = [4, 8, 16]
+const SQUAD_SIZES: Array[int] = [4, 8, 14]
+const RESPAWN_SECONDS: Array[float] = [10.0, 7.0, 4.0]
+const SPOT_COUNT: int = 10
+const BARRACKS_SPOT: int = 8
+const ARCHERY_SPOT: int = 9
+const MIN_CLEARANCE_M: float = 5.0
+## The footman is a fifth of the king (D-06); its blow is the integer nearest a fifth of the king's
+## passive 5 (D-07), written as a literal so the weapon migration of plan 03-04 does not touch it.
+const FOOTMAN_DAMAGE: int = 1
+const KING_HEALTH_PER_FOOTMAN: int = 5
+
+
+func _map() -> MapConfig:
+	return load(MAP_PATH)
+
+
+func _ground(position: Vector3) -> Vector2:
+	return Vector2(position.x, position.z)
+
+
+func _costs_of(building_def: BuildingDef) -> Array[int]:
+	var costs: Array[int] = []
+	for tier: BuildingTierDef in building_def.tiers:
+		costs.append(tier.cost)
+	return costs
+
+
+func _sizes_of(building_def: BuildingDef) -> Array[int]:
+	var sizes: Array[int] = []
+	for tier: BuildingTierDef in building_def.tiers:
+		sizes.append(tier.squad_size)
+	return sizes
+
+
+func _respawns_of(building_def: BuildingDef) -> Array[float]:
+	var seconds: Array[float] = []
+	for tier: BuildingTierDef in building_def.tiers:
+		seconds.append(tier.squad_respawn_seconds)
+	return seconds
+
+
+func test_both_military_buildings_cost_four_eight_and_sixteen() -> void:
+	assert_eq(_costs_of(load(BARRACKS_PATH)), COSTS, "Barracks costs (D-02)")
+	assert_eq(_costs_of(load(ARCHERY_PATH)), COSTS, "Archery Range costs (D-02)")
+
+
+func test_squad_sizes_are_four_eight_and_fourteen_with_a_bigger_last_step() -> void:
+	for path: String in [BARRACKS_PATH, ARCHERY_PATH]:
+		var sizes: Array[int] = _sizes_of(load(path))
+		assert_eq(sizes, SQUAD_SIZES, "%s squad sizes (D-01)" % path)
+		var first_step: int = sizes[1] - sizes[0]
+		var last_step: int = sizes[2] - sizes[1]
+		assert_lt(
+			float(last_step) / float(sizes[1]), float(first_step) / float(sizes[0]), "smaller"
+		)
+		assert_gt(last_step, first_step, "yet larger in magnitude")
+
+
+func test_replacements_come_every_ten_seven_and_four_seconds() -> void:
+	assert_eq(_respawns_of(load(BARRACKS_PATH)), RESPAWN_SECONDS, "Barracks respawn (D-05)")
+	assert_eq(_respawns_of(load(ARCHERY_PATH)), RESPAWN_SECONDS, "Archery Range respawn (D-05)")
+
+
+func test_the_footman_is_a_fifth_of_the_king_and_the_archer_is_frailer_with_a_longer_reach(
+) -> void:
+	var king: KingDef = load(KING_PATH)
+	var footman: UnitDef = load(FOOTMAN_PATH)
+	var archer: UnitDef = load(ARCHER_PATH)
+	var grunt: EnemyDef = load(GRUNT_PATH)
+	assert_eq(footman.max_health * KING_HEALTH_PER_FOOTMAN, king.max_health, "five footmen (D-06)")
+	assert_eq(footman.attack_damage, FOOTMAN_DAMAGE, "a footman strikes for 1 (D-07)")
+	assert_gt(footman.max_health, archer.max_health, "the archer is frailer")
+	assert_gt(archer.attack_range, grunt.attack_range, "the archer outreaches a grunt")
+
+
+func test_the_prototype_map_ends_with_the_barracks_and_archery_plots() -> void:
+	var map: MapConfig = _map()
+	assert_eq(map.spots.size(), SPOT_COUNT, "ten plots (D-03)")
+	assert_eq(map.spots[BARRACKS_SPOT].id, &"barracks_1", "the Barracks plot is ninth")
+	assert_eq(map.spots[BARRACKS_SPOT].building_id, &"barracks", "and takes a Barracks")
+	assert_eq(map.spots[ARCHERY_SPOT].id, &"archery_1", "the Archery Range plot is last")
+	assert_eq(map.spots[ARCHERY_SPOT].building_id, &"archery_range", "and takes a Range")
+
+
+func test_the_military_plots_sit_inside_the_tower_ring_and_clear_of_everything() -> void:
+	var map: MapConfig = _map()
+	var castle: Vector2 = _ground(map.castle_position)
+	for index: int in [BARRACKS_SPOT, ARCHERY_SPOT]:
+		var spot: BuildSpotDef = map.spots[index]
+		var here: Vector2 = _ground(spot.position)
+		var edge_gap: float = here.distance_to(castle) - map.castle_radius
+		assert_gt(edge_gap, MIN_CLEARANCE_M, "%s is clear of the castle edge" % spot.id)
+		for other_index: int in range(map.spots.size()):
+			if other_index == index:
+				continue
+			var other: BuildSpotDef = map.spots[other_index]
+			var apart: float = here.distance_to(_ground(other.position))
+			assert_gt(apart, MIN_CLEARANCE_M, "%s is clear of %s" % [spot.id, other.id])
+			if other.building_id == &"tower":
+				var tower_distance: float = _ground(other.position).distance_to(castle)
+				assert_lt(
+					here.distance_to(castle),
+					tower_distance,
+					"%s is inside %s" % [spot.id, other.id]
+				)

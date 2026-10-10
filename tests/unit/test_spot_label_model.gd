@@ -9,6 +9,8 @@ const RICH_GOLD: int = 50
 const HOUSE_SPOT: StringName = &"house_1"
 const TOWER_SPOT: StringName = &"tower_1"
 const POOR_SPOT: StringName = &"spot_a"
+const BARRACKS_SPOT: StringName = &"barracks_1"
+const ARCHERY_SPOT: StringName = &"archery_1"
 const MAX_TIER_TEXT := "Max tier"
 
 
@@ -114,3 +116,22 @@ func test_an_unknown_spot_yields_an_empty_label() -> void:
 	assert_eq(content.get("cost"), 0, "no cost")
 	assert_eq(content.get("max_tier"), false, "not max tier")
 	assert_eq(content.get("affordable"), false, "nothing to afford")
+
+
+func test_a_military_plot_offers_a_squad_of_four_and_then_eight() -> void:
+	var ctx: RunContext = _context(PROTOTYPE_MAP, RICH_GOLD)
+	var barracks: BuildingDef = ctx.buildings.get_building_def_for_spot(BARRACKS_SPOT)
+	var content: Dictionary = _describe(ctx, BARRACKS_SPOT)
+	assert_eq(content.get("title"), barracks.tier_label(1), "the title names Barracks I")
+	assert_eq(content.get("effect"), "Squad of 4", "the first tier fields four")
+	_build(ctx, BARRACKS_SPOT, 1)
+	assert_eq(
+		_describe(ctx, BARRACKS_SPOT).get("effect"), "Squad of 8", "the next tier fields eight"
+	)
+
+
+func test_the_archery_range_reads_the_same_way_and_a_house_is_untouched() -> void:
+	var ctx: RunContext = _context(PROTOTYPE_MAP, RICH_GOLD)
+	assert_eq(_describe(ctx, ARCHERY_SPOT).get("effect"), "Squad of 4", "four archers")
+	var house: BuildingDef = ctx.buildings.get_building_def_for_spot(HOUSE_SPOT)
+	assert_eq(_describe(ctx, HOUSE_SPOT).get("effect"), house.tier_def(1).effect_line(), "House")
