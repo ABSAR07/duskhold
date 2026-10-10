@@ -30,6 +30,12 @@ static func move_speed(king_def: KingDef, sprinting: bool) -> float:
 	return king_def.walk_speed
 
 
+## The movement input the king acts on: while a squad is selected all of it goes to the selection
+## and the king gets none (D-15, amended at the 03-07 checkpoint).
+static func steered_direction(raw: Vector2, _selection_active: bool) -> Vector2:
+	return raw
+
+
 ## Binds the king to one run (MapRoot calls this once; a repeat call is ignored).
 func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 	if _ctx != null:

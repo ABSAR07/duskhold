@@ -10,6 +10,9 @@ extends Label
 ## to every one of them when the run binds.
 
 const SELECT_FIRST := "Select a squad first"
+const CANT_GO_THERE := "Can't go there. Click a point on the visible ground."
+const ARMED_ATTACK := "Click a point to attack-move"
+const ARMED_PATROL := "Click a point to patrol"
 const HOLD_SECONDS: float = 1.2
 const ERROR_SECONDS: float = 1.5
 const FADE_IN_SECONDS: float = 0.1

@@ -1,8 +1,11 @@
 extends GutTest
 ## Input Map contract (T-01-09, T-01-18): every gameplay action has a keyboard and a gamepad
-## binding, no gameplay action has a mouse binding yet (the squad point commands of plan 03-07 add
-## them, D-11), build / start-night share no key or button, and no two gameplay actions (zoom
-## included) share a key, button or stick direction. The squad verbs (D-15) are F follow, H hold,
+## binding, only the squad ground-point command (squad_move, the right mouse button, D-11) has a
+## mouse binding, build / start-night share no key or button, and no two gameplay actions (zoom
+## included) share a key, button or stick direction except the pairs listed in
+## SHARED_BINDINGS_ALLOWED. The squad point commands of plan 03-07 (squad_move, squad_attack_move,
+## squad_patrol, command_queue, command_cancel) are checked for keyboard and mouse here and gain
+## their pad bindings in plan 03-09. The squad verbs (D-15) are F follow, H hold,
 ## R rally, Tab cycle and F2 select all, carried on the bare D-pad and R3; fast-forward moved from
 ## F to T to make room. Values are compared against engine constants, never integer literals.
 
@@ -79,6 +82,28 @@ const FAST_FORWARD_DEADZONE: float = 0.5
 const ABILITY_DEADZONE: float = 0.5
 const SQUAD_ACTIONS: Array[StringName] = [
 	&"squad_follow", &"squad_hold", &"squad_rally", &"squad_cycle", &"select_all"
+]
+## The point-command actions of plan 03-07: keyboard and mouse only until plan 03-09.
+const COMMAND_ACTIONS: Array[StringName] = [
+	&"squad_move", &"squad_attack_move", &"squad_patrol", &"command_queue", &"command_cancel"
+]
+const COMMAND_KEYS: Dictionary = {
+	&"squad_move": [],
+	# D-15 keeps A for attack-move (owner decision at the 03-07 checkpoint, not auto-mode).
+	&"squad_attack_move": [KEY_A],
+	&"squad_patrol": [KEY_P],
+	&"command_queue": [KEY_SHIFT],
+	&"command_cancel": [KEY_ESCAPE],
+}
+## Bindings two actions may share on purpose, as [first action, second action, binding token]. Each
+## pair has a reason; every other collision fails the shared-binding test.
+const SHARED_BINDINGS_ALLOWED: Array[Array] = [
+	# D-09: the queue modifier is Shift, and Shift is also sprint; holding it for both is harmless.
+	[&"sprint", &"command_queue", "key 4194325"],
+	# D-15 keeps A for attack-move although A is also move_left. The owner chose this at the 03-07
+	# checkpoint and decided that while a squad is selected the movement keys steer the selection,
+	# not the king, so pressing A to arm attack-move never drifts him.
+	[&"move_left", &"squad_attack_move", "key 65"],
 ]
 
 
@@ -199,9 +224,23 @@ func test_f_follows_and_t_fast_forwards() -> void:
 	assert_false(InputMap.event_is_action(key, &"squad_follow"), "T is not follow")
 
 
+func _is_allowed_pair(first: StringName, second: StringName, token: String) -> bool:
+	for allowed: Array in SHARED_BINDINGS_ALLOWED:
+		if allowed[2] != token:
+			continue
+		if (
+			(allowed[0] == first and allowed[1] == second)
+			or (allowed[0] == second and allowed[1] == first)
+		):
+			return true
+	return false
+
+
 func test_no_two_gameplay_actions_share_a_key_button_or_stick_direction() -> void:
 	var owners: Dictionary = {}
-	for action: StringName in GAMEPLAY_ACTIONS:
+	var every_action: Array[StringName] = GAMEPLAY_ACTIONS.duplicate()
+	every_action.append_array(COMMAND_ACTIONS)
+	for action: StringName in every_action:
 		for event: InputEvent in InputMap.action_get_events(action):
 			var token: String = ""
 			if event is InputEventKey:
@@ -213,18 +252,47 @@ func test_no_two_gameplay_actions_share_a_key_button_or_stick_direction() -> voi
 				token = "axis %d sign %d" % [motion.axis, signf(motion.axis_value)]
 			if token == "":
 				continue
+			var shared: bool = owners.has(token) and owners[token] != action
 			assert_false(
-				owners.has(token) and owners[token] != action,
+				shared and not _is_allowed_pair(owners[token], action, token),
 				"%s is on both %s and %s" % [token, owners.get(token, ""), action]
 			)
 			owners[token] = action
 
 
-func test_no_project_action_has_a_mouse_binding() -> void:
+func test_only_squad_move_has_a_mouse_binding_and_it_is_the_right_button() -> void:
+	var moves: int = 0
 	for action: StringName in _project_actions():
 		for event: InputEvent in InputMap.action_get_events(action):
-			assert_false(event is InputEventMouseButton, "%s has no mouse button" % action)
 			assert_false(event is InputEventMouseMotion, "%s has no mouse motion" % action)
+			if event is InputEventMouseButton:
+				assert_eq(action, &"squad_move", "only squad_move has a mouse button")
+				assert_eq(
+					(event as InputEventMouseButton).button_index, MOUSE_BUTTON_RIGHT, "right"
+				)
+				moves += 1
+	assert_eq(moves, 1, "squad_move has exactly one mouse binding")
+
+
+func test_the_point_command_actions_exist_with_the_keys_of_the_table() -> void:
+	for action: StringName in COMMAND_ACTIONS:
+		assert_true(InputMap.has_action(action), "%s exists in the Input Map" % action)
+		var expected: Array = COMMAND_KEYS[action]
+		var actual: Array[int] = _keys_of(action)
+		assert_eq(actual.size(), expected.size(), "%s key count" % action)
+		for key: int in expected:
+			assert_true(actual.has(key), "%s is bound to physical key %d" % [action, key])
+		assert_almost_eq(
+			InputMap.action_get_deadzone(action), ABILITY_DEADZONE, 0.0001, "%s deadzone" % action
+		)
+
+
+func test_attack_move_shares_a_with_move_left_by_the_owner_decision() -> void:
+	var key: InputEventKey = InputEventKey.new()
+	key.pressed = true
+	key.physical_keycode = KEY_A
+	assert_true(InputMap.event_is_action(key, &"squad_attack_move"), "A arms attack-move")
+	assert_true(InputMap.event_is_action(key, &"move_left"), "and is still move_left")
 
 
 func test_build_and_start_night_share_no_key() -> void:
