@@ -18,6 +18,7 @@ const HEALTH_BAR_WIDTH: float = 1.6
 
 var _ctx: RunContext
 var _health_bar: HealthBar3D
+var _selection: SelectionModel
 
 @onready var _model: Node3D = $Model
 @onready var _ghost: Node3D = $Ghost
@@ -32,15 +33,16 @@ static func move_speed(king_def: KingDef, sprinting: bool) -> float:
 
 ## The movement input the king acts on: while a squad is selected all of it goes to the selection
 ## and the king gets none (D-15, amended at the 03-07 checkpoint).
-static func steered_direction(raw: Vector2, _selection_active: bool) -> Vector2:
-	return raw
+static func steered_direction(raw: Vector2, selection_active: bool) -> Vector2:
+	return Vector2.ZERO if selection_active else raw
 
 
 ## Binds the king to one run (MapRoot calls this once; a repeat call is ignored).
-func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
+func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
 	if _ctx != null:
 		return
 	_ctx = ctx
+	_selection = map_root.get_selection()
 	_health_bar = HealthBar3D.new()
 	_health_bar.name = "HealthBar"
 	_health_bar.bar_width = HEALTH_BAR_WIDTH
@@ -67,8 +69,9 @@ func _physics_process(delta: float) -> void:
 	if _ctx != null and (_ctx.king.is_down() or _ctx.run_manager.is_run_over()):
 		velocity = Vector3.ZERO
 		return
-	var direction: Vector2 = Input.get_vector(
-		&"move_left", &"move_right", &"move_forward", &"move_back"
+	var direction: Vector2 = steered_direction(
+		Input.get_vector(&"move_left", &"move_right", &"move_forward", &"move_back"),
+		_selection != null and not _selection.selected().is_empty()
 	)
 	var speed: float = move_speed(def, Input.is_action_pressed(&"sprint"))
 	var target: Vector3 = Vector3(direction.x * speed, 0.0, direction.y * speed)

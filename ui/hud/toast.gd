@@ -28,11 +28,14 @@ func _ready() -> void:
 	_show_line_or_nothing()
 
 
-## Connects every `feedback` source under the map: the command keys and the selection controller.
+## Connects every `feedback` source under the map (the command keys and the selection controller)
+## and every `prompt` source (the selection controller's armed-point line).
 func bind_run(_ctx: RunContext, map_root: MapRoot) -> void:
 	for node: Node in map_root.find_children("*", "", true, false):
 		if node.has_signal(&"feedback"):
 			node.connect(&"feedback", _on_feedback)
+		if node.has_signal(&"prompt"):
+			node.connect(&"prompt", _on_prompt)
 
 
 ## Shows `message` for `seconds`, replacing any toast that is showing.
@@ -70,6 +73,14 @@ func clear_line() -> void:
 ## What the slot reads right now: the toast, else the line, else an empty string. Test hook.
 func current_text() -> String:
 	return text if visible else ""
+
+
+## An empty prompt clears the line.
+func _on_prompt(message: String) -> void:
+	if message.is_empty():
+		clear_line()
+	else:
+		set_line(message)
 
 
 func _on_feedback(message: String, is_error: bool) -> void:

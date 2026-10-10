@@ -95,6 +95,16 @@ const COMMAND_KEYS: Dictionary = {
 	&"command_queue": [KEY_SHIFT],
 	&"command_cancel": [KEY_ESCAPE],
 }
+## Pad buttons of the point-command actions. Plan 03-09 owns the pad layout; the cancel command has
+## B from here because the king stops answering the stick while a squad is selected (D-15, amended
+## 2026-10-10), and a pad player needs a way to deselect and ride again.
+const COMMAND_BUTTONS: Dictionary = {
+	&"squad_move": [],
+	&"squad_attack_move": [],
+	&"squad_patrol": [],
+	&"command_queue": [],
+	&"command_cancel": [JOY_BUTTON_B],
+}
 ## Bindings two actions may share on purpose, as [first action, second action, binding token]. Each
 ## pair has a reason; every other collision fails the shared-binding test.
 const SHARED_BINDINGS_ALLOWED: Array[Array] = [
@@ -285,6 +295,15 @@ func test_the_point_command_actions_exist_with_the_keys_of_the_table() -> void:
 		assert_almost_eq(
 			InputMap.action_get_deadzone(action), ABILITY_DEADZONE, 0.0001, "%s deadzone" % action
 		)
+
+
+func test_only_the_cancel_command_has_a_pad_button_until_plan_03_09() -> void:
+	for action: StringName in COMMAND_ACTIONS:
+		var expected: Array = COMMAND_BUTTONS[action]
+		var actual: Array[int] = _buttons_of(action)
+		assert_eq(actual.size(), expected.size(), "%s button count" % action)
+		for button: int in expected:
+			assert_true(actual.has(button), "%s is bound to joypad button %d" % [action, button])
 
 
 func test_attack_move_shares_a_with_move_left_by_the_owner_decision() -> void:

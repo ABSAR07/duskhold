@@ -24,6 +24,9 @@ const GROUND_C := Vector3(-3.0, 0.0, -6.0)
 const GROUND_INSIDE_SMALL := Vector3(-3.0, 0.0, 2.0)
 const POINT_TOLERANCE_M: float = 0.011
 const TOAST_END_TIMEOUT_S: float = 4.0
+const CAMERA_CATCH_UP_FRAMES: int = 120
+## A command far off the king would pan the camera by metres; this is smoothing noise.
+const CAMERA_TOLERANCE_M: float = 0.05
 const TOAST_SLOT_TOP: float = 504.0
 const TOAST_SLOT_BOTTOM: float = 536.0
 
@@ -34,6 +37,7 @@ var _camera: Camera3D
 var _selection: SelectionModel
 var _toast: Toast
 var _markers: OrderMarkers
+var _pointer: SelectionController
 var _ordered: Array[Array] = []
 
 
@@ -67,6 +71,7 @@ func _setup(map: MapConfig = null) -> void:
 	_selection = _map.get_selection()
 	_toast = _map.find_child("Toast", true, false) as Toast
 	_markers = _map.get_node_or_null("OrderMarkers") as OrderMarkers
+	_pointer = _map.get_node_or_null("SelectionController") as SelectionController
 	assert_not_null(_toast, "the HUD has a Toast")
 	assert_not_null(_markers, "the scene has OrderMarkers")
 	_selection.select_only(BOTH, _ctx.squads.squad_ids())
@@ -180,7 +185,7 @@ func test_the_attack_move_key_arms_it_and_the_next_left_click_orders_it() -> voi
 	Input.action_release(&"squad_attack_move")
 	await wait_process_frames(2)
 	assert_eq(_toast.current_text(), Toast.ARMED_ATTACK, "the line says what to do")
-	assert_eq(Input.get_current_cursor_shape(), Input.CURSOR_CROSS, "the cursor is a cross")
+	assert_eq(_pointer.cursor_shape(), Input.CURSOR_CROSS, "the cursor is a cross")
 	assert_eq(_ordered.size(), 0, "arming orders nothing")
 	await _left_click(GROUND_A)
 	assert_eq(_ordered.size(), 2, "the click orders both squads")
@@ -189,7 +194,7 @@ func test_the_attack_move_key_arms_it_and_the_next_left_click_orders_it() -> voi
 		_assert_point(order, GROUND_A, "at the click")
 	assert_eq(_selection.selected(), BOTH, "the click did not change the selection")
 	assert_eq(_toast.current_text(), "", "the line is gone")
-	assert_eq(Input.get_current_cursor_shape(), Input.CURSOR_ARROW, "the arrow is back")
+	assert_eq(_pointer.cursor_shape(), Input.CURSOR_ARROW, "the arrow is back")
 	assert_gt(_markers.active_ping_count(), 0, "and it pinged")
 
 
@@ -228,7 +233,7 @@ func test_escape_after_arming_issues_nothing_and_clears_the_line() -> void:
 	assert_eq(_toast.current_text(), Toast.ARMED_ATTACK, "armed")
 	await _tap(&"command_cancel")
 	assert_eq(_toast.current_text(), "", "the line is gone")
-	assert_eq(Input.get_current_cursor_shape(), Input.CURSOR_ARROW, "the arrow is back")
+	assert_eq(_pointer.cursor_shape(), Input.CURSOR_ARROW, "the arrow is back")
 	assert_eq(_selection.selected(), BOTH, "the first Escape only cancelled the command")
 	await _left_click(GROUND_A)
 	assert_eq(_ordered.size(), 0, "a later left click orders nothing")
@@ -288,8 +293,11 @@ func test_a_toast_replaces_the_armed_line_and_the_line_returns_after_it() -> voi
 
 func test_the_camera_does_not_move_for_a_command() -> void:
 	await _setup()
+	await wait_process_frames(CAMERA_CATCH_UP_FRAMES)
 	var rig: Node3D = _map.get_node("CameraRig")
 	var before: Vector3 = rig.global_position
 	await _right_click(GROUND_B)
 	await wait_process_frames(10)
-	assert_eq(rig.global_position, before, "the locked camera stayed on the king")
+	assert_almost_eq(
+		rig.global_position.distance_to(before), 0.0, CAMERA_TOLERANCE_M, "the camera stayed put"
+	)

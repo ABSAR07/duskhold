@@ -61,6 +61,14 @@ func _key(keycode: Key, pressed: bool) -> void:
 	Input.parse_input_event(event)
 
 
+## Holding A with a squad selected armed attack-move, so the first Escape only cancels that.
+func _escape() -> void:
+	Input.action_press(&"command_cancel")
+	await wait_process_frames(2)
+	Input.action_release(&"command_cancel")
+	await wait_process_frames(2)
+
+
 func _xz() -> Vector2:
 	return Vector2(_king.global_position.x, _king.global_position.z)
 
@@ -110,11 +118,10 @@ func test_escape_hands_the_king_back_at_once() -> void:
 	_selection.select_only([ARCHERY] as Array[StringName], _ctx.squads.squad_ids())
 	var stuck: float = await _hold_a(HOLD_SECONDS)
 	assert_almost_eq(stuck, 0.0, NO_DRIFT_M, "locked while selected")
-	Input.action_press(&"command_cancel")
-	await wait_process_frames(2)
-	Input.action_release(&"command_cancel")
-	await wait_process_frames(2)
-	assert_eq(_selection.selected(), [] as Array[StringName], "Escape cleared the selection")
+	await _escape()
+	assert_eq(_selection.selected(), [ARCHERY] as Array[StringName], "the first Escape cancels")
+	await _escape()
+	assert_eq(_selection.selected(), [] as Array[StringName], "the second one clears")
 	_king.velocity = Vector3.ZERO
 	var free: float = await _hold_a(HOLD_SECONDS)
 	assert_gt(free, MOVED_AT_LEAST_M, "and the king rides again")
