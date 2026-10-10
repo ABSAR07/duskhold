@@ -41,6 +41,9 @@ var _pressing: bool = false
 var _press_position: Vector2 = Vector2.ZERO
 var _press_ctrl: bool = false
 var _press_double: bool = false
+var _hovered: StringName = &""
+var _hover_position: Vector2 = Vector2.ZERO
+var _has_hover: bool = false
 
 
 func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
@@ -53,7 +56,9 @@ func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
 ## The unselected squad the mouse is over (within CLICK_RADIUS_PX of one of its units), or &"" when
 ## none, or while a drag is in progress. Test hook for the hover preview rings.
 func hovered_squad() -> StringName:
-	return &""
+	if _selection != null and _selection.is_selected(_hovered):
+		return &""
+	return _hovered
 
 
 ## True while attack-move waits for its click or patrol points are being collected. Test hook.
@@ -107,15 +112,37 @@ func escape() -> void:
 		_selection.clear()
 
 
+func _process(_delta: float) -> void:
+	if _has_hover:
+		_hovered = _squad_near(_hover_position)
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_MOUSE_EXIT:
+		_has_hover = false
+		_hovered = &""
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if _ctx == null or _selection == null:
+		return
+	var motion: InputEventMouseMotion = event as InputEventMouseMotion
+	if motion != null:
+		_hover_position = motion.position
+		_has_hover = true
+		_hovered = _squad_near(_hover_position)
 		return
 	if event.is_action_pressed(&"squad_move"):
 		_right_click(event as InputEventMouseButton)
 		return
 	var button: InputEventMouseButton = event as InputEventMouseButton
-	if button == null or button.button_index != MOUSE_BUTTON_LEFT:
-		return
+	if button != null and button.button_index == MOUSE_BUTTON_LEFT:
+		_left_button(button)
+
+
+## The left button: pressed it either lands an armed attack-move or starts a press; released it ends
+## the press, and a press and release within CLICK_SLOP_PX of each other is a click.
+func _left_button(button: InputEventMouseButton) -> void:
 	if button.pressed and _armed == Armed.ATTACK_MOVE:
 		get_viewport().set_input_as_handled()
 		_attack_move_click(button.position)
@@ -251,6 +278,17 @@ func _unit_points(all_ids: Array[StringName]) -> Dictionary:
 			points.append(camera.unproject_position(ground))
 		by_squad[squad_id] = points
 	return by_squad
+
+
+## The unselected squad with a unit within CLICK_RADIUS_PX of `position`, or &"" when none.
+func _squad_near(position: Vector2) -> StringName:
+	if _ctx == null or _selection == null:
+		return &""
+	var unselected: Array[StringName] = []
+	for squad_id: StringName in _ctx.squads.squad_ids():
+		if not _selection.is_selected(squad_id):
+			unselected.append(squad_id)
+	return SelectionMath.nearest_squad_at(_unit_points(unselected), position, CLICK_RADIUS_PX)
 
 
 ## The unit type id of a squad, the key of "select every squad of this type".

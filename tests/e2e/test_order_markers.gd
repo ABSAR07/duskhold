@@ -271,12 +271,16 @@ func test_a_selected_squad_that_walked_off_screen_keeps_its_slot_and_its_rings()
 func test_a_selected_squad_down_to_one_unit_has_one_ring() -> void:
 	await _setup()
 	_selection.select_only([BARRACKS] as Array[StringName], _ctx.squads.squad_ids())
+	# By day a squad below its cap is refilled within a few frames; the night trickle takes 10 s.
+	assert_eq(_ctx.commands.submit(StartNightIntent.new()), CommandProcessor.OK, "night starts")
 	var ids: Array[int] = _ctx.squads.unit_ids_of(BARRACKS)
 	assert_eq(ids.size(), 4, "four footmen to begin with")
 	for index: int in range(1, ids.size()):
 		_ctx.squads.damage_unit(ids[index], KILL_DAMAGE, &"test")
 	_ctx.squads.remove_dead()
+	assert_eq(_ctx.squads.alive_count(BARRACKS), 1, "one footman left")
 	await wait_process_frames(5)
+	assert_eq(_ctx.squads.alive_count(BARRACKS), 1, "still one footman after a few frames")
 	assert_eq(_rings.ring_count(), 1, "one living unit, one ring")
 	await wait_process_frames(1)
 	_selection.clear()

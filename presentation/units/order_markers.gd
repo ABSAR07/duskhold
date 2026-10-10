@@ -4,9 +4,10 @@ extends Node3D
 ## a move or a rally puts a cyan ring (#8CEBFF) on the resolved point that grows from 0.3 m to 0.8 m
 ## across the ring over PING_SECONDS while its alpha falls from 0.9 to nothing; an attack-move does
 ## the same in #FF7A59 and holds a 0.3 m crossed-blade mark for the same time. Several squads given
-## one order in the same frame share one ping. Hold, follow and patrol draw nothing here (patrol
-## lines and queued discs are plan 03-08). Pings free themselves and are capped at MAX_PINGS, so a
-## burst of orders cannot pile up nodes. Display only: it reads the simulation and writes nothing.
+## one order in the same frame share one ping. Hold, follow and patrol draw no ping. The plan on the
+## ground (patrol lines, numbered queued discs) is one SquadPlanView per squad, shown for selected
+## squads only. Pings free themselves and are capped at MAX_PINGS, so a burst of orders cannot pile
+## up nodes. Display only: it reads the simulation and writes nothing.
 
 ## Most pings alive at once; one past the cap is not drawn.
 const MAX_PINGS: int = 16
@@ -26,17 +27,24 @@ const MOVE_COLOR := Color(0.549, 0.9216, 1.0)
 const ATTACK_COLOR := Color(1.0, 0.4784, 0.349)
 const PING_META: StringName = &"order_ping"
 ## Most queued-order discs shown for one squad (UI-SPEC "Queued orders").
-const MAX_DISCS_SHOWN: int = 6
+const MAX_DISCS_SHOWN: int = SquadPlanView.MAX_DISCS
+## A newly set patrol line blinks this long.
+const FLASH_SECONDS: float = 1.5
 
 var _ctx: RunContext
+var _selection: SelectionModel
+var _plans: Dictionary = {}
+var _flash_until: Dictionary = {}
+var _clock: float = 0.0
 var _frame_seen: Dictionary = {}
 var _frame: int = -1
 
 
-func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
+func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
 	if _ctx != null:
 		return
 	_ctx = ctx
+	_selection = map_root.get_selection()
 	ctx.events.squad_ordered.connect(_on_squad_ordered)
 
 
@@ -51,42 +59,108 @@ func active_ping_count() -> int:
 
 ## Numbered queued-order discs showing for the selected squads. Test hook, read-only.
 func disc_count() -> int:
-	return 0
+	var count: int = 0
+	for view: SquadPlanView in _selected_views():
+		count += view.disc_count()
+	return count
 
 
 ## Patrol lines showing for the selected squads. Test hook, read-only.
 func patrol_line_count() -> int:
-	return 0
+	var count: int = 0
+	for view: SquadPlanView in _selected_views():
+		if view.has_patrol_line():
+			count += 1
+	return count
 
 
 ## The labels of the queued-order discs, selected squads in creation order. Test hook.
 func disc_labels() -> PackedStringArray:
-	return PackedStringArray()
+	var labels: PackedStringArray = PackedStringArray()
+	for view: SquadPlanView in _selected_views():
+		labels.append_array(view.disc_labels())
+	return labels
 
 
 ## The colours of the queued-order discs in the same order. Test hook.
 func disc_colors() -> Array[Color]:
-	return [] as Array[Color]
+	var colors: Array[Color] = []
+	for view: SquadPlanView in _selected_views():
+		colors.append_array(view.disc_colors())
+	return colors
 
 
 ## The 0.4 m discs that mark the ends of the patrol lines showing. Test hook.
 func patrol_disc_count() -> int:
-	return 0
+	var count: int = 0
+	for view: SquadPlanView in _selected_views():
+		count += view.patrol_disc_count()
+	return count
 
 
-## True while a freshly set patrol line is flashing. Test hook.
+## True while a freshly set patrol line of a selected squad is flashing. Test hook.
 func patrol_flashing() -> bool:
+	if _selection == null:
+		return false
+	for squad_id: StringName in _selection.selected():
+		if _is_flashing(squad_id) and _plans.has(squad_id):
+			return (_plans[squad_id] as SquadPlanView).has_patrol_line()
 	return false
 
 
 ## The corner points of the patrol line drawn for `squad_id`; empty when none shows. Test hook.
-func patrol_line_points(_squad_id: StringName) -> PackedVector3Array:
-	return PackedVector3Array()
+func patrol_line_points(squad_id: StringName) -> PackedVector3Array:
+	var view: SquadPlanView = _plans.get(squad_id) as SquadPlanView
+	return view.patrol_line_points() if view != null else PackedVector3Array()
+
+
+func _process(delta: float) -> void:
+	if _ctx == null or _selection == null:
+		return
+	_clock += delta
+	var selected: Array[StringName] = _selection.selected()
+	for squad_id: StringName in selected:
+		_view_for(squad_id).show_plan(
+			_ctx.squads.orders_of(squad_id),
+			_ctx.squads.patrol_path_of(squad_id),
+			_is_flashing(squad_id),
+			_clock
+		)
+	for squad_id: StringName in _plans:
+		if not selected.has(squad_id):
+			(_plans[squad_id] as SquadPlanView).hide_plan()
+
+
+func _is_flashing(squad_id: StringName) -> bool:
+	return _clock < float(_flash_until.get(squad_id, -1.0))
+
+
+## The plan drawing of every selected squad that has one, in creation order.
+func _selected_views() -> Array[SquadPlanView]:
+	var views: Array[SquadPlanView] = []
+	if _selection == null:
+		return views
+	for squad_id: StringName in _selection.selected():
+		if _plans.has(squad_id):
+			views.append(_plans[squad_id])
+	return views
+
+
+func _view_for(squad_id: StringName) -> SquadPlanView:
+	var view: SquadPlanView = _plans.get(squad_id) as SquadPlanView
+	if view == null:
+		view = SquadPlanView.new()
+		view.name = "Plan_%s" % squad_id
+		add_child(view)
+		_plans[squad_id] = view
+	return view
 
 
 func _on_squad_ordered(
-	_squad_id: StringName, verb: StringName, _queued: bool, points: Array
+	squad_id: StringName, verb: StringName, _queued: bool, points: Array
 ) -> void:
+	if verb == SquadOrder.VERB_PATROL:
+		_flash_until[squad_id] = _clock + FLASH_SECONDS
 	var attack: bool = verb == SquadOrder.VERB_ATTACK_MOVE
 	if not (attack or verb == SquadOrder.VERB_MOVE or verb == SquadOrder.VERB_RALLY):
 		return

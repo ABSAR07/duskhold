@@ -20,16 +20,24 @@ const SEGMENTS: int = 32
 const RING_COLOR := Color(0.549, 0.9216, 1.0, 0.95)
 ## #000000 at alpha 0.5.
 const UNDER_COLOR := Color(0.0, 0.0, 0.0, 0.5)
+## A hovered, unselected squad previews its rings at this alpha (UI-SPEC "Hover preview").
+const HOVER_ALPHA: float = 0.4
 
 var _ctx: RunContext
 var _selection: SelectionModel
 var _views: UnitViews
 var _ring: MultiMeshInstance3D
 var _under: MultiMeshInstance3D
+var _pointer: SelectionController
 var _shown: int = 0
+var _hover_shown: int = 0
+var _alphas: PackedFloat32Array = PackedFloat32Array()
+var _positions: PackedVector3Array = PackedVector3Array()
 
 
 func _ready() -> void:
+	_alphas.resize(MAX_RINGS)
+	_positions.resize(MAX_RINGS)
 	_under = _make_layer(
 		"UnderRing",
 		OUTER_RADIUS - THICKNESS - UNDER_MARGIN,
@@ -45,6 +53,7 @@ func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
 	_ctx = ctx
 	_selection = map_root.get_selection()
 	_views = map_root.get_node_or_null("UnitViews") as UnitViews
+	_pointer = map_root.get_node_or_null("SelectionController") as SelectionController
 
 
 ## Rings drawn right now: one per shown unit of every selected squad. Test hook, read-only.
@@ -54,40 +63,58 @@ func ring_count() -> int:
 
 ## Hover preview rings drawn right now (the hovered unselected squad's units). Test hook.
 func hover_ring_count() -> int:
-	return 0
+	return _hover_shown
 
 
 ## The alpha of ring `index`, selected rings first and hover rings after. Test hook.
-func ring_alpha(_index: int) -> float:
-	return 0.0
+func ring_alpha(index: int) -> float:
+	return _alphas[index] if index >= 0 and index < _shown + _hover_shown else 0.0
 
 
 ## The ground position of ring `index`. Test hook.
-func ring_position(_index: int) -> Vector3:
-	return Vector3.ZERO
+func ring_position(index: int) -> Vector3:
+	return _positions[index] if index >= 0 and index < _shown + _hover_shown else Vector3.ZERO
 
 
 func _process(_delta: float) -> void:
 	if _ctx == null or _selection == null or _views == null:
 		return
 	var count: int = 0
-	for squad_id: StringName in _selection.selected():
-		for unit_id: int in _ctx.squads.unit_ids_of(squad_id):
-			if count >= MAX_RINGS:
-				break
-			if _views.get_view(unit_id) == null:
-				continue
-			var ground: Vector3 = _views.puppet_position(unit_id)
-			_ring.multimesh.set_instance_transform(
-				count, Transform3D(Basis.IDENTITY, _at(ground, RING_HEIGHT))
-			)
-			_under.multimesh.set_instance_transform(
-				count, Transform3D(Basis.IDENTITY, _at(ground, UNDER_HEIGHT))
-			)
-			count += 1
+	var selected: Array[StringName] = _selection.selected()
+	for squad_id: StringName in selected:
+		count = _place_squad(squad_id, count, RING_COLOR.a)
 	_shown = count
+	var hovered: StringName = _pointer.hovered_squad() if _pointer != null else &""
+	if hovered != &"" and not selected.has(hovered):
+		count = _place_squad(hovered, count, HOVER_ALPHA)
+	_hover_shown = count - _shown
 	_ring.multimesh.visible_instance_count = count
 	_under.multimesh.visible_instance_count = count
+
+
+## Puts a ring under every shown unit of `squad_id` from instance `count` on, at `alpha`, and
+## returns the next free instance.
+func _place_squad(squad_id: StringName, first: int, alpha: float) -> int:
+	var count: int = first
+	var under_alpha: float = UNDER_COLOR.a * alpha / RING_COLOR.a
+	for unit_id: int in _ctx.squads.unit_ids_of(squad_id):
+		if count >= MAX_RINGS:
+			break
+		if _views.get_view(unit_id) == null:
+			continue
+		var ground: Vector3 = _views.puppet_position(unit_id)
+		_ring.multimesh.set_instance_transform(
+			count, Transform3D(Basis.IDENTITY, _at(ground, RING_HEIGHT))
+		)
+		_under.multimesh.set_instance_transform(
+			count, Transform3D(Basis.IDENTITY, _at(ground, UNDER_HEIGHT))
+		)
+		_ring.multimesh.set_instance_color(count, Color(RING_COLOR, alpha))
+		_under.multimesh.set_instance_color(count, Color(UNDER_COLOR, under_alpha))
+		_alphas[count] = alpha
+		_positions[count] = Vector3(ground.x, 0.0, ground.z)
+		count += 1
+	return count
 
 
 func _at(ground: Vector3, height: float) -> Vector3:
