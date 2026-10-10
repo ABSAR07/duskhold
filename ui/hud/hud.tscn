@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://ui/hud/hud.gd" id="1_hud"]
 [ext_resource type="PackedScene" path="res://ui/overlay/debug_overlay.tscn" id="2_overlay"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://ui/hud/hud_root.gd" id="6_hud_root"]
 [ext_resource type="Script" path="res://ui/hud/day_counter.gd" id="7_day_counter"]
 [ext_resource type="Theme" path="res://ui/theme/hud_theme.tres" id="8_theme"]
+[ext_resource type="Script" path="res://ui/hud/king_widget.gd" id="9_king_widget"]
 
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1_hud")
@@ -187,5 +188,19 @@ theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 28
 text = "Night 1 of 8"
 horizontal_alignment = 1
+
+[node name="KingWidget" type="HBoxContainer" parent="HudRoot" groups=["run_bound"]]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -72.0
+offset_right = 376.0
+offset_bottom = -16.0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_constants/separation = 8
+script = ExtResource("9_king_widget")
 
 [node name="DebugOverlay" parent="." groups=["run_bound"] instance=ExtResource("2_overlay")]

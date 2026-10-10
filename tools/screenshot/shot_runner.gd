@@ -115,6 +115,7 @@ func _spawn_map(shot_name: StringName) -> MapRoot:
 	var scene: PackedScene = load(MAP_SCENE_PATH)
 	var map_root: MapRoot = scene.instantiate()
 	map_root.map_config = ShotScenarios.map_for(shot_name)
+	(map_root.get_node("King") as King).def = ShotScenarios.king_def_for(shot_name)
 	map_root.fixed_run_seed = FIXED_RUN_SEED
 	map_root.handle_results_actions = false
 	add_child(map_root)

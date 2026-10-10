@@ -7,6 +7,7 @@ extends RefCounted
 ## the king's position report.
 
 const MAP_DATA_PATH := "res://data/maps/prototype_map.tres"
+const KING_DATA_PATH := "res://data/king/king.tres"
 ## The shots start with enough gold to show several buildings in one scene.
 const SHOT_STARTING_GOLD: int = 30
 const NEAR_OFFSET := Vector3(0.5, 0.0, 0.0)
@@ -105,6 +106,16 @@ static func map_for(shot_name: StringName) -> MapConfig:
 	elif shot_name == RESULTS_DEFEAT:
 		config.castle_max_health = DEFEAT_CASTLE_HEALTH
 	return config
+
+
+## The king a shot runs with: a deep copy of the shipped one (DR-12). king_down_countdown plays
+## without regeneration, because its whole point is a king held at a spawn until he is knocked out
+## and D-20's regeneration would let the held king out-heal the bot's night.
+static func king_def_for(shot_name: StringName) -> KingDef:
+	var def: KingDef = (load(KING_DATA_PATH) as KingDef).duplicate_deep(Resource.DEEP_DUPLICATE_ALL)
+	if shot_name == KING_DOWN_COUNTDOWN:
+		def.regen_fraction_per_second = 0.0
+	return def
 
 
 ## Runs the scenario and returns true when the scene is ready to be captured.
