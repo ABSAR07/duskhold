@@ -20,6 +20,8 @@ var _run_manager: RunManager
 var _events: SimEvents
 var _king: KingState
 var _squads: SquadSystem
+## Intent script -> handler Callable; one return path for every intent.
+var _handlers: Dictionary = {}
 
 
 func _init(
@@ -36,6 +38,11 @@ func _init(
 	_events = events
 	_king = king
 	_squads = squads
+	_handlers = {
+		BuildIntent: _submit_build,
+		StartNightIntent: _submit_start_night,
+		ActivateAbilityIntent: _submit_ability,
+	}
 
 
 ## Read-only check of whether a build or upgrade on `spot_id` would be accepted right now.
@@ -53,24 +60,49 @@ func validate_build(spot_id: StringName) -> StringName:
 	return OK
 
 
-## Applies an intent. Returns OK or the rejection reason; nothing changes on a rejection.
+## Applies an intent. Returns OK or the rejection reason; nothing changes on a rejection. The
+## handler is looked up by the intent's script, so an unknown or null intent is UNKNOWN_INTENT.
 func submit(intent: RefCounted) -> StringName:
-	if intent is BuildIntent:
-		return _submit_build(intent as BuildIntent)
-	if intent is StartNightIntent:
-		return _submit_start_night()
-	return UNKNOWN_INTENT
+	var result: StringName = UNKNOWN_INTENT
+	if intent != null:
+		var handler: Callable = _handlers.get(intent.get_script(), Callable())
+		if handler.is_valid():
+			result = handler.call(intent)
+	return result
 
 
-func _submit_start_night() -> StringName:
+## Check order: RUN_OVER, NO_ABILITY, KING_DOWN, ABILITY_COOLING. A rejection returns the reason,
+## announces command_rejected and changes nothing (T-03-07).
+func _submit_ability(_intent: RefCounted) -> StringName:
+	var reason: StringName = _ability_rejection()
+	if reason != OK:
+		_events.command_rejected.emit(&"ability", &"", reason)
+		return reason
+	_king.activate_ability()
+	return OK
+
+
+func _ability_rejection() -> StringName:
+	if _run_manager.is_run_over():
+		return RUN_OVER
+	if _king == null or not _king.has_ability():
+		return NO_ABILITY
+	if _king.is_down():
+		return KING_DOWN
+	if _king.ability_ticks_left() > 0:
+		return ABILITY_COOLING
+	return OK
+
+
+func _submit_start_night(_intent: RefCounted) -> StringName:
 	if not _run_manager.is_build_allowed() or not _run_manager.start_night():
 		_events.command_rejected.emit(&"start_night", &"", NOT_DAY)
 		return NOT_DAY
 	return OK
 
 
-func _submit_build(intent: BuildIntent) -> StringName:
-	var spot_id: StringName = intent.spot_id
+func _submit_build(intent: RefCounted) -> StringName:
+	var spot_id: StringName = (intent as BuildIntent).spot_id
 	var reason: StringName = validate_build(spot_id)
 	if reason == OK and not _economy.try_spend(_buildings.next_action_cost(spot_id)):
 		reason = CANNOT_AFFORD

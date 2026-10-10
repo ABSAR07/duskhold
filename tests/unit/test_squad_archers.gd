@@ -110,7 +110,7 @@ func test_the_barracks_and_range_squads_have_the_owner_decided_strengths() -> vo
 		return
 	var archer: UnitDef = load(ARCHER_PATH)
 	assert_eq(footman.max_health * 5, king.max_health, "a footman has a fifth of the king hp")
-	assert_eq(footman.attack_damage * 5, king.attack_damage, "and a fifth of his damage")
+	assert_eq(footman.attack_damage * 5, king.weapon.attack_damage, "and a fifth of his damage")
 	assert_gt(footman.max_health, archer.max_health, "the footman is sturdier than the archer")
 	assert_gt(archer.attack_range, grunt.attack_range, "the archer outreaches the grunt")
 	assert_gt(archer.projectile_speed, 0.0, "the archer shoots arrows")

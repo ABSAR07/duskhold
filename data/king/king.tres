@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="KingDef" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="KingDef" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://simulation/defs/king_def.gd" id="1_king"]
+[ext_resource type="Resource" path="res://data/king/sword.tres" id="2_sword"]
 
 [resource]
 script = ExtResource("1_king")
@@ -10,6 +11,4 @@ acceleration = 60.0
 turn_speed = 12.0
 max_health = 50
 body_radius = 0.6
-attack_range = 3.0
-attack_damage = 5
-attack_interval = 0.7
+weapon = ExtResource("2_sword")

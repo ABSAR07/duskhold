@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="WeaponDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://simulation/defs/weapon_def.gd" id="1_weapon"]
+
+[resource]
+script = ExtResource("1_weapon")
+id = &"sword"
+display_name = "Sword"
+attack_range = 3.0
+attack_damage = 5
+attack_interval = 0.7
+slam_radius = 4.0
+slam_damage = 4
+slam_cooldown_seconds = 9.0

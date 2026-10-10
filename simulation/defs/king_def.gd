@@ -1,6 +1,7 @@
 class_name KingDef
 extends Resource
-## King movement and passive-attack numbers.
+## King movement numbers and the weapon he carries (D-18): the passive attack and the slam live
+## on the WeaponDef.
 
 ## Walking speed in m/s: 7.5 by owner decision (UAT G-02-18, 2026-10-07), 1.5x the walk of the
 ## first three playtests. It sets the edge-to-edge ride of D-03 as amended (about 15 s on the
@@ -23,9 +24,3 @@ extends Resource
 @export var body_radius: float = 0.6
 ## The weapon the king carries (D-18). Null falls back to the WeaponDef defaults.
 @export var weapon: WeaponDef
-## Metres within which the passive attack reaches an enemy's centre (inclusive).
-@export var attack_range: float = 3.0
-## Damage of one passive attack.
-@export var attack_damage: int = 3
-## Seconds between two passive attacks.
-@export var attack_interval: float = 0.8

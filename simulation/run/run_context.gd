@@ -47,16 +47,17 @@ func _init(
 	run_manager = RunManager.new(
 		events, economy, buildings, tuning, night, king, castle, map_config.base_dawn_income, squads
 	)
-	commands = CommandProcessor.new(economy, buildings, run_manager, events)
+	commands = CommandProcessor.new(economy, buildings, run_manager, events, king, squads)
 
 
-## Runs one fixed simulation step: the night while it is NIGHT, the army alone in every other
-## phase, then the loop clock. A castle that fell during the night step ends the run before the
-## clock ticks, so the loss beats a win the same step would have made (LOOP-06, DR-8). Once the run
-## is over a step does nothing at all.
+## Runs one fixed simulation step: the king's timers, then the night while it is NIGHT or the army
+## and the king's slam alone in every other phase, then the loop clock. A castle that fell during
+## the night step ends the run before the clock ticks, so the loss beats a win the same step would
+## have made (LOOP-06, DR-8). Once the run is over a step does nothing at all.
 func step() -> void:
 	if run_manager.is_run_over():
 		return
+	king.tick_timers()
 	if run_manager.get_phase() == RunManager.RunPhase.NIGHT:
 		night.step(tick_count)
 		if castle.is_destroyed():

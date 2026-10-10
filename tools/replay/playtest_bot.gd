@@ -126,7 +126,10 @@ func _move_king(ctx: RunContext) -> void:
 		var threat: int = _nearest_threat(ctx)
 		if threat >= 0:
 			goal = ctx.night.get_enemies().position_of(threat)
-			if here.distance_to(goal) <= def.attack_range * STOP_SHARE_OF_ATTACK_RANGE:
+			if (
+				here.distance_to(goal)
+				<= ctx.king.get_weapon().attack_range * STOP_SHARE_OF_ATTACK_RANGE
+			):
 				return
 	ctx.king.report_position(here.move_toward(goal, pace))
 

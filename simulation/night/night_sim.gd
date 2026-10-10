@@ -92,9 +92,13 @@ func step(tick: int) -> void:
 
 
 ## Advances the army by one step outside the night: units fill their seats and settle at their
-## slots. `tick` is the run tick. Nothing here touches enemies or the hit queue.
+## slots, and a slam armed by day resolves with the same code as at night (it hits nothing, since no
+## enemy lives outside the night). `tick` is the run tick.
 func step_day(tick: int) -> void:
+	_king.resolve_ability(tick, _enemies, _hits)
 	_squads.step(tick, _enemies, _hits, false)
+	_resolve_hits(tick)
+	_enemies.remove_dead()
 	_squads.remove_dead()
 
 

@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3]
+[gd_scene load_steps=26 format=3]
 
 [ext_resource type="Script" path="res://presentation/map/map_root.gd" id="1_map"]
 [ext_resource type="Script" path="res://input/build_hold_controller.gd" id="2_hold"]
@@ -14,6 +14,8 @@
 [ext_resource type="Script" path="res://presentation/vfx/projectile_vfx.gd" id="14_projectiles"]
 [ext_resource type="Script" path="res://input/start_night_hold_controller.gd" id="11_night_hold"]
 [ext_resource type="Script" path="res://input/fast_forward_controller.gd" id="16_fast_forward"]
+[ext_resource type="Script" path="res://input/ability_controller.gd" id="18_ability"]
+[ext_resource type="Script" path="res://presentation/vfx/slam_vfx.gd" id="19_slam"]
 [ext_resource type="Script" path="res://presentation/environment/day_night_lighting.gd" id="12_lighting"]
 [ext_resource type="Resource" path="res://data/maps/prototype_map.tres" id="6_map"]
 [ext_resource type="Resource" path="res://data/tuning/loop_tuning.tres" id="7_tuning"]
@@ -73,6 +75,9 @@ script = ExtResource("11_night_hold")
 [node name="FastForward" type="Node" parent="." groups=["run_bound"]]
 script = ExtResource("16_fast_forward")
 
+[node name="AbilityController" type="Node" parent="." groups=["run_bound"]]
+script = ExtResource("18_ability")
+
 [node name="BuildingViews" type="Node3D" parent="." groups=["run_bound"]]
 script = ExtResource("3_views")
 
@@ -93,6 +98,9 @@ script = ExtResource("10_coins")
 
 [node name="ProjectileVfx" type="Node3D" parent="." groups=["run_bound"]]
 script = ExtResource("14_projectiles")
+
+[node name="SlamVfx" type="Node3D" parent="." groups=["run_bound"]]
+script = ExtResource("19_slam")
 
 [node name="CameraRig" type="Node3D" parent="." groups=["run_bound"]]
 script = ExtResource("8_rig")
