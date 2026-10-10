@@ -11,7 +11,8 @@ extends PanelContainer
 ## Selection (D-10, D-16): a left click selects only this squad, Ctrl + click toggles it in the
 ## selection, and a selected slot draws a 4 px #8CEBFF border over a bluer plate, inside the 8 px
 ## padding so nothing moves. Hover draws a 2 px #C8CCD4 border. The group badge shows the lowest
-## control group the squad is in (`set_group`).
+## control group the squad is in (`set_group`). While the pad group mode edits the badge
+## (`set_group_edit`, D-12) it shows the digit being chosen with a pulsing #8CEBFF border instead.
 
 const ALIVE_TEXT := "%d / %d"
 const SLOT_SIZE := Vector2(136.0, 72.0)
@@ -39,6 +40,11 @@ const BADGE_COLOR := Color(0.0, 0.0, 0.0, 0.5)
 const BADGE_RADIUS: int = 4
 const BADGE_SIZE: float = 20.0
 const FLASH_SECONDS: float = 0.3
+## The edit pulse: a 2 px #8CEBFF border whose alpha swings between EDIT_PULSE_LOW and 1.0, taking
+## PULSE_SECONDS each way.
+const EDIT_BORDER_WIDTH: int = 2
+const EDIT_PULSE_LOW: float = 0.35
+const PULSE_SECONDS: float = 0.4
 
 ## The squad this slot shows (a military spot id). Set before the slot enters the tree.
 var squad_id: StringName = &""
@@ -54,6 +60,9 @@ var _hovered: bool = false
 var _flashing: bool = false
 var _selection: SelectionModel
 var _group_digit: int = -1
+var _edit_digit: int = -1
+var _badge_style: StyleBoxFlat
+var _pulse_tween: Tween
 
 @onready var _icon: TextureRect = %UnitIcon
 @onready var _alive_label: Label = %AliveLabel
@@ -75,10 +84,16 @@ func _ready() -> void:
 	_alive_label.add_theme_constant_override("outline_size", OUTLINE_SIZE)
 	_fill.add_theme_stylebox_override("background", _make_bar(TRACK_COLOR))
 	_fill.add_theme_stylebox_override("fill", _make_bar(FILL_COLOR))
-	var badge_style: StyleBoxFlat = StyleBoxFlat.new()
-	badge_style.bg_color = BADGE_COLOR
-	badge_style.set_corner_radius_all(BADGE_RADIUS)
-	_badge.add_theme_stylebox_override("panel", badge_style)
+	_badge_style = StyleBoxFlat.new()
+	_badge_style.bg_color = BADGE_COLOR
+	_badge_style.set_corner_radius_all(BADGE_RADIUS)
+	_badge_style.border_color = FLASH_COLOR
+	# Fixed margins, so the border of the edit pulse never grows the badge or the slot.
+	_badge_style.content_margin_left = 0.0
+	_badge_style.content_margin_top = 0.0
+	_badge_style.content_margin_right = 0.0
+	_badge_style.content_margin_bottom = 0.0
+	_badge.add_theme_stylebox_override("panel", _badge_style)
 	_centre_badge_label()
 
 
@@ -120,13 +135,29 @@ func bind_selection(model: SelectionModel) -> void:
 ## 10), or hides the badge for -1 when the squad is in no group (D-16, D-23).
 func set_group(digit: int) -> void:
 	_group_digit = digit
-	_badge.visible = digit >= 0
-	_badge_label.text = str(digit) if digit >= 0 else ""
+	_apply_badge()
 
 
-## True while the pad group mode is editing this badge (the border pulses). Inert skeleton.
+## Shows `digit` (0..9) on the badge with the pulsing #8CEBFF border while the pad group mode edits
+## it, even when the squad is in no group; -1 stops the pulse and restores the squad's own group
+## digit (D-12, UI-SPEC Color item 9).
+func set_group_edit(digit: int) -> void:
+	_edit_digit = digit
+	_apply_badge()
+	if digit >= 0:
+		_start_pulse()
+	else:
+		_stop_pulse()
+
+
+## True while the pad group mode is editing this badge (the border pulses).
 func is_group_editing() -> bool:
-	return false
+	return _edit_digit >= 0
+
+
+## The border colour of the badge right now (alpha swings while it pulses). Test hook, read-only.
+func badge_border_color() -> Color:
+	return _badge_style.border_color
 
 
 func is_selected() -> bool:
@@ -155,6 +186,29 @@ func get_badge() -> PanelContainer:
 
 func get_badge_label() -> Label:
 	return _badge_label
+
+
+## The edit digit while one is being chosen, else the squad's lowest group digit.
+func _apply_badge() -> void:
+	var shown: int = _edit_digit if _edit_digit >= 0 else _group_digit
+	_badge.visible = shown >= 0
+	_badge_label.text = str(shown) if shown >= 0 else ""
+
+
+func _start_pulse() -> void:
+	_stop_pulse()
+	_badge_style.set_border_width_all(EDIT_BORDER_WIDTH)
+	_badge_style.border_color = FLASH_COLOR
+	_pulse_tween = create_tween().set_loops()
+	_pulse_tween.tween_property(_badge_style, "border_color:a", EDIT_PULSE_LOW, PULSE_SECONDS)
+	_pulse_tween.tween_property(_badge_style, "border_color:a", 1.0, PULSE_SECONDS)
+
+
+func _stop_pulse() -> void:
+	if _pulse_tween != null:
+		_pulse_tween.kill()
+		_pulse_tween = null
+	_badge_style.set_border_width_all(0)
 
 
 ## The digit label sits in a plain 20x20 box so its line height (taller than 20 px at size 18) never

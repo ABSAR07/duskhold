@@ -229,6 +229,8 @@ func test_start_and_d_pad_right_twice_pulses_digit_two_and_releasing_start_store
 	var slot: SquadSlot = _strip.slot_for(BARRACKS)
 	assert_eq(_badge_text(BARRACKS), "2", "the second step shows 2 on the selected squad's badge")
 	assert_true(slot.is_group_editing(), "the badge pulses while the group is being edited")
+	var border: Color = slot.badge_border_color()
+	assert_eq(Color(border.r, border.g, border.b), Color("#8CEBFF"), "in the accent colour")
 	assert_false(_strip.slot_for(ARCHERY).is_group_editing(), "the other badge does not")
 	assert_true(_selection.group_members(2).is_empty(), "nothing is stored while Start is held")
 	_pad(JOY_BUTTON_START, false)

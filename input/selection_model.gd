@@ -81,6 +81,12 @@ func cycle_next(all_ids: Array[StringName]) -> StringName:
 	return next_id
 
 
+## The squad the Tab cycle selected last, or &"" before any cycle. The pad's "select one type"
+## takes its type from it.
+func last_cycled() -> StringName:
+	return _last_cycled
+
+
 func _in_creation_order(ids: Array[StringName], all_ids: Array[StringName]) -> Array[StringName]:
 	var ordered: Array[StringName] = []
 	for squad_id: StringName in all_ids:

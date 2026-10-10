@@ -18,6 +18,7 @@ const FADE_SECONDS: float = 0.15
 var _ctx: RunContext
 var _selection: SelectionModel
 var _slots: Dictionary = {}
+var _editing: StringName = &""
 
 
 func _ready() -> void:
@@ -81,9 +82,17 @@ func _add_slot(squad_id: StringName) -> void:
 
 
 ## Shows `digit` on the badge of `squad_id` with the edit pulse (the pad group mode, D-12); -1
-## clears the pulse and restores the squad's own group digit. Inert skeleton.
-func set_group_edit(_squad_id: StringName, _digit: int) -> void:
-	pass
+## clears the pulse and restores the squad's own group digit. Only one badge is edited at a time,
+## so moving the edit to another squad clears the first.
+func set_group_edit(squad_id: StringName, digit: int) -> void:
+	if _editing != &"" and _editing != squad_id:
+		var previous: SquadSlot = _slots.get(_editing) as SquadSlot
+		if previous != null:
+			previous.set_group_edit(-1)
+	_editing = squad_id if digit >= 0 else &""
+	var slot: SquadSlot = _slots.get(squad_id) as SquadSlot
+	if slot != null:
+		slot.set_group_edit(digit)
 
 
 ## A selection or group change lights exactly the slots of the selected squads and refreshes
