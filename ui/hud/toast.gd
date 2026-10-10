@@ -13,6 +13,7 @@ const SELECT_FIRST := "Select a squad first"
 const CANT_GO_THERE := "Can't go there. Click a point on the visible ground."
 const ARMED_ATTACK := "Click a point to attack-move"
 const ARMED_PATROL := "Click a point to patrol"
+const ARMED_PAD := "Aim with the right stick, release to confirm"
 const GROUP_SAVED := "Group %d saved"
 const GROUP_EMPTY := "Group %d is empty"
 const HOLD_SECONDS: float = 1.2

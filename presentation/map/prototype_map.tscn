@@ -1,4 +1,4 @@
-[gd_scene load_steps=30 format=3]
+[gd_scene load_steps=32 format=3]
 
 [ext_resource type="Script" path="res://presentation/map/map_root.gd" id="1_map"]
 [ext_resource type="Script" path="res://input/build_hold_controller.gd" id="2_hold"]
@@ -19,6 +19,8 @@
 [ext_resource type="Script" path="res://input/command_key_controller.gd" id="22_commands"]
 [ext_resource type="Script" path="res://presentation/units/selection_rings.gd" id="21_rings"]
 [ext_resource type="Script" path="res://presentation/units/order_markers.gd" id="23_markers"]
+[ext_resource type="Script" path="res://input/pad_cursor_controller.gd" id="24_pad_cursor"]
+[ext_resource type="Script" path="res://presentation/units/pad_cursor_view.gd" id="25_pad_view"]
 [ext_resource type="Script" path="res://presentation/vfx/slam_vfx.gd" id="19_slam"]
 [ext_resource type="Script" path="res://presentation/environment/day_night_lighting.gd" id="12_lighting"]
 [ext_resource type="Resource" path="res://data/maps/prototype_map.tres" id="6_map"]
@@ -88,6 +90,9 @@ script = ExtResource("20_select")
 [node name="CommandKeyController" type="Node" parent="." groups=["run_bound"]]
 script = ExtResource("22_commands")
 
+[node name="PadCursorController" type="Node" parent="." groups=["run_bound"]]
+script = ExtResource("24_pad_cursor")
+
 [node name="BuildingViews" type="Node3D" parent="." groups=["run_bound"]]
 script = ExtResource("3_views")
 
@@ -102,6 +107,9 @@ script = ExtResource("21_rings")
 
 [node name="OrderMarkers" type="Node3D" parent="." groups=["run_bound"]]
 script = ExtResource("23_markers")
+
+[node name="PadCursorView" type="Node3D" parent="." groups=["run_bound"]]
+script = ExtResource("25_pad_view")
 
 [node name="HUD" parent="." groups=["run_bound"] instance=ExtResource("5_hud")]
 

@@ -35,6 +35,12 @@ func get_zoom() -> float:
 	return _zoom
 
 
+## While the pad's ground cursor is up the right stick aims it, so zoom is ignored (D-12). Inert
+## skeleton.
+func set_zoom_suppressed(_on: bool) -> void:
+	pass
+
+
 ## The camera's position relative to the king right now: `offset` scaled by the current zoom.
 func get_effective_offset() -> Vector3:
 	return offset * _zoom
