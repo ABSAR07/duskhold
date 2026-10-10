@@ -45,6 +45,7 @@ func _init(
 		BuildIntent: _submit_build,
 		StartNightIntent: _submit_start_night,
 		ActivateAbilityIntent: _submit_ability,
+		SquadOrderIntent: _submit_squad_order,
 	}
 
 
@@ -94,6 +95,39 @@ func _ability_rejection() -> StringName:
 		return KING_DOWN
 	if _king.ability_ticks_left() > 0:
 		return ABILITY_COOLING
+	return OK
+
+
+## Check order: RUN_OVER, NO_SQUADS, UNKNOWN_SQUAD, UNKNOWN_VERB. A rejection returns the reason,
+## announces command_rejected and changes nothing (T-03-10). CommandProcessor is the only place
+## centimetres become metres: one IEEE division per component. The order is applied at once, between
+## two steps, so it reads the state the last completed step left (it carries no tick).
+func _submit_squad_order(intent: RefCounted) -> StringName:
+	var order: SquadOrderIntent = intent as SquadOrderIntent
+	var reason: StringName = _squad_order_rejection(order)
+	if reason != OK:
+		var first: StringName = order.squad_ids[0] if not order.squad_ids.is_empty() else &""
+		_events.command_rejected.emit(&"squad_order", first, reason)
+		return reason
+	var metres: Array[Vector2] = []
+	for point: Vector2i in order.points:
+		metres.append(Vector2(point) / 100.0)
+	var king_at: Vector2 = _king.get_position() if _king != null else Vector2.ZERO
+	_squads.apply_order(order.squad_ids, order.verb, metres, order.queued, king_at)
+	return OK
+
+
+func _squad_order_rejection(order: SquadOrderIntent) -> StringName:
+	if _run_manager.is_run_over():
+		return RUN_OVER
+	if order.squad_ids.is_empty():
+		return NO_SQUADS
+	var known: Array[StringName] = _squads.squad_ids() if _squads != null else []
+	for squad_id: StringName in order.squad_ids:
+		if not known.has(squad_id):
+			return UNKNOWN_SQUAD
+	if not SquadOrders.is_supported(order.verb):
+		return UNKNOWN_VERB
 	return OK
 
 

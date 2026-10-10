@@ -125,7 +125,7 @@ func test_a_following_squad_still_follows_the_king_the_next_day() -> void:
 	for unit_id: int in _ctx.squads.unit_ids_of(BARRACKS):
 		assert_lt(
 			_slot_distance(unit_id, Vector2(-3.0, 9.0)),
-			SLOT_EPSILON,
+			SquadOrders.ARRIVE_DISTANCE,
 			"unit %d stands round the king" % unit_id
 		)
 

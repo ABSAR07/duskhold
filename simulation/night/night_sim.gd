@@ -81,7 +81,7 @@ func step(tick: int) -> void:
 	var night_tick: int = tick - _start_tick
 	_spawn_due(night_tick)
 	_king.step(night_tick, _enemies, _hits)
-	_squads.step(night_tick, _enemies, _hits, true)
+	_squads.step(night_tick, _enemies, _hits, true, _king.get_position())
 	_towers.step(night_tick, _enemies, _hits)
 	_castle_attack.step(night_tick, _enemies, _hits)
 	_enemies.step(night_tick, _castle, _king, _hits, _buildings, _squads.get_units())
@@ -96,7 +96,7 @@ func step(tick: int) -> void:
 ## enemy lives outside the night). `tick` is the run tick.
 func step_day(tick: int) -> void:
 	_king.resolve_ability(tick, _enemies, _hits)
-	_squads.step(tick, _enemies, _hits, false)
+	_squads.step(tick, _enemies, _hits, false, _king.get_position())
 	_resolve_hits(tick)
 	_enemies.remove_dead()
 	_squads.remove_dead()

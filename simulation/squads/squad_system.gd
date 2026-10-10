@@ -9,6 +9,8 @@ extends RefCounted
 ## walks back to its slot when nothing is valid. Losses trickle back during the night at the tier
 ## pace while the building stands and the dawn restore makes every squad whole. Squads are stepped
 ## in creation order and their units in ascending id (DR-6), between the king and the towers (DR-8).
+## Whole-squad orders (follow, hold, rally) change a squad anchor and resting stance; they persist
+## through nights and dawns until the player gives another (D-14).
 ## No trigonometry, no engine clock, no global RNG (DR-1 to DR-10).
 
 ## Guard against a bad data file, not a tuning value: a squad never raises more units than this,
@@ -78,16 +80,16 @@ func unit_ids_of(squad_id: StringName) -> Array[int]:
 	return result
 
 
-## The stance the squad rests in, one of the SquadOrder STANCE_ names; &"" for an unknown squad.
-## Until the command plan (03-06) adds orders every squad stands at its post.
+## The stance the squad rests in, one of the SquadOrder STANCE_ names; &"" for an unknown squad. A
+## rally reports hold at once: the stance it will rest in when it arrives.
 func resting_stance(squad_id: StringName) -> StringName:
-	if not _squads.has(squad_id):
-		return &""
-	return SquadOrder.STANCE_POST
+	var squad: Squad = _squads.get(squad_id) as Squad
+	return squad.resting_stance if squad != null else &""
 
 
 ## The one-shot verb (a SquadOrder VERB_ name) the squad is carrying out until it arrives; &"" when
-## it is carrying none out, and for an unknown squad. No order exists before plan 03-06.
+## it is carrying none out, and for an unknown squad. Follow, hold and rally carry none out (rally
+## shows the hold it ends in); move and attack-move report here from plan 03-07.
 func executing_verb(squad_id: StringName) -> StringName:
 	if not _squads.has(squad_id):
 		return &""
@@ -154,7 +156,7 @@ func step(
 	enemies: EnemySystem,
 	hits: PendingHits,
 	night: bool,
-	_king_position: Vector2 = Vector2.ZERO
+	king_position: Vector2 = Vector2.ZERO
 ) -> void:
 	_units.begin_step()
 	_sync(night)
@@ -162,21 +164,44 @@ func step(
 		_trickle()
 	for squad_id: StringName in _order:
 		var squad: Squad = _squads[squad_id]
+		if squad.resting_stance == SquadOrder.STANCE_FOLLOW:
+			squad.anchor = king_position
+			squad.settled = _formation_reached(squad)
 		for unit_id: int in squad.unit_ids:
 			if _units.is_alive(unit_id):
 				_step_unit(squad, unit_id, tick, enemies, hits, night)
+		if squad.moving:
+			_update_walk(squad)
 	_units.separate()
 
 
-## Gives whole squads a verb (D-09). Inert until the order logic lands.
+## Gives whole squads a verb (D-09). The squads named in `squad_ids` act in creation order and
+## squad_ordered is emitted in that order, whatever order the ids arrive in. `king_position` is the
+## king where he stood at the apply tick. Follow takes the king as its anchor each step, hold
+## freezes the anchor at the centroid of the living units (the post when none is alive) and rally
+## walks to the king position, ignoring enemies, and holds there. A verb this plan does not know is
+## ignored.
+## The caller (CommandProcessor) has already validated the ids and the verb. `points` (metres) are
+## for the point verbs of plan 03-07.
 func apply_order(
-	_squad_ids: Array[StringName],
-	_verb: StringName,
+	squad_ids: Array[StringName],
+	verb: StringName,
 	_points: Array[Vector2],
-	_queued: bool,
-	_king_position: Vector2
+	queued: bool,
+	king_position: Vector2
 ) -> void:
-	pass
+	if not SquadOrders.is_supported(verb):
+		return
+	var wanted: Dictionary = {}
+	for squad_id: StringName in squad_ids:
+		wanted[squad_id] = true
+	for squad_id: StringName in _order:
+		if not wanted.has(squad_id):
+			continue
+		var squad: Squad = _squads[squad_id]
+		if not queued:
+			squad.queue.clear()
+		_events.squad_ordered.emit(squad_id, verb, queued, _begin_order(squad, verb, king_position))
 
 
 ## Forwards a landed hit to the unit; a hit on a gone unit drops silently.
@@ -217,6 +242,53 @@ func _sync(night: bool) -> void:
 		squad.respawn_seconds = tier_def.squad_respawn_seconds
 		if not night:
 			_fill(squad)
+
+
+## Starts `verb` on the squad and returns the metres it resolved: none for follow, the frozen anchor
+## for hold, the king position for rally.
+func _begin_order(squad: Squad, verb: StringName, king_position: Vector2) -> Array[Vector2]:
+	var resolved: Array[Vector2] = []
+	squad.moving = false
+	squad.moving_ticks_left = 0
+	if verb == SquadOrder.VERB_FOLLOW:
+		squad.resting_stance = SquadOrder.STANCE_FOLLOW
+		squad.anchor = king_position
+	elif verb == SquadOrder.VERB_HOLD:
+		squad.resting_stance = SquadOrder.STANCE_HOLD
+		squad.anchor = SquadOrders.centroid(_units, squad.unit_ids, squad.home)
+		resolved.append(squad.anchor)
+	elif verb == SquadOrder.VERB_RALLY:
+		squad.resting_stance = SquadOrder.STANCE_HOLD
+		squad.anchor = king_position
+		squad.moving = true
+		squad.moving_ticks_left = _walk_budget_ticks(squad)
+		resolved.append(king_position)
+	return resolved
+
+
+## Steps a one-shot walk may take: the time the farthest unit needs to reach its slot plus the
+## grace that keeps a crowded formation from walking for ever.
+func _walk_budget_ticks(squad: Squad) -> int:
+	var farthest: float = SquadOrders.farthest_from_slot(
+		_units, squad.unit_ids, squad.anchor, squad.cap, squad.unit_def.formation_spacing
+	)
+	var per_step: float = maxf(squad.unit_def.move_speed * SimClock.STEP, 0.001)
+	return ceili(farthest / per_step) + SimClock.ticks(SquadOrders.WALK_GRACE_SECONDS)
+
+
+## True when every living unit of the squad stands within arrival distance of its slot.
+func _formation_reached(squad: Squad) -> bool:
+	return SquadOrders.arrived(
+		_units, squad.unit_ids, squad.anchor, squad.cap, squad.unit_def.formation_spacing
+	)
+
+
+## Ends a walk when everyone has arrived or the budget ran out.
+func _update_walk(squad: Squad) -> void:
+	squad.moving_ticks_left -= 1
+	if squad.moving_ticks_left <= 0 or _formation_reached(squad):
+		squad.moving = false
+		squad.moving_ticks_left = 0
 
 
 func _make_squad(spot_id: StringName, building_def: BuildingDef, unit_def: UnitDef) -> Squad:
@@ -308,7 +380,7 @@ func _step_unit(
 ) -> void:
 	var def: UnitDef = squad.unit_def
 	var target: int = _units.target_of(unit_id)
-	if night:
+	if night and not squad.moving:
 		target = _choose_target(squad, unit_id, target, tick, enemies)
 	else:
 		target = -1
@@ -368,6 +440,8 @@ func _walk_to_slot(squad: Squad, unit_id: int) -> void:
 		squad.anchor
 		+ SquadFormation.slot_offset(_units.slot_of(unit_id), squad.cap, def.formation_spacing)
 	)
+	if squad.settled:
+		return
 	var here: Vector2 = _units.position_of(unit_id)
 	var reach: float = def.move_speed * SimClock.STEP
 	_units.set_position_of(unit_id, here + EnemySystem.desired_step(here, slot_position, reach))

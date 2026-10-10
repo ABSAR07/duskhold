@@ -47,6 +47,15 @@ func _ids(list: Array[StringName]) -> Array[StringName]:
 	return list
 
 
+## The castle falls on the first night: the run is over.
+func _end_the_run() -> void:
+	assert_eq(_ctx.commands.submit(StartNightIntent.new()), CommandProcessor.OK, "night started")
+	assert_true(_ctx.run_manager.end_run_in_defeat(), "the run ends")
+	assert_true(_ctx.run_manager.is_run_over(), "and is over")
+	_ordered = []
+	_rejected = []
+
+
 func _state() -> Array:
 	var state: Array = []
 	for squad_id: StringName in _ctx.squads.squad_ids():
@@ -98,15 +107,13 @@ func test_the_checks_run_in_the_documented_order() -> void:
 	assert_eq(_ctx.commands.submit(nobody), CommandProcessor.NO_SQUADS, "no squads beats the verb")
 	var ghost := SquadOrderIntent.new(_ids([&"ghost_9"]), &"dance")
 	assert_eq(_ctx.commands.submit(ghost), CommandProcessor.UNKNOWN_SQUAD, "squad beats verb")
-	assert_true(_ctx.run_manager.end_run_in_defeat(), "the run ends")
+	_end_the_run()
 	assert_eq(_ctx.commands.submit(nobody), CommandProcessor.RUN_OVER, "run over beats the rest")
 	assert_eq(_ctx.commands.submit(ghost), CommandProcessor.RUN_OVER, "also with an unknown squad")
 
 
 func test_an_order_after_the_run_ended_changes_nothing() -> void:
-	assert_true(_ctx.run_manager.end_run_in_defeat(), "the run ends")
-	_rejected = []
-	_ordered = []
+	_end_the_run()
 	var before: Array = _state()
 	var result: StringName = _ctx.commands.submit(
 		SquadOrderIntent.new(_ids([BARRACKS]), SquadOrder.VERB_FOLLOW)

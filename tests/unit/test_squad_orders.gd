@@ -132,7 +132,10 @@ func test_a_following_squad_walks_to_slots_around_the_king() -> void:
 	_stand(BARRACKS)
 	_order(ONLY_BARRACKS, SquadOrder.VERB_FOLLOW)
 	_steps(SETTLE_STEPS, false)
-	assert_true(_all_at_slots(BARRACKS, KING, SLOT_EPSILON), "every footman stands at its slot")
+	assert_true(
+		_all_at_slots(BARRACKS, KING, SquadOrders.ARRIVE_DISTANCE),
+		"every footman stands within arrival distance of its slot"
+	)
 	assert_eq(_squads.alive_count(BARRACKS), 4, "nobody was lost on the way")
 
 

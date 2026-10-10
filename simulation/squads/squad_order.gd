@@ -1,9 +1,9 @@
 class_name SquadOrder
 extends RefCounted
 ## The vocabulary of squad commands (D-09 to D-13): the verbs a player can give and the resting
-## stances a squad settles into. Only the names live here for now; the order record and its logic
-## arrive with the command plan (03-06). The HUD reads these names through SquadSystem, which
-## reports a squad's resting stance and the verb it is carrying out.
+## stances a squad settles into, and the record of one order waiting in a squad's queue. The HUD
+## reads the names through SquadSystem, which reports a squad's resting stance and the verb it is
+## carrying out.
 
 ## Walk with the king and keep the formation around him.
 const VERB_FOLLOW := &"follow"
@@ -26,3 +26,12 @@ const STANCE_FOLLOW := &"follow"
 const STANCE_HOLD := &"hold"
 ## Resting on a patrol path.
 const STANCE_PATROL := &"patrol"
+
+## One order record: a verb and the ground points it carries, in metres.
+var verb: StringName = &""
+var points: Array[Vector2] = []
+
+
+func _init(order_verb: StringName = &"", order_points: Array[Vector2] = []) -> void:
+	verb = order_verb
+	points = order_points.duplicate()
