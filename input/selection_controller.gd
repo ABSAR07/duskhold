@@ -50,6 +50,12 @@ func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
 	_selection.changed.connect(_on_selection_changed)
 
 
+## The unselected squad the mouse is over (within CLICK_RADIUS_PX of one of its units), or &"" when
+## none, or while a drag is in progress. Test hook for the hover preview rings.
+func hovered_squad() -> StringName:
+	return &""
+
+
 ## True while attack-move waits for its click or patrol points are being collected. Test hook.
 func is_armed() -> bool:
 	return _armed != Armed.NONE

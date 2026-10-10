@@ -25,6 +25,8 @@ const BLADE_WIDTH: float = 0.05
 const MOVE_COLOR := Color(0.549, 0.9216, 1.0)
 const ATTACK_COLOR := Color(1.0, 0.4784, 0.349)
 const PING_META: StringName = &"order_ping"
+## Most queued-order discs shown for one squad (UI-SPEC "Queued orders").
+const MAX_DISCS_SHOWN: int = 6
 
 var _ctx: RunContext
 var _frame_seen: Dictionary = {}
@@ -45,6 +47,41 @@ func active_ping_count() -> int:
 		if child.has_meta(PING_META) and not child.is_queued_for_deletion():
 			count += 1
 	return count
+
+
+## Numbered queued-order discs showing for the selected squads. Test hook, read-only.
+func disc_count() -> int:
+	return 0
+
+
+## Patrol lines showing for the selected squads. Test hook, read-only.
+func patrol_line_count() -> int:
+	return 0
+
+
+## The labels of the queued-order discs, selected squads in creation order. Test hook.
+func disc_labels() -> PackedStringArray:
+	return PackedStringArray()
+
+
+## The colours of the queued-order discs in the same order. Test hook.
+func disc_colors() -> Array[Color]:
+	return [] as Array[Color]
+
+
+## The 0.4 m discs that mark the ends of the patrol lines showing. Test hook.
+func patrol_disc_count() -> int:
+	return 0
+
+
+## True while a freshly set patrol line is flashing. Test hook.
+func patrol_flashing() -> bool:
+	return false
+
+
+## The corner points of the patrol line drawn for `squad_id`; empty when none shows. Test hook.
+func patrol_line_points(_squad_id: StringName) -> PackedVector3Array:
+	return PackedVector3Array()
 
 
 func _on_squad_ordered(

@@ -52,6 +52,21 @@ func ring_count() -> int:
 	return _shown
 
 
+## Hover preview rings drawn right now (the hovered unselected squad's units). Test hook.
+func hover_ring_count() -> int:
+	return 0
+
+
+## The alpha of ring `index`, selected rings first and hover rings after. Test hook.
+func ring_alpha(_index: int) -> float:
+	return 0.0
+
+
+## The ground position of ring `index`. Test hook.
+func ring_position(_index: int) -> Vector3:
+	return Vector3.ZERO
+
+
 func _process(_delta: float) -> void:
 	if _ctx == null or _selection == null or _views == null:
 		return
