@@ -28,6 +28,18 @@ static func nearest_squad_at(
 
 
 ## Every squad with at least one unit point inside `rect` (corners in either order, edges
-## included), in the dictionary's insertion (creation) order.
-static func squads_in_rect(_points_by_squad: Dictionary, _rect: Rect2) -> Array[StringName]:
-	return [] as Array[StringName]
+## included), in the dictionary's insertion (creation) order. This is box select (D-10).
+static func squads_in_rect(points_by_squad: Dictionary, rect: Rect2) -> Array[StringName]:
+	var box: Rect2 = rect.abs()
+	var hit: Array[StringName] = []
+	for squad_id: StringName in points_by_squad:
+		for point: Vector2 in points_by_squad[squad_id]:
+			if (
+				point.x >= box.position.x
+				and point.x <= box.end.x
+				and point.y >= box.position.y
+				and point.y <= box.end.y
+			):
+				hit.append(squad_id)
+				break
+	return hit

@@ -13,10 +13,12 @@ extends Node
 ## night or aims the king, never moves the camera (D-13), and a selection never reaches the
 ## simulation: an order carries explicit ids and centimetre points.
 ##
-## Pointer input is event-driven and lives in _unhandled_input, so a HUD control set to STOP (the
-## squad slots) swallows the click before it gets here (Pitfall 8). Plan 03-08 adds the drag box
-## beyond CLICK_SLOP_PX. The keys that arm and release commands are polled by CommandKeyController,
-## which calls arm_attack_move, begin_patrol, commit_patrol and escape here.
+## Pointer input is event-driven. A press lives in _unhandled_input, so a HUD control set to STOP
+## (the squad slots) swallows it before it gets here (Pitfall 8); once a press is held, its motion
+## and release are read in _input so a drag that wanders over a slot still ends. Motion of more
+## than DRAG_THRESHOLD_PX from a press on the ground draws the drag box (DragBox) and the release
+## selects every squad with a unit inside it. The keys that arm and release commands are polled by
+## CommandKeyController, which calls arm_attack_move, begin_patrol, commit_patrol and escape here.
 
 ## Text for the HUD toast.
 signal feedback(text: String, is_error: bool)
@@ -43,6 +45,9 @@ var _pressing: bool = false
 var _press_position: Vector2 = Vector2.ZERO
 var _press_ctrl: bool = false
 var _press_double: bool = false
+var _press_on_ground: bool = false
+var _dragging: bool = false
+var _box: DragBox
 var _hovered: StringName = &""
 var _hover_position: Vector2 = Vector2.ZERO
 var _has_hover: bool = false
@@ -52,6 +57,7 @@ func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
 	_ctx = ctx
 	_selection = map_root.get_selection()
 	_views = map_root.get_node_or_null("UnitViews") as UnitViews
+	_box = map_root.find_child("DragBox", true, false) as DragBox
 	_selection.changed.connect(_on_selection_changed)
 
 
@@ -108,7 +114,9 @@ func commit_patrol() -> void:
 ## Escape: cancels an armed command; with nothing armed it clears the selection, which hands the
 ## movement keys back to the king (D-15, amended 2026-10-10).
 func escape() -> void:
-	if _armed != Armed.NONE:
+	if _pressing:
+		_end_press()
+	elif _armed != Armed.NONE:
 		_disarm()
 	elif _selection != null:
 		_selection.clear()
@@ -142,26 +150,94 @@ func _unhandled_input(event: InputEvent) -> void:
 		_left_button(button)
 
 
-## The left button: pressed it either lands an armed attack-move or starts a press; released it ends
-## the press, and a press and release within CLICK_SLOP_PX of each other is a click.
+## A left press on the world: with attack-move armed it lands the order; otherwise it starts a
+## press, which becomes a click or, past DRAG_THRESHOLD_PX, a drag box (see _input).
 func _left_button(button: InputEventMouseButton) -> void:
-	if button.pressed and _armed == Armed.ATTACK_MOVE:
-		get_viewport().set_input_as_handled()
+	if not button.pressed:
+		return
+	get_viewport().set_input_as_handled()
+	if _armed == Armed.ATTACK_MOVE:
 		_attack_move_click(button.position)
 		return
-	if button.pressed:
-		_pressing = true
-		_press_position = button.position
-		_press_ctrl = button.ctrl_pressed
-		_press_double = button.double_click
+	_pressing = true
+	_dragging = false
+	_press_position = button.position
+	_press_ctrl = button.ctrl_pressed
+	_press_double = button.double_click
+	var camera: Camera3D = get_viewport().get_camera_3d()
+	_press_on_ground = camera != null and GroundPick.ground_point(camera, button.position) != null
+
+
+## While a left press is held the controller sees the motion and the release before any HUD control
+## can swallow them, so a drag that wanders over a squad slot still ends. A right click cancels.
+func _input(event: InputEvent) -> void:
+	if not _pressing or _ctx == null or _selection == null:
+		return
+	if event.is_action_pressed(&"squad_move"):
+		_end_press()
 		get_viewport().set_input_as_handled()
 		return
-	if not _pressing:
+	var motion: InputEventMouseMotion = event as InputEventMouseMotion
+	if motion != null:
+		_drag_to(motion.position)
 		return
-	_pressing = false
-	get_viewport().set_input_as_handled()
-	if button.position.distance_to(_press_position) <= CLICK_SLOP_PX:
+	var button: InputEventMouseButton = event as InputEventMouseButton
+	if button != null and button.button_index == MOUSE_BUTTON_LEFT and not button.pressed:
+		get_viewport().set_input_as_handled()
+		_release(button)
+
+
+## Motion past the threshold from a press on the ground starts the drag box; then it follows.
+func _drag_to(position: Vector2) -> void:
+	if not _dragging:
+		if not _press_on_ground or position.distance_to(_press_position) <= DRAG_THRESHOLD_PX:
+			return
+		_dragging = true
+		_hovered = &""
+	if _box != null:
+		_box.set_rect_from(_press_position, position)
+
+
+## The release of the left button: ends a drag (box select) or, within CLICK_SLOP_PX of the press,
+## is a click. A release far from the press with no motion seen counts as a drag too.
+func _release(button: InputEventMouseButton) -> void:
+	var start: Vector2 = _press_position
+	var far: bool = button.position.distance_to(start) > DRAG_THRESHOLD_PX
+	var dragged: bool = _dragging or (_press_on_ground and far)
+	var ctrl: bool = _press_ctrl or button.ctrl_pressed
+	_end_press()
+	if dragged:
+		_finish_drag(Rect2(start, button.position - start), button.position, ctrl)
+	elif not far:
 		_click(button.position)
+
+
+## Ends the press and hides the box; nothing is selected by it.
+func _end_press() -> void:
+	_pressing = false
+	_dragging = false
+	if _box != null:
+		_box.end_drag()
+
+
+## Box select: every squad with a unit inside `rect` replaces the selection, Ctrl adds them; a box
+## over no unit clears the selection without Ctrl and changes nothing with it. A release with no
+## ground under it is dropped like a cancel and shows no toast (UI-SPEC E8).
+func _finish_drag(rect: Rect2, release_position: Vector2, ctrl: bool) -> void:
+	if _ground_cm(release_position) == null:
+		return
+	var all_ids: Array[StringName] = _ctx.squads.squad_ids()
+	var hit: Array[StringName] = SelectionMath.squads_in_rect(_unit_points(all_ids), rect)
+	if ctrl:
+		var combined: Array[StringName] = _selection.selected()
+		for squad_id: StringName in hit:
+			if not combined.has(squad_id):
+				combined.append(squad_id)
+		_selection.select_only(combined, all_ids)
+	elif hit.is_empty():
+		_selection.clear()
+	else:
+		_selection.select_only(hit, all_ids)
 
 
 ## A right click on the ground: a move; while attack-move is armed it only cancels; while patrol
@@ -284,7 +360,7 @@ func _unit_points(all_ids: Array[StringName]) -> Dictionary:
 
 ## The unselected squad with a unit within CLICK_RADIUS_PX of `position`, or &"" when none.
 func _squad_near(position: Vector2) -> StringName:
-	if _ctx == null or _selection == null:
+	if _ctx == null or _selection == null or _dragging:
 		return &""
 	var unselected: Array[StringName] = []
 	for squad_id: StringName in _ctx.squads.squad_ids():

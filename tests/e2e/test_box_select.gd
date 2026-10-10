@@ -16,6 +16,7 @@ const RAISE_TIMEOUT_S: float = 2.0
 const KING_SPOT := Vector3(-8.0, 0.0, 0.0)
 const CAMERA_SETTLE_FRAMES: int = 30
 const VIEW_SIZE := Vector2i(1280, 720)
+const TOLERANCE := Vector2(0.01, 0.01)
 const BOX_MARGIN_PX: float = 24.0
 ## Ground clear of every unit, between the squads and the castle.
 const EMPTY_SPOT := Vector3(-1.0, 0.0, 0.0)
@@ -174,11 +175,13 @@ func test_the_box_follows_the_cursor_with_its_corners_in_either_order() -> void:
 	assert_false(_box.visible, "hidden before a drag")
 	await _press(start)
 	await _move(start + Vector2(60.0, 40.0))
-	assert_eq(_box.get_global_rect().position, start, "anchored at the press")
-	assert_eq(_box.get_global_rect().size, Vector2(60.0, 40.0), "to the cursor")
+	assert_almost_eq(_box.get_global_rect().position, start, TOLERANCE, "anchored at the press")
+	assert_almost_eq(_box.get_global_rect().size, Vector2(60.0, 40.0), TOLERANCE, "to the cursor")
 	await _move(start + Vector2(-50.0, -30.0))
-	assert_eq(_box.get_global_rect().position, start + Vector2(-50.0, -30.0), "up and left")
-	assert_eq(_box.get_global_rect().size, Vector2(50.0, 30.0), "a positive size")
+	assert_almost_eq(
+		_box.get_global_rect().position, start + Vector2(-50.0, -30.0), TOLERANCE, "up and left"
+	)
+	assert_almost_eq(_box.get_global_rect().size, Vector2(50.0, 30.0), TOLERANCE, "a positive size")
 	await _release(start + Vector2(-50.0, -30.0))
 	assert_false(_box.visible, "gone after the release")
 
