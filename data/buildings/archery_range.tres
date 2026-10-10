@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="BuildingDef" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://simulation/defs/building_tier_def.gd" id="1_tier"]
+[ext_resource type="Script" path="res://simulation/defs/building_def.gd" id="2_def"]
+
+[sub_resource type="Resource" id="Resource_tier1"]
+script = ExtResource("1_tier")
+cost = 4
+max_health = 40
+squad_size = 4
+squad_respawn_seconds = 10.0
+
+[sub_resource type="Resource" id="Resource_tier2"]
+script = ExtResource("1_tier")
+cost = 8
+max_health = 60
+squad_size = 8
+squad_respawn_seconds = 7.0
+
+[sub_resource type="Resource" id="Resource_tier3"]
+script = ExtResource("1_tier")
+cost = 16
+max_health = 80
+squad_size = 14
+squad_respawn_seconds = 4.0
+
+[resource]
+script = ExtResource("2_def")
+id = &"archery_range"
+display_name = "Archery Range"
+body_radius = 1.5
+unit_id = &"archer"
+post_distance = 3.5
+tiers = Array[ExtResource("1_tier")]([SubResource("Resource_tier1"), SubResource("Resource_tier2"), SubResource("Resource_tier3")])

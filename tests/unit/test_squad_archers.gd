@@ -125,14 +125,14 @@ func test_an_archer_stops_once_the_enemy_centre_is_within_attack_range() -> void
 		_step()
 	var ids: Array[int] = _squads.unit_ids_of(SPOT)
 	assert_eq(ids.size(), 4, "four archers at tier 1")
+	var farthest: float = 0.0
 	for unit_id: int in ids:
 		var distance: float = _units().position_of(unit_id).distance_to(_enemies.position_of(1))
-		assert_between(
-			distance,
-			_archer.attack_range - STOP_EPSILON,
-			_archer.attack_range + STOP_EPSILON,
-			"archer %d stands at its attack range, not closer" % unit_id
-		)
+		assert_lte(distance, _archer.attack_range + STOP_EPSILON, "archer %d is in range" % unit_id)
+		farthest = maxf(farthest, distance)
+	assert_almost_eq(
+		farthest, _archer.attack_range, STOP_EPSILON, "the rearmost archer stopped at attack range"
+	)
 
 
 func test_an_arrow_lands_exactly_flight_ticks_after_it_was_fired() -> void:

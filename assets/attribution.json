@@ -77,7 +77,7 @@
       "retrieved": "2026-09-29",
       "sha256": "9e1d48e6d7b8479ebbe84df71eb5bd8e1b3f0da546dea641890dccc8a02d0999",
       "ships_in_build": true,
-      "notes": "Author's asset page states CC0 (https://kenney.nl/assets/mini-characters); the pack's own License.txt is kept beside the files (CC0, the king's rider (no crowned figure exists in the pack; a small gold crown primitive is added in king_model.tscn)). Archive downloaded from https://kenney.nl/media/pages/assets/mini-characters/bfc7e272b4-1774770718/kenney_mini-characters.zip (2403059 bytes); sha256 is of that zip. Kept files (GLBs in models/ plus Textures/colormap.png): character-male-b. Used for Mini Characters 1.0. Attribution to Kenney is optional under CC0; the Phase 13 credits still list it."
+      "notes": "Author's asset page states CC0 (https://kenney.nl/assets/mini-characters); the pack's own License.txt is kept beside the files (CC0, the king's rider (no crowned figure exists in the pack; a small gold crown primitive is added in king_model.tscn) and the footman and archer puppets (UnitViews)). Archive downloaded from https://kenney.nl/media/pages/assets/mini-characters/bfc7e272b4-1774770718/kenney_mini-characters.zip (2403059 bytes); sha256 is of that zip. Kept files (GLBs in models/ plus Textures/colormap.png): character-male-b, character-male-a, character-female-a. Used for Mini Characters 1.0. Attribution to Kenney is optional under CC0; the Phase 13 credits still list it."
     },
     {
       "id": "quaternius-horse",

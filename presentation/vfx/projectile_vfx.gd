@@ -18,6 +18,9 @@ const ARC_PER_METRE: float = 0.12
 const MAX_ARC_HEIGHT: float = 2.5
 const TOWER_COLOR := Color(1.0, 0.85, 0.25)
 const SKIRMISHER_COLOR := Color(0.6, 0.3, 0.9)
+## Friendly archers shoot a pale blue arrow, readable against both the gold tower arrows and the
+## violet skirmisher arrows.
+const UNIT_ARROW_COLOR := Color(0.55, 0.85, 1.0)
 const SLASH_COLOR := Color(1.0, 0.95, 0.8)
 const EMISSION_ENERGY: float = 2.0
 const ARROW_SIZE := Vector3(0.15, 0.15, 1.0)
@@ -38,6 +41,7 @@ var _ctx: RunContext
 var _flights: Array[Flight] = []
 var _tower_mesh: BoxMesh
 var _skirmisher_mesh: BoxMesh
+var _unit_mesh: BoxMesh
 var _slash_mesh: BoxMesh
 
 
@@ -62,6 +66,7 @@ func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 	_ctx = ctx
 	_tower_mesh = _make_box(ARROW_SIZE, TOWER_COLOR)
 	_skirmisher_mesh = _make_box(ARROW_SIZE, SKIRMISHER_COLOR)
+	_unit_mesh = _make_box(ARROW_SIZE, UNIT_ARROW_COLOR)
 	_slash_mesh = _make_box(SLASH_SIZE, SLASH_COLOR)
 	ctx.events.attack_fired.connect(_on_attack_fired)
 
@@ -129,7 +134,7 @@ func _on_attack_fired(
 	flight.duration = maxf(flight_seconds(flight_ticks), SimClock.STEP)
 	var arrow: MeshInstance3D = MeshInstance3D.new()
 	arrow.name = "Arrow"
-	arrow.mesh = _skirmisher_mesh if attacker_kind == PendingHits.KIND_ENEMY else _tower_mesh
+	arrow.mesh = _arrow_mesh_for(attacker_kind)
 	arrow.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(arrow)
 	arrow.global_position = origin
@@ -138,13 +143,23 @@ func _on_attack_fired(
 	_flights.append(flight)
 
 
-## Towers, the castle and enemies shoot arrows; the king strikes without a flight.
+## Towers, the castle, enemies and friendly archers shoot arrows; the king and melee units strike
+## without a flight (a unit hit with no flight draws nothing).
 func _draws_arrows(attacker_kind: StringName) -> bool:
 	return (
 		attacker_kind == PendingHits.KIND_BUILDING
 		or attacker_kind == PendingHits.KIND_CASTLE
 		or attacker_kind == PendingHits.KIND_ENEMY
+		or attacker_kind == PendingHits.KIND_UNIT
 	)
+
+
+func _arrow_mesh_for(attacker_kind: StringName) -> BoxMesh:
+	if attacker_kind == PendingHits.KIND_ENEMY:
+		return _skirmisher_mesh
+	if attacker_kind == PendingHits.KIND_UNIT:
+		return _unit_mesh
+	return _tower_mesh
 
 
 ## A flat bar from the king toward his target that shrinks away in SLASH_SECONDS.
@@ -188,10 +203,21 @@ func _attacker_position(kind: StringName, id: int) -> Vector3:
 	if kind == PendingHits.KIND_CASTLE:
 		var castle_ground: Vector2 = _ctx.castle.get_position()
 		return Vector3(castle_ground.x, CASTLE_LAUNCH_HEIGHT, castle_ground.y)
+	if kind == PendingHits.KIND_UNIT:
+		return _unit_position(id)
 	var enemies: EnemySystem = _ctx.night.get_enemies()
 	if not enemies.is_alive(id):
 		return NO_POSITION
 	var ground: Vector2 = enemies.position_of(id)
+	return Vector3(ground.x, UNIT_HEIGHT, ground.y)
+
+
+## Where friendly unit `id` stands, chest height; NO_POSITION when it is gone.
+func _unit_position(id: int) -> Vector3:
+	var units: UnitSystem = _ctx.squads.get_units()
+	if not units.is_alive(id):
+		return NO_POSITION
+	var ground: Vector2 = units.position_of(id)
 	return Vector3(ground.x, UNIT_HEIGHT, ground.y)
 
 
@@ -203,6 +229,10 @@ func _target_position(kind: StringName, id: int, fallback: Vector3) -> Vector3:
 		if enemies.is_alive(id):
 			var ground: Vector2 = enemies.position_of(id)
 			found = Vector3(ground.x, UNIT_HEIGHT, ground.y)
+	elif kind == PendingHits.KIND_UNIT:
+		var unit_found: Vector3 = _unit_position(id)
+		if unit_found.is_finite():
+			found = unit_found
 	elif kind == PendingHits.KIND_KING:
 		var king_ground: Vector2 = _ctx.king.get_position()
 		found = Vector3(king_ground.x, UNIT_HEIGHT, king_ground.y)

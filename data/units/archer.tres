@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="UnitDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://simulation/defs/unit_def.gd" id="1_unit"]
+
+[resource]
+script = ExtResource("1_unit")
+id = &"archer"
+display_name = "Archer"
+max_health = 6
+move_speed = 3.8
+radius = 0.4
+attack_range = 8.5
+attack_damage = 1
+attack_interval = 0.9
+guard_range = 10.0
+leash_range = 14.0
+retarget_interval_seconds = 0.5
+projectile_speed = 16.0
+formation_spacing = 1.2

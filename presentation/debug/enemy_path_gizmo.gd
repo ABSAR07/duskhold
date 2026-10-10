@@ -10,6 +10,7 @@ const ROAD_COLOR := Color(0.75, 0.75, 0.8, 0.55)
 const KING_COLOR := Color(1.0, 0.85, 0.2, 1.0)
 const CASTLE_COLOR := Color(1.0, 0.35, 0.3, 1.0)
 const BUILDING_COLOR := Color(0.35, 0.75, 1.0, 1.0)
+const UNIT_COLOR := Color(0.45, 1.0, 0.55, 1.0)
 ## Lines float a little above the ground so they are not lost in it.
 const LINE_HEIGHT: float = 0.4
 
@@ -118,6 +119,10 @@ func _target_position(target: Dictionary) -> Vector2:
 	var kind: StringName = target["kind"]
 	if kind == PendingHits.KIND_KING:
 		return _ctx.king.get_position()
+	if kind == PendingHits.KIND_UNIT:
+		var units: UnitSystem = _ctx.squads.get_units()
+		if units.is_alive(target["id"]):
+			return units.position_of(target["id"])
 	if kind == PendingHits.KIND_BUILDING:
 		var spot: BuildSpotDef = _ctx.buildings.get_spot(_ctx.buildings.spot_at_index(target["id"]))
 		if spot != null:
@@ -130,6 +135,8 @@ func _target_color(kind: StringName) -> Color:
 		return KING_COLOR
 	if kind == PendingHits.KIND_BUILDING:
 		return BUILDING_COLOR
+	if kind == PendingHits.KIND_UNIT:
+		return UNIT_COLOR
 	return CASTLE_COLOR
 
 

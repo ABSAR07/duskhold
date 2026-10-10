@@ -16,7 +16,7 @@ table lists them in the same order.
 | GUT (Godot Unit Test) 9.7.1 | code | MIT | Tom "Butch" Wesley (bitwes) and contributors | https://github.com/bitwes/Gut/releases/tag/v9.7.1 | `addons/gut/` (test only, not shipped) | 2026-09-29 | `14969aa46adc84aa08cdd21b9f6d1a64addd92ae60b36f02d0521ed305aa4086` |
 | Kenney Castle Kit 2.0 | model | CC0-1.0 | Kenney (www.kenney.nl) | https://kenney.nl/assets/castle-kit | `assets/third_party/kenney_castle_kit/` (7 GLBs + colormap; tower tiers I-II, castle center) | 2026-09-29 | `921f3f73927bb23106cae34bc21d5ab4b033a9fc120475e96f714a406e3169df` |
 | Kenney Fantasy Town Kit 2.0 | model | CC0-1.0 | Kenney (www.kenney.nl) | https://kenney.nl/assets/fantasy-town-kit | `assets/third_party/kenney_fantasy_town_kit/` (7 GLBs + colormap; House tiers I-III) | 2026-09-29 | `1a7530c09f4d2fa2cdee259876f089334f8b1f27fa86a0c4f54ef86cdd8676ef` |
-| Kenney Mini Characters 1.0 | model | CC0-1.0 | Kenney (www.kenney.nl) | https://kenney.nl/assets/mini-characters | `assets/third_party/kenney_mini_characters/` (1 GLB + colormap; the king's rider) | 2026-09-29 | `9e1d48e6d7b8479ebbe84df71eb5bd8e1b3f0da546dea641890dccc8a02d0999` |
+| Kenney Mini Characters 1.0 | model | CC0-1.0 | Kenney (www.kenney.nl) | https://kenney.nl/assets/mini-characters | `assets/third_party/kenney_mini_characters/` (3 GLBs + colormap; the king's rider, the footman and archer puppets) | 2026-09-29 | `9e1d48e6d7b8479ebbe84df71eb5bd8e1b3f0da546dea641890dccc8a02d0999` |
 | Horse (animated), Quaternius 2021 | model | CC0-1.0 | Quaternius | https://poly.pizza/m/qvTrSG9pZF (file: https://static.poly.pizza/d37dbc87-ca61-4b2c-a2da-d2f0c4240bef.glb) | `assets/third_party/quaternius_horse/` (1 GLB; the king's horse) | 2026-09-29 | `fae7a7ec91e0d6a33554efb896fac9c4e8c632644183bcb8cc962f673d3ce609` (of the GLB itself) |
 
 ## Archive checksums and download evidence
@@ -72,7 +72,8 @@ asset" redistribution it forbids. The owner also accepts this risk (2026-10-01).
 - The Fantasy Town Kit has no complete house model, so the three House tiers are composed from its wall,
   roof and chimney pieces in the wrapper scenes under `presentation/buildings/models/`.
 - The Mini Characters pack has no crowned figure. `character-male-b` is the rider; the gold crown is a small
-  primitive added in `presentation/king/king_model.tscn`.
+  primitive added in `presentation/king/king_model.tscn`. `character-male-a` (footman) and `character-female-a`
+  (archer) are the unit puppets in `presentation/units/unit_views.gd`; the sword and bow are code-built primitives.
 
 ## How to add an asset
 
