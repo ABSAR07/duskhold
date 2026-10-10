@@ -78,13 +78,19 @@ func unit_ids_of(squad_id: StringName) -> Array[int]:
 	return result
 
 
-## RED skeleton: the stance a squad rests in, reported once the command plan adds orders.
-func resting_stance(_squad_id: StringName) -> StringName:
-	return &""
+## The stance the squad rests in, one of the SquadOrder STANCE_ names; &"" for an unknown squad.
+## Until the command plan (03-06) adds orders every squad stands at its post.
+func resting_stance(squad_id: StringName) -> StringName:
+	if not _squads.has(squad_id):
+		return &""
+	return SquadOrder.STANCE_POST
 
 
-## RED skeleton: the verb a squad is carrying out, &"" when none.
-func executing_verb(_squad_id: StringName) -> StringName:
+## The one-shot verb (a SquadOrder VERB_ name) the squad is carrying out until it arrives; &"" when
+## it is carrying none out, and for an unknown squad. No order exists before plan 03-06.
+func executing_verb(squad_id: StringName) -> StringName:
+	if not _squads.has(squad_id):
+		return &""
 	return &""
 
 

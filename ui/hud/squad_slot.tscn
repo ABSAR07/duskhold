@@ -1,0 +1,97 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://ui/hud/squad_slot.gd" id="1_slot"]
+[ext_resource type="Script" path="res://ui/hud/stance_glyph.gd" id="2_glyph"]
+
+[node name="SquadSlot" type="PanelContainer"]
+custom_minimum_size = Vector2(136, 72)
+focus_mode = 0
+mouse_filter = 0
+script = ExtResource("1_slot")
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="TopRow" type="HBoxContainer" parent="Margin/VBox"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="UnitIcon" type="TextureRect" parent="Margin/VBox/TopRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="AliveLabel" type="Label" parent="Margin/VBox/TopRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_type_variation = &"HudBoldLabel"
+theme_override_font_sizes/font_size = 22
+text = "0 / 0"
+vertical_alignment = 1
+
+[node name="BottomRow" type="HBoxContainer" parent="Margin/VBox"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="StanceGlyph" type="Control" parent="Margin/VBox/BottomRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("2_glyph")
+
+[node name="Spacer" type="Control" parent="Margin/VBox/BottomRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="GroupBadge" type="PanelContainer" parent="Margin/VBox/BottomRow"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="GroupBadgeLabel" type="Label" parent="Margin/VBox/BottomRow/GroupBadge"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"HudBoldLabel"
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="FillHost" type="Control" parent="."]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="ReplacementFill" type="ProgressBar" parent="FillHost"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+offset_left = 8.0
+offset_top = 64.0
+offset_right = 128.0
+offset_bottom = 68.0
+mouse_filter = 2
+max_value = 1.0
+step = 0.001
+show_percentage = false
