@@ -75,14 +75,25 @@ func _unit_point(squad: StringName) -> Vector2:
 	return _camera.unproject_position(_views.puppet_position(unit_id))
 
 
-func _mouse(position: Vector2, pressed: bool, double: bool = false) -> void:
+func _mouse(position: Vector2, pressed: bool) -> void:
 	var event: InputEventMouseButton = InputEventMouseButton.new()
 	event.button_index = MOUSE_BUTTON_LEFT
 	event.pressed = pressed
 	event.position = position
 	event.global_position = position
-	event.double_click = double
 	event.button_mask = MOUSE_BUTTON_MASK_LEFT if pressed else 0
+	_view.push_input(event)
+
+
+## The second press of a double-click: the engine sets double_click on it.
+func _double_press(position: Vector2) -> void:
+	var event: InputEventMouseButton = InputEventMouseButton.new()
+	event.button_index = MOUSE_BUTTON_LEFT
+	event.pressed = true
+	event.position = position
+	event.global_position = position
+	event.double_click = true
+	event.button_mask = MOUSE_BUTTON_MASK_LEFT
 	_view.push_input(event)
 
 
@@ -109,7 +120,7 @@ func test_a_double_click_on_a_footman_selects_both_footman_squads_and_not_the_ar
 	_mouse(footman, false)
 	await wait_process_frames(2)
 	assert_eq(_selection.selected(), [BARRACKS] as Array[StringName], "a single click: one squad")
-	_mouse(footman, true, true)
+	_double_press(footman)
 	await wait_process_frames(1)
 	_mouse(footman, false)
 	await wait_process_frames(2)

@@ -82,6 +82,7 @@ var _ctx: RunContext
 var _selection: SelectionModel
 var _pointer: SelectionController
 var _strip: SquadStrip
+var _cursor: PadCursorController
 var _was_pressed: Dictionary = {}
 ## True from the keyboard patrol key going down until it comes up again.
 var _patrol_key_held: bool = false
@@ -96,6 +97,7 @@ func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
 	_selection = map_root.get_selection()
 	_pointer = map_root.get_node_or_null("SelectionController") as SelectionController
 	_strip = map_root.find_child("SquadStrip", true, false) as SquadStrip
+	_cursor = map_root.get_node_or_null("PadCursorController") as PadCursorController
 
 
 func _process(_delta: float) -> void:
@@ -112,8 +114,8 @@ func _process(_delta: float) -> void:
 	for action: StringName in PadChords.resolve(just, layer, group_mode):
 		_run(action, just)
 	_poll_patrol_release()
-	if _pointer != null and _pressed_now(CANCEL_ACTION):
-		_pointer.escape()
+	if _pressed_now(CANCEL_ACTION):
+		_cancel()
 	for action: StringName in GROUP_ACTIONS:
 		if _pressed_now(action):
 			_group_key(GROUP_ACTIONS[action])
@@ -154,6 +156,15 @@ func _point_command(action: StringName, just: Array[StringName]) -> void:
 	elif action == PATROL_ACTION:
 		_patrol_key_held = true
 		_pointer.begin_patrol()
+
+
+## The cancel key: it puts the pad's ground cursor away if that is up, else cancels an armed point
+## command or clears the selection through the pointer controller.
+func _cancel() -> void:
+	if _cursor != null and _cursor.cancel():
+		return
+	if _pointer != null:
+		_pointer.escape()
 
 
 ## The patrol key going up commits the points collected with it held.

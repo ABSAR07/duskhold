@@ -4,7 +4,8 @@ extends Node3D
 ## king's position only. The player cannot orbit it and no mouse input exists: zoom_in / zoom_out
 ## only slide the rig nearer or farther along the fixed offset direction, clamped to
 ## [zoom_min, zoom_max]. The Camera3D child is aimed once in bind_run and never touched afterwards.
-## Zooming is presentation only; it never reads or writes the simulation.
+## Zooming is presentation only; it never reads or writes the simulation. While the pad's ground
+## cursor is up the right stick aims it, so zoom input is ignored (set_zoom_suppressed, D-12).
 
 ## Camera position relative to the king at zoom 1.0: exactly 1.3x the UAT framing (0, 16, 11) on
 ## the same angle, about 25.2 m from the king. Tunable at the Phase 2 playtest.
@@ -20,6 +21,7 @@ extends Node3D
 
 var _target: King
 var _zoom: float = 1.0
+var _zoom_suppressed: bool = false
 
 @onready var _camera: Camera3D = $Camera3D
 
@@ -35,10 +37,9 @@ func get_zoom() -> float:
 	return _zoom
 
 
-## While the pad's ground cursor is up the right stick aims it, so zoom is ignored (D-12). Inert
-## skeleton.
-func set_zoom_suppressed(_on: bool) -> void:
-	pass
+## While `on`, zoom_in and zoom_out are ignored: the right stick aims the pad's ground cursor.
+func set_zoom_suppressed(on: bool) -> void:
+	_zoom_suppressed = on
 
 
 ## The camera's position relative to the king right now: `offset` scaled by the current zoom.
@@ -49,7 +50,9 @@ func get_effective_offset() -> Vector3:
 func _physics_process(delta: float) -> void:
 	if _target == null:
 		return
-	var zoom_input: float = Input.get_axis(&"zoom_in", &"zoom_out")
+	var zoom_input: float = 0.0
+	if not _zoom_suppressed:
+		zoom_input = Input.get_axis(&"zoom_in", &"zoom_out")
 	_zoom = clampf(_zoom + zoom_input * zoom_speed * delta, zoom_min, zoom_max)
 	var weight: float = 1.0 - exp(-follow_sharpness * delta)
 	global_position = global_position.lerp(_target.global_position + get_effective_offset(), weight)
