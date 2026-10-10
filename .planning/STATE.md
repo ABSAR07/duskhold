@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 03
 current_phase_name: King Combat & Troops
 status: executing
-stopped_at: Completed 03-05-PLAN.md
-last_updated: "2026-10-10T11:59:17.777Z"
+stopped_at: Completed 03-06-PLAN.md
+last_updated: "2026-10-10T13:20:59.957Z"
 last_activity: 2026-10-10
 last_activity_desc: Phase 03 execution started
-state_head: 6400d120e9ae64179714246abb08b7535fa01c09
+state_head: d7ab7b29a26a3b5f7283de5a6f1e3a1bf2975812
 progress:
   total_phases: 13
   completed_phases: 2
   total_plans: 52
-  completed_plans: 45
+  completed_plans: 46
   percent: 15
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-08)
 ## Current Position
 
 Phase: 03 (King Combat & Troops) — EXECUTING
-Plan: 6 of 12
+Plan: 7 of 12
 Status: Ready to execute
 Last activity: 2026-10-10 — Phase 03 execution started
 
@@ -102,6 +102,7 @@ Progress: [██░░░░░░░░] 15%
 | Phase 03 P02 | 29 min | 2 tasks | 28 files |
 | Phase 03 P04 | 60 min | 3 tasks | 32 files |
 | Phase 03 P05 | 36 min | 2 tasks | 23 files |
+| Phase 03 P06 | 72 min | 3 tasks | 48 files |
 
 ## Accumulated Context
 
@@ -206,6 +207,9 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-05: the SquadStrip scales (to 720 px about its bottom centre) only past six slots (width above 856 px); six slots stay unscaled — UI-SPEC Squad group slots section and plan 03-05: up to six slots fit in 856 px
 - [Phase 03]: 03-05: resting_stance returns post and executing_verb none until plan 03-06 adds orders; move and rally have no glyph among the five and fall back to a dot — The UI-SPEC glyph table lists five shapes; 03-06 owns the order record
 - [Phase 03]: 03-05: SquadSystem.replacement_seconds_left (ticks left times SimClock.STEP) feeds the overlay countdown; a rubble building shows 'rubble' — Avoids a float round trip from replacement_progress and tier data
+- [Phase 03]: 03-06: a rally walk also ends WALK_GRACE_SECONDS (2 s) after the farthest unit could have arrived, so two squads sent to one point never ignore enemies for ever — Overlapping formations push units off their slots; the plain arrival rule would never fire
+- [Phase 03]: 03-06: a following squad within ARRIVE_DISTANCE of its slots keeps still (Squad.settled), so the formation rests within 0.25 m of its slots — Literal reading of the adjacency edge case; avoids jitter while the king stands still
+- [Phase 03]: 03-06: pointer e2e tests use a 1280x720 SubViewport and push_input, and the longest toast measures 526 px at Body 22, not 460 — GUT output panel and the 64 px stretched headless window defeat Input.parse_input_event; Godot default font measures wider than the UI-SPEC estimate
 
 ### Pending Todos
 
@@ -238,6 +242,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-10T11:59:17.472Z
-Stopped at: Completed 03-05-PLAN.md
+Last session: 2026-10-10T13:20:59.640Z
+Stopped at: Completed 03-06-PLAN.md
 Resume file: None
