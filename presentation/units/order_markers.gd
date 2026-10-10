@@ -27,7 +27,7 @@ const MOVE_COLOR := Color(0.549, 0.9216, 1.0)
 const ATTACK_COLOR := Color(1.0, 0.4784, 0.349)
 const PING_META: StringName = &"order_ping"
 ## Most queued-order discs shown for one squad (UI-SPEC "Queued orders").
-const MAX_DISCS_SHOWN: int = SquadPlanView.MAX_DISCS
+const MAX_DISCS_SHOWN := 6
 ## A newly set patrol line blinks this long.
 const FLASH_SECONDS: float = 1.5
 

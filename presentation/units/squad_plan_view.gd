@@ -10,7 +10,7 @@ extends Node3D
 ## is handed snapshots and writes nothing back.
 
 ## Most numbered discs shown for one squad.
-const MAX_DISCS: int = 6
+const MAX_DISCS: int = OrderMarkers.MAX_DISCS_SHOWN
 const DISC_RADIUS: float = 0.2
 const DISC_THICKNESS: float = 0.02
 const DISC_HEIGHT: float = 0.07
