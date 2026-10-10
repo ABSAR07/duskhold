@@ -11,6 +11,7 @@ var _events: SimEvents
 var _enemies: EnemySystem
 var _hits: PendingHits
 var _king: KingState
+var _weapon: WeaponDef
 
 
 func before_each() -> void:
@@ -20,6 +21,7 @@ func before_each() -> void:
 	_enemies = EnemySystem.new(_events)
 	_hits = PendingHits.new()
 	_king = KingState.new(_def, Vector2.ZERO, _events)
+	_weapon = _king.get_weapon()
 	_king.begin_night()
 
 
@@ -42,13 +44,13 @@ func _tough_grunt() -> EnemyDef:
 
 
 func test_an_enemy_exactly_at_attack_range_is_attacked() -> void:
-	var id: int = _enemies.spawn(_grunt, Vector2(_def.attack_range, 0.0))
+	var id: int = _enemies.spawn(_grunt, Vector2(_weapon.attack_range, 0.0))
 	assert_true(_tick(0), "the king attacks at exactly attack_range")
 	assert_lt(_enemies.health_of(id), _grunt.max_health, "and the hit landed")
 
 
 func test_an_enemy_just_beyond_attack_range_is_not_attacked() -> void:
-	var id: int = _enemies.spawn(_grunt, Vector2(_def.attack_range + 0.01, 0.0))
+	var id: int = _enemies.spawn(_grunt, Vector2(_weapon.attack_range + 0.01, 0.0))
 	assert_false(_tick(0), "no attack 0.01 m beyond the range")
 	assert_eq(_enemies.health_of(id), _grunt.max_health, "untouched")
 
@@ -70,7 +72,7 @@ func test_the_nearer_enemy_is_attacked_before_the_lower_id() -> void:
 
 
 func test_with_nothing_in_range_no_attack_and_no_cooldown_is_consumed() -> void:
-	_enemies.spawn(_grunt, Vector2(_def.attack_range + 5.0, 0.0))
+	_enemies.spawn(_grunt, Vector2(_weapon.attack_range + 5.0, 0.0))
 	for tick: int in range(0, 50):
 		assert_false(_tick(tick), "nothing to hit at tick %d" % tick)
 	var id: int = _enemies.spawn(_grunt, Vector2(1.0, 0.0))
@@ -80,7 +82,7 @@ func test_with_nothing_in_range_no_attack_and_no_cooldown_is_consumed() -> void:
 
 func test_the_king_attacks_once_per_interval_in_whole_ticks() -> void:
 	_enemies.spawn(_tough_grunt(), Vector2(1.0, 0.0))
-	var interval: int = SimClock.ticks(_def.attack_interval)
+	var interval: int = SimClock.ticks(_weapon.attack_interval)
 	var attack_ticks: Array[int] = []
 	for tick: int in range(0, interval * 3):
 		if _tick(tick):
@@ -92,8 +94,8 @@ func test_the_king_attacks_once_per_interval_in_whole_ticks() -> void:
 func test_the_hit_resolves_on_the_tick_it_is_made_and_the_dead_leave_that_tick() -> void:
 	var id: int = _enemies.spawn(_grunt, Vector2(1.0, 0.0))
 	watch_signals(_events)
-	var interval: int = SimClock.ticks(_def.attack_interval)
-	var hits_to_kill: int = ceili(float(_grunt.max_health) / float(_def.attack_damage))
+	var interval: int = SimClock.ticks(_weapon.attack_interval)
+	var hits_to_kill: int = ceili(float(_grunt.max_health) / float(_weapon.attack_damage))
 	var kill_tick: int = interval * (hits_to_kill - 1)
 	for tick: int in range(0, kill_tick):
 		_tick(tick)

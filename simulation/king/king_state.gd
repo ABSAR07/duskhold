@@ -36,6 +36,36 @@ func get_def() -> KingDef:
 	return _def
 
 
+## The weapon he carries: the def's, or the WeaponDef defaults when the def has none.
+func get_weapon() -> WeaponDef:
+	return _def.weapon if _def.weapon != null else WeaponDef.new()
+
+
+## Inert in the RED skeleton.
+func tick_timers() -> void:
+	pass
+
+
+func has_ability() -> bool:
+	return false
+
+
+func ability_ticks_left() -> int:
+	return 0
+
+
+func ability_cooldown_ratio() -> float:
+	return 1.0
+
+
+func activate_ability() -> void:
+	pass
+
+
+func resolve_ability(_tick: int, _enemies: EnemySystem, _hits: PendingHits) -> void:
+	pass
+
+
 ## Where the king stands, in XZ metres. Ignored while he is down (T-02-06).
 func report_position(pos: Vector2) -> void:
 	if _down:

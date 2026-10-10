@@ -63,3 +63,5 @@ signal unit_died(unit_id: int, squad_id: StringName, pos: Vector2, killer_kind: 
 ## seat is filled, so the squad has `alive` units. Emitted once per squad per dawn, after the
 ## rebuild and before the payout.
 signal squad_restored(squad_id: StringName, alive: int)
+## The king used his weapon's slam and it struck `hit_count` enemies (0 by day).
+signal king_ability_used(hit_count: int)

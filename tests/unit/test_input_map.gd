@@ -16,6 +16,7 @@ const GAMEPLAY_ACTIONS: Array[StringName] = [
 	&"zoom_in",
 	&"zoom_out",
 	&"fast_forward",
+	&"ability",
 ]
 
 const EXPECTED_KEYS: Dictionary = {
@@ -30,6 +31,7 @@ const EXPECTED_KEYS: Dictionary = {
 	&"zoom_in": [KEY_EQUAL, KEY_KP_ADD],
 	&"zoom_out": [KEY_MINUS, KEY_KP_SUBTRACT],
 	&"fast_forward": [KEY_F],
+	&"ability": [KEY_Q],
 }
 
 const EXPECTED_BUTTONS: Dictionary = {
@@ -40,6 +42,7 @@ const EXPECTED_BUTTONS: Dictionary = {
 	&"zoom_in": [],
 	&"zoom_out": [],
 	&"fast_forward": [],
+	&"ability": [JOY_BUTTON_X],
 }
 
 # Stick bindings as [axis, sign].
@@ -56,6 +59,7 @@ const EXPECTED_AXES: Dictionary = {
 const MOVE_DEADZONE: float = 0.2
 const ZOOM_DEADZONE: float = 0.3
 const FAST_FORWARD_DEADZONE: float = 0.5
+const ABILITY_DEADZONE: float = 0.5
 
 
 func _keys_of(action: StringName) -> Array[int]:
@@ -147,6 +151,12 @@ func test_fast_forward_deadzone_is_point_five() -> void:
 	assert_almost_eq(
 		InputMap.action_get_deadzone(&"fast_forward"), FAST_FORWARD_DEADZONE, 0.0001, "deadzone"
 	)
+
+
+## The weapon's active ability (D-17) is a press on a key or a face button, so it reads like the
+## other buttons: halfway counts.
+func test_ability_deadzone_is_point_five() -> void:
+	assert_almost_eq(InputMap.action_get_deadzone(&"ability"), ABILITY_DEADZONE, 0.0001, "deadzone")
 
 
 func test_no_two_gameplay_actions_share_a_key_button_or_stick_direction() -> void:

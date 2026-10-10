@@ -21,6 +21,8 @@ extends Resource
 @export var max_health: int = 30
 ## Radius of the king's body in metres.
 @export var body_radius: float = 0.6
+## The weapon the king carries (D-18). Null falls back to the WeaponDef defaults.
+@export var weapon: WeaponDef
 ## Metres within which the passive attack reaches an enemy's centre (inclusive).
 @export var attack_range: float = 3.0
 ## Damage of one passive attack.

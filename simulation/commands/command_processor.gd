@@ -9,20 +9,33 @@ const UNKNOWN_SPOT := &"unknown_spot"
 const MAX_TIER := &"max_tier"
 const CANNOT_AFFORD := &"cannot_afford"
 const UNKNOWN_INTENT := &"unknown_intent"
+const RUN_OVER := &"run_over"
+const NO_ABILITY := &"no_ability"
+const KING_DOWN := &"king_down"
+const ABILITY_COOLING := &"ability_cooling"
 
 var _economy: Economy
 var _buildings: BuildingSystem
 var _run_manager: RunManager
 var _events: SimEvents
+var _king: KingState
+var _squads: SquadSystem
 
 
 func _init(
-	economy: Economy, buildings: BuildingSystem, run_manager: RunManager, events: SimEvents
+	economy: Economy,
+	buildings: BuildingSystem,
+	run_manager: RunManager,
+	events: SimEvents,
+	king: KingState = null,
+	squads: SquadSystem = null
 ) -> void:
 	_economy = economy
 	_buildings = buildings
 	_run_manager = run_manager
 	_events = events
+	_king = king
+	_squads = squads
 
 
 ## Read-only check of whether a build or upgrade on `spot_id` would be accepted right now.
