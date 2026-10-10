@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 03
 current_phase_name: King Combat & Troops
 status: executing
-stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-10-10T09:03:45.068Z"
+stopped_at: Completed 03-03-PLAN.md
+last_updated: "2026-10-10T09:23:29.585Z"
 last_activity: 2026-10-10
 last_activity_desc: Phase 03 execution started
-state_head: cfa6130d8d4ea72aa277665de1f256727fdcbc5d
+state_head: bbe3af08b11c97aaffe0ef29d685b54f95301417
 progress:
   total_phases: 13
   completed_phases: 2
   total_plans: 52
-  completed_plans: 41
+  completed_plans: 42
   percent: 15
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-08)
 ## Current Position
 
 Phase: 03 (King Combat & Troops) — EXECUTING
-Plan: 2 of 12
+Plan: 3 of 12
 Status: Ready to execute
 Last activity: 2026-10-10 — Phase 03 execution started
 
@@ -98,6 +98,7 @@ Progress: [██░░░░░░░░] 15%
 | Phase 02 P21 | 25 min | 2 tasks | 5 files |
 | Phase 02 P22 | 20 min | 2 tasks | 3 files |
 | Phase 03 P01 | 39 min | 2 tasks | 54 files |
+| Phase 03 P03 | 17 min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -191,6 +192,7 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-01: SquadSystem.begin_night also fills free seats (one _sync(false)) so a building finished in the step the night starts still fields its squad; seats are otherwise raised by day only
 - [Phase 03]: 03-01: units commit to a target until it dies or is past leash_range of the squad anchor; enemies scan living units before buildings (unit wins an equal-edge tie); EnemySystem.step takes a trailing optional UnitSystem so null keeps Phase 2 behaviour
 - [Phase 03]: 03-01: UnitSystem has 19 of 20 public methods (gdlint cap); military plots barracks_1 and archery_1 appended last in MapConfig.spots so Phase 1 spot indices stay fixed
+- [Phase 03]: 03-03: canvas_items stretch landed with no change to any existing suite; DayCounter shows only in DAY and DAWN (hidden at night, WON, LOST and on waveless maps); the font-size contract covers scene-defined player HUD labels (DebugOverlay and runtime telegraph labels exempt)
 
 ### Pending Todos
 
@@ -223,6 +225,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-10T09:03:44.803Z
-Stopped at: Completed 03-01-PLAN.md
+Last session: 2026-10-10T09:23:29.321Z
+Stopped at: Completed 03-03-PLAN.md
 Resume file: None
