@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 03
 current_phase_name: King Combat & Troops
 status: executing
-stopped_at: Completed 03-03-PLAN.md
-last_updated: "2026-10-10T09:23:29.585Z"
+stopped_at: Completed 03-02-PLAN.md
+last_updated: "2026-10-10T10:01:59.413Z"
 last_activity: 2026-10-10
 last_activity_desc: Phase 03 execution started
-state_head: bbe3af08b11c97aaffe0ef29d685b54f95301417
+state_head: b3114113dbbcd195ce5fff8fa60e6220d5e3cf4c
 progress:
   total_phases: 13
   completed_phases: 2
   total_plans: 52
-  completed_plans: 42
+  completed_plans: 43
   percent: 15
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-08)
 ## Current Position
 
 Phase: 03 (King Combat & Troops) — EXECUTING
-Plan: 3 of 12
+Plan: 4 of 12
 Status: Ready to execute
 Last activity: 2026-10-10 — Phase 03 execution started
 
@@ -99,6 +99,7 @@ Progress: [██░░░░░░░░] 15%
 | Phase 02 P22 | 20 min | 2 tasks | 3 files |
 | Phase 03 P01 | 39 min | 2 tasks | 54 files |
 | Phase 03 P03 | 17 min | 2 tasks | 8 files |
+| Phase 03 P02 | 29 min | 2 tasks | 28 files |
 
 ## Accumulated Context
 
@@ -193,6 +194,10 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-01: units commit to a target until it dies or is past leash_range of the squad anchor; enemies scan living units before buildings (unit wins an equal-edge tie); EnemySystem.step takes a trailing optional UnitSystem so null keeps Phase 2 behaviour
 - [Phase 03]: 03-01: UnitSystem has 19 of 20 public methods (gdlint cap); military plots barracks_1 and archery_1 appended last in MapConfig.spots so Phase 1 spot indices stay fixed
 - [Phase 03]: 03-03: canvas_items stretch landed with no change to any existing suite; DayCounter shows only in DAY and DAWN (hidden at night, WON, LOST and on waveless maps); the font-size contract covers scene-defined player HUD labels (DebugOverlay and runtime telegraph labels exempt)
+- [Phase 03]: 03-02: night replacement countdown starts on the first night step that finds a squad short and lands exactly SimClock.ticks(squad_respawn_seconds) steps later; spawns at the post, walks to the slot
+- [Phase 03]: 03-02: dawn restore runs in _enter_dawn after rebuild and king heal, before buildings_rebuilt and the payout; heals survivors and refills seats at slots around the unmoved anchor
+- [Phase 03]: 03-02: UnitSystem is now at the 20-method gdlint cap (heal_to_full); further unit writers need a new file
+- [Phase 03]: 03-02: MapConfig._validate_squads shares the castle bounds [SimClock.STEP, 3600 s] for unit attack_interval and squad_respawn_seconds; non-finite floats are reported once and skip range checks
 
 ### Pending Todos
 
@@ -225,6 +230,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-10T09:23:29.321Z
-Stopped at: Completed 03-03-PLAN.md
+Last session: 2026-10-10T10:01:59.106Z
+Stopped at: Completed 03-02-PLAN.md
 Resume file: None
