@@ -32,9 +32,26 @@ func test_an_unknown_or_missing_scenario_is_a_usage_error() -> void:
 	assert_false(_ok(["--twice"]), "flags without a scenario")
 
 
-func test_both_shipped_scenario_names_are_accepted() -> void:
+func test_every_shipped_scenario_name_is_accepted() -> void:
 	assert_true(_ok(["--scenario=smoke"]), "smoke")
 	assert_true(_ok(["--scenario=full_idle"]), "full_idle")
+	assert_true(_ok(["--scenario=army"]), "army")
+
+
+func test_army_is_accepted_with_its_defaults() -> void:
+	var parsed: Dictionary = _parse(["--scenario=army"])
+	assert_eq(parsed.get("error"), "", "no error")
+	assert_eq(parsed.get("scenario"), &"army", "the scenario")
+	assert_eq(parsed.get("seed"), 1, "its default seed")
+	assert_eq(parsed.get("twice"), false, "one run unless asked")
+	assert_true(
+		_ok(["--scenario=army", "--twice", "--expect-file=tests/golden/army.json"]),
+		"and its golden file passes the path allowlist"
+	)
+	assert_false(_ok(["--scenario=army_extra"]), "a near miss is still unknown")
+	assert_false(
+		_ok(["--scenario=army", "--map=res://data/maps/prototype_map.tres"]), "no path flag"
+	)
 
 
 func test_any_integer_seed_is_accepted_including_zero_and_negatives() -> void:

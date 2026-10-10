@@ -95,6 +95,12 @@ func test_the_golden_file_names_the_scenario_and_its_seed() -> void:
 			assert_true((table["digests"] as Dictionary).has("default"), "a default digest")
 
 
+func test_the_golden_lookup_reads_the_army_file_too() -> void:
+	var digest: String = ReplayScenarios.golden_digest("res://tests/golden/army.json")
+	assert_eq(digest.length(), 64, "the army golden holds a sha256 digest")
+	assert_ne(digest, ReplayScenarios.golden_digest(GOLDEN), "and it is not the smoke digest")
+
+
 func test_an_unknown_scenario_has_no_digest_and_no_golden_is_empty() -> void:
 	assert_false(ReplayScenarios.has(&"nope"), "not on the allowlist")
 	assert_eq(
