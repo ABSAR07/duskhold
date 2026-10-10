@@ -125,6 +125,11 @@ func replacement_progress(squad_id: StringName) -> float:
 	return 1.0 - float(squad.replacement_ticks_left) / float(squad.replacement_total_ticks)
 
 
+## RED skeleton: seconds to the next replacement.
+func replacement_seconds_left(_squad_id: StringName) -> float:
+	return -1.0
+
+
 ## A new night: attack cooldowns and targets are cleared. Stance, orders and the anchor are never
 ## touched here (D-14). A building finished in the very step the night began has had no day step to
 ## raise its squad, so its free seats are filled now; once the night runs they are never refilled
