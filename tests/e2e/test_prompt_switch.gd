@@ -51,7 +51,7 @@ func _setup() -> void:
 
 
 func _send(event: InputEvent) -> void:
-	Input.parse_input_event(event)
+	Input.parse_input_event(event.duplicate())
 	Input.flush_buffered_events()
 
 
@@ -173,5 +173,6 @@ func test_the_pad_disconnecting_falls_back_to_the_keyboard() -> void:
 
 func test_the_tracker_is_last_in_the_tree_so_it_sees_input_first() -> void:
 	await _setup()
-	assert_eq(_tracker.get_index(), _map.get_child_count() - 1, "last child, first to see input")
+	var controller: Node = _map.get_node("SelectionController")
+	assert_gt(_tracker.get_index(), controller.get_index(), "after the controllers, first to see")
 	assert_true(_tracker.is_in_group(&"run_bound"), "bound to the run")

@@ -17,6 +17,11 @@ const ABILITY_CAPTION := "Slam"
 const ICON_SIZE: float = 56.0
 const ICON_INNER: int = 48
 const ICON_INSET: float = 4.0
+## D-24: the slam key or button, a 24 px glyph in the bottom-right corner of the plate.
+const GLYPH_SIZE: int = 24
+## A long key name widens the glyph to the left; it stops this far left of the plate, on screen.
+const GLYPH_MIN_X: float = -12.0
+const ABILITY_ACTION: StringName = &"ability"
 const BAR_SIZE := Vector2(192.0, 24.0)
 const LABEL_MIN_WIDTH: float = 96.0
 const ROW_SEPARATION: int = 8
@@ -49,6 +54,7 @@ var _plate: Panel
 var _plate_style: StyleBoxFlat
 var _icon_bar: TextureProgressBar
 var _caption: Label
+var _ability_glyph: PromptGlyph
 var _health_bar: ProgressBar
 var _bar_background: StyleBoxFlat
 var _health_label: Label
@@ -87,6 +93,8 @@ func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
 		)
 		if controller != null:
 			controller.denied.connect(_on_denied)
+	if map_root != null:
+		_ability_glyph.bind_device(map_root.get_device_tracker())
 	_was_ready = ctx.king.ability_cooldown_ratio() >= 1.0
 	_sync_health(true)
 	_sync_ability()
@@ -124,7 +132,7 @@ func get_caption() -> Label:
 
 ## The glyph of the slam key or button on the ability badge. Test hook.
 func get_ability_glyph() -> PromptGlyph:
-	return null
+	return _ability_glyph
 
 
 func _process(_delta: float) -> void:
@@ -132,6 +140,7 @@ func _process(_delta: float) -> void:
 		return
 	_sync_health(false)
 	_sync_ability()
+	_place_glyph()
 
 
 func _build_ability_icon() -> void:
@@ -172,6 +181,19 @@ func _build_ability_icon() -> void:
 	_caption.custom_minimum_size = CAPTION_SIZE
 	_caption.size = CAPTION_SIZE
 	_plate.add_child(_caption)
+	_ability_glyph = PromptGlyph.new()
+	_ability_glyph.name = "AbilityGlyph"
+	_ability_glyph.action = ABILITY_ACTION
+	_ability_glyph.glyph_size = GLYPH_SIZE
+	_plate.add_child(_ability_glyph)
+	_place_glyph()
+
+
+## Keeps the glyph in the bottom-right corner of the plate: (32, 32) for a 24 px tile, and the
+## corner stays put when a long keycap text widens it (limited by GLYPH_MIN_X).
+func _place_glyph() -> void:
+	var corner: Vector2 = Vector2(ICON_SIZE, ICON_SIZE) - _ability_glyph.size
+	_ability_glyph.position = Vector2(maxf(corner.x, GLYPH_MIN_X), corner.y)
 
 
 func _build_health() -> void:

@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://ui/hud/hud.gd" id="1_hud"]
 [ext_resource type="PackedScene" path="res://ui/overlay/debug_overlay.tscn" id="2_overlay"]
@@ -13,6 +13,7 @@
 [ext_resource type="Script" path="res://ui/hud/toast.gd" id="11_toast"]
 [ext_resource type="Script" path="res://ui/hud/drag_box.gd" id="12_drag_box"]
 [ext_resource type="Script" path="res://ui/hud/command_hints.gd" id="14_command_hints"]
+[ext_resource type="Script" path="res://ui/hud/prompt_glyph.gd" id="13_prompt_glyph"]
 
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1_hud")
@@ -55,12 +56,35 @@ grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
 
-[node name="StartNightPrompt" type="Label" parent="StartNightBox"]
+[node name="StartNightPrompt" type="HBoxContainer" parent="StartNightBox"]
 unique_name_in_owner = true
 layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="StartNightPre" type="Label" parent="StartNightBox/StartNightPrompt"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
 theme_override_font_sizes/font_size = 22
-text = "Hold N / (Y) to start Night 1"
-horizontal_alignment = 1
+text = "Hold"
+
+[node name="StartNightGlyph" type="Control" parent="StartNightBox/StartNightPrompt"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+script = ExtResource("13_prompt_glyph")
+action = &"start_night"
+glyph_size = 32
+
+[node name="StartNightPost" type="Label" parent="StartNightBox/StartNightPrompt"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 22
+text = "to start Night 1"
 
 [node name="StartNightFill" type="ProgressBar" parent="StartNightBox"]
 unique_name_in_owner = true

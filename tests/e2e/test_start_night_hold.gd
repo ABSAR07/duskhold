@@ -495,7 +495,7 @@ func test_a_device_switch_during_the_hold_swaps_the_glyph_and_leaves_the_hold_al
 	var touch: InputEventJoypadButton = InputEventJoypadButton.new()
 	touch.button_index = JOY_BUTTON_LEFT_STICK
 	touch.pressed = true
-	Input.parse_input_event(touch)
+	Input.parse_input_event(touch.duplicate())
 	Input.flush_buffered_events()
 	assert_eq(_glyph(map_root).shown_text(), "xbox_button_y", "the glyph swapped at once")
 	assert_eq(night_hold.get_ratio(), before, "the fill is untouched by the switch")
@@ -503,5 +503,5 @@ func test_a_device_switch_during_the_hold_swaps_the_glyph_and_leaves_the_hold_al
 	assert_gt(night_hold.get_ratio(), before, "and the hold keeps filling")
 	Input.action_release(ACTION)
 	touch.pressed = false
-	Input.parse_input_event(touch)
+	Input.parse_input_event(touch.duplicate())
 	Input.flush_buffered_events()

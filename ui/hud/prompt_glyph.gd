@@ -8,7 +8,8 @@ extends Control
 ## An action with no binding on the device shows the "(unbound)" keycap, so a verb is never hidden
 ## silently.
 ##
-## A runtime rebind is noticed once a frame while the glyph is on screen. Display only.
+## `bind_device` subscribes the glyph to the one LastDeviceTracker, so every prompt switches in the
+## same frame; a runtime rebind is noticed once a frame while the glyph is on screen. Display only.
 
 const PLATE_COLOR := Color(0.0784, 0.0784, 0.1019, 0.78)
 const PLATE_RADIUS: int = 4
@@ -27,6 +28,7 @@ const OUTLINE_SIZE: int = 6
 var label_resolver: Callable = GlyphResolver.layout_label
 
 var _device: int = GlyphResolver.DEVICE_KEYBOARD
+var _tracker: LastDeviceTracker
 var _tile: Texture2D
 var _shown: String = ""
 var _is_keycap: bool = false
@@ -46,6 +48,16 @@ func _ready() -> void:
 	render(_device)
 
 
+## Follows `tracker`: every device change re-renders this glyph in the same frame, because every
+## glyph listens to the one signal. A repeat call with the same tracker is ignored.
+func bind_device(tracker: LastDeviceTracker) -> void:
+	if tracker == null or tracker == _tracker:
+		return
+	_tracker = tracker
+	tracker.device_changed.connect(render)
+	render(tracker.device())
+
+
 ## Shows the tile or keycap of `action` on `device` (GlyphResolver.DEVICE_KEYBOARD or DEVICE_PAD).
 func render(device: int) -> void:
 	_device = device
@@ -60,13 +72,13 @@ func render(device: int) -> void:
 	if _tile != null:
 		_is_keycap = false
 		_shown = path.get_file().get_basename()
-		_keycap.visible = false
+		_show_keycap(false)
 		custom_minimum_size = Vector2(glyph_size, glyph_size)
 	else:
 		_is_keycap = true
 		_shown = GlyphResolver.keycap_text(event, label_resolver)
 		_keycap_label.text = _shown
-		_keycap.visible = true
+		_show_keycap(true)
 		var wanted: Vector2 = _keycap.get_combined_minimum_size()
 		custom_minimum_size = Vector2(maxf(wanted.x, glyph_size), maxf(wanted.y, glyph_size))
 	size = custom_minimum_size
@@ -96,12 +108,26 @@ func _process(_delta: float) -> void:
 		render(_device)
 
 
+func _notification(what: int) -> void:
+	# The keycap is a child only while it is shown, so a tile glyph holds no label of its own.
+	if what == NOTIFICATION_PREDELETE and _keycap != null and _keycap.get_parent() == null:
+		_keycap.free()
+
+
 func _draw() -> void:
 	if _tile == null:
 		return
 	var rect: Rect2 = Rect2(Vector2.ZERO, Vector2(glyph_size, glyph_size))
 	draw_style_box(_plate_style, rect)
 	draw_texture_rect(_tile, rect, false)
+
+
+## Adds the keycap as a child while a keycap is shown and takes it out while a tile is.
+func _show_keycap(shown: bool) -> void:
+	if shown and _keycap.get_parent() == null:
+		add_child(_keycap)
+	elif not shown and _keycap.get_parent() == self:
+		remove_child(_keycap)
 
 
 func _build_keycap() -> void:
@@ -127,8 +153,6 @@ func _build_keycap() -> void:
 	_keycap_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_keycap_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_keycap.add_child(_keycap_label)
-	add_child(_keycap)
-	_keycap.visible = false
 
 
 ## What identifies the binding being shown: its text and its tile, so an edit made in place to the

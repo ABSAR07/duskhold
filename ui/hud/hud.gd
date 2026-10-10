@@ -12,14 +12,12 @@ extends CanvasLayer
 ## nights keeps the plain Phase 1 timed-night banner. The preview line sits under the start-night
 ## prompt and tells the player what the coming night brings (LOOP-02).
 ## The start-night line reads "Hold [glyph] to start Night N": the words before and after the glyph.
-const START_NIGHT_PROMPT := "Hold %s to start Night %d"
 const START_NIGHT_PROMPT_PRE := "Hold"
 const START_NIGHT_PROMPT_POST := "to start Night %d"
 const NIGHT_BANNER := "Night %d of %d — %d enemies left"
 const TIMED_NIGHT_BANNER := "Night %d"
 const NIGHT_PREVIEW := "Night %d: %d enemies from %d directions"
 const NIGHT_PREVIEW_ONE := "Night %d: %d enemies from 1 direction"
-const UNBOUND_HINT := GlyphResolver.UNBOUND_TEXT
 ## KING-06: the visible respawn countdown, whole seconds rounded up so it never reads 0 while
 ## the king is still down.
 const RESPAWN_TEXT := "Knocked out — back in %d s"
@@ -28,22 +26,28 @@ const RESPAWN_TEXT := "Knocked out — back in %d s"
 const FAST_FORWARD_TEXT := "Fast-forward %sx"
 ## Maps a physical keycode to the keycode the current keyboard layout prints on that key. A
 ## Callable so a test can stand in for a non-QWERTY layout, which headless Godot cannot switch to.
+## The start-night glyph reads it on every render, so a replacement made after the HUD is up counts.
 var physical_label_resolver: Callable = GlyphResolver.layout_label
 
 var _ctx: RunContext
 var _pending: int = 0
 var _payout_pending: int = 0
-## The hint the prompt text was built from, to notice a runtime rebind.
-var _hint: String = ""
 
 @onready var _gold_label: Label = %GoldLabel
-@onready var _start_night_prompt: Label = %StartNightPrompt
+@onready var _start_night_prompt: Control = %StartNightPrompt
+@onready var _start_night_post: Label = %StartNightPost
+@onready var _start_night_glyph: PromptGlyph = %StartNightGlyph
 @onready var _start_night_fill: ProgressBar = %StartNightFill
 @onready var _night_preview: Label = %NightPreview
 @onready var _phase_banner: Label = %PhaseBanner
 @onready var _respawn_label: Label = %RespawnLabel
 @onready var _fast_forward_label: Label = %FastForwardLabel
 @onready var _payout_vfx: DawnPayoutVfx = %DawnPayoutVfx
+
+
+func _ready() -> void:
+	_start_night_glyph.label_resolver = func(physical: int) -> int:
+		return physical_label_resolver.call(physical)
 
 
 ## Binds the HUD to one run. MapRoot calls this once; a repeat call is ignored so no signal is
@@ -53,6 +57,7 @@ func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
 		return
 	_ctx = ctx
 	var hold: BuildHoldController = map_root.get_build_hold()
+	_start_night_glyph.bind_device(map_root.get_device_tracker())
 	hold.hold_progress.connect(_on_hold_progress)
 	hold.hold_cancelled.connect(_on_hold_cancelled)
 	hold.hold_completed.connect(_on_hold_completed)
@@ -77,17 +82,12 @@ func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
 	_refresh_loop()
 
 
-## The hint is derived from the bound events, so a changed hint is the trigger to rebuild the prompt
-## text. Comparing the text, not the event objects, also catches an event edited in place. Nothing
-## is rebuilt while the bindings are unchanged.
+## The knockout countdown follows the king each frame. The start-night glyph watches its own
+## binding, so a runtime rebind needs nothing here.
 func _process(_delta: float) -> void:
 	if _ctx == null:
 		return
 	_refresh_respawn()
-	if not _start_night_prompt.visible:
-		return
-	if _start_night_hint() != _hint:
-		_refresh_prompt_text()
 
 
 ## Shows the knockout countdown while the king is down and hides it otherwise.
@@ -215,34 +215,7 @@ func _refresh_banner() -> void:
 
 
 func _refresh_prompt_text() -> void:
-	_hint = _start_night_hint()
-	_start_night_prompt.text = START_NIGHT_PROMPT % [_hint, _ctx.run_manager.get_night_number() + 1]
-
-
-## The start-night keys as they are bound right now, e.g. "N / (Y)": keyboard keys first, gamepad
-## buttons in parentheses. Read from the InputMap so a runtime rebind shows up in the prompt.
-func _start_night_hint() -> String:
-	var keys: PackedStringArray = PackedStringArray()
-	var pad: PackedStringArray = PackedStringArray()
-	for event: InputEvent in InputMap.action_get_events(&"start_night"):
-		if event is InputEventKey:
-			# Modifiers are part of the text ("Ctrl+N"), so the prompt names what actually triggers it.
-			var key_text: String = GlyphResolver.key_text(
-				event as InputEventKey, physical_label_resolver
-			)
-			if not key_text.is_empty():
-				keys.append(key_text)
-		elif event is InputEventMouseButton:
-			keys.append(event.as_text())
-		elif event is InputEventJoypadButton:
-			var button: int = (event as InputEventJoypadButton).button_index
-			pad.append("(%s)" % GlyphResolver.PAD_BUTTON_NAMES.get(button, "Pad %d" % button))
-		elif event is InputEventJoypadMotion:
-			pad.append("(%s)" % GlyphResolver.axis_text(event as InputEventJoypadMotion))
-	var parts: PackedStringArray = keys + pad
-	if parts.is_empty():
-		return UNBOUND_HINT
-	return " / ".join(parts)
+	_start_night_post.text = START_NIGHT_PROMPT_POST % (_ctx.run_manager.get_night_number() + 1)
 
 
 func _refresh() -> void:

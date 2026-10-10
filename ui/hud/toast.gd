@@ -80,7 +80,7 @@ func current_text() -> String:
 
 ## True while a toast or an armed line holds the slot (the command hints yield it).
 func is_occupied() -> bool:
-	return false
+	return _toast_active or not _line.is_empty()
 
 
 ## An empty prompt clears the line.

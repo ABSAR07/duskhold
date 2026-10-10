@@ -69,10 +69,10 @@ func _touch_pad() -> void:
 	var button: InputEventJoypadButton = InputEventJoypadButton.new()
 	button.button_index = JOY_BUTTON_LEFT_STICK
 	button.pressed = true
-	Input.parse_input_event(button)
+	Input.parse_input_event(button.duplicate())
 	Input.flush_buffered_events()
 	button.pressed = false
-	Input.parse_input_event(button)
+	Input.parse_input_event(button.duplicate())
 	Input.flush_buffered_events()
 
 
