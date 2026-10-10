@@ -22,6 +22,11 @@ const RING_COLOR := Color(0.549, 0.9216, 1.0, 0.95)
 const UNDER_COLOR := Color(0.0, 0.0, 0.0, 0.5)
 ## A hovered, unselected squad previews its rings at this alpha (UI-SPEC "Hover preview").
 const HOVER_ALPHA: float = 0.4
+## Recalling a control group flashes the recalled squads' rings once: alpha 1.0 and a scale that
+## runs 1.0 to 1.2 to 1.0 over this long (UI-SPEC "Group recall").
+const FLASH_SECONDS: float = 0.15
+const FLASH_ALPHA: float = 1.0
+const FLASH_PEAK_SCALE: float = 1.2
 
 var _ctx: RunContext
 var _selection: SelectionModel
@@ -31,6 +36,10 @@ var _under: MultiMeshInstance3D
 var _pointer: SelectionController
 var _shown: int = 0
 var _hover_shown: int = 0
+var _flash_squads: Array[StringName] = []
+var _flash_age: float = FLASH_SECONDS
+var _flashes: int = 0
+var _scales: PackedFloat32Array = PackedFloat32Array()
 var _alphas: PackedFloat32Array = PackedFloat32Array()
 var _positions: PackedVector3Array = PackedVector3Array()
 
@@ -38,6 +47,7 @@ var _positions: PackedVector3Array = PackedVector3Array()
 func _ready() -> void:
 	_alphas.resize(MAX_RINGS)
 	_positions.resize(MAX_RINGS)
+	_scales.resize(MAX_RINGS)
 	_under = _make_layer(
 		"UnderRing",
 		OUTER_RADIUS - THICKNESS - UNDER_MARGIN,
@@ -54,6 +64,7 @@ func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
 	_selection = map_root.get_selection()
 	_views = map_root.get_node_or_null("UnitViews") as UnitViews
 	_pointer = map_root.get_node_or_null("SelectionController") as SelectionController
+	_selection.group_recalled.connect(_on_group_recalled)
 
 
 ## Rings drawn right now: one per shown unit of every selected squad. Test hook, read-only.
@@ -78,17 +89,18 @@ func ring_position(index: int) -> Vector3:
 
 ## Recall flashes started so far. Test hook.
 func flash_count() -> int:
-	return 0
+	return _flashes
 
 
-## The scale of ring `index` (1.0 at rest). Test hook.
-func ring_scale(_index: int) -> float:
-	return 1.0
+## The scale of ring `index` (1.0 at rest, up to 1.2 during a recall flash). Test hook.
+func ring_scale(index: int) -> float:
+	return _scales[index] if index >= 0 and index < _shown + _hover_shown else 1.0
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if _ctx == null or _selection == null or _views == null:
 		return
+	_flash_age = minf(_flash_age + delta, FLASH_SECONDS)
 	var count: int = 0
 	var selected: Array[StringName] = _selection.selected()
 	for squad_id: StringName in selected:
@@ -106,25 +118,45 @@ func _process(_delta: float) -> void:
 ## returns the next free instance.
 func _place_squad(squad_id: StringName, first: int, alpha: float) -> int:
 	var count: int = first
-	var under_alpha: float = UNDER_COLOR.a * alpha / RING_COLOR.a
+	var shown_alpha: float = alpha
+	var grow: float = 1.0
+	if _flash_age < FLASH_SECONDS and _flash_squads.has(squad_id):
+		shown_alpha = FLASH_ALPHA
+		grow = _flash_scale()
+	var under_alpha: float = UNDER_COLOR.a * shown_alpha / RING_COLOR.a
+	var basis: Basis = Basis.IDENTITY.scaled(Vector3(grow, 1.0, grow))
 	for unit_id: int in _ctx.squads.unit_ids_of(squad_id):
 		if count >= MAX_RINGS:
 			break
 		if _views.get_view(unit_id) == null:
 			continue
 		var ground: Vector3 = _views.puppet_position(unit_id)
-		_ring.multimesh.set_instance_transform(
-			count, Transform3D(Basis.IDENTITY, _at(ground, RING_HEIGHT))
-		)
+		_ring.multimesh.set_instance_transform(count, Transform3D(basis, _at(ground, RING_HEIGHT)))
 		_under.multimesh.set_instance_transform(
-			count, Transform3D(Basis.IDENTITY, _at(ground, UNDER_HEIGHT))
+			count, Transform3D(basis, _at(ground, UNDER_HEIGHT))
 		)
-		_ring.multimesh.set_instance_color(count, Color(RING_COLOR, alpha))
+		_ring.multimesh.set_instance_color(count, Color(RING_COLOR, shown_alpha))
 		_under.multimesh.set_instance_color(count, Color(UNDER_COLOR, under_alpha))
-		_alphas[count] = alpha
+		_alphas[count] = shown_alpha
+		_scales[count] = grow
 		_positions[count] = Vector3(ground.x, 0.0, ground.z)
 		count += 1
 	return count
+
+
+## The recall flash scale now: 1.0 rising to FLASH_PEAK_SCALE at the middle and back to 1.0.
+func _flash_scale() -> float:
+	var half: float = FLASH_SECONDS * 0.5
+	var progress: float = (
+		_flash_age / half if _flash_age < half else (FLASH_SECONDS - _flash_age) / half
+	)
+	return 1.0 + (FLASH_PEAK_SCALE - 1.0) * clampf(progress, 0.0, 1.0)
+
+
+func _on_group_recalled(group: int) -> void:
+	_flash_squads = _selection.group_members(group)
+	_flash_age = 0.0
+	_flashes += 1
 
 
 func _at(ground: Vector3, height: float) -> Vector3:

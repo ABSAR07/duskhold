@@ -79,8 +79,8 @@ func _ctrl_tap(action: StringName) -> void:
 
 
 func _badge_text(squad_id: StringName) -> String:
-	var badge: PanelContainer = _strip.slot_for(squad_id).get_badge()
-	return (badge.get_child(0) as Label).text if badge.visible else ""
+	var slot: SquadSlot = _strip.slot_for(squad_id)
+	return slot.get_badge_label().text if slot.get_badge().visible else ""
 
 
 func test_ctrl_and_a_digit_stores_the_selection_says_so_and_badges_the_slot() -> void:

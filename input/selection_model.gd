@@ -15,6 +15,14 @@ const GROUP_COUNT: int = 10
 
 var _selected: Array[StringName] = []
 var _last_cycled: StringName = &""
+## Squad ids per control group; index 0 is group 1. Ids only, so a squad that falls to 0 alive
+## stays in its groups and a squad built later is in none.
+var _groups: Array[Array] = []
+
+
+func _init() -> void:
+	for index: int in range(GROUP_COUNT):
+		_groups.append([] as Array[StringName])
 
 
 ## The selected squad ids in creation order. A copy.
@@ -88,27 +96,53 @@ func _store(ids: Array[StringName]) -> void:
 	changed.emit()
 
 
-## Stores the selection as control group `group` (1..10). False, with nothing changed, when the
-## selection is empty.
-func store_group(_group: int) -> bool:
-	return false
+## Stores the selection as control group `group` (1..10, key 0 is group 10), replacing the group's
+## members. False, with nothing changed, when the selection is empty or `group` is out of range.
+## `changed` fires when the group's members change, because the squad badges follow them.
+func store_group(group: int) -> bool:
+	if not _is_group(group) or _selected.is_empty():
+		return false
+	var members: Array[StringName] = _selected.duplicate()
+	if _groups[group - 1] != members:
+		_groups[group - 1] = members
+		changed.emit()
+	return true
 
 
-## Selects the members of control group `group`. False, with the selection kept, when it is empty.
-func recall_group(_group: int, _all_ids: Array[StringName]) -> bool:
-	return false
+## Replaces the selection with the members of control group `group` (those that exist in
+## `all_ids`, in creation order) and emits group_recalled. False, with the selection kept and
+## nothing emitted, when the group is empty or out of range.
+func recall_group(group: int, all_ids: Array[StringName]) -> bool:
+	if not _is_group(group):
+		return false
+	var members: Array[StringName] = _in_creation_order(_groups[group - 1], all_ids)
+	if members.is_empty():
+		return false
+	_store(members)
+	group_recalled.emit(group)
+	return true
 
 
-## The squad ids stored in `group`, in creation order. A copy.
-func group_members(_group: int) -> Array[StringName]:
-	return [] as Array[StringName]
+## The squad ids stored in `group`, in creation order. A copy; empty for an empty or unknown group.
+func group_members(group: int) -> Array[StringName]:
+	var members: Array[StringName] = []
+	if _is_group(group):
+		members.assign(_groups[group - 1])
+	return members
 
 
 ## The lowest group number (1..10) `squad_id` belongs to, or -1 when it is in no group.
-func lowest_group_of(_squad_id: StringName) -> int:
+func lowest_group_of(squad_id: StringName) -> int:
+	for index: int in range(GROUP_COUNT):
+		if _groups[index].has(squad_id):
+			return index + 1
 	return -1
 
 
 ## The digit a badge shows for `group`: 1..9, and 0 for group 10.
 static func badge_digit(group: int) -> int:
 	return group % 10
+
+
+func _is_group(group: int) -> bool:
+	return group >= 1 and group <= GROUP_COUNT

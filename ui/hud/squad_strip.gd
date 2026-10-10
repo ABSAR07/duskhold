@@ -76,14 +76,23 @@ func _add_slot(squad_id: StringName) -> void:
 	slot.bind_selection(_selection)
 	if _selection != null:
 		slot.set_selected(_selection.is_selected(squad_id))
+		slot.set_group(_badge_digit_of(squad_id))
 	slot.create_tween().tween_property(slot, "modulate:a", 1.0, FADE_SECONDS)
 
 
-## A selection change lights exactly the slots of the selected squads.
+## A selection or group change lights exactly the slots of the selected squads and refreshes
+## every group badge.
 func _on_selection_changed() -> void:
 	for squad_id: StringName in _slots:
 		var slot: SquadSlot = _slots[squad_id]
 		slot.set_selected(_selection.is_selected(squad_id))
+		slot.set_group(_badge_digit_of(squad_id))
+
+
+## The digit on a squad's badge: its lowest control group (10 shows as 0), or -1 for no group.
+func _badge_digit_of(squad_id: StringName) -> int:
+	var group: int = _selection.lowest_group_of(squad_id)
+	return SelectionModel.badge_digit(group) if group > 0 else -1
 
 
 ## Scales the strip down uniformly to MAX_WIDTH once its natural width passes FULL_WIDTH (more than

@@ -413,11 +413,21 @@ func test_the_group_badge_is_a_twenty_by_twenty_box_hidden_until_a_group_digit_i
 	slot.set_group(3)
 	await _settle()
 	assert_true(badge.visible, "a group digit shows the badge")
-	assert_eq((badge.get_child(0) as Label).text, "3", "with that digit")
+	assert_eq(slot.get_badge_label().text, "3", "with that digit")
 	assert_eq(badge.size, Vector2(20.0, 20.0), "still 20x20")
+	assert_almost_eq(slot.size.y, SLOT_SIZE.y, 0.5, "the slot is still 72 tall with the badge up")
+	assert_true(
+		Rect2(Vector2.ZERO, badge.size).encloses(
+			Rect2(
+				slot.get_badge_label().get_global_rect().get_center() - badge.global_position,
+				Vector2.ZERO
+			)
+		),
+		"the digit sits inside the box"
+	)
 	slot.set_group(0)
 	await _settle()
-	assert_eq((badge.get_child(0) as Label).text, "0", "0 is group 10")
+	assert_eq(slot.get_badge_label().text, "0", "0 is group 10")
 	slot.set_group(-1)
 	await _settle()
 	assert_false(badge.visible, "-1 hides it again")

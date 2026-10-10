@@ -10,8 +10,8 @@ extends PanelContainer
 ##
 ## Selection (D-10, D-16): a left click selects only this squad, Ctrl + click toggles it in the
 ## selection, and a selected slot draws a 4 px #8CEBFF border over a bluer plate, inside the 8 px
-## padding so nothing moves. Hover draws a 2 px #C8CCD4 border. The group digit arrives with plan
-## 03-08 (`set_group`), which for now only remembers its value.
+## padding so nothing moves. Hover draws a 2 px #C8CCD4 border. The group badge shows the lowest
+## control group the squad is in (`set_group`).
 
 const ALIVE_TEXT := "%d / %d"
 const SLOT_SIZE := Vector2(136.0, 72.0)
@@ -37,6 +37,7 @@ const FILL_COLOR := Color(0.549, 0.9216, 1.0, 0.6)
 const FILL_RADIUS: int = 2
 const BADGE_COLOR := Color(0.0, 0.0, 0.0, 0.5)
 const BADGE_RADIUS: int = 4
+const BADGE_SIZE: float = 20.0
 const FLASH_SECONDS: float = 0.3
 
 ## The squad this slot shows (a military spot id). Set before the slot enters the tree.
@@ -58,6 +59,7 @@ var _group_digit: int = -1
 @onready var _alive_label: Label = %AliveLabel
 @onready var _glyph: StanceGlyph = %StanceGlyph
 @onready var _badge: PanelContainer = %GroupBadge
+@onready var _badge_label: Label = %GroupBadgeLabel
 @onready var _fill: ProgressBar = %ReplacementFill
 
 
@@ -77,6 +79,7 @@ func _ready() -> void:
 	badge_style.bg_color = BADGE_COLOR
 	badge_style.set_corner_radius_all(BADGE_RADIUS)
 	_badge.add_theme_stylebox_override("panel", badge_style)
+	_centre_badge_label()
 
 
 ## Reads the squad from `ctx` and shows it. The first call also binds the slot to the run (the
@@ -113,10 +116,12 @@ func bind_selection(model: SelectionModel) -> void:
 	_selection = model
 
 
-## Plan 03-08 shows the control-group digit here (the lowest group, 0 meaning group 10); for now
-## the value is only remembered and the badge stays hidden.
+## Shows the control-group digit in the badge (the lowest group the squad is in, 0 meaning group
+## 10), or hides the badge for -1 when the squad is in no group (D-16, D-23).
 func set_group(digit: int) -> void:
 	_group_digit = digit
+	_badge.visible = digit >= 0
+	_badge_label.text = str(digit) if digit >= 0 else ""
 
 
 func is_selected() -> bool:
@@ -141,6 +146,18 @@ func get_fill() -> ProgressBar:
 
 func get_badge() -> PanelContainer:
 	return _badge
+
+
+func get_badge_label() -> Label:
+	return _badge_label
+
+
+## The digit label sits in a plain 20x20 box so its line height (taller than 20 px at size 18) never
+## grows the badge or the slot; the label is centred on the box and the box clips the overhang.
+func _centre_badge_label() -> void:
+	var overhang: float = maxf(_badge_label.get_combined_minimum_size().y - BADGE_SIZE, 0.0) * 0.5
+	_badge_label.offset_top = -overhang
+	_badge_label.offset_bottom = overhang
 
 
 ## Dawn flashes so far. Test hook, read-only.
