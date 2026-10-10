@@ -78,6 +78,16 @@ func unit_ids_of(squad_id: StringName) -> Array[int]:
 	return result
 
 
+## RED skeleton: the stance a squad rests in, reported once the command plan adds orders.
+func resting_stance(_squad_id: StringName) -> StringName:
+	return &""
+
+
+## RED skeleton: the verb a squad is carrying out, &"" when none.
+func executing_verb(_squad_id: StringName) -> StringName:
+	return &""
+
+
 ## Where the squad formation centres; the zero vector for an unknown squad.
 func anchor_of(squad_id: StringName) -> Vector2:
 	var squad: Squad = _squads.get(squad_id) as Squad
