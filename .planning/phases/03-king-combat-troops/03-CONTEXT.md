@@ -51,6 +51,7 @@ The night counts signed off in Phase 2 are retuned with the balance bots once sq
 - **D-13:** **The camera stays locked on the king while the mouse is in use.** Mouse points and box selections are projected onto the visible ground; anything off-screen needs the king to ride closer. The Phase 1 follow camera is unchanged.
 - **D-14:** **Stances persist across dawn.** A held, patrolling or following squad stays that way day after day until the player changes it; dawn restores numbers only. Replacements (D-05) join the squad wherever it is.
 - **D-15:** **Keyboard defaults are the classic RTS letters:** F follow, H hold, R rally, A attack-move, P patrol, Tab cycle the selection, Ctrl + click add to the selection, Ctrl + 0..9 store a group, 0..9 recall it, right click move. Fast-forward moves off F to a key the planner picks. Everything stays in the Input Map with both device bindings, rebindable in Phase 13.
+  - Amended 2026-10-10 at the 03-07 checkpoint: keep A; while a squad is selected all movement input goes to the selection and the king does not move; the king is the implicit selection when nothing is selected; Escape clears the selection.
 - **D-16:** **A selected squad shows a coloured ground ring under each of its units and a highlighted slot in the HUD group status**, with the stored control-group number on the slot.
 
 ### King Weapon, Active Ability & Regeneration
