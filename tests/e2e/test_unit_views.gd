@@ -67,3 +67,19 @@ func test_an_archer_shot_at_night_puts_an_arrow_in_the_air() -> void:
 			arrow_seen[0] = true
 		return arrow_seen[0]
 	assert_true(await E2eSupport.wait_until(self, probe, ARROW_TIMEOUT_S), "an arrow flew")
+
+
+func test_the_dawn_restore_hides_the_bars_of_a_healed_squad() -> void:
+	var map_root: MapRoot = await _spawn_squad_map()
+	var ctx: RunContext = map_root.get_context()
+	var views: UnitViews = map_root.get_node("UnitViews")
+	assert_eq(ctx.commands.submit(BuildIntent.new(&"barracks_1")), CommandProcessor.OK, "barracks")
+	var raised: Callable = func() -> bool: return views.view_count() == 4
+	assert_true(await E2eSupport.wait_until(self, raised, RAISE_TIMEOUT_S), "four puppets")
+	var unit_id: int = ctx.squads.unit_ids_of(&"barracks_1")[0]
+	var bar: HealthBar3D = views.get_view(unit_id).get_node("HealthBar") as HealthBar3D
+	ctx.squads.damage_unit(unit_id, 3, &"test")
+	assert_true(bar.visible, "a hurt unit shows its bar")
+	ctx.squads.restore_for_dawn()
+	assert_false(bar.visible, "a whole unit hides it again")
+	assert_eq(bar.get_fill_ratio(), 1.0, "and the bar is full")

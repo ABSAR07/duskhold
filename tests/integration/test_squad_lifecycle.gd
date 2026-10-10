@@ -21,6 +21,7 @@ var _ctx: RunContext
 var _sequence: Array[String] = []
 var _payouts: Array[int] = []
 var _held_enemy_kill: bool = false
+var _stood_at_restore: bool = false
 
 
 func before_each() -> void:
@@ -28,6 +29,7 @@ func before_each() -> void:
 	_sequence = []
 	_payouts = []
 	_held_enemy_kill = false
+	_stood_at_restore = false
 
 
 func _context(crawling: bool = false) -> RunContext:
@@ -53,6 +55,7 @@ func _on_unit_spawned(_id: int, _squad: StringName, _def: StringName, _pos: Vect
 
 func _on_squad_restored(squad_id: StringName, alive: int) -> void:
 	_sequence.append("restored:%s:%d" % [squad_id, alive])
+	_stood_at_restore = not _ctx.buildings.is_destroyed(BARRACKS)
 
 
 func _on_dawn_payout(total: int, _per_spot: Dictionary) -> void:
@@ -175,7 +178,7 @@ func test_an_emptied_squad_whose_building_fell_is_rebuilt_and_restored_at_dawn()
 	_clear_the_night()
 	assert_false(_ctx.buildings.is_destroyed(BARRACKS), "dawn rebuilt the barracks")
 	assert_eq(_ctx.squads.alive_count(BARRACKS), 4, "and the squad is full again")
-	assert_lt(_sequence.find("rebuilt"), _index_of("restored:"), "the rebuild comes first")
+	assert_true(_stood_at_restore, "the building was back up when the squad was restored")
 
 
 func test_a_replacement_due_on_the_last_step_of_the_night_spawns_before_dawn() -> void:

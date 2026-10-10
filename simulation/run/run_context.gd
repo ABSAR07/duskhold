@@ -45,7 +45,7 @@ func _init(
 	squads = SquadSystem.new(map_config, buildings, events)
 	night = NightSim.new(map_config, events, king, run_seed, castle, buildings, squads)
 	run_manager = RunManager.new(
-		events, economy, buildings, tuning, night, king, castle, map_config.base_dawn_income
+		events, economy, buildings, tuning, night, king, castle, map_config.base_dawn_income, squads
 	)
 	commands = CommandProcessor.new(economy, buildings, run_manager, events)
 

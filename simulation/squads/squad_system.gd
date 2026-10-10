@@ -6,9 +6,10 @@ extends RefCounted
 ## post. At night a free unit looks for an enemy within guard_range of the squad anchor on its
 ## own staggered rescan tick, commits to it until it dies or leaves leash_range of the anchor
 ## (never swapping to a nearer enemy), strikes through PendingHits once per attack_interval, and
-## walks back to its slot when nothing is valid. Squads are stepped in creation order and their
-## units in ascending id (DR-6), between the king and the towers (DR-8). No trigonometry, no
-## engine clock, no global RNG (DR-1 to DR-10).
+## walks back to its slot when nothing is valid. Losses trickle back during the night at the tier
+## pace while the building stands and the dawn restore makes every squad whole. Squads are stepped
+## in creation order and their units in ascending id (DR-6), between the king and the towers (DR-8).
+## No trigonometry, no engine clock, no global RNG (DR-1 to DR-10).
 
 ## Guard against a bad data file, not a tuning value: a squad never raises more units than this,
 ## whatever its building tier asks for (threat T-03-01).
@@ -83,14 +84,29 @@ func anchor_of(squad_id: StringName) -> Vector2:
 	return squad.anchor if squad != null else Vector2.ZERO
 
 
-## Dawn: every squad is back to full numbers and health. Inert until the life cycle lands.
+## Dawn (UNIT-07, D-14): every squad is whole again, in creation order. Survivors go back to full
+## health, every missing seat is raised at its formation slot around the squad current anchor
+## (lowest free slot first), a running replacement countdown is dropped, and squad_restored is
+## emitted once per squad. Free of charge; the anchor, the post and the orders are never touched.
 func restore_for_dawn() -> void:
-	pass
+	for squad_id: StringName in _order:
+		var squad: Squad = _squads[squad_id]
+		for unit_id: int in squad.unit_ids:
+			if _units.is_alive(unit_id):
+				_units.heal_to_full(unit_id)
+		while _living_count(squad) < squad.cap:
+			_raise_unit(squad, false)
+		_clear_countdown(squad)
+		_events.squad_restored.emit(squad.id, _living_count(squad))
 
 
-## 0..1 toward the next replacement; 0 when none runs.
-func replacement_progress(_squad_id: StringName) -> float:
-	return 0.0
+## How far the squad is toward its next replacement, 0..1: 0 when no countdown runs (the squad is
+## at its cap, or unknown) and rising to 1 on the step the unit arrives.
+func replacement_progress(squad_id: StringName) -> float:
+	var squad: Squad = _squads.get(squad_id) as Squad
+	if squad == null or squad.replacement_ticks_left <= 0 or squad.replacement_total_ticks <= 0:
+		return 0.0
+	return 1.0 - float(squad.replacement_ticks_left) / float(squad.replacement_total_ticks)
 
 
 ## A new night: attack cooldowns and targets are cleared. Stance, orders and the anchor are never
@@ -110,6 +126,8 @@ func begin_night() -> void:
 func step(tick: int, enemies: EnemySystem, hits: PendingHits, night: bool) -> void:
 	_units.begin_step()
 	_sync(night)
+	if night:
+		_trickle()
 	for squad_id: StringName in _order:
 		var squad: Squad = _squads[squad_id]
 		for unit_id: int in squad.unit_ids:
@@ -153,6 +171,7 @@ func _sync(night: bool) -> void:
 			squad = _make_squad(spot_id, building_def, unit_def)
 		squad.tier = tier
 		squad.cap = clampi(tier_def.squad_size, 0, MAX_UNITS_PER_SQUAD)
+		squad.respawn_seconds = tier_def.squad_respawn_seconds
 		if not night:
 			_fill(squad)
 
@@ -177,12 +196,47 @@ func _make_squad(spot_id: StringName, building_def: BuildingDef, unit_def: UnitD
 ## Seats a new unit in every free slot up to the squad cap, lowest slot first.
 func _fill(squad: Squad) -> void:
 	while _living_count(squad) < squad.cap:
-		var slot: int = _lowest_free_slot(squad)
-		var offset: Vector2 = SquadFormation.slot_offset(
-			slot, squad.cap, squad.unit_def.formation_spacing
+		_raise_unit(squad, false)
+
+
+## Raises one unit in the lowest free slot: on the slot itself, or, for a night replacement, on the
+## squad post so it walks to the slot.
+func _raise_unit(squad: Squad, at_post: bool) -> int:
+	var slot: int = _lowest_free_slot(squad)
+	var spawn_at: Vector2 = squad.home
+	if not at_post:
+		spawn_at = (
+			squad.anchor
+			+ SquadFormation.slot_offset(slot, squad.cap, squad.unit_def.formation_spacing)
 		)
-		var unit_id: int = _units.spawn(squad.unit_def, squad.id, slot, squad.anchor + offset)
-		squad.unit_ids.append(unit_id)
+	var unit_id: int = _units.spawn(squad.unit_def, squad.id, slot, spawn_at)
+	squad.unit_ids.append(unit_id)
+	return unit_id
+
+
+## The night trickle (D-05): a squad below its cap whose building stands counts one night step down
+## per call and raises one unit at its post when the count reaches 0, then starts over while still
+## short. A squad at its cap runs no countdown; a fallen building freezes it where it is.
+func _trickle() -> void:
+	for squad_id: StringName in _order:
+		var squad: Squad = _squads[squad_id]
+		if _buildings.is_destroyed(squad.id):
+			continue
+		if _living_count(squad) >= squad.cap:
+			_clear_countdown(squad)
+			continue
+		if squad.replacement_ticks_left <= 0:
+			squad.replacement_total_ticks = maxi(SimClock.ticks(squad.respawn_seconds), 1)
+			squad.replacement_ticks_left = squad.replacement_total_ticks
+		squad.replacement_ticks_left -= 1
+		if squad.replacement_ticks_left <= 0:
+			_raise_unit(squad, true)
+			_clear_countdown(squad)
+
+
+func _clear_countdown(squad: Squad) -> void:
+	squad.replacement_ticks_left = 0
+	squad.replacement_total_ticks = 0
 
 
 func _living_count(squad: Squad) -> int:

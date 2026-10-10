@@ -117,6 +117,14 @@ func remove_dead() -> void:
 		_events.unit_died.emit(id, record.squad_id, record.position, record.killer_kind)
 
 
+## Writer for SquadSystem: a living unit is back at its def max_health (the dawn restore). A dead
+## or unknown id is ignored.
+func heal_to_full(id: int) -> void:
+	var record: Record = _records.get(id) as Record
+	if record != null and record.health > 0:
+		record.health = record.def.max_health
+
+
 ## Writer for SquadSystem: remembers every unit position as "one step ago", before the step moves
 ## anyone.
 func begin_step() -> void:

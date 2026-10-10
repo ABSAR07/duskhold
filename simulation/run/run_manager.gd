@@ -20,6 +20,7 @@ var _tuning: LoopTuning
 var _night: NightSim
 var _king: KingState
 var _castle: CastleState
+var _squads: SquadSystem
 var _base_dawn_income: int = 0
 var _phase: RunPhase = RunPhase.DAY
 var _elapsed: float = 0.0
@@ -36,7 +37,8 @@ func _init(
 	night: NightSim = null,
 	king: KingState = null,
 	castle: CastleState = null,
-	base_dawn_income: int = 0
+	base_dawn_income: int = 0,
+	squads: SquadSystem = null
 ) -> void:
 	_events = events
 	_economy = economy
@@ -45,6 +47,7 @@ func _init(
 	_night = night
 	_king = king
 	_castle = castle
+	_squads = squads
 	_base_dawn_income = maxi(base_dawn_income, 0)
 
 
@@ -166,7 +169,9 @@ func _end_night() -> void:
 
 
 ## The night is over. What fell is rebuilt for free (LOOP-04), everything that stands and the castle
-## are repaired, the king is whole again, and only then are the survivors paid (LOOP-05).
+## are repaired, the king is whole again, every squad is whole again (UNIT-07, after the rebuild so
+## a squad whose building fell has its building back), and only then are the survivors paid
+## (LOOP-05).
 func _enter_dawn() -> void:
 	_change_phase(RunPhase.DAWN)
 	if _night != null:
@@ -177,6 +182,8 @@ func _enter_dawn() -> void:
 		_castle.repair()
 	if _king != null:
 		_king.restore_for_dawn()
+	if _squads != null:
+		_squads.restore_for_dawn()
 	_events.buildings_rebuilt.emit(rebuilt)
 	_apply_dawn_payout()
 

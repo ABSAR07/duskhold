@@ -46,6 +46,7 @@ func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 	ctx.events.unit_spawned.connect(_on_unit_spawned)
 	ctx.events.unit_damaged.connect(_on_unit_damaged)
 	ctx.events.unit_died.connect(_on_unit_died)
+	ctx.events.squad_restored.connect(_on_squad_restored)
 
 
 ## Puppets currently alive.
@@ -97,6 +98,18 @@ func _on_unit_damaged(unit_id: int, _amount: int, hp: int) -> void:
 		return
 	var bar: HealthBar3D = view.get_node("HealthBar") as HealthBar3D
 	bar.set_health(hp, int(view.get_meta(&"max_health", 0)))
+
+
+## Dawn made the squad whole: every unit of it stands at full health, so its bar fills and hides
+## again (the hurt-only rule).
+func _on_squad_restored(squad_id: StringName, _alive: int) -> void:
+	for unit_id: int in _ctx.squads.unit_ids_of(squad_id):
+		var view: Node3D = _views.get(unit_id) as Node3D
+		if view == null:
+			continue
+		var bar: HealthBar3D = view.get_node("HealthBar") as HealthBar3D
+		var max_health: int = int(view.get_meta(&"max_health", 0))
+		bar.set_health(max_health, max_health)
 
 
 func _on_unit_died(unit_id: int, _squad_id: StringName, _pos: Vector2, _killer: StringName) -> void:
