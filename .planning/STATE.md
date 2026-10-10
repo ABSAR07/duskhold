@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 03
 current_phase_name: King Combat & Troops
 status: executing
-stopped_at: Completed 03-11-PLAN.md
-last_updated: "2026-10-10T17:34:42.550Z"
+stopped_at: Completed 03-09-PLAN.md
+last_updated: "2026-10-10T18:59:58.241Z"
 last_activity: 2026-10-10
 last_activity_desc: Phase 03 execution started
-state_head: 5dae9d1a354b23caeb454a4cdf4a95a2e530d105
+state_head: f351b8d60c2e78a2382fc508d5bf523f3c9fda44
 progress:
   total_phases: 13
   completed_phases: 2
   total_plans: 52
-  completed_plans: 49
+  completed_plans: 50
   percent: 15
 ---
 
@@ -106,6 +106,7 @@ Progress: [██░░░░░░░░] 15%
 | Phase 03 P07 | 45 min | 3 tasks | 39 files |
 | Phase 03 P08 | 64 min | 3 tasks | 29 files |
 | Phase 03 P11 | 90 min | 2 tasks | 22 files |
+| Phase 03 P09 | 68 min | 2 tasks | 29 files |
 
 ## Accumulated Context
 
@@ -220,6 +221,8 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-11: nights 5 to 8 raised to 25, 31, 39, 39 enemies by group counts so army_balanced wins 8 of 10 seeds; no economy or squad number moved — Counts alone reached the Phase 2 bar of 7 or 8; night 8 equals night 7 because totals must not decrease and a larger night 8 ends the tower opening on every seed
 - [Phase 03]: 03-11: army golden tests/golden/army.json (seed 1, digest f7a967ed...) on frozen fixtures, checked in CI beside the unchanged smoke golden — Pins every Phase 3 simulation rule; fixtures inline copies of shipped numbers so data retunes never move it
 - [Phase 03]: 03-11 finding for the owner gate: squads are not stronger than towers per gold under the bots, and the balanced bot still loses 1 of 10, not the owner target of 2 or 3 — Night counts alone cannot move both without breaking the early-night wall; see 03-BALANCE-REPORT.md
+- [Phase 03]: 03-09: pad layout adopted (RESEARCH A11): D-pad verbs, LB layer for move/attack-move/patrol with the right-stick cursor, R3 select all and LB + R3 select one type, Start group mode, RT queue, B cancel — A D-pad button bound to a bare verb and its LB twin fires both actions; PadChords resolves the pair so keyboard keys keep their meaning; the owner judges feel on a real pad at the UAT
+- [Phase 03]: 03-09: a pad point order carries one point (pad patrol is a single point); B and Escape cancel the cursor through CommandKeyController before the selection-clearing escape — Multi-point patrol stays a mouse gesture; letting the cursor and the pointer both poll B would have deselected the squads on a cancel
 
 ### Pending Todos
 
@@ -252,6 +255,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-10T17:34:41.336Z
-Stopped at: Completed 03-11-PLAN.md
+Last session: 2026-10-10T18:59:57.624Z
+Stopped at: Completed 03-09-PLAN.md
 Resume file: None
