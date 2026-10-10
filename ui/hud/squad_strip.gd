@@ -80,6 +80,12 @@ func _add_slot(squad_id: StringName) -> void:
 	slot.create_tween().tween_property(slot, "modulate:a", 1.0, FADE_SECONDS)
 
 
+## Shows `digit` on the badge of `squad_id` with the edit pulse (the pad group mode, D-12); -1
+## clears the pulse and restores the squad's own group digit. Inert skeleton.
+func set_group_edit(_squad_id: StringName, _digit: int) -> void:
+	pass
+
+
 ## A selection or group change lights exactly the slots of the selected squads and refreshes
 ## every group badge.
 func _on_selection_changed() -> void:

@@ -18,6 +18,9 @@ extends Node
 
 ## Something to tell the player: `is_error` picks the 1.5 s error hold over the 1.2 s toast.
 signal feedback(text: String, is_error: bool)
+## A pad press resolved to a point verb (move, attack-move or patrol) that needs a ground point; the
+## PadCursorController aims it. `action` is the held Input Map action whose release confirms it.
+signal pad_point_verb(verb: StringName, action: StringName)
 
 ## Action to the order verb it gives the selection.
 const VERB_ACTIONS: Dictionary = {

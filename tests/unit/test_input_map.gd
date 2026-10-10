@@ -4,10 +4,13 @@ extends GutTest
 ## mouse binding, build / start-night share no key or button, and no two gameplay actions (zoom
 ## included) share a key, button or stick direction except the pairs listed in
 ## SHARED_BINDINGS_ALLOWED. The squad point commands of plan 03-07 (squad_move, squad_attack_move,
-## squad_patrol, command_queue, command_cancel) are checked for keyboard and mouse here and gain
-## their pad bindings in plan 03-09. The squad verbs (D-15) are F follow, H hold,
-## R rally, Tab cycle and F2 select all, carried on the bare D-pad and R3; fast-forward moved from
-## F to T to make room. Values are compared against engine constants, never integer literals.
+## squad_patrol, command_queue, command_cancel) are checked for keyboard and mouse and, since plan
+## 03-09, for their pad bindings: the D-pad twins, RT and B. The pad-only actions of 03-09 (the LB
+## layer, the Start group mode, select type and the ground cursor) are pinned in
+## test_input_capabilities and join the shared-binding scan here. The squad verbs (D-15) are F
+## follow, H hold, R rally, Tab cycle and F2 select all, carried on the bare D-pad and R3;
+## fast-forward moved from F to T to make room. Values are compared against engine constants,
+## never integer literals.
 
 const GAMEPLAY_ACTIONS: Array[StringName] = [
 	&"move_left",
@@ -83,7 +86,7 @@ const ABILITY_DEADZONE: float = 0.5
 const SQUAD_ACTIONS: Array[StringName] = [
 	&"squad_follow", &"squad_hold", &"squad_rally", &"squad_cycle", &"select_all"
 ]
-## The point-command actions of plan 03-07: keyboard and mouse only until plan 03-09.
+## The point-command actions of plan 03-07, with their pad bindings from plan 03-09.
 const COMMAND_ACTIONS: Array[StringName] = [
 	&"squad_move", &"squad_attack_move", &"squad_patrol", &"command_queue", &"command_cancel"
 ]
@@ -95,16 +98,28 @@ const COMMAND_KEYS: Dictionary = {
 	&"command_queue": [KEY_SHIFT],
 	&"command_cancel": [KEY_ESCAPE],
 }
-## Pad buttons of the point-command actions. Plan 03-09 owns the pad layout; the cancel command has
-## B from here because the king stops answering the stick while a squad is selected (D-15, amended
-## 2026-10-10), and a pad player needs a way to deselect and ride again.
+## Pad buttons of the point-command actions (D-12): each point verb shares its D-pad button with the
+## bare verb (up follow / move, down hold / patrol, right cycle / attack-move), the queue is the
+## right trigger (an axis) and B cancels, which also lets a pad player deselect and ride again
+## now that the king stops answering the stick while a squad is selected (D-15, amended 2026-10-10).
 const COMMAND_BUTTONS: Dictionary = {
-	&"squad_move": [],
-	&"squad_attack_move": [],
-	&"squad_patrol": [],
+	&"squad_move": [JOY_BUTTON_DPAD_UP],
+	&"squad_attack_move": [JOY_BUTTON_DPAD_RIGHT],
+	&"squad_patrol": [JOY_BUTTON_DPAD_DOWN],
 	&"command_queue": [],
 	&"command_cancel": [JOY_BUTTON_B],
 }
+## The pad-only actions of plan 03-09: the LB command layer, the Start group mode, select type on
+## R3 and the right-stick ground cursor.
+const PAD_ONLY_ACTIONS: Array[StringName] = [
+	&"command_layer",
+	&"group_mode",
+	&"select_type",
+	&"cursor_left",
+	&"cursor_right",
+	&"cursor_up",
+	&"cursor_down",
+]
 ## The control-group actions of plan 03-08 (D-10, Pitfall 5): ten digit actions and one Ctrl
 ## modifier, branched in code. Keyboard only; their pad path is plan 03-09's group mode. Their
 ## key table lives in test_input_map_groups (this file is at the public-method cap).
@@ -130,6 +145,16 @@ const SHARED_BINDINGS_ALLOWED: Array[Array] = [
 	# checkpoint and decided that while a squad is selected the movement keys steer the selection,
 	# not the king, so pressing A to arm attack-move never drifts him.
 	[&"move_left", &"squad_attack_move", "key 65"],
+	# LB-layer twin, resolved in code by PadChords (RESEARCH Open Question 3): the D-pad button
+	# fires the bare verb and its point verb together, and the LB layer picks one.
+	[&"squad_follow", &"squad_move", "button 11"],
+	[&"squad_hold", &"squad_patrol", "button 12"],
+	[&"squad_cycle", &"squad_attack_move", "button 14"],
+	# LB-layer twin, resolved in code by PadChords: R3 selects all, LB + R3 selects one type.
+	[&"select_all", &"select_type", "button 8"],
+	# Right-stick cursor twin; zoom is suppressed while the cursor is active.
+	[&"zoom_in", &"cursor_up", "axis 3 sign -1"],
+	[&"zoom_out", &"cursor_down", "axis 3 sign 1"],
 ]
 
 
@@ -267,6 +292,7 @@ func test_no_two_gameplay_actions_share_a_key_button_or_stick_direction() -> voi
 	var every_action: Array[StringName] = GAMEPLAY_ACTIONS.duplicate()
 	every_action.append_array(COMMAND_ACTIONS)
 	every_action.append_array(GROUP_ACTIONS)
+	every_action.append_array(PAD_ONLY_ACTIONS)
 	for action: StringName in every_action:
 		for event: InputEvent in InputMap.action_get_events(action):
 			var token: String = ""
@@ -314,13 +340,19 @@ func test_the_point_command_actions_exist_with_the_keys_of_the_table() -> void:
 		)
 
 
-func test_only_the_cancel_command_has_a_pad_button_until_plan_03_09() -> void:
+func test_the_point_commands_carry_the_pad_buttons_and_the_queue_trigger_of_the_layout() -> void:
 	for action: StringName in COMMAND_ACTIONS:
 		var expected: Array = COMMAND_BUTTONS[action]
 		var actual: Array[int] = _buttons_of(action)
 		assert_eq(actual.size(), expected.size(), "%s button count" % action)
 		for button: int in expected:
 			assert_true(actual.has(button), "%s is bound to joypad button %d" % [action, button])
+	var queue_trigger: bool = false
+	for event: InputEvent in InputMap.action_get_events(&"command_queue"):
+		var motion: InputEventJoypadMotion = event as InputEventJoypadMotion
+		if motion != null and motion.axis == JOY_AXIS_TRIGGER_RIGHT:
+			queue_trigger = is_equal_approx(motion.axis_value, 1.0)
+	assert_true(queue_trigger, "command_queue is the right trigger pushed in")
 
 
 func test_attack_move_shares_a_with_move_left_by_the_owner_decision() -> void:

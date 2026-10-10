@@ -124,6 +124,11 @@ func set_group(digit: int) -> void:
 	_badge_label.text = str(digit) if digit >= 0 else ""
 
 
+## True while the pad group mode is editing this badge (the border pulses). Inert skeleton.
+func is_group_editing() -> bool:
+	return false
+
+
 func is_selected() -> bool:
 	return _selected
 
