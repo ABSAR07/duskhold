@@ -7,6 +7,17 @@ extends GutTest
 ## nights, doing nothing falls at once, and the owner's tower opening (towers_first) earns gold and
 ## can win. The grunt keeps 6 hp: at 5 the king one-shots grunts (owner decision of 2026-10-06).
 ## The bots' numbers are measurements of the data, not the owner's sign-off (D-18).
+##
+## Plan 03-11 (D-08) retuned nights 5 to 8 for squads (totals 21, 22, 27, 33 became 25, 31, 39,
+## 39) until the army-building bot (army_balanced) won 8 of 10 seeds, the bar the owner set in
+## Phase 2 (7 or 8). Re-measured on the retuned data, old value to new value:
+##   - balanced: lost seeds [9] and first loss night 3 are unchanged (9 of 10 won).
+##   - greedy economy: loss nights 3 to 6 became 3 to 5 (night 5 now ends the longest runs).
+##   - no_build: unchanged, at most 2 nights survived (it survives 1).
+##   - towers_first: won 3 of 3 on seeds 1 to 3 and now wins 2 of 3 (seed 3 falls on night 8);
+##     on seeds 1 to 10 it went from 10 wins to 3. Squads are no stronger than towers per gold,
+##     so a night that is hard for the army is harder for the tower opening.
+##   - army_balanced: 10 of 10 won before the retune, 8 of 10 after (seeds 1 and 9 lost).
 
 const SEEDS: Array[int] = [1, 2, 3]
 ## The balanced bot is measured on ten seeds (owner decision 2026-10-07: it loses 2 or 3 of 10).
@@ -19,17 +30,19 @@ const ARMY_BALANCED_MAX_WINS: int = 8
 ## Measured losses: exactly these seeds, never before night 3 (greedy shares nights 1 and 2).
 ## Re-measured after D-20 regeneration (plan 03-04): the king now heals a second after a hit, so
 ## seed 3 (lost on night 3 before) is won and only seed 9 is lost; the balanced bot wins 9 of 10,
-## one loss short of the owner's 2 or 3 (G-02-15). Plan 03-11 re-pins after the army retune.
+## one loss short of the owner's 2 or 3 (G-02-15). Plan 03-11 re-measured it after the army retune
+## and it is unchanged: the retuned nights 5 to 8 do not cost the tower-heavy balanced order a run.
 const BALANCED_LOST_SEEDS: Array[int] = [9]
 const BALANCED_FIRST_LOSS_NIGHT: int = 3
 const GRUNT_PATH := "res://data/enemies/grunt.tres"
 const GRUNT_MAX_HEALTH: int = 6
-## Greedy economy must lose on a night from 3 to 6 (D-10: around the middle nights).
+## Greedy economy must lose on a night from 3 to 5 (D-10: around the middle nights; the last was
+## night 6 before plan 03-11 raised night 5).
 const GREEDY_FIRST_LOSS_NIGHT: int = 3
-const GREEDY_LAST_LOSS_NIGHT: int = 6
+const GREEDY_LAST_LOSS_NIGHT: int = 5
 ## Doing nothing loses by night 3: at most two nights survived.
 const NO_BUILD_MAX_NIGHTS_SURVIVED: int = 2
-## The tower opening wins at least two of the three seeds.
+## The tower opening wins at least two of the three seeds (all three before plan 03-11's retune).
 const TOWERS_FIRST_MIN_WINS: int = 2
 
 var _report: Dictionary = {}
@@ -84,7 +97,7 @@ func test_balanced_wins_every_seed_it_is_not_pinned_to_lose() -> void:
 	assert_eq(
 		wins,
 		BALANCED_SEEDS.size() - BALANCED_LOST_SEEDS.size(),
-		"the balanced bot wins 9 of 10 after D-20 regeneration (was 8; 03-11 retunes toward G-02-15)"
+		"the balanced bot wins 9 of 10 (was 8 before D-20 regeneration; unchanged by the 03-11 retune)"
 	)
 
 

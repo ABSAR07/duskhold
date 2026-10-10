@@ -6,7 +6,9 @@ extends GutTest
 ## these pins hold the structure, not the numbers. D-08 (two enemy types: the melee grunt and a
 ## ranged attacker that first joins on night 4 and never before night 3) was added by plan 02-05.
 ## Nights 2 to 5 are now the owner's exact numbers (G-02-15, round 3): the other pins hold the
-## structure, the round-three counts test names every changed number.
+## structure, the round-three counts test names every changed number. Nights 5 to 8 were raised
+## once more for squads (D-08, plan 03-11): the army-building bot wins 8 of 10 seeds with them
+## (the Phase 2 bar of 7 or 8), and the retuned counts test names every changed number.
 
 const PROTOTYPE_MAP := "res://data/maps/prototype_map.tres"
 const NIGHT_COUNT: int = 8
@@ -21,8 +23,10 @@ const EARLIEST_RANGED_NIGHT: int = 3
 const FIRST_RANGED_NIGHT: int = 4
 ## Per-night enemy totals: plan 02-02's ramp until round 3; owner decision 2026-10-07 (G-02-15,
 ## the full wall): night 2 opens the east road and nights 3 to 5 grow. Nights 1 and 6 to 8 are
-## unchanged. Adding the ranged type only splits groups.
-const NIGHT_TOTALS: Array[int] = [5, 12, 21, 21, 21, 22, 27, 33]
+## unchanged. Adding the ranged type only splits groups. Retuned for squads (D-08, plan 03-11):
+## nights 5 to 8 went from 21, 22, 27, 33 to 25, 31, 39, 39. Night 8 stops at 39 because the
+## tower-opening bot (towers_first) still wins seeds 1 and 2 there and a bigger last night ends it.
+const NIGHT_TOTALS: Array[int] = [5, 12, 21, 21, 25, 31, 39, 39]
 ## The owner's round-three counts of nights 2 to 5: [night, spawn point, enemy, count].
 const ROUND_THREE_COUNTS: Array = [
 	[2, &"west", &"grunt", 8],
@@ -32,12 +36,34 @@ const ROUND_THREE_COUNTS: Array = [
 	[4, &"west", &"grunt", 11],
 	[4, &"east", &"grunt", 7],
 	[4, &"east", &"ranged", 3],
-	[5, &"west", &"grunt", 9],
-	[5, &"east", &"grunt", 8],
+	[5, &"west", &"grunt", 11],
+	[5, &"east", &"grunt", 10],
 	[5, &"west", &"ranged", 2],
 	[5, &"east", &"ranged", 2],
 ]
 const ROUND_THREE_NIGHTS: Array[int] = [2, 3, 4, 5]
+## The counts nights 6 to 8 carry after the squad retune (D-08, plan 03-11), with the old count of
+## each group in the trailing comment: [night, spawn point, enemy, count].
+const SQUAD_RETUNE_COUNTS: Array = [
+	[6, &"west", &"grunt", 8],  # was 6
+	[6, &"east", &"grunt", 7],  # was 5
+	[6, &"north", &"grunt", 10],  # was 7
+	[6, &"west", &"ranged", 3],  # was 2
+	[6, &"east", &"ranged", 3],  # was 2
+	[7, &"west", &"grunt", 10],  # was 7
+	[7, &"east", &"grunt", 10],  # was 7
+	[7, &"north", &"grunt", 10],  # was 7
+	[7, &"west", &"ranged", 3],  # was 2
+	[7, &"east", &"ranged", 3],  # was 2
+	[7, &"north", &"ranged", 3],  # was 2
+	[8, &"west", &"grunt", 10],  # was 8
+	[8, &"east", &"grunt", 10],  # was 8
+	[8, &"north", &"grunt", 10],  # was 8
+	[8, &"west", &"ranged", 3],
+	[8, &"east", &"ranged", 3],
+	[8, &"north", &"ranged", 3],
+]
+const SQUAD_RETUNE_NIGHTS: Array[int] = [6, 7, 8]
 ## Night 2's new east group starts at 2.0 s and spaces its grunts 1.5 s apart.
 const NIGHT_TWO_EAST_START_S: float = 2.0
 const NIGHT_TWO_EAST_INTERVAL_S: float = 1.5
@@ -192,7 +218,7 @@ func test_the_per_night_totals_match_the_owner_s_wall() -> void:
 	var totals: Array[int] = []
 	for night_number: int in range(1, map.nights.size() + 1):
 		totals.append(_total_enemies(map.night_def(night_number)))
-	assert_eq(totals, NIGHT_TOTALS, "5, 12, 21, 21, 21, 22, 27, 33")
+	assert_eq(totals, NIGHT_TOTALS, "5, 12, 21, 21, 25, 31, 39, 39 (squad retune, plan 03-11)")
 
 
 func _summed_counts(night: NightDef) -> Dictionary:
@@ -201,6 +227,31 @@ func _summed_counts(night: NightDef) -> Dictionary:
 		var key: String = "%s/%s" % [group.spawn_point_id, group.enemy_id]
 		sums[key] = int(sums.get(key, 0)) + group.count
 	return sums
+
+
+func test_nights_six_to_eight_carry_the_squad_retune_counts() -> void:
+	var map: MapConfig = _map()
+	for night_number: int in SQUAD_RETUNE_NIGHTS:
+		var expected: Dictionary = {}
+		for entry: Array in SQUAD_RETUNE_COUNTS:
+			if entry[0] == night_number:
+				expected["%s/%s" % [entry[1], entry[2]]] = entry[3]
+		assert_eq(
+			_summed_counts(map.night_def(night_number)),
+			expected,
+			"D-08: night %d carries the counts retuned for squads" % night_number
+		)
+
+
+func test_every_night_stays_under_the_per_night_enemy_cap_and_the_map_validates() -> void:
+	var map: MapConfig = _map()
+	for night_number: int in range(1, map.nights.size() + 1):
+		assert_lt(
+			_total_enemies(map.night_def(night_number)),
+			MapConfig.MAX_ENEMIES_PER_NIGHT,
+			"night %d is under the cap" % night_number
+		)
+	assert_eq(map.validate(), PackedStringArray(), "and the retuned map validates clean")
 
 
 func test_nights_two_to_five_carry_the_owner_s_round_three_counts() -> void:

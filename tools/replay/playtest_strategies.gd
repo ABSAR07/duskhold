@@ -12,10 +12,17 @@ extends RefCounted
 ##   towers_first    - the towers first, then Houses, then upgrades.
 ##   balanced        - alternates tower and House, towers on the roads the coming night uses first,
 ##                     then upgrades.
+##   army_balanced   - the balanced order with the Barracks (barracks_1) and the Archery Range
+##                     (archery_1) and their upgrades woven in: the Barracks within the first three
+##                     entries, the Range within the first six. At every night start the footmen
+##                     follow the king and the archers hold their post; the king slams when at
+##                     least three enemies are within the slam's radius (plan 03-11, D-08).
 
 const NAMES: Array[StringName] = [
-	&"no_build", &"greedy_economy", &"houses_first", &"towers_first", &"balanced"
+	&"no_build", &"greedy_economy", &"houses_first", &"towers_first", &"balanced", &"army_balanced"
 ]
+## The king slams when this many enemies stand inside the slam's radius.
+const _ARMY_SLAM_MIN_ENEMIES: int = 3
 
 const _GREEDY_ECONOMY: Array[StringName] = [
 	&"house_1",
@@ -86,6 +93,30 @@ const _BALANCED: Array[StringName] = [
 	&"house_4",
 	&"house_5",
 ]
+const _ARMY_BALANCED: Array[StringName] = [
+	&"house_1",
+	&"house_2",
+	&"barracks_1",
+	&"house_3",
+	&"tower_1",
+	&"archery_1",
+	&"tower_2",
+	&"house_4",
+	&"tower_3",
+	&"barracks_1",
+	&"archery_1",
+	&"house_5",
+	&"tower_1",
+	&"tower_2",
+	&"house_1",
+	&"house_2",
+	&"house_3",
+	&"house_4",
+	&"house_5",
+	&"barracks_1",
+	&"archery_1",
+	&"tower_3",
+]
 
 
 ## A fresh bot for `name`, or null when the name is not in NAMES.
@@ -102,6 +133,14 @@ static func make(name: StringName) -> PlaytestBot:
 		bot.build_order = _HOUSES_FIRST.duplicate()
 	elif name == &"towers_first":
 		bot.build_order = _TOWERS_FIRST.duplicate()
+	elif name == &"army_balanced":
+		bot.build_order = _ARMY_BALANCED.duplicate()
+		bot.prefer_telegraphed_towers = true
+		bot.night_orders = [
+			{"squads": [&"barracks_1"], "verb": &"follow"},
+			{"squads": [&"archery_1"], "verb": &"hold"},
+		]
+		bot.slam_min_enemies = _ARMY_SLAM_MIN_ENEMIES
 	else:
 		bot.build_order = _BALANCED.duplicate()
 		bot.prefer_telegraphed_towers = true

@@ -2,8 +2,9 @@ extends GutTest
 ## The shipped military numbers, pinned on purpose (D-01, D-02, D-03, D-05, D-06, D-07): costs
 ## 4/8/16, squad sizes 4/8/14 with a smaller but larger-in-magnitude last step, respawn 10/7/4 s,
 ## the footman at a fifth of the king's health, and the two military plots last on the map, inside
-## the tower ring and clear of everything. Plan 03-11 re-pins a number here deliberately if the
-## owner's retune moves it; any other change that breaks this test is a regression.
+## the tower ring and clear of everything. Plan 03-11 would re-pin a number here deliberately if its
+## night retune had to move one; it did not (the nights alone reached the bar), so every number is
+## unchanged, and any change that breaks this test is a regression.
 
 const MAP_PATH := "res://data/maps/prototype_map.tres"
 const KING_PATH := "res://data/king/king.tres"
