@@ -64,6 +64,45 @@ const KING_DOWN_COUNTDOWN := &"king_down_countdown"
 const RESULTS_VICTORY := &"results_victory"
 const RESULTS_DEFEAT := &"results_defeat"
 const OVERLAY_PATHS := &"overlay_paths"
+## The eighteen Phase 3 shots (plan 03-12); their scenes live in ShotArmyScenarios.
+const HUD_DAY_SQUADS := &"hud_day_squads"
+const HUD_NIGHT_SQUAD_DOWN := &"hud_night_squad_down"
+const HUD_DRAG_BOX := &"hud_drag_box"
+const HUD_PAD_CURSOR := &"hud_pad_cursor"
+const HUD_KING_DOWN := &"hud_king_down"
+const HUD_ABILITY_READY := &"hud_ability_ready"
+const HUD_LONG_TOAST := &"hud_long_toast"
+const HUD_DAY_SQUADS_1080P := &"hud_day_squads_1080p"
+const HUD_NIGHT_SQUAD_DOWN_16X10 := &"hud_night_squad_down_16x10"
+const HUD_DAY_COUNTER_LONG := &"hud_day_counter_long"
+const HUD_KING_120 := &"hud_king_120"
+const HUD_KEYCAP_BACKSPACE := &"hud_keycap_backspace"
+const CMD_QUEUE_TEN := &"cmd_queue_ten"
+const HUD_RUBBLE_SQUAD := &"hud_rubble_squad"
+const CMD_BOX_SELECT := &"cmd_box_select"
+const CMD_MOVE_PING := &"cmd_move_ping"
+const CMD_PATROL := &"cmd_patrol"
+const CMD_SLAM := &"cmd_slam"
+const ARMY_SHOTS: Array[StringName] = [
+	HUD_DAY_SQUADS,
+	HUD_NIGHT_SQUAD_DOWN,
+	HUD_DRAG_BOX,
+	HUD_PAD_CURSOR,
+	HUD_KING_DOWN,
+	HUD_ABILITY_READY,
+	HUD_LONG_TOAST,
+	HUD_DAY_SQUADS_1080P,
+	HUD_NIGHT_SQUAD_DOWN_16X10,
+	HUD_DAY_COUNTER_LONG,
+	HUD_KING_120,
+	HUD_KEYCAP_BACKSPACE,
+	CMD_QUEUE_TEN,
+	HUD_RUBBLE_SQUAD,
+	CMD_BOX_SELECT,
+	CMD_MOVE_PING,
+	CMD_PATROL,
+	CMD_SLAM,
+]
 const ALL_SHOTS: Array[StringName] = [
 	DAY_OVERVIEW,
 	SPOT_LABEL,
@@ -79,7 +118,25 @@ const ALL_SHOTS: Array[StringName] = [
 	KING_DOWN_COUNTDOWN,
 	RESULTS_VICTORY,
 	RESULTS_DEFEAT,
-	OVERLAY_PATHS
+	OVERLAY_PATHS,
+	HUD_DAY_SQUADS,
+	HUD_NIGHT_SQUAD_DOWN,
+	HUD_DRAG_BOX,
+	HUD_PAD_CURSOR,
+	HUD_KING_DOWN,
+	HUD_ABILITY_READY,
+	HUD_LONG_TOAST,
+	HUD_DAY_SQUADS_1080P,
+	HUD_NIGHT_SQUAD_DOWN_16X10,
+	HUD_DAY_COUNTER_LONG,
+	HUD_KING_120,
+	HUD_KEYCAP_BACKSPACE,
+	CMD_QUEUE_TEN,
+	HUD_RUBBLE_SQUAD,
+	CMD_BOX_SELECT,
+	CMD_MOVE_PING,
+	CMD_PATROL,
+	CMD_SLAM
 ]
 
 
@@ -105,6 +162,8 @@ static func map_for(shot_name: StringName) -> MapConfig:
 		config.nights.resize(1)
 	elif shot_name == RESULTS_DEFEAT:
 		config.castle_max_health = DEFEAT_CASTLE_HEALTH
+	elif shot_name == HUD_DAY_COUNTER_LONG:
+		ShotArmyScenarios.use_twelve_short_nights(config)
 	return config
 
 
@@ -115,11 +174,14 @@ static func king_def_for(shot_name: StringName) -> KingDef:
 	var def: KingDef = (load(KING_DATA_PATH) as KingDef).duplicate_deep(Resource.DEEP_DUPLICATE_ALL)
 	if shot_name == KING_DOWN_COUNTDOWN:
 		def.regen_fraction_per_second = 0.0
+	ShotArmyScenarios.tune_king(shot_name, def)
 	return def
 
 
 ## Runs the scenario and returns true when the scene is ready to be captured.
 static func run(shot_name: StringName, runner: Node, map_root: MapRoot) -> bool:
+	if ShotArmyScenarios.handles(shot_name):
+		return await ShotArmyScenarios.run(shot_name, runner, map_root)
 	match shot_name:
 		DAY_OVERVIEW:
 			return await _day_overview(runner, map_root)

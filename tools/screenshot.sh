@@ -4,8 +4,11 @@
 #   Shots: day_overview spot_label build_in_progress night_banner dawn_payout overlay_on
 #          king_behind_keep spawn_telegraph night_combat building_destroyed dawn_rebuilt
 #          king_down_countdown results_victory results_defeat overlay_paths
-#   With no arguments, all fifteen are captured. The night shots fast-forward the simulation with a
-#   named bot (tools/replay/playtest_strategies.gd) before the real-time capture.
+#          and the eighteen Phase 3 shots hud_* and cmd_* listed in ALL_SHOTS below.
+#   With no arguments, all thirty-three are captured. The night shots fast-forward the simulation
+#   with a named bot (tools/replay/playtest_strategies.gd) before the real-time capture. Every hud_
+#   and cmd_ shot also fails when a visible HUD control sits in the clear centre (ShotRunner).
+#   The window is 1280x720, 1920x1080 for a name ending _1080p and 1600x1000 for one ending _16x10.
 #
 # Screenshots need a real renderer, so this never runs the capture under --headless (the dummy
 # renderer would save blank images). The only headless call is the one-time --import warm-up.
@@ -22,7 +25,11 @@ source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd -P)/_
 
 ALL_SHOTS=(day_overview spot_label build_in_progress night_banner dawn_payout overlay_on king_behind_keep
   spawn_telegraph night_combat building_destroyed dawn_rebuilt king_down_countdown results_victory
-  results_defeat overlay_paths)
+  results_defeat overlay_paths
+  hud_day_squads hud_night_squad_down hud_drag_box hud_pad_cursor hud_king_down hud_ability_ready
+  hud_long_toast hud_day_squads_1080p hud_night_squad_down_16x10 hud_day_counter_long hud_king_120
+  hud_keycap_backspace cmd_queue_ten hud_rubble_squad cmd_box_select cmd_move_ping cmd_patrol
+  cmd_slam)
 RUN_TIMEOUT_S=120
 OUT_DIR="${DUSKHOLD_ROOT}/screenshots"
 OUT_DIR_NATIVE="${DUSKHOLD_ROOT_NATIVE}/screenshots"
@@ -73,8 +80,17 @@ if [ "$(uname -s)" = "Linux" ] && [ -z "${DISPLAY:-}" ]; then
     echo "No DISPLAY and xvfb-run is not installed (apt-get install xvfb libgl1-mesa-dri libglx-mesa0)" >&2
     exit 3
   fi
-  wrapper=(xvfb-run -a -s "-screen 0 1280x720x24")
+  wrapper=(xvfb-run -a -s "-screen 0 1920x1080x24")
 fi
+
+# The window shape of a shot: the name's suffix picks 1920x1080 or 1600x1000, else 1280x720.
+resolution_for() {
+  case "$1" in
+    *_1080p) echo "1920x1080" ;;
+    *_16x10) echo "1600x1000" ;;
+    *) echo "1280x720" ;;
+  esac
+}
 
 fail=0
 saved=()
@@ -82,7 +98,7 @@ for shot in "${SHOTS[@]}"; do
   rm -f "${OUT_DIR}/${shot}.png"
   echo "== ${shot}"
   ${wrapper[@]+"${wrapper[@]}"} timeout "${RUN_TIMEOUT_S}" "${GODOT_BIN}" \
-    --path "${DUSKHOLD_ROOT_NATIVE}" --resolution 1280x720 \
+    --path "${DUSKHOLD_ROOT_NATIVE}" --resolution "$(resolution_for "${shot}")" \
     ${renderer_args[@]+"${renderer_args[@]}"} \
     res://tools/screenshot/shot_runner.tscn -- "--shot=${shot}" "--out=${OUT_DIR_NATIVE}"
   status=$?

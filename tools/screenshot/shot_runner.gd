@@ -18,6 +18,24 @@ const MIN_DISTINCT_COLORS: int = 8
 const EXIT_OK: int = 0
 const EXIT_FAILED: int = 1
 const EXIT_NO_RENDERER: int = 2
+## The clear centre of the 1280x720 HUD (UI-SPEC "Layout", D-21): no visible HUD control sits in it
+## on a shot whose name starts with one of CHECKED_PREFIXES, apart from the exempt nodes.
+const PROTECTED_RECT := Rect2(384.0, 96.0, 512.0, 404.0)
+const CHECKED_PREFIXES: Array[String] = ["hud_", "cmd_"]
+## Nodes (and everything under them) allowed in the clear centre: the two shipped top-centre
+## banners with their boxes, and the full-screen layers that only host world-anchored markers.
+const EXEMPT_NODES: Array[StringName] = [
+	&"PhaseBanner",
+	&"PhaseBannerBox",
+	&"RespawnLabel",
+	&"RespawnBox",
+	&"SpawnTelegraph",
+	&"DawnPayoutVfx",
+	&"DawnNoIncomeMarker",
+	&"DebugOverlay",
+]
+## Full-rect layout nodes that draw nothing themselves.
+const LAYOUT_ONLY_NODES: Array[StringName] = [&"HudRoot"]
 
 
 func _ready() -> void:
@@ -62,6 +80,60 @@ static func blank_reason(image: Image) -> String:
 	return ""
 
 
+## Every visible HUD control that draws something and reaches into PROTECTED_RECT, as one line each
+## ("path rect"), except the exempt nodes and the drag box while it is being dragged. Containers
+## that only lay out their children are skipped; their children are checked. Rects are the global
+## rects of the canvas, which under canvas_items stretch is the 1280x720-based space.
+static func protected_violations(hud: CanvasLayer) -> Array[String]:
+	var found: Array[String] = []
+	for child: Node in hud.get_children():
+		_collect_violations(child, hud, found)
+	return found
+
+
+static func _collect_violations(node: Node, hud: CanvasLayer, found: Array[String]) -> void:
+	var control: Control = node as Control
+	if control == null:
+		for child: Node in node.get_children():
+			_collect_violations(child, hud, found)
+		return
+	if not control.visible or EXEMPT_NODES.has(control.name):
+		return
+	var box: DragBox = control as DragBox
+	if box != null and box.is_dragging():
+		return
+	if _draws(control):
+		var rect: Rect2 = control.get_global_rect()
+		if rect.size.x > 0.0 and rect.size.y > 0.0 and rect.intersects(PROTECTED_RECT):
+			found.append("%s %s" % [hud.get_path_to(control), rect])
+	for child: Node in control.get_children():
+		_collect_violations(child, hud, found)
+
+
+## False for a node that only places its children: a plain container (a panel container draws its
+## panel and counts) and the HudRoot; an empty label draws nothing.
+static func _draws(control: Control) -> bool:
+	if LAYOUT_ONLY_NODES.has(control.name):
+		return false
+	if control is Container and not (control is PanelContainer):
+		return false
+	var label: Label = control as Label
+	return label == null or not label.text.is_empty()
+
+
+## The protected-centre lines for a hud_ or cmd_ shot, empty for any other shot.
+func _centre_offenders(shot_name: StringName, map_root: MapRoot) -> Array[String]:
+	var checked: bool = false
+	for prefix: String in CHECKED_PREFIXES:
+		checked = checked or String(shot_name).begins_with(prefix)
+	if not checked:
+		return [] as Array[String]
+	var hud: CanvasLayer = map_root.get_node_or_null("HUD") as CanvasLayer
+	if hud == null:
+		return [] as Array[String]
+	return protected_violations(hud)
+
+
 ## Packs a colour into 4 bits per channel.
 static func _quantize(color: Color) -> int:
 	var red: int = roundi(color.r * COLOR_LEVELS)
@@ -91,7 +163,14 @@ func _capture(shot_name: StringName, out_dir: String) -> void:
 		return
 	await RenderingServer.frame_post_draw
 	var image: Image = get_viewport().get_texture().get_image()
+	var offenders: Array[String] = _centre_offenders(shot_name, map_root)
 	ShotScenarios.cleanup()
+	if not offenders.is_empty():
+		printerr("%s: HUD controls inside the clear centre:" % shot_name)
+		for offender: String in offenders:
+			printerr("  %s" % offender)
+		get_tree().quit(EXIT_FAILED)
+		return
 	var reason: String = blank_reason(image)
 	if not reason.is_empty():
 		printerr("refusing to save %s: image looks blank (%s)" % [shot_name, reason])
