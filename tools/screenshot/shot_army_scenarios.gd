@@ -21,7 +21,8 @@ const RAISE_TIMEOUT_S: float = 3.0
 const SETTLE_S: float = 1.2
 const TOAST_FADE_IN_S: float = 0.25
 const FLASH_TIMEOUT_S: float = 2.0
-const SLAM_RING_WAIT_S: float = 0.12
+const SLAM_RING_WAIT_S: float = 0.1
+const RING_TIMEOUT_S: float = 2.0
 ## Longer than the slam ring lives (0.25 s), so the ready-flash shot has no ring left in it.
 const FILL_WATCH_S: float = 0.5
 const HINT_FADE_WAIT_S: float = 0.35
@@ -540,12 +541,14 @@ static func _slam(runner: Node, map_root: MapRoot) -> bool:
 			)
 		)
 		return false
+	# The ring lives a quarter of a second and a frame on a slow renderer (CI) is long, so the key
+	# is held only until the ring exists and the shot follows a short timer (one frame on CI).
+	var vfx: SlamVfx = map_root.get_node("SlamVfx") as SlamVfx
+	var made: Callable = func() -> bool: return vfx.active_ring_count() > 0
 	Input.action_press(&"ability")
-	await ShotScenarios._wait_frames(runner, 3)
+	var ringed: bool = await ShotScenarios._wait_until(runner, made, RING_TIMEOUT_S)
 	Input.action_release(&"ability")
 	await ShotScenarios._wait(runner, SLAM_RING_WAIT_S)
-	var vfx: SlamVfx = map_root.get_node("SlamVfx") as SlamVfx
-	var ringed: bool = vfx.active_ring_count() > 0
 	if not ringed:
 		printerr("no slam ring is showing")
 	return ringed
