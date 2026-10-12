@@ -385,14 +385,19 @@ static func _queue_ten(runner: Node, map_root: MapRoot) -> bool:
 	await _stand(runner, map_root, KING_STAND)
 	Input.action_press(&"command_queue")
 	await ShotScenarios._wait_frames(runner, 2)
+	# The simulation is held still while the ten clicks go in: it runs in real time, and on a slow
+	# renderer (CI) the frames between two clicks add up to enough walking for the first leg to end
+	# and shorten the queue. The orders still go through the real click path and the command gate.
+	map_root.set_process(false)
 	for point: Vector3 in QUEUE_POINTS:
 		var at: Vector2 = _screen_of(map_root, KING_STAND + point)
 		_mouse_button(MOUSE_BUTTON_RIGHT, true, at)
-		await ShotScenarios._wait_frames(runner, 2)
+		await ShotScenarios._wait_frames(runner, 1)
 		_mouse_button(MOUSE_BUTTON_RIGHT, false, at)
-		await ShotScenarios._wait_frames(runner, 2)
+		await ShotScenarios._wait_frames(runner, 1)
 	Input.action_release(&"command_queue")
-	await ShotScenarios._wait_frames(runner, 4)
+	await ShotScenarios._wait_frames(runner, 2)
+	map_root.set_process(true)
 	var markers: OrderMarkers = map_root.get_node("OrderMarkers") as OrderMarkers
 	var kept: int = ctx.squads.orders_of(BARRACKS).size()
 	if kept != SquadOrder.MAX_QUEUE or markers.disc_count() != OrderMarkers.MAX_DISCS_SHOWN:
@@ -467,9 +472,11 @@ static func _move_ping(runner: Node, map_root: MapRoot) -> bool:
 	_mouse_motion(at)
 	await ShotScenarios._wait_frames(runner, 2)
 	_mouse_button(MOUSE_BUTTON_RIGHT, true, at)
-	await ShotScenarios._wait_frames(runner, 2)
+	await ShotScenarios._wait_frames(runner, 1)
 	_mouse_button(MOUSE_BUTTON_RIGHT, false, at)
-	await ShotScenarios._wait_frames(runner, 5)
+	# A ping lives only half a second and a frame on a slow renderer (CI) is long, so the scene
+	# reads it as soon as the click has been handled and the shot follows one frame later.
+	await ShotScenarios._wait_frames(runner, 1)
 	var markers: OrderMarkers = map_root.get_node("OrderMarkers") as OrderMarkers
 	var pinged: bool = markers.active_ping_count() > 0
 	if not pinged:
