@@ -300,7 +300,7 @@ covered_files:
   - ui/overlay/night_overlay_sections.gd
   - ui/overlay/squad_overlay_sections.gd
   - ui/theme/hud_theme.tres
-covered_digest: "v2:sha256:ae0c9a4d1880e10ce7dbfed7b66820a2da1ffd2561a06ebf4851995139b9771c"
+covered_digest: "v2:sha256:bb19fc27c0fa25a810f383bb625fd2ab9a513ca73a699d7f9a795c73e2aed03a"
 behavior_unverified: 0
 overrides_applied: 0
 gaps: []

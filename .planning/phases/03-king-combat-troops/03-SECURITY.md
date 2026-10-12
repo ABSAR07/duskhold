@@ -40,8 +40,8 @@ Phase 3 adds no network, account or save-file surface. The boundaries it touches
 | T-03-01 | Denial of Service | SquadSystem spawn path | medium | mitigate | `MAX_UNITS_PER_SQUAD` guard constant caps spawns per squad regardless of data (`simulation/squads/squad_system.gd`); `_validate_squads()` rejects an oversized `squad_size` (03-02); pinned by `tests/unit/test_squad_guard.gd` and `tests/unit/test_map_validate_squads.gd` | closed |
 | T-03-02 | Tampering | simulation/squads determinism | medium | mitigate | `res://simulation/squads` is in the no-RNG/clock/OS source scan of `tests/unit/test_sim_rules_guard.gd`; `tests/integration/test_squad_determinism.gd` proves two in-process runs give identical digests and seeds 1 and 2 differ; smoke golden byte-identical through the phase | closed |
 | T-03-03 | Tampering | Mini Characters zip download | medium | mitigate | Hash `9e1d48e6...` compared with the logged value before extraction in scratch; only `character-male-a.glb` and `character-female-a.glb` copied (LFS); logged in `assets/attribution.json` and `ASSETS.md`; archive never committed (03-01 SUMMARY) | closed |
-| T-03-04 | Tampering | MapConfig unit and squad fields | medium | mitigate | `MapConfig._validate_squads()` reports non-finite, non-positive and unresolved values so a corrupted file cannot arm a squad silently; each rule pinned by `tests/unit/test_map_validate_squads.gd` | closed |
-| T-03-05 | Denial of Service | Trickle countdown and squad allocation | medium | mitigate | `squad_respawn_seconds` and `attack_interval` bounded to [SimClock.STEP, 3600], `squad_size` to 1..MAX_UNITS_PER_SQUAD in `_validate_squads()`; `SimClock.ticks` saturates at MAX_TICKS (Phase 2 fix); pinned by `test_map_validate_squads.gd` and `test_squad_respawn.gd` | closed |
+| T-03-04 | Tampering | MapConfig unit and squad fields | medium | mitigate | `MapConfig._validate_squads()` reports non-finite, non-positive and unresolved values so a corrupted file cannot arm a squad silently; each rule pinned by `tests/unit/test_map_validate_squads.gd` Reopened 2026-10-12 by code review CR-01: the validation only reports, `RunContext._init` carries on after `push_error`, and `SquadSystem._fill` / `restore_for_dawn` loop `while living < cap`, so a unit with `max_health <= 0` spawns without bound. Fix owed by the review-fix pass (clamp in `UnitSystem.spawn`, loop over missing seats). | open — below high threshold (non-blocking) |
+| T-03-05 | Denial of Service | Trickle countdown and squad allocation | medium | mitigate | `squad_respawn_seconds` and `attack_interval` bounded to [SimClock.STEP, 3600], `squad_size` to 1..MAX_UNITS_PER_SQUAD in `_validate_squads()`; `SimClock.ticks` saturates at MAX_TICKS (Phase 2 fix); pinned by `test_map_validate_squads.gd` and `test_squad_respawn.gd` Reopened 2026-10-12 with CR-01: the per-squad cap is not enforced on the consumer side of the spawn loop (Phase 2 `WaveSchedule._allowances` has such a cap; the squad path does not). | open — below high threshold (non-blocking) |
 | T-03-06 | Denial of Service | HudRoot and new full-rect controls | low | mitigate | HudRoot, DayCounter, KingWidget, SquadStrip, Toast, CommandHints and DragBox are `mouse_filter` IGNORE or sized away from the play area; `tests/e2e/test_hud_contract.gd` pins the filter and the protected centre; `ShotRunner.protected_violations` re-checks every HUD screenshot (03-12) | closed |
 | T-03-07 | Tampering | ActivateAbilityIntent | low | mitigate | `CommandProcessor` returns RUN_OVER, NO_ABILITY, KING_DOWN or ABILITY_COOLING before any state changes; spammed presses change nothing; each reason pinned by `tests/unit/test_king_slam.gd` | closed |
 | T-03-08 | Denial of Service | WeaponDef slam and KingDef regeneration numbers | medium | mitigate | `WeaponDef.is_slam_armed()` refuses non-finite, non-positive, sub-step or over-an-hour values; `KingState` treats a non-finite or negative regeneration fraction as off (`is_finite` guard); pinned by `test_weapon_def.gd` and `test_king_regen.gd` | closed |
@@ -87,6 +87,7 @@ None. All twelve SUMMARY `## Threat Flags` sections read "None" and describe onl
 | Audit Date | Threats Total | Closed | Open | Run By |
 |------------|---------------|--------|------|--------|
 | 2026-10-12 | 22 (T-03-01 to T-03-21 plus the per-plan T-03-SC row) | 22 | 0 | execute-phase orchestrator (ASVS L1 grep verification, short-circuit rule; commit 80badde) |
+| 2026-10-12 (after code review) | 22 | 20 | 2 (T-03-04, T-03-05: medium, below the high block threshold; CR-01 in 03-REVIEW.md) | execute-phase orchestrator, from gsd-verifier and gsd-code-reviewer findings |
 
 ---
 
@@ -94,7 +95,7 @@ None. All twelve SUMMARY `## Threat Flags` sections read "None" and describe onl
 
 - [x] All threats have a disposition (mitigate / accept / transfer)
 - [x] Accepted risks documented in Accepted Risks Log
-- [x] `threats_open: 0` confirmed
+- [x] `threats_open: 0` confirmed (two medium threats reopened by CR-01 sit below the high block threshold; the review-fix pass closes them)
 - [x] `status: verified` set in frontmatter
 
 **Approval:** verified 2026-10-12
