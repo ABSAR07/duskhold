@@ -23,8 +23,8 @@ Requirements for the initial release (5-map campaign). Each maps to exactly one 
 - [x] **KING-01**: Player can move the mounted king with WASD or the left stick, with a sprint modifier
 - [x] **KING-02**: The camera follows the king from a fixed isometric-style angle
 - [x] **KING-03**: The king automatically attacks enemies in range using the equipped weapon's passive attack
-- [ ] **KING-04**: Player can trigger the equipped weapon's active ability, which then shows a visible cooldown
-- [ ] **KING-05**: The king's health regenerates after a short period without taking damage
+- [x] **KING-04**: Player can trigger the equipped weapon's active ability, which then shows a visible cooldown
+- [x] **KING-05**: The king's health regenerates after a short period without taking damage
 - [x] **KING-06**: When the king's health reaches zero, the king is knocked out and respawns at the castle after a visible countdown; the run continues
 
 ### Building
@@ -58,13 +58,13 @@ Requirements for the initial release (5-map campaign). Each maps to exactly one 
 - [ ] **UNIT-01**: When building a Barracks, player picks one of four melee unit types; the Barracks produces a squad over time up to a cap that grows with its tier
 - [ ] **UNIT-02**: When building an Archery Range, player picks one of four ranged unit types, produced the same way
 - [ ] **UNIT-03**: When building a Hero's Quarter, player picks one of four heroes; the single hero grows stronger with each tier and revives after a long timer when killed
-- [ ] **UNIT-04**: Units fight autonomously near their post, committing to targets rather than constantly switching
-- [ ] **UNIT-05**: Player can order the selected squads to hold their current position with a hotkey; a held squad fights what comes near that spot and returns to it
-- [ ] **UNIT-06**: Player can order squads to follow the king with a hotkey, for all squads, for one unit type, or for the current selection
-- [ ] **UNIT-07**: Units killed during the night slowly respawn at their building, and all units are fully restored at dawn
+- [x] **UNIT-04**: Units fight autonomously near their post, committing to targets rather than constantly switching
+- [x] **UNIT-05**: Player can order the selected squads to hold their current position with a hotkey; a held squad fights what comes near that spot and returns to it
+- [x] **UNIT-06**: Player can order squads to follow the king with a hotkey, for all squads, for one unit type, or for the current selection
+- [x] **UNIT-07**: Units killed during the night slowly respawn at their building, and all units are fully restored at dawn
 - [ ] **UNIT-08**: Unit types have distinct roles and counters (e.g. anti-air, anti-siege, anti-armor, healing)
-- [ ] **UNIT-09**: Player selects whole squads (click, drag box and Ctrl to add on keyboard and mouse; cycling on gamepad), stores the selection as a numbered control group (Ctrl + 0–9) and recalls it (0–9); selected squads show a ground ring and a highlighted HUD slot
-- [ ] **UNIT-10**: Player can order the selected squads to move to a point, rally to the king, attack-move to a point or patrol a path, with Shift queuing commands; points come from the mouse or a right-stick cursor, and stances persist across dawn
+- [x] **UNIT-09**: Player selects whole squads (click, drag box and Ctrl to add on keyboard and mouse; cycling on gamepad), stores the selection as a numbered control group (Ctrl + 0–9) and recalls it (0–9); selected squads show a ground ring and a highlighted HUD slot
+- [x] **UNIT-10**: Player can order the selected squads to move to a point, rally to the king, attack-move to a point or patrol a path, with Shift queuing commands; points come from the mouse or a right-stick cursor, and stances persist across dawn
 
 ### Enemies & Waves
 
@@ -102,13 +102,13 @@ Requirements for the initial release (5-map campaign). Each maps to exactly one 
 >
 > **Amended 2026-10-09 (owner decision, Phase 3 discuss-phase, 03-CONTEXT.md D-11):** the mouse returns to runs for **unit commands only**: it selects squads (click, drag box, Ctrl to add), stores and recalls control groups (Ctrl + 0–9, 0–9) and supplies the ground point of move, attack-move and patrol (UNIT-09/10). Building stays ride-up-and-hold and the king's attacks stay automatic. The gamepad reaches the same commands by cycling squads and a right-stick ground cursor (INPT-02).
 
-- [ ] **INPT-01**: Player can play the game entirely on keyboard and mouse: move, sprint, action (hold to build or upgrade), active ability, unit selection and commands, and start night
-- [ ] **INPT-02**: Player can play the game entirely on a gamepad with equivalent bindings, switching between keyboard and gamepad at any time with on-screen prompts matching the active device
+- [x] **INPT-01**: Player can play the game entirely on keyboard and mouse: move, sprint, action (hold to build or upgrade), active ability, unit selection and commands, and start night
+- [x] **INPT-02**: Player can play the game entirely on a gamepad with equivalent bindings, switching between keyboard and gamepad at any time with on-screen prompts matching the active device
 - [ ] **INPT-03**: Player can navigate every menu with mouse, keyboard, or gamepad (amended 2026-10-09: the mouse is also used in runs for squad selection and commands, UNIT-09/10, never for building or aiming)
 
 ### Interface & Presentation
 
-- [ ] **UI-01**: The in-run HUD shows gold, current night out of total, the king's health, the ability cooldown, and unit group status, without cluttering the view
+- [x] **UI-01**: The in-run HUD shows gold, current night out of total, the king's health, the ability cooldown, and unit group status, without cluttering the view
 - [ ] **UI-02**: Upgrade choice cards show an icon, name, and short description for each option
 - [ ] **UI-03**: The game has a main menu, map select, pre-run loadout screen (weapon, perks, mutators, with a live score-multiplier preview), pause menu, and results screen (score breakdown, XP gained, new unlocks)
 - [ ] **UI-04**: The settings menu offers key/button rebinding, display options (resolution, window mode, vsync), master and SFX volume, and graphics quality presets
@@ -188,8 +188,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | KING-01 | Phase 1 | Complete |
 | KING-02 | Phase 1 | Complete |
 | KING-03 | Phase 2 | Complete |
-| KING-04 | Phase 3 | Pending |
-| KING-05 | Phase 3 | Pending |
+| KING-04 | Phase 3 | Complete |
+| KING-05 | Phase 3 | Complete |
 | KING-06 | Phase 2 | Complete |
 | BLDG-01 | Phase 1 | Complete |
 | BLDG-02 | Phase 1 | Complete |
@@ -214,13 +214,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UNIT-01 | Phase 7 | Pending |
 | UNIT-02 | Phase 7 | Pending |
 | UNIT-03 | Phase 7 | Pending |
-| UNIT-04 | Phase 3 | Pending |
-| UNIT-05 | Phase 3 | Pending |
-| UNIT-06 | Phase 3 | Pending |
-| UNIT-07 | Phase 3 | Pending |
+| UNIT-04 | Phase 3 | Complete |
+| UNIT-05 | Phase 3 | Complete |
+| UNIT-06 | Phase 3 | Complete |
+| UNIT-07 | Phase 3 | Complete |
 | UNIT-08 | Phase 7 | Pending |
-| UNIT-09 | Phase 3 | Pending |
-| UNIT-10 | Phase 3 | Pending |
+| UNIT-09 | Phase 3 | Complete |
+| UNIT-10 | Phase 3 | Complete |
 | ENMY-01 | Phase 6 | Pending |
 | ENMY-02 | Phase 6 | Pending |
 | ENMY-03 | Phase 6 | Pending |
@@ -242,10 +242,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | META-07 | Phase 9 | Pending |
 | META-08 | Phase 5 | Pending |
 | META-09 | Phase 9 | Pending |
-| INPT-01 | Phase 3 | Pending |
-| INPT-02 | Phase 3 | Pending |
+| INPT-01 | Phase 3 | Complete |
+| INPT-02 | Phase 3 | Complete |
 | INPT-03 | Phase 13 | Pending |
-| UI-01 | Phase 3 | Pending |
+| UI-01 | Phase 3 | Complete |
 | UI-02 | Phase 5 | Pending |
 | UI-03 | Phase 10 | Pending |
 | UI-04 | Phase 13 | Pending |

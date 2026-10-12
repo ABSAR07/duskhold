@@ -2,17 +2,17 @@
 gsd_state_version: "1.0"
 current_phase: 03
 current_phase_name: King Combat & Troops
-status: executing
-stopped_at: Completed 03-10-PLAN.md
-last_updated: "2026-10-10T20:19:49.784Z"
+status: verifying
+stopped_at: Completed 03-12-PLAN.md
+last_updated: "2026-10-12T08:01:21.411Z"
 last_activity: 2026-10-10
 last_activity_desc: Phase 03 execution started
-state_head: 000488fd939845efb572615398fae72218fd1280
+state_head: b30af9401d8c9b9d84ef9e068c35c70b1bd90dd8
 progress:
   total_phases: 13
   completed_phases: 2
   total_plans: 52
-  completed_plans: 51
+  completed_plans: 52
   percent: 15
 ---
 
@@ -28,8 +28,8 @@ See: .planning/PROJECT.md (updated 2026-10-08)
 ## Current Position
 
 Phase: 03 (King Combat & Troops) — EXECUTING
-Plan: 11 of 12
-Status: Ready to execute
+Plan: 12 of 12
+Status: Phase complete — ready for verification
 Last activity: 2026-10-10 — Phase 03 execution started
 
 Progress: [██░░░░░░░░] 15%
@@ -108,6 +108,7 @@ Progress: [██░░░░░░░░] 15%
 | Phase 03 P11 | 90 min | 2 tasks | 22 files |
 | Phase 03 P09 | 68 min | 2 tasks | 29 files |
 | Phase 03 P10 | 66 min | 2 tasks | 178 files |
+| Phase 03 P12 | 2h 13m | 3 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -227,6 +228,9 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-10: sticks use the text tiles xbox_ls and xbox_rs (clearer than the pictorial sticks at 24 px), R3 uses xbox_stick_r_press, both stick directions share one tile — viewed on a dark plate at 24 px; keycap_text still tells Axis 0- from Axis 0+
 - [Phase 03]: 03-10: the command hint row fades in over 0.15 s but hides at once, and a glyph wider than its tile is anchored on the slam plate corner and may reach 12 px left of it — no overlap with a toast fading in over 0.1 s; a Backspace or unbound keycap stays on screen
 - [Phase 03]: 03-10: LastDeviceTracker is the last child of the map and exposes cursor_hidden() because headless Godot does not store Input.mouse_mode — input reaches later nodes first so a handled event cannot hide a switch; the real mode was read in a real-window probe
+- [Phase 03]: 03-12: the 18 Phase 3 shots live in ShotArmyScenarios (shot_scenarios.gd would pass the 1000-line cap); ShotRunner.protected_violations fails any hud_ or cmd_ shot with a visible HUD control in x 384..896, y 96..500; shots that hurt the king use a regeneration-off king copy
+- [Phase 03]: 03-12: CI run 38219154906 on c418b6c is green on all four jobs with REPLAY_OK smoke, army and full_idle and 33 of 33 screenshots; the first run failed two shots on the slow software renderer and was fixed by making the scenes frame-time independent
+- [Phase 03]: 03-12: E6 (the longest toast inside x 384..896) left human_needed, the line is 526 px at x 377..903, below the clear centre; the owner packet 03-PLAYTEST-GATE.md lists 15 assumptions and both 03-11 balance findings, the Phase 3 gate is open at /gsd-verify-work
 
 ### Pending Todos
 
@@ -259,6 +263,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-10T20:19:49.166Z
-Stopped at: Completed 03-10-PLAN.md
+Last session: 2026-10-12T08:01:20.210Z
+Stopped at: Completed 03-12-PLAN.md
 Resume file: None

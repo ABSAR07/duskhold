@@ -189,7 +189,7 @@ Plans:
   4. Every in-run action (move, sprint, hold-to-build/upgrade, active ability, unit selection and commands, start night) works on keyboard and mouse and on gamepad. The player can switch devices at any moment, and on-screen prompts update to match the active device.
   5. The HUD shows gold, current night out of total, king health, ability cooldown, and unit group status without cluttering the play area.
 
-**Plans**: 11/12 plans executed
+**Plans**: 12/12 plans executed
 **UI hint**: yes
 
 Plans:
@@ -223,7 +223,7 @@ Plans:
 - [x] 03-10: Device-following prompts — Kenney Input Prompts glyphs, device tracker, glyph start-night prompt and slam badge, command hint strip
 
 **Wave 10** *(blocked on 03-10 and 03-11)*
-- [ ] 03-12: 18 real-window screenshots with the clear-centre check, green CI, a launch-checked export and the owner's gate packet
+- [x] 03-12: 18 real-window screenshots with the clear-centre check, green CI, a launch-checked export and the owner's gate packet
 
 ### Phase 4: Crowd-Scale Battles & Walls
 
@@ -389,7 +389,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 |-------|----------------|--------|-----------|
 | 1. Foundation & Day Loop | 18/18 | Complete    | 2026-10-03 |
 | 2. Night Defense & Playtest Gate | 22/22 | Complete    | 2026-10-08 |
-| 3. King Combat & Troops | 11/12 | In Progress|  |
+| 3. King Combat & Troops | 12/12 | In Progress|  |
 | 4. Crowd-Scale Battles & Walls | 0/TBD | Not started | - |
 | 5. Castle Center & Economy Depth | 0/TBD | Not started | - |
 | 6. Enemy Roster & Tower Specializations | 0/TBD | Not started | - |
