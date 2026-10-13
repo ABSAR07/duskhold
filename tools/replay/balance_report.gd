@@ -6,8 +6,17 @@ extends RefCounted
 ## dictionaries out (every value is an int, float, bool, String, Array or Dictionary), so the report
 ## serialises as JSON as it is. tools/ is excluded from the export.
 ##
+## Squad value (G-03-11): each run also totals the gold it spent by building role (military: a
+## building with a unit_id; towers: any other building with a tier that attacks; economy: the rest)
+## and the kills squads and towers made. A strategy's `squad_value_ratio` is the unit kills per
+## military gold divided by the tower kills per tower gold, both summed over its runs; 1.0 means a
+## gold in a squad building killed as much as a gold in a tower, and it is 0.0 when either role has
+## no gold or no kills to divide.
+##
 ## What it cannot show: the bots build instantly without riding to the plots, react perfectly and
-## cannot judge tension, readability or fun. The gate decision stays with the owner.
+## cannot judge tension, readability or fun. Footmen that shield a tower get no kill credit, so the
+## ratio understates squads that hold a line for towers behind them. The gate decision stays with
+## the owner.
 
 const MAP_PATH := "res://data/maps/prototype_map.tres"
 const TUNING_PATH := "res://data/tuning/loop_tuning.tres"
@@ -36,7 +45,8 @@ const NIGHT_COLUMNS: Array[String] = [
 ## Runs every strategy over every seed on the shipped data and returns
 ## {seeds, runs, summaries}. A name that is not a known strategy is skipped. A run is
 ## {strategy, seed, outcome, nights_survived, gold_earned, buildings_lost, king_knockouts,
-## per_night}; summaries maps strategy to what `summary` returns.
+## per_night, military_gold_spent, tower_gold_spent, economy_gold_spent, unit_kills, tower_kills};
+## summaries maps strategy to what `summary` returns.
 static func run(strategies: Array[StringName], seeds: Array[int]) -> Dictionary:
 	return run_on(load(MAP_PATH), load(TUNING_PATH), load(KING_PATH), strategies, seeds)
 
@@ -69,8 +79,10 @@ static func run_on(
 
 ## What one strategy did across the report's seeds: {win_rate, mean_nights_survived,
 ## min_nights_survived, max_nights_survived, median_loss_night, mean_gold_earned,
-## mean_buildings_lost, mean_knockouts}. `median_loss_night` is the night number lost runs ended on
-## (the lower middle one of the sorted list, ties ordered by seed) and 0 when none was lost.
+## mean_buildings_lost, mean_knockouts, unit_kills_per_military_gold, tower_kills_per_tower_gold,
+## squad_value_ratio}. `median_loss_night` is the night number lost runs ended on (the lower middle
+## one of the sorted list, ties ordered by seed) and 0 when none was lost. The three squad value
+## keys divide sums over the runs, not a mean of per-run ratios, and are 0.0 when a divisor is 0.
 static func summary(report: Dictionary, strategy: StringName) -> Dictionary:
 	var runs: Array = _runs_of(report, strategy)
 	var wins: int = 0
@@ -79,12 +91,20 @@ static func summary(report: Dictionary, strategy: StringName) -> Dictionary:
 	var lost_buildings: float = 0.0
 	var knockouts: float = 0.0
 	var losses: Array = []
+	var military_gold: int = 0
+	var tower_gold: int = 0
+	var unit_kills: int = 0
+	var tower_kills: int = 0
 	for entry: Dictionary in runs:
 		var nights: int = int(entry["nights_survived"])
 		survived.append(nights)
 		gold += float(entry["gold_earned"])
 		lost_buildings += float(entry["buildings_lost"])
 		knockouts += float(entry["king_knockouts"])
+		military_gold += int(entry.get("military_gold_spent", 0))
+		tower_gold += int(entry.get("tower_gold_spent", 0))
+		unit_kills += int(entry.get("unit_kills", 0))
+		tower_kills += int(entry.get("tower_kills", 0))
 		if entry["outcome"] == OUTCOME_WON:
 			wins += 1
 		elif entry["outcome"] == OUTCOME_LOST:
@@ -93,6 +113,8 @@ static func summary(report: Dictionary, strategy: StringName) -> Dictionary:
 	var sum_nights: float = 0.0
 	for nights: int in survived:
 		sum_nights += float(nights)
+	var unit_value: float = _per_gold(unit_kills, military_gold)
+	var tower_value: float = _per_gold(tower_kills, tower_gold)
 	return {
 		"win_rate": float(wins) / count,
 		"mean_nights_survived": sum_nights / count,
@@ -102,9 +124,9 @@ static func summary(report: Dictionary, strategy: StringName) -> Dictionary:
 		"mean_gold_earned": gold / count,
 		"mean_buildings_lost": lost_buildings / count,
 		"mean_knockouts": knockouts / count,
-		"unit_kills_per_military_gold": 0.0,
-		"tower_kills_per_tower_gold": 0.0,
-		"squad_value_ratio": 0.0,
+		"unit_kills_per_military_gold": unit_value,
+		"tower_kills_per_tower_gold": tower_value,
+		"squad_value_ratio": unit_value / tower_value if tower_value > 0.0 else 0.0,
 	}
 
 
@@ -131,6 +153,21 @@ static func to_markdown(report: Dictionary) -> String:
 	lines.append("|---|---:|---:|---:|---:|---:|---:|")
 	for strategy: String in summaries.keys():
 		lines.append(_summary_row(strategy, summaries[strategy]))
+	lines.append("")
+	lines.append("## Squad value per gold")
+	lines.append("")
+	lines.append(
+		(
+			"| Strategy | Military gold (mean) | Unit kills (mean) | Unit kills per military gold"
+			+ " | Tower gold (mean) | Tower kills (mean) | Tower kills per tower gold"
+			+ " | Squad value ratio |"
+		)
+	)
+	lines.append("|---|---:|---:|---:|---:|---:|---:|---:|")
+	for strategy: String in summaries.keys():
+		lines.append(
+			_value_row(strategy, _runs_of(report, StringName(strategy)), summaries[strategy])
+		)
 	for strategy: String in summaries.keys():
 		lines.append("")
 		lines.append("## Per night: %s" % strategy)
@@ -145,6 +182,12 @@ static func to_markdown(report: Dictionary) -> String:
 
 static func _run_entry(strategy: StringName, run_seed: int, result: Dictionary) -> Dictionary:
 	var stats: Dictionary = result["stats"]
+	var spent: Dictionary = result["spent"]
+	var unit_kills: int = 0
+	var tower_kills: int = 0
+	for night: Dictionary in result["per_night"]:
+		unit_kills += int(night["kills_units"])
+		tower_kills += int(night["kills_towers"])
 	return {
 		"strategy": str(strategy),
 		"seed": run_seed,
@@ -154,12 +197,17 @@ static func _run_entry(strategy: StringName, run_seed: int, result: Dictionary) 
 		"buildings_lost": stats["buildings_lost"],
 		"king_knockouts": stats["king_knockouts"],
 		"per_night": result["per_night"],
-		"military_gold_spent": 0,
-		"tower_gold_spent": 0,
-		"economy_gold_spent": 0,
-		"unit_kills": 0,
-		"tower_kills": 0,
+		"military_gold_spent": spent["military"],
+		"tower_gold_spent": spent["towers"],
+		"economy_gold_spent": spent["economy"],
+		"unit_kills": unit_kills,
+		"tower_kills": tower_kills,
 	}
+
+
+## `kills` over `gold`, 0.0 when there was no gold.
+static func _per_gold(kills: int, gold: int) -> float:
+	return float(kills) / float(gold) if gold > 0 else 0.0
 
 
 static func _runs_of(report: Dictionary, strategy: StringName) -> Array:
@@ -200,6 +248,23 @@ static func _summary_row(strategy: String, values: Dictionary) -> String:
 			values["mean_gold_earned"],
 			values["mean_buildings_lost"],
 			values["mean_knockouts"],
+		]
+	)
+
+
+## One squad value row: the means over `runs` and the per-gold values of the strategy's summary.
+static func _value_row(strategy: String, runs: Array, values: Dictionary) -> String:
+	return (
+		"| %s | %.2f | %.2f | %.2f | %.2f | %.2f | %.2f | %.2f |"
+		% [
+			strategy,
+			_mean(runs, "military_gold_spent"),
+			_mean(runs, "unit_kills"),
+			values["unit_kills_per_military_gold"],
+			_mean(runs, "tower_gold_spent"),
+			_mean(runs, "tower_kills"),
+			values["tower_kills_per_tower_gold"],
+			values["squad_value_ratio"],
 		]
 	)
 

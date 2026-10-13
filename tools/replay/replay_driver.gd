@@ -24,6 +24,8 @@ const OUTCOME_LOST := &"lost"
 ## units that died. `end` is
 ## "dawn", "won" or "lost" for a night that finished and "" for one the tick bound cut short;
 ## `gold_at_dawn` is the gold after the dawn payout, or the gold when the night ended without one.
+## `spent` is the gold the run put into buildings by role, {military, towers, economy}: a build and
+## each upgrade count once at the tier's own price, a refused build counts nothing.
 ## `stop_after_dawns` of 0 means run until the run ends or `max_ticks` runs out.
 static func run(
 	map: MapConfig,
@@ -71,8 +73,9 @@ static func run(
 	}
 
 
-## Counts dawns and started nights and keeps the per-night metrics, all from the run's events. A
-## read-only listener: it never changes the simulation, so the digest does not depend on it.
+## Counts dawns and started nights and keeps the per-night metrics and the gold spent by building
+## role, all from the run's events. A read-only listener: it never changes the simulation, so the
+## digest does not depend on it.
 class Tally:
 	extends RefCounted
 	var dawns: int = 0
@@ -80,7 +83,8 @@ class Tally:
 	## Steps run in the current night, counted by the driver before each step.
 	var night_steps: int = 0
 	var per_night: Array = []
-	## Gold spent by building role: {"military": int, "towers": int, "economy": int}.
+	## Gold spent by building role: {"military": int, "towers": int, "economy": int}. Military is a
+	## building with a unit_id, towers any other building with a tier that attacks, economy the rest.
 	var spent: Dictionary = {"military": 0, "towers": 0, "economy": 0}
 
 	var _ctx: RunContext
@@ -96,6 +100,7 @@ class Tally:
 		events.unit_died.connect(_on_unit_died)
 		events.building_destroyed.connect(_on_building_destroyed)
 		events.king_downed.connect(_on_king_downed)
+		events.building_built.connect(_on_building_built)
 		events.dawn_payout.connect(_on_dawn_payout)
 
 	func on_phase_changed(old_phase: int, new_phase: int) -> void:
@@ -168,6 +173,25 @@ class Tally:
 			(per_night[per_night.size() - 1] as Dictionary)["gold_at_dawn"] = (
 				_ctx.economy.get_gold()
 			)
+
+	## Adds the price of the tier just built (a build or an upgrade) to its building's role.
+	func _on_building_built(spot_id: StringName, _building_id: StringName, new_tier: int) -> void:
+		var def: BuildingDef = _ctx.buildings.get_building_def_for_spot(spot_id)
+		if def == null:
+			return
+		var tier_def: BuildingTierDef = def.tier_def(new_tier)
+		if tier_def == null:
+			return
+		var role: String = _role_of(def)
+		spent[role] = int(spent[role]) + tier_def.cost
+
+	func _role_of(def: BuildingDef) -> String:
+		if def.unit_id != &"":
+			return "military"
+		for tier_def: BuildingTierDef in def.tiers:
+			if tier_def.attack_damage > 0:
+				return "towers"
+		return "economy"
 
 	func _bump(key: String) -> void:
 		if not _open.is_empty():

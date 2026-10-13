@@ -152,7 +152,12 @@ func test_markdown_has_a_header_row_and_one_summary_row_per_strategy() -> void:
 	var header: int = 0
 	var balanced_rows: int = 0
 	var no_build_rows: int = 0
+	var in_summary: bool = false
 	for line: String in lines:
+		if line.begins_with("## "):
+			in_summary = line == "## Summary"
+		if not in_summary:
+			continue
 		if line.begins_with("| Strategy |"):
 			header += 1
 		if line.begins_with("| balanced |"):
