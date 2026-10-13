@@ -67,6 +67,7 @@ static func run(
 			"outcome": ctx.stats.outcome(),
 		},
 		"per_night": tally.per_night,
+		"spent": tally.spent,
 	}
 
 
@@ -79,6 +80,8 @@ class Tally:
 	## Steps run in the current night, counted by the driver before each step.
 	var night_steps: int = 0
 	var per_night: Array = []
+	## Gold spent by building role: {"military": int, "towers": int, "economy": int}.
+	var spent: Dictionary = {"military": 0, "towers": 0, "economy": 0}
 
 	var _ctx: RunContext
 	var _open: Dictionary = {}

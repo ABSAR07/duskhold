@@ -102,6 +102,9 @@ static func summary(report: Dictionary, strategy: StringName) -> Dictionary:
 		"mean_gold_earned": gold / count,
 		"mean_buildings_lost": lost_buildings / count,
 		"mean_knockouts": knockouts / count,
+		"unit_kills_per_military_gold": 0.0,
+		"tower_kills_per_tower_gold": 0.0,
+		"squad_value_ratio": 0.0,
 	}
 
 
@@ -151,6 +154,11 @@ static func _run_entry(strategy: StringName, run_seed: int, result: Dictionary) 
 		"buildings_lost": stats["buildings_lost"],
 		"king_knockouts": stats["king_knockouts"],
 		"per_night": result["per_night"],
+		"military_gold_spent": 0,
+		"tower_gold_spent": 0,
+		"economy_gold_spent": 0,
+		"unit_kills": 0,
+		"tower_kills": 0,
 	}
 
 
