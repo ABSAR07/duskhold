@@ -69,6 +69,12 @@ The night counts signed off in Phase 2 are retuned with the balance bots once sq
 ### Scope Amendment (owner decision 2026-10-09)
 - **D-25:** **Phase 3 scope extends beyond the written UNIT-05 and UNIT-06.** Control groups, move, rally, attack-move, patrol, Shift-queued commands and mouse selection all ship in this phase. The owner confirmed the amendment of ROADMAP success criterion 2 and REQUIREMENTS.md (UNIT-05 and UNIT-06 reworded, new UNIT-09 and UNIT-10, INPT-01 and INPT-03 reworded) alongside this context, so verification checks for them.
 
+### UAT Round 1 Decisions (owner decisions 2026-10-13)
+
+- **D-26:** **Squad value bar.** "Squads worth their gold against towers" is measured as unit kills per military gold divided by tower kills per tower gold over seeds 1 to 10 (the `squad_value_ratio` of plan 03-16), and the pass bar is **0.8**, confirmed by the owner on 2026-10-13 (the planner's provisional reading, accepted as is). Plan 03-17 reads this value here; a later owner override replaces this line.
+- **D-27:** **Balance round 2 serves all four goals at once** (UAT test 11, G-03-11): the balanced bot loses 2 to 3 of 10, squads are worth their gold (D-26), night 8 is larger than night 7, and the army bot loses 2 to 3 of 10. Nights 1 to 4 stay the Phase 2 wall; D-01 squad sizes, D-05 replacement times and D-07 unit numbers stay locked unless the 03-17 search hands a choice back. Plan 03-17 keeps 11 files in scope (every allowed lever, the slam included); the owner accepted that as a documented scope warning on 2026-10-13.
+- **D-28:** **UAT round 1 calls.** The bottom-centre hierarchy (UI-REVIEW fix 3) is fixed now with the gaps (plan 03-15 plate); the knocked-out widget keeps its digits opaque (03-19); the toast E6 width (test 12) and the gate runs (tests 9 and 15) are decided after the owner plays the fixed build; a squad built after a control group exists joins no group (assumption 9 kept).
+
 ### Claude's Discretion
 - The guard radius, how a squad spreads around its post, its walking formation and the separation rule between friendly units; how squads path around buildings and each other (the straight-line step with push-apart that enemies use is enough until Phase 4's flow field).
 - Unit health, damage, range, speed, arrow speed and squad walking speed, within D-06, D-07 and D-08; whether units fight by day if an enemy somehow remains.
