@@ -96,6 +96,16 @@ func night_def(night_number: int) -> NightDef:
 	return nights[night_number - 1]
 
 
+## The ground limit of a half extent in whole centimetres: the most a squad order point may lie from
+## the origin on either axis. An extent that is not a positive finite number bounds nothing and
+## returns -1, which no point satisfies. A larger extent than MAX_GROUND_HALF_EXTENT is capped. The
+## one rule behind the gate (CommandProcessor) and the toast that must agree with it (GroundPick).
+static func ground_limit_cm(half_extent_m: float) -> int:
+	if not is_finite(half_extent_m) or half_extent_m <= 0.0:
+		return -1
+	return roundi(minf(half_extent_m, MAX_GROUND_HALF_EXTENT) * 100.0)
+
+
 ## Human-readable data errors; empty when the map is well formed (T-01-10).
 func validate() -> PackedStringArray:
 	var errors: PackedStringArray = PackedStringArray()

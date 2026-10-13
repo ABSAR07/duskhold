@@ -104,6 +104,23 @@ func test_in_bounds_is_inclusive_at_the_extent_and_false_one_centimetre_beyond()
 	assert_false(GroundPick.in_bounds(Vector2i(0, -edge - 1), EXTENT_M), "1 cm beyond -z")
 
 
+func test_the_centimetre_limit_is_one_rule_for_the_toast_and_the_gate() -> void:
+	assert_eq(
+		MapConfig.ground_limit_cm(EXTENT_M), roundi(EXTENT_M * 100.0), "metres to centimetres"
+	)
+	assert_eq(MapConfig.ground_limit_cm(90.0), 9000, "the prototype ground")
+	var cap: int = roundi(MapConfig.MAX_GROUND_HALF_EXTENT * 100.0)
+	assert_eq(MapConfig.ground_limit_cm(MapConfig.MAX_GROUND_HALF_EXTENT * 3.0), cap, "capped")
+	for bad: float in [0.0, -5.0, NAN, INF, -INF]:
+		assert_lt(MapConfig.ground_limit_cm(bad), 0, "an extent of %s bounds nothing" % bad)
+	for extent: float in [EXTENT_M, 90.0, 0.004, MapConfig.MAX_GROUND_HALF_EXTENT * 3.0]:
+		var limit: int = MapConfig.ground_limit_cm(extent)
+		assert_true(
+			GroundPick.in_bounds(Vector2i(limit, -limit), extent), "the edge of %s" % extent
+		)
+		assert_false(GroundPick.in_bounds(Vector2i(limit + 1, 0), extent), "beyond %s" % extent)
+
+
 func test_a_bad_extent_bounds_nothing() -> void:
 	for bad: float in [0.0, -5.0, NAN, INF]:
 		assert_false(GroundPick.in_bounds(Vector2i.ZERO, bad), "an extent of %s" % bad)

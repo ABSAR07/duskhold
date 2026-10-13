@@ -180,9 +180,7 @@ func _ground_limit_cm() -> int:
 	var extent: float = MapConfig.DEFAULT_GROUND_HALF_EXTENT
 	if _map != null:
 		extent = _map.ground_half_extent
-	if not is_finite(extent) or extent <= 0.0:
-		return -1
-	return roundi(minf(extent, MapConfig.MAX_GROUND_HALF_EXTENT) * 100.0)
+	return MapConfig.ground_limit_cm(extent)
 
 
 ## True when every ordered squad's queue still ends in a hold, follow or patrol that has not run

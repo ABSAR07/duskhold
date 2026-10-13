@@ -22,7 +22,7 @@ static func to_centimetres(ground: Vector3) -> Vector2i:
 ## True when `cm` lies within `half_extent_m` of the origin on both axes, inclusive. A half extent
 ## that is not a positive finite number bounds nothing: no point is inside it.
 static func in_bounds(cm: Vector2i, half_extent_m: float) -> bool:
-	if not is_finite(half_extent_m) or half_extent_m <= 0.0:
+	var limit: int = MapConfig.ground_limit_cm(half_extent_m)
+	if limit < 0:
 		return false
-	var limit: int = roundi(minf(half_extent_m, MapConfig.MAX_GROUND_HALF_EXTENT) * 100.0)
 	return cm.x >= -limit and cm.x <= limit and cm.y >= -limit and cm.y <= limit
