@@ -5,8 +5,10 @@ extends CharacterBody3D
 ## Once the run is over (won or lost) he ignores movement input.
 ## KING-06 on screen: when the simulation knocks him out, the model gives way to a translucent
 ## ghost that cannot move, and when the countdown ends he reappears at the castle. A hurt-only
-## health bar floats over him. The node reads the run and reacts to its events; the simulation
-## state is written only by MapRoot, which pushes this node's position (T-02-06).
+## health bar floats over him; it follows hits, regeneration, the knockout, the respawn and the dawn
+## heal, and hides again once he is whole (D-20, D-22). The node reads the run and reacts to its
+## events; the simulation state is written only by MapRoot, which pushes this node's position
+## (T-02-06).
 
 ## Below this horizontal speed (m/s) the model keeps its current facing.
 const FACING_MIN_SPEED: float = 0.1
@@ -49,6 +51,7 @@ func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
 	_health_bar.height_offset = HEALTH_BAR_HEIGHT
 	add_child(_health_bar)
 	ctx.events.king_damaged.connect(_on_king_damaged)
+	ctx.events.king_healed.connect(_on_king_healed)
 	ctx.events.king_downed.connect(_on_king_downed)
 	ctx.events.king_respawned.connect(_on_king_respawned)
 	ctx.events.dawn_payout.connect(_on_dawn_payout)
@@ -92,6 +95,12 @@ func _face_movement(delta: float) -> void:
 
 
 func _on_king_damaged(_amount: int, hp: int, max_hp: int) -> void:
+	_health_bar.set_health(hp, max_hp)
+
+
+## One regeneration point: the bar takes the event's own numbers, so it climbs with the HUD widget
+## and hides again at full health (HealthBar3D.should_show).
+func _on_king_healed(_amount: int, hp: int, max_hp: int) -> void:
 	_health_bar.set_health(hp, max_hp)
 
 
