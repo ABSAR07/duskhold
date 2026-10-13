@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 03
 current_phase_name: King Combat & Troops
 status: executing
-stopped_at: Completed 03-13-PLAN.md
-last_updated: "2026-10-13T15:54:23.490Z"
+stopped_at: Completed 03-14-PLAN.md
+last_updated: "2026-10-13T16:15:50.112Z"
 last_activity: 2026-10-13
 last_activity_desc: Phase 03 execution started
-state_head: cddfec18c8d191ad32ac5fe117a08cc102b4d984
+state_head: ee21f6f863ea69542f765b058f2c79eb3cf092a4
 progress:
   total_phases: 13
   completed_phases: 2
   total_plans: 59
-  completed_plans: 53
+  completed_plans: 54
   percent: 15
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-08)
 ## Current Position
 
 Phase: 03 (King Combat & Troops) — EXECUTING
-Plan: 2 of 19
+Plan: 3 of 19
 Status: Ready to execute
 Last activity: 2026-10-13 — Phase 03 execution started
 
@@ -110,6 +110,7 @@ Progress: [██░░░░░░░░] 15%
 | Phase 03 P10 | 66 min | 2 tasks | 178 files |
 | Phase 03 P12 | 2h 13m | 3 tasks | 11 files |
 | Phase 03 P13 | 20 min | 2 tasks | 3 files |
+| Phase 03 P14 | 25 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -233,6 +234,7 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-12: CI run 38219154906 on c418b6c is green on all four jobs with REPLAY_OK smoke, army and full_idle and 33 of 33 screenshots; the first run failed two shots on the slow software renderer and was fixed by making the scenes frame-time independent
 - [Phase 03]: 03-12: E6 (the longest toast inside x 384..896) left human_needed, the line is 526 px at x 377..903, below the clear centre; the owner packet 03-PLAYTEST-GATE.md lists 15 assumptions and both 03-11 balance findings, the Phase 3 gate is open at /gsd-verify-work
 - [Phase 03]: 03-13: CommandKeyController._give reads command_queue (Shift / RT) at the press so F, H and R queue behind queued walks; Shift is also sprint, so sprinting and pressing a verb key now queues it (D-09)
+- [Phase 03]: 03-14: the king floating bar listens to king_healed and sets itself from the event's hp and max_hp (G-03-4, WR-01); simulation, HealthBar3D and KingWidget untouched
 
 ### Pending Todos
 
@@ -265,6 +267,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-13T15:54:22.676Z
-Stopped at: Completed 03-13-PLAN.md
+Last session: 2026-10-13T16:15:49.262Z
+Stopped at: Completed 03-14-PLAN.md
 Resume file: None
