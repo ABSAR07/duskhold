@@ -39,6 +39,7 @@ func after_each() -> void:
 		JOY_BUTTON_RIGHT_STICK,
 	]:
 		_pad(button, false)
+	_trigger(0.0)
 
 
 func _setup() -> void:
@@ -79,6 +80,14 @@ func _pad(button: JoyButton, pressed: bool) -> void:
 	Input.parse_input_event(event)
 
 
+## Pushes the right trigger (the command_queue binding) in by `value`, 1.0 fully, 0.0 released.
+func _trigger(value: float) -> void:
+	var event: InputEventJoypadMotion = InputEventJoypadMotion.new()
+	event.axis = JOY_AXIS_TRIGGER_RIGHT
+	event.axis_value = value
+	Input.parse_input_event(event)
+
+
 ## One press of a pad button: down for two frames, released, two more frames.
 func _tap_pad(button: JoyButton) -> void:
 	_pad(button, true)
@@ -97,6 +106,30 @@ func _tap_key(action: StringName) -> void:
 
 func _select(ids: Array[StringName]) -> void:
 	_selection.select_only(ids, _ctx.squads.squad_ids())
+
+
+## Queues three walks of 4 m each from the squad's anchor, the first replacing the queue and the
+## next two queued, then clears the event recorder so the test reads only the order it gives next.
+func _queue_three_moves(squad_id: StringName) -> void:
+	var anchor: Vector2 = _ctx.squads.anchor_of(squad_id)
+	var base: Vector2i = Vector2i(roundi(anchor.x * 100.0), roundi(anchor.y * 100.0))
+	var legs: Array[Vector2i] = [
+		base + Vector2i(400, 0), base + Vector2i(400, 400), base + Vector2i(0, 400)
+	]
+	for index: int in range(legs.size()):
+		var points: Array[Vector2i] = [legs[index]]
+		var intent: SquadOrderIntent = SquadOrderIntent.new(
+			[squad_id] as Array[StringName], SquadOrder.VERB_MOVE, points, index > 0
+		)
+		assert_eq(_ctx.commands.submit(intent), CommandProcessor.OK, "leg %d" % index)
+	_ordered = []
+
+
+func _verbs_of(squad_id: StringName) -> Array[StringName]:
+	var verbs: Array[StringName] = []
+	for order: Dictionary in _ctx.squads.orders_of(squad_id):
+		verbs.append(order["verb"])
+	return verbs
 
 
 func _selected_is(ids: Array[StringName]) -> bool:
@@ -131,6 +164,30 @@ func test_d_pad_down_orders_hold_and_d_pad_up_follow_and_left_rally() -> void:
 	assert_eq(_ordered.size(), 3, "a third order")
 	assert_eq(_ordered[2][1], SquadOrder.VERB_RALLY, "rally")
 	assert_eq(_point_verbs.size(), 0, "none of them asks for a ground point")
+
+
+func test_rt_held_with_d_pad_down_queues_the_hold_behind_the_walks() -> void:
+	await _setup()
+	_select([BARRACKS] as Array[StringName])
+	_queue_three_moves(BARRACKS)
+	_trigger(1.0)
+	await wait_process_frames(2)
+	await _tap_pad(JOY_BUTTON_DPAD_DOWN)
+	_trigger(0.0)
+	await wait_process_frames(2)
+	assert_eq(_ordered.size(), 1, "one order")
+	assert_eq(_ordered[0][1], SquadOrder.VERB_HOLD, "a hold")
+	assert_true(_ordered[0][2], "marked queued")
+	var expected: Array[StringName] = [
+		SquadOrder.VERB_MOVE, SquadOrder.VERB_MOVE, SquadOrder.VERB_MOVE, SquadOrder.VERB_HOLD
+	]
+	assert_eq(_verbs_of(BARRACKS), expected, "the hold waits behind the three walks")
+	assert_eq(_ctx.squads.resting_stance(BARRACKS), SquadOrder.STANCE_HOLD, "and it will hold")
+	_queue_three_moves(BARRACKS)
+	await _tap_pad(JOY_BUTTON_DPAD_DOWN)
+	assert_eq(_ordered.size(), 1, "one order again")
+	assert_false(_ordered[0][2], "without the trigger the same press is not queued")
+	assert_true(_ctx.squads.orders_of(BARRACKS).is_empty(), "and it clears the walks")
 
 
 func test_lb_and_d_pad_down_does_not_hold_it_hands_patrol_to_the_cursor() -> void:
