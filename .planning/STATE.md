@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 03
 current_phase_name: King Combat & Troops
 status: executing
-stopped_at: Completed 03-16-PLAN.md
-last_updated: "2026-10-13T17:02:23.327Z"
+stopped_at: Completed 03-19-PLAN.md
+last_updated: "2026-10-13T17:49:16.713Z"
 last_activity: 2026-10-13
 last_activity_desc: Phase 03 execution started
-state_head: c2e265900df390ca97cdf288abf02005f97afd03
+state_head: f7b234e8a61df1452e6fb3f8bf0127c239344ced
 progress:
   total_phases: 13
   completed_phases: 2
   total_plans: 59
-  completed_plans: 56
+  completed_plans: 57
   percent: 15
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-08)
 ## Current Position
 
 Phase: 03 (King Combat & Troops) — EXECUTING
-Plan: 5 of 19
+Plan: 6 of 19
 Status: Ready to execute
 Last activity: 2026-10-13 — Phase 03 execution started
 
@@ -113,6 +113,7 @@ Progress: [██░░░░░░░░] 15%
 | Phase 03 P14 | 25 min | 2 tasks | 2 files |
 | Phase 03 P15 | 19 min | 1 tasks | 5 files |
 | Phase 03 P16 | 26 min | 2 tasks | 6 files |
+| Phase 03 P19 | 33 min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -239,6 +240,8 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-14: the king floating bar listens to king_healed and sets itself from the event's hp and max_hp (G-03-4, WR-01); simulation, HealthBar3D and KingWidget untouched
 - [Phase 03]: 03-15: StartNightPlate (#14141A 0.78, radius 8, 8 px inset, mouse ignored, day only) behind the start-night prompt and fill; StartNightBox offset_bottom -4 and separation 0 keep its top at y 624 with the 26 px preview ending at y 716 (G-03-14b)
 - [Phase 03]: 03-16: squad value is measured per building role (military = unit_id, towers = attacking tier, economy = rest) from building_built at the tier's own price; the free dawn rebuild is not counted — A read-only Tally keeps every golden digest unchanged; the ratio divides sums over seeds 1-10 (D-26 bar 0.8); baseline army_balanced ratio 0.68
+- [Phase 03]: 03-19: knocked-out king dims per part (bar, plate self_modulate, sword, glyph to 0.4); count and caption stay alpha 1.0 on their opaque outline, the glyphs' immediate surround (G-03-13)
+- [Phase 03]: 03-19: one enemy reads '1 enemy' through Hud.enemy_count_text on the banner and both preview patterns (G-03-14); tools/contrast_probe.sh is the committed real-window contrast gate (5.88:1 on hud_king_down, 1.62:1 unfixed)
 
 ### Pending Todos
 
@@ -271,6 +274,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-13T17:02:22.492Z
-Stopped at: Completed 03-16-PLAN.md
+Last session: 2026-10-13T17:49:15.799Z
+Stopped at: Completed 03-19-PLAN.md
 Resume file: None
