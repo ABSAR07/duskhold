@@ -58,7 +58,17 @@ Phase 3 adds no network, account or save-file surface. The boundaries it touches
 | T-03-19 | Denial of Service | army scenario and balance runs | low | mitigate | Every run is bounded by `ARMY_MAX_TICKS` (8000) or `BalanceReport.MAX_TICKS`; the playtest seed cap of 50 is unchanged; pinned by `test_army_replay_golden.gd` and `test_balance_report.gd` | closed |
 | T-03-20 | Elevation of Privilege | .github/workflows/ci.yml | low | mitigate | Only the screenshots job timeout and the army replay step changed; `permissions: contents: read` (line 17-18), no `secrets.` reference, every `uses:` pinned to a full commit SHA with a version comment; `tools/prepush_check.sh` passed before each of the three pushes; CI run 38219154906 green | closed |
 | T-03-21 | Spoofing | Exported Windows build | low | accept | Unsigned local build for the owner's playtest (no code-signing budget, project constraint); `timeout 90 build/windows/Duskhold.exe --headless --quit-after 120` exits 0 in 3 s (03-12 SUMMARY); SmartScreen behaviour is a Phase 13 concern (AR-03-02) | closed |
-| T-03-SC | Tampering | package installs (one row per plan, 03-01 to 03-12) | low | accept | No npm, pip or cargo installs anywhere in the phase (RESEARCH Package Legitimacy Audit: none); the only third-party items are the two hash-checked CC0 asset packs above (AR-03-03) | closed |
+| T-03-22 | Tampering | CommandKeyController._give -> CommandProcessor (03-13) | low | mitigate | The queued flag is a plain bool inside the existing `SquadOrderIntent`; `CommandProcessor` still returns `QUEUE_CLOSED` for a verb behind a terminal order (`simulation/commands/command_processor.gd:136`) and `SquadOrder.MAX_QUEUE` stays 9 (`simulation/squads/squad_order.gd:33`); nothing under `simulation/` or `project.godot` changed in the plan's commits; `test_squad_queue` and the new `test_command_keys` Shift cases pass in the full suite | closed |
+| T-03-23 | Tampering | King._on_king_healed (03-14) | low | mitigate | The handler only forwards the event's hp and max_hp to `HealthBar3D.set_health`, which clamps the ratio and guards `max_hp <= 0` (`presentation/vfx/health_bar_3d.gd:52-53`); no KingState writer is called, `simulation/` is untouched, `test_king_knockout` pins the behaviour | closed |
+| T-03-24 | Denial of Service | StartNightPlate (03-15) | low | mitigate | `mouse_filter = 2` (IGNORE) on StartNightPlate, StartNightRows, StartNightPrompt and the glyph (`ui/hud/hud.tscn:74,80,86,101`); pinned by `test_the_plate_is_the_dominant_panel_colour_and_ignores_the_mouse`; the box-selection and right-click suites pass in the full suite | closed |
+| T-03-25 | Tampering | ReplayDriver.Tally (03-16) | low | mitigate | The tally only connects to `SimEvents.building_built` and reads defs; `tests/golden/smoke.json` and `army.json` are byte-identical since 9e01f23 and both replay `REPLAY_OK` twice; `test_balance_value_metric` pins the bookkeeping | closed |
+| T-03-26 | Denial of Service | playtest runs (03-16) | low | mitigate | No CLI file changed since 9e01f23 (`tools/replay/playtest_cli.gd`, `replay_cli.gd`, `tools/playtest.sh`); runs stay bounded by `BalanceReport.MAX_TICKS` 40000, the seed cap and `PLAYTEST_TIMEOUT_S` (default 1800 s, `tools/playtest.sh:30`); output confined by `ReplayCli.safe_dir` (`tools/replay/replay_cli.gd:70`) | closed |
+| T-03-27 | Tampering | Shipped data edits (03-17) | medium | mitigate | Only two values moved (`data/buildings/tower.tres` attack_interval 0.8 to 0.9, `data/maps/prototype_map.tres` night 8 north count 10 to 11), each pinned old to new in `test_military_data_contract.gd` (Round 2 pins) and `test_night_data_contract.gd`; `test_every_night_stays_under_the_per_night_enemy_cap_and_the_map_validates` keeps `MapConfig.validate()` clean; no unit health changed, so the CR-01 loop is unreachable from this retune | closed |
+| T-03-28 | Denial of Service | balance search runs (03-17) | low | mitigate | 29 measured candidates (under the 30 cap), five per helper call in private project copies, each run bounded by `BalanceReport.MAX_TICKS`, the seed cap and `PLAYTEST_TIMEOUT_S`; no new CLI argument (no diff on the CLI files) | closed |
+| T-03-29 | Tampering | Round 2 tables in 03-BALANCE-REPORT.md and 03-PLAYTEST-GATE.md (03-18) | low | mitigate | The After Round 2 tables come from a fresh `bash tools/playtest.sh --seeds=10` on the committed data (`PLAYTEST_OK runs=60`) and equal 03-17-SUMMARY.md on every figure; each task commit (ad31e2b, bea054d) lists only its own `.planning` file | closed |
+| T-03-30 | Denial of Service | playtest and screenshot runs (03-18) | low | mitigate | No new CLI argument; the playtest run is bounded as in T-03-26 and `bash tools/screenshot.sh` ran the unchanged 33-shot list (Saved 33 of 33) | closed |
+| T-03-31 | Tampering | KingWidget knocked-out rule, Hud.enemy_count_text and the contrast probe (03-19) | low | accept | Both HUD paths read KingState and the night counts and never write the simulation (the replay goldens passed inside the plan's full suite); `enemy_count_text` formats an int into a constant pattern; the probe rejects a `..` segment and non-PNG paths, exits 64 on usage errors, writes only `build/contrast/` (`tools/screenshot/contrast_probe.gd:14-20`), and `tools/*` is excluded from the export (`export_presets.cfg:11`); AR-03-04 | closed |
+| T-03-SC | Tampering | package installs (one row per plan, 03-01 to 03-19) | low | accept | No npm, pip or cargo installs anywhere in the phase (RESEARCH Package Legitimacy Audit: none); the only third-party items are the two hash-checked CC0 asset packs above (AR-03-03) | closed |
 
 *Status: open · closed · open — below high threshold (non-blocking)*
 *Severity: critical > high > medium > low — only open threats at or above workflow.security_block_on count toward threats_open*
@@ -66,7 +76,7 @@ Phase 3 adds no network, account or save-file surface. The boundaries it touches
 
 ### Unregistered Flags
 
-None. All twelve SUMMARY `## Threat Flags` sections read "None" and describe only the planned surface. Two deviations touched trust-adjacent code and are covered by existing rows: 03-07's `MAX_GROUND_HALF_EXTENT` bound (T-03-12) and 03-12's CI timeout change (T-03-20).
+None. All twelve SUMMARY `## Threat Flags` sections read "None" (the seven gap-closure SUMMARYs 03-13 to 03-19 also read "None" and describe only the planned surface: T-03-22 to T-03-31 above) and describe only the planned surface. Two deviations touched trust-adjacent code and are covered by existing rows: 03-07's `MAX_GROUND_HALF_EXTENT` bound (T-03-12) and 03-12's CI timeout change (T-03-20).
 
 ---
 
@@ -77,6 +87,7 @@ None. All twelve SUMMARY `## Threat Flags` sections read "None" and describe onl
 | AR-03-01 | T-03-14 | Marker and box-select work is bounded by the Phase 3 unit count and hard caps; the data-oriented scale-up is Phase 4's goal (ROADMAP) | Planner (03-08 threat model), confirmed by the orchestrator at verification | 2026-10-12 |
 | AR-03-02 | T-03-21 | The project has no code-signing budget (PROJECT.md constraint); the owner's playtest build is launched locally; SmartScreen/AV behaviour is tracked under Phase 13 in STATE.md Blockers | Planner (03-12 threat model), owner constraint | 2026-10-12 |
 | AR-03-03 | T-03-SC | No package manager installs in the phase; the only third-party inputs are CC0 asset packs verified by sha256 before extraction | Planner (every plan's threat model) | 2026-10-12 |
+| AR-03-04 | T-03-31 | The knocked-out widget rule and the singular copy are read-only views of the simulation; the contrast probe is a tools/ script excluded from the export that reads one screenshot and writes under build/ | Planner (03-19 threat model), confirmed by the orchestrator at the 2026-10-13 L1 audit | 2026-10-13 |
 
 *Accepted risks do not resurface in future audit runs.*
 
@@ -88,6 +99,7 @@ None. All twelve SUMMARY `## Threat Flags` sections read "None" and describe onl
 |------------|---------------|--------|------|--------|
 | 2026-10-12 | 22 (T-03-01 to T-03-21 plus the per-plan T-03-SC row) | 22 | 0 | execute-phase orchestrator (ASVS L1 grep verification, short-circuit rule; commit 80badde) |
 | 2026-10-12 (after code review) | 22 | 20 | 2 (T-03-04, T-03-05: medium, below the high block threshold; CR-01 in 03-REVIEW.md) | execute-phase orchestrator, from gsd-verifier and gsd-code-reviewer findings |
+| 2026-10-13 (UAT round-1 gap closure) | 32 (T-03-01 to T-03-31 plus the per-plan T-03-SC row) | 30 | 2 (T-03-04, T-03-05: medium, below the high block threshold; CR-01 still open in 03-REVIEW.md) | execute-phase orchestrator (ASVS L1 grep verification of T-03-22 to T-03-31, short-circuit rule; HEAD e47ac01) |
 
 ---
 
@@ -99,3 +111,12 @@ None. All twelve SUMMARY `## Threat Flags` sections read "None" and describe onl
 - [x] `status: verified` set in frontmatter
 
 **Approval:** verified 2026-10-12
+
+## Security Audit 2026-10-13
+| Metric | Count |
+|--------|-------|
+| Threats found | 10 (T-03-22 to T-03-31, plan-time registers of 03-13 to 03-19) |
+| Closed | 10 (9 mitigated and grep-verified at L1, 1 accepted as AR-03-04) |
+| Open | 0 new; T-03-04 and T-03-05 stay open below the high threshold pending the CR-01 review fix |
+
+Short-circuit rule applied: `threats_open: 0`, every gap plan carried a plan-time `<threat_model>`, ASVS level 1. Evidence is the grep lines cited in each register row at HEAD e47ac01; no auditor was spawned.
