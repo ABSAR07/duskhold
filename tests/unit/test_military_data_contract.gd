@@ -3,10 +3,13 @@ extends GutTest
 ## 4/8/16, squad sizes 4/8/14 with a smaller but larger-in-magnitude last step, respawn 10/7/4 s,
 ## the footman at a fifth of the king's health, and the two military plots last on the map, inside
 ## the tower ring and clear of everything. Plan 03-11 would re-pin a number here deliberately if its
-## night retune had to move one; it did not (the nights alone reached the bar), so every number is
+## night retune had to move one; it did not (the nights alone reached the bar), so every number was
+## unchanged then. Round 2 (G-03-11, plan 03-17) moved exactly one number outside the nights, the
+## first tower tier's shot interval, pinned by its own test below; every other number here is
 ## unchanged, and any change that breaks this test is a regression.
 
 const MAP_PATH := "res://data/maps/prototype_map.tres"
+const TOWER_PATH := "res://data/buildings/tower.tres"
 const KING_PATH := "res://data/king/king.tres"
 const BARRACKS_PATH := "res://data/buildings/barracks.tres"
 const ARCHERY_PATH := "res://data/buildings/archery_range.tres"
@@ -24,6 +27,13 @@ const MIN_CLEARANCE_M: float = 5.0
 ## passive 5 (D-07), written as a literal so the weapon migration of plan 03-04 does not touch it.
 const FOOTMAN_DAMAGE: int = 1
 const KING_HEALTH_PER_FOOTMAN: int = 5
+## Round 2 (G-03-11, plan 03-17): every number the retune moved outside the nights, old to new. The
+## first tower tier fired every 0.8 s and now fires every 0.9 s (the owner's goals: the balanced bot
+## loses 2 or 3 of 10 and squads are worth their gold against towers). The second tier (0.7 s), the
+## tier costs, damage, range, health and arrow speeds, every unit number and the king's numbers did
+## not move.
+const ROUND_TWO_TOWER_TIER_ONE_INTERVAL_S: float = 0.9  # was 0.8
+const TOWER_TIER_TWO_INTERVAL_S: float = 0.7
 
 
 func _map() -> MapConfig:
@@ -119,3 +129,22 @@ func test_the_military_plots_sit_inside_the_tower_ring_and_clear_of_everything()
 					tower_distance,
 					"%s is inside %s" % [spot.id, other.id]
 				)
+
+
+func test_round_two_slowed_the_first_tower_tier_and_nothing_else_of_the_tower() -> void:
+	var tiers: Array[BuildingTierDef] = (load(TOWER_PATH) as BuildingDef).tiers
+	assert_eq(tiers.size(), 2, "the tower still has two tiers")
+	if tiers.size() != 2:
+		return
+	assert_eq(
+		tiers[0].attack_interval,
+		ROUND_TWO_TOWER_TIER_ONE_INTERVAL_S,
+		"Round 2: tier 1 fires every 0.9 s (was 0.8 s)"
+	)
+	assert_eq(tiers[0].cost, 4, "tier 1 still costs 4")
+	assert_eq(tiers[0].attack_damage, 3, "tier 1 still strikes for 3")
+	assert_eq(tiers[0].attack_range, 9.0, "tier 1 still reaches 9 m")
+	assert_eq(tiers[0].max_health, 50, "tier 1 still has 50 health")
+	assert_eq(tiers[1].attack_interval, TOWER_TIER_TWO_INTERVAL_S, "tier 2 still fires every 0.7 s")
+	assert_eq(tiers[1].cost, 6, "tier 2 still costs 6")
+	assert_eq(tiers[1].attack_damage, 6, "tier 2 still strikes for 6")

@@ -9,7 +9,7 @@ cost = 4
 attack_range = 9.0
 attack_damage = 3
 max_health = 50
-attack_interval = 0.8
+attack_interval = 0.9
 projectile_speed = 18.0
 
 [sub_resource type="Resource" id="Resource_tier2"]

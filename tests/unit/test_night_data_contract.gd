@@ -8,7 +8,9 @@ extends GutTest
 ## Nights 2 to 5 are now the owner's exact numbers (G-02-15, round 3): the other pins hold the
 ## structure, the round-three counts test names every changed number. Nights 5 to 8 were raised
 ## once more for squads (D-08, plan 03-11): the army-building bot wins 8 of 10 seeds with them
-## (the Phase 2 bar of 7 or 8), and the retuned counts test names every changed number.
+## (the Phase 2 bar of 7 or 8), and the retuned counts test names every changed number. Round 2
+## (G-03-11, plan 03-17) raised the north road of night 8 from 10 to 11 grunts so the last night is
+## larger than the night before it (40 against 39).
 
 const PROTOTYPE_MAP := "res://data/maps/prototype_map.tres"
 const NIGHT_COUNT: int = 8
@@ -24,9 +26,10 @@ const FIRST_RANGED_NIGHT: int = 4
 ## Per-night enemy totals: plan 02-02's ramp until round 3; owner decision 2026-10-07 (G-02-15,
 ## the full wall): night 2 opens the east road and nights 3 to 5 grow. Nights 1 and 6 to 8 are
 ## unchanged. Adding the ranged type only splits groups. Retuned for squads (D-08, plan 03-11):
-## nights 5 to 8 went from 21, 22, 27, 33 to 25, 31, 39, 39. Night 8 stops at 39 because the
-## tower-opening bot (towers_first) still wins seeds 1 and 2 there and a bigger last night ends it.
-const NIGHT_TOTALS: Array[int] = [5, 12, 21, 21, 25, 31, 39, 39]
+## nights 5 to 8 went from 21, 22, 27, 33 to 25, 31, 39, 39. Round 2 (G-03-11, plan 03-17, owner
+## goal "night 8 should rise above night 7"): night 8 went from 39 to 40, so the last night is the
+## largest. The tower-opening bot no longer wins there either way (see test_balance_acceptance).
+const NIGHT_TOTALS: Array[int] = [5, 12, 21, 21, 25, 31, 39, 40]
 ## The owner's round-three counts of nights 2 to 5: [night, spawn point, enemy, count].
 const ROUND_THREE_COUNTS: Array = [
 	[2, &"west", &"grunt", 8],
@@ -58,7 +61,7 @@ const SQUAD_RETUNE_COUNTS: Array = [
 	[7, &"north", &"ranged", 3],  # was 2
 	[8, &"west", &"grunt", 10],  # was 8
 	[8, &"east", &"grunt", 10],  # was 8
-	[8, &"north", &"grunt", 10],  # was 8
+	[8, &"north", &"grunt", 11],  # was 8 (10 until Round 2, plan 03-17)
 	[8, &"west", &"ranged", 3],
 	[8, &"east", &"ranged", 3],
 	[8, &"north", &"ranged", 3],
@@ -232,7 +235,9 @@ func test_the_per_night_totals_match_the_owner_s_wall() -> void:
 	var totals: Array[int] = []
 	for night_number: int in range(1, map.nights.size() + 1):
 		totals.append(_total_enemies(map.night_def(night_number)))
-	assert_eq(totals, NIGHT_TOTALS, "5, 12, 21, 21, 25, 31, 39, 39 (squad retune, plan 03-11)")
+	assert_eq(
+		totals, NIGHT_TOTALS, "5, 12, 21, 21, 25, 31, 39, 40 (squad retune 03-11, Round 2 03-17)"
+	)
 
 
 func _summed_counts(night: NightDef) -> Dictionary:
