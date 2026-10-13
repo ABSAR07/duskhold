@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 03
 current_phase_name: King Combat & Troops
 status: executing
-stopped_at: Completed 03-17-PLAN.md
-last_updated: "2026-10-13T18:59:14.365Z"
+stopped_at: Completed 03-18-PLAN.md
+last_updated: "2026-10-13T19:27:47.404Z"
 last_activity: 2026-10-13
 last_activity_desc: Phase 03 execution started
-state_head: ef56a1e697e1e5237a20e82751031467262c84b8
+state_head: bea054d0c0c4f894b9fb76c5bf872c58f10564d0
 progress:
   total_phases: 13
   completed_phases: 2
   total_plans: 59
-  completed_plans: 58
+  completed_plans: 59
   percent: 15
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-08)
 ## Current Position
 
 Phase: 03 (King Combat & Troops) — EXECUTING
-Plan: 7 of 19
+Plan: 8 of 19
 Status: Ready to execute
 Last activity: 2026-10-13 — Phase 03 execution started
 
@@ -115,6 +115,7 @@ Progress: [██░░░░░░░░] 15%
 | Phase 03 P16 | 26 min | 2 tasks | 6 files |
 | Phase 03 P19 | 33 min | 2 tasks | 8 files |
 | Phase 03 P17 | 61 min | 2 tasks | 5 files |
+| Phase 03 P18 | 13 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -244,6 +245,7 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-19: knocked-out king dims per part (bar, plate self_modulate, sword, glyph to 0.4); count and caption stay alpha 1.0 on their opaque outline, the glyphs' immediate surround (G-03-13)
 - [Phase 03]: 03-19: one enemy reads '1 enemy' through Hud.enemy_count_text on the banner and both preview patterns (G-03-14); tools/contrast_probe.sh is the committed real-window contrast gate (5.88:1 on hud_king_down, 1.62:1 unfixed)
 - [Phase 03]: 03-17: Round 2 retune is outcome (a): tower tier 1 attack_interval 0.8 -> 0.9 s and night 8 north grunts 10 -> 11 meet all four goals (balanced 8, army_balanced 8, squad_value_ratio 0.915 vs bar 0.8, night 8 = 40 > 39) — Fewest values of 29 measured candidates; no locked value moved; the slower tier 1 leaves towers_first with 0 of 10 wins and houses_first with 4 of 10 (finding for the owner, pinned as nights survived); full_idle ab4d17d9 (6199 ticks) -> f417c7f5 (6941 ticks), smoke and army goldens unchanged
+- [Phase 03]: 03-18: Round 2 published as outcome (a) with the owner's 0.8 bar (D-26); Round 1 text kept below and declared superseded; gate packet flags that the exported build predates the fixes and the retune
 
 ### Pending Todos
 
@@ -276,6 +278,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-13T18:59:13.422Z
-Stopped at: Completed 03-17-PLAN.md
+Last session: 2026-10-13T19:27:46.672Z
+Stopped at: Completed 03-18-PLAN.md
 Resume file: None
