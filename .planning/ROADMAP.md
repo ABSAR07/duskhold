@@ -189,7 +189,7 @@ Plans:
   4. Every in-run action (move, sprint, hold-to-build/upgrade, active ability, unit selection and commands, start night) works on keyboard and mouse and on gamepad. The player can switch devices at any moment, and on-screen prompts update to match the active device.
   5. The HUD shows gold, current night out of total, king health, ability cooldown, and unit group status without cluttering the play area.
 
-**Plans**: 12/18 plans executed (03-13 to 03-18 close the 2026-10-13 UAT round-1 gaps G-03-4, G-03-8, G-03-11, G-03-13, G-03-14 and G-03-14b; the owner gate, test 15, follows them)
+**Plans**: 12/19 plans executed (03-13 to 03-19 close the 2026-10-13 UAT round-1 gaps G-03-4, G-03-8, G-03-11, G-03-13, G-03-14 and G-03-14b; the owner gate, test 15, follows them)
 **UI hint**: yes
 
 Plans:
@@ -230,13 +230,16 @@ Plans:
 **Gap wave 1**
 - [ ] 03-13: Shift (pad RT) queues F, H and R behind the walks, so "move here, then hold" is one gesture (G-03-8)
 - [ ] 03-14: The floating king bar follows regeneration and hides at full health (G-03-4, review WR-01)
-- [ ] 03-15: A plate behind the start-night prompt, an opaque knocked-out "0 / 50" and "1 enemy" copy; UI-SPEC rows and re-captured shots (G-03-14b, G-03-13, G-03-14)
+- [ ] 03-15: A plate behind the start-night prompt, below the squad strip and clear of the centre; UI-SPEC rows and re-captured day shots (G-03-14b)
 - [ ] 03-16: Kills per gold by building role in the balance report; Round 2 targets and today's baseline (G-03-11, part 1)
 
-**Gap wave 2** *(blocked on 03-13 to 03-16)*
+**Gap wave 2** *(blocked on 03-15)*
+- [ ] 03-19: An opaque knocked-out "0 / 50" and "1 enemy" copy; UI-SPEC rows, the full suite and all 33 shots re-checked with the plate (G-03-13, G-03-14)
+
+**Gap wave 3** *(blocked on 03-13 to 03-16 and 03-19)*
 - [ ] 03-17: Round 2 retune: the owner's four balance goals as tests, a measured search of squad, tower, cost and regeneration values with nights 5 to 8 and re-pinned contracts, or an owner decision on the best three candidates if the allowed levers cannot reach all four (G-03-11, part 2)
 
-**Gap wave 3** *(blocked on 03-17)*
+**Gap wave 4** *(blocked on 03-17 and 03-19)*
 - [ ] 03-18: Round 2 published: outcome, what changed, search log, after-retune tables and goldens in the balance report; the updated gate packet and the 33 shots re-captured (G-03-11, part 3)
 
 ### Phase 4: Crowd-Scale Battles & Walls
