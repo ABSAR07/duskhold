@@ -67,6 +67,20 @@ const SQUAD_RETUNE_NIGHTS: Array[int] = [6, 7, 8]
 ## Night 2's new east group starts at 2.0 s and spaces its grunts 1.5 s apart.
 const NIGHT_TWO_EAST_START_S: float = 2.0
 const NIGHT_TWO_EAST_INTERVAL_S: float = 1.5
+## The Phase 2 wall (the owner's nights 1 to 4), snapshotted from the shipped file before Round 2
+## (plan 03-17, G-03-11): [night, spawn point, enemy, count, start delay s, interval s], in the
+## order the groups are listed. The Round 2 retune may not move any of these.
+const PHASE_TWO_WALL: Array = [
+	[1, &"west", &"grunt", 5, 0.5, 1.5],
+	[2, &"west", &"grunt", 8, 0.5, 1.5],
+	[2, &"east", &"grunt", 4, 2.0, 1.5],
+	[3, &"west", &"grunt", 11, 0.5, 1.5],
+	[3, &"east", &"grunt", 10, 2.0, 1.5],
+	[4, &"west", &"grunt", 11, 0.5, 1.5],
+	[4, &"east", &"grunt", 7, 2.0, 1.5],
+	[4, &"east", &"ranged", 3, 3.5, 1.5],
+]
+const PHASE_TWO_WALL_TOTALS: Array[int] = [5, 12, 21, 21]
 
 
 func _map() -> MapConfig:
@@ -274,3 +288,39 @@ func test_nights_two_to_five_carry_the_owner_s_round_three_counts() -> void:
 	assert_eq(groups[1].spawn_point_id, &"east", "then the new east group")
 	assert_eq(groups[1].start_delay_seconds, NIGHT_TWO_EAST_START_S, "east starts at 2.0 s")
 	assert_eq(groups[1].interval_seconds, NIGHT_TWO_EAST_INTERVAL_S, "and spaces 1.5 s apart")
+
+
+func test_the_last_night_is_larger_than_the_night_before() -> void:
+	var map: MapConfig = _map()
+	var last: int = _total_enemies(map.night_def(NIGHT_COUNT))
+	var before: int = _total_enemies(map.night_def(NIGHT_COUNT - 1))
+	assert_gt(
+		last, before, "G-03-11: night 8 (%d enemies) is larger than night 7 (%d)" % [last, before]
+	)
+
+
+func test_nights_one_to_four_keep_the_phase_two_wall() -> void:
+	var map: MapConfig = _map()
+	for night_number: int in range(1, 5):
+		assert_eq(
+			_total_enemies(map.night_def(night_number)),
+			PHASE_TWO_WALL_TOTALS[night_number - 1],
+			"night %d keeps its Phase 2 total" % night_number
+		)
+		var expected: Array = []
+		for entry: Array in PHASE_TWO_WALL:
+			if entry[0] == night_number:
+				expected.append(entry)
+		var groups: Array[SpawnGroupDef] = map.night_def(night_number).groups
+		assert_eq(groups.size(), expected.size(), "night %d keeps its groups" % night_number)
+		if groups.size() != expected.size():
+			continue
+		for index: int in range(groups.size()):
+			var group: SpawnGroupDef = groups[index]
+			var want: Array = expected[index]
+			var label: String = "night %d group %d" % [night_number, index + 1]
+			assert_eq(group.spawn_point_id, want[1], "%s spawn point" % label)
+			assert_eq(group.enemy_id, want[2], "%s enemy" % label)
+			assert_eq(group.count, want[3], "%s count" % label)
+			assert_eq(group.start_delay_seconds, want[4], "%s start delay" % label)
+			assert_eq(group.interval_seconds, want[5], "%s interval" % label)

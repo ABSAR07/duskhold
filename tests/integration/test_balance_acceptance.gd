@@ -27,6 +27,14 @@ const BALANCED_SEEDS: Array[int] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 const ARMY_BALANCED_SEEDS: Array[int] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 const ARMY_BALANCED_MIN_WINS: int = 7
 const ARMY_BALANCED_MAX_WINS: int = 8
+## G-03-11 (owner decision 2026-10-13, D-27): the balanced bot should lose 2 or 3 of the same ten
+## seeds, so it wins 7 or 8 (G-02-15). Today it wins 9.
+const BALANCED_MIN_WINS: int = 7
+const BALANCED_MAX_WINS: int = 8
+## The owner's measurable reading of "squads worth their gold against towers" (G-03-11, D-26): the
+## army-building bot's unit kills per military gold divided by its tower kills per tower gold, over
+## seeds 1 to 10 (plan 03-16's squad_value_ratio), is at least this.
+const SQUAD_VALUE_BAR: float = 0.8  # provisional, owner-set (confirmed 2026-10-13, D-26)
 ## Measured losses: exactly these seeds, never before night 3 (greedy shares nights 1 and 2).
 ## Re-measured after D-20 regeneration (plan 03-04): the king now heals a second after a hit, so
 ## seed 3 (lost on night 3 before) is won and only seed 9 is lost; the balanced bot wins 9 of 10,
@@ -176,3 +184,40 @@ func test_towers_first_wins_at_least_two_of_three() -> void:
 func test_the_grunt_still_has_six_hp() -> void:
 	var grunt: EnemyDef = load(GRUNT_PATH)
 	assert_eq(grunt.max_health, GRUNT_MAX_HEALTH, "the owner ruled out 5 hp (one-shot by the king)")
+
+
+func test_the_balanced_bot_wins_seven_or_eight_of_ten_seeds() -> void:
+	var wins: int = 0
+	var lost_seeds: Array[int] = []
+	for entry: Dictionary in _runs_of(&"balanced"):
+		if entry["outcome"] == BalanceReport.OUTCOME_WON:
+			wins += 1
+		else:
+			lost_seeds.append(int(entry["seed"]))
+	assert_between(
+		wins,
+		BALANCED_MIN_WINS,
+		BALANCED_MAX_WINS,
+		"G-03-11: the balanced bot wins 7 or 8 of 10 (lost seeds %s)" % [lost_seeds]
+	)
+
+
+func test_squads_are_worth_their_gold_against_towers() -> void:
+	var summary: Dictionary = BalanceReport.summary(_army_report, &"army_balanced")
+	var ratio: float = float(summary["squad_value_ratio"])
+	assert_gte(
+		ratio,
+		SQUAD_VALUE_BAR,
+		(
+			(
+				"G-03-11: army_balanced squad_value_ratio %.3f is at least %.2f (unit kills per military"
+				+ " gold %.2f, tower kills per tower gold %.2f)"
+			)
+			% [
+				ratio,
+				SQUAD_VALUE_BAR,
+				float(summary["unit_kills_per_military_gold"]),
+				float(summary["tower_kills_per_tower_gold"]),
+			]
+		)
+	)
