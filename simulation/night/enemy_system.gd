@@ -341,47 +341,27 @@ func _advance_and_strike(
 	record.cooldown_ready_tick = tick + SimClock.ticks(record.def.attack_interval)
 
 
-## Pushes overlapping enemies apart (Pitfall 6). Positions are snapshotted once; every pair, in
-## ascending id order, adds half the overlap to each member's displacement along their difference
-## (a zero difference uses a fixed axis chosen by the lower id's parity, never a random one); the
-## displacements are applied together, so the result does not depend on iteration side effects
-## (DR-6, DR-8).
+## Pushes overlapping enemies apart (Pitfall 6, DR-6, DR-8). The pass itself is
+## Separation.displacements, shared with UnitSystem; the displacements are applied together, so the
+## result does not depend on iteration side effects.
 func _separate() -> void:
 	var alive: Array[Record] = []
 	for id: int in _order:
 		var record: Record = _records[id]
 		if record.health > 0:
 			alive.append(record)
-	var count_alive: int = alive.size()
-	if count_alive < 2:
+	if alive.size() < 2:
 		return
-	var snapshot: PackedVector2Array = PackedVector2Array()
-	snapshot.resize(count_alive)
-	var displacement: PackedVector2Array = PackedVector2Array()
-	displacement.resize(count_alive)
-	for index: int in range(count_alive):
-		snapshot[index] = alive[index].position
-	for first: int in range(count_alive):
-		for second: int in range(first + 1, count_alive):
-			var min_gap: float = alive[first].def.radius + alive[second].def.radius
-			var delta: Vector2 = snapshot[second] - snapshot[first]
-			if absf(delta.x) >= min_gap:
-				continue
-			var d2: float = delta.length_squared()
-			if d2 >= min_gap * min_gap:
-				continue
-			var direction: Vector2
-			var gap: float = 0.0
-			if d2 == 0.0:
-				direction = Vector2.RIGHT if alive[first].id % 2 == 0 else Vector2.DOWN
-			else:
-				gap = sqrt(d2)
-				direction = delta / gap
-			var push: float = (min_gap - gap) * 0.5
-			displacement[first] -= direction * push
-			displacement[second] += direction * push
-	for index: int in range(count_alive):
-		alive[index].position += displacement[index]
+	var positions: PackedVector2Array = PackedVector2Array()
+	var radii: PackedFloat64Array = PackedFloat64Array()
+	var ids: PackedInt64Array = PackedInt64Array()
+	for record: Record in alive:
+		positions.append(record.position)
+		radii.append(record.def.radius)
+		ids.append(record.id)
+	var pushes: PackedVector2Array = Separation.displacements(positions, radii, ids)
+	for index: int in range(alive.size()):
+		alive[index].position += pushes[index]
 
 
 ## One enemy's state. Private to the system.
