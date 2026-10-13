@@ -14,13 +14,13 @@ extends CanvasLayer
 ## The start-night line reads "Hold [glyph] to start Night N": the words before and after the glyph.
 const START_NIGHT_PROMPT_PRE := "Hold"
 const START_NIGHT_PROMPT_POST := "to start Night %d"
-const NIGHT_BANNER := "Night %d of %d — %d enemies left"
+const NIGHT_BANNER := "Night %d of %d — %s left"
 const TIMED_NIGHT_BANNER := "Night %d"
 ## G-03-14: the count text is "1 enemy" for exactly one and "N enemies" otherwise.
 const ENEMY_ONE := "%d enemy"
 const ENEMY_MANY := "%d enemies"
-const NIGHT_PREVIEW := "Night %d: %d enemies from %d directions"
-const NIGHT_PREVIEW_ONE := "Night %d: %d enemies from 1 direction"
+const NIGHT_PREVIEW := "Night %d: %s from %d directions"
+const NIGHT_PREVIEW_ONE := "Night %d: %s from 1 direction"
 ## KING-06: the visible respawn countdown, whole seconds rounded up so it never reads 0 while
 ## the king is still down.
 const RESPAWN_TEXT := "Knocked out — back in %d s"
@@ -186,11 +186,11 @@ func _refresh_loop() -> void:
 
 ## The enemy count as copy: "1 enemy", "0 enemies", "11 enemies".
 static func enemy_count_text(count: int) -> String:
-	return ENEMY_MANY % count
+	return ENEMY_ONE % count if count == 1 else ENEMY_MANY % count
 
 
-## "Night 3: 11 enemies from 2 directions" under the prompt while the day waits; nothing for a map
-## without authored nights or past the last one.
+## "Night 3: 11 enemies from 2 directions" (or "Night 1: 1 enemy from 1 direction") under the
+## prompt while the day waits; nothing for a map without authored nights or past the last one.
 func _refresh_preview(by_day: bool) -> void:
 	var night_number: int = _ctx.run_manager.get_night_number() + 1
 	var counts: Dictionary = WaveSchedule.preview_counts(_ctx.map, night_number)
@@ -201,13 +201,13 @@ func _refresh_preview(by_day: bool) -> void:
 	for count: int in counts.values():
 		total += count
 	if counts.size() == 1:
-		_night_preview.text = NIGHT_PREVIEW_ONE % [night_number, total]
+		_night_preview.text = NIGHT_PREVIEW_ONE % [night_number, enemy_count_text(total)]
 	else:
-		_night_preview.text = NIGHT_PREVIEW % [night_number, total, counts.size()]
+		_night_preview.text = NIGHT_PREVIEW % [night_number, enemy_count_text(total), counts.size()]
 
 
-## By night: "Night 2 of 8 — 7 enemies left" on a map with authored nights (the enemies still to
-## spawn count as left), the plain "Night 2" on a waveless map.
+## By night: "Night 2 of 8 — 7 enemies left" ("— 1 enemy left" at one) on a map with authored
+## nights (the enemies still to spawn count as left), the plain "Night 2" on a waveless map.
 func _refresh_banner() -> void:
 	var run_manager: RunManager = _ctx.run_manager
 	var at_night: bool = (
@@ -218,7 +218,11 @@ func _refresh_banner() -> void:
 	if _ctx.night.has_authored_nights():
 		_phase_banner.text = (
 			NIGHT_BANNER
-			% [run_manager.get_night_number(), _ctx.map.nights.size(), _ctx.night.remaining_count()]
+			% [
+				run_manager.get_night_number(),
+				_ctx.map.nights.size(),
+				enemy_count_text(_ctx.night.remaining_count()),
+			]
 		)
 	else:
 		_phase_banner.text = TIMED_NIGHT_BANNER % run_manager.get_night_number()

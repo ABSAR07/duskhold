@@ -281,6 +281,7 @@ the new widget scripts, matching the existing style ("Hold %s to start Night %d"
 | Error: point outside the map or off the visible ground | Toast "Can't go there. Click a point on the visible ground." (1.5 s, Body 22, about 460 px, one line), no order issued; the squad does not move. Pad cursor is clamped to visible ground, so this appears for mouse input only. |
 | Error: ability pressed while cooling or down | None (shake only) |
 | Knocked out | "Knocked out — back in %d s" (existing, unchanged) |
+| Night banner and preview counts | "Night %d of %d — %s left" by night, "Night %d: %s from %d directions" / "Night %d: %s from 1 direction" by day, where %s is "%d enemy" at a count of one and "%d enemies" otherwise (`Hud.enemy_count_text`, both lines use it; G-03-14) |
 | Destructive confirmation | None in this phase: no command destroys anything and nothing asks for confirmation. |
 
 Toast: Body 22, white, outline 6, no panel, shown in the hint-strip slot (y 504..536, below the protected centre) in place of the strip, fade in 0.1 s, hold 1.2 s (1.5 s for errors), fade out 0.3 s; a new toast replaces
