@@ -190,3 +190,14 @@ func test_the_markdown_lists_the_squad_value_table_with_one_row_per_strategy() -
 	assert_true(rows[0].begins_with("| alpha |"), "alpha first")
 	assert_true(rows[1].begins_with("| beta |"), "beta second")
 	assert_eq(rows[0].count("|"), header.count("|"), "a value for every column")
+
+
+func test_the_markdown_reads_a_run_without_the_value_keys_as_the_summary_does() -> void:
+	var report: Dictionary = _report_of([_entry("older", {})], ["older"])
+	assert_eq(report["summaries"]["older"]["squad_value_ratio"], 0.0, "the summary accepts it")
+	var text: String = BalanceReport.to_markdown(report)
+	assert_true(text.contains("| older | 100% |"), "the summary row")
+	assert_true(
+		text.contains("| older | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |"),
+		"and the squad value row, where a key the run lacks reads 0"
+	)

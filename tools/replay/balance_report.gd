@@ -307,10 +307,11 @@ static func _night_rows(runs: Array) -> Array[String]:
 	return rows
 
 
+## The mean of `key` over `entries`; an entry without the key counts 0, as `summary` reads it.
 static func _mean(entries: Array, key: String) -> float:
 	if entries.is_empty():
 		return 0.0
 	var total: float = 0.0
 	for entry: Dictionary in entries:
-		total += float(entry[key])
+		total += float(entry.get(key, 0))
 	return total / float(entries.size())
