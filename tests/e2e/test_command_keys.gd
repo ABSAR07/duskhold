@@ -13,6 +13,9 @@ const FIXTURE := "res://tests/fixtures/fixture_map_squads.tres"
 const HUD_SCENE := "res://ui/hud/hud.tscn"
 const BARRACKS: StringName = &"barracks_1"
 const ARCHERY: StringName = &"archery_1"
+const QUEUE_ACTION: StringName = &"command_queue"
+const MAX_ARRIVAL_STEPS: int = 3000
+const ARRIVE_TOLERANCE_M: float = 0.01
 const LONGEST_TOAST := "Can't go there. Click a point on the visible ground."
 const BASE_SIZE := Vector2i(1280, 720)
 const SETTLE_FRAMES: int = 3
@@ -73,6 +76,40 @@ func _select(ids: Array[StringName]) -> void:
 	_selection.select_only(ids, _ctx.squads.squad_ids())
 
 
+## The verbs of the squad's queue, the running order first.
+func _verbs_of(squad_id: StringName) -> Array[StringName]:
+	var verbs: Array[StringName] = []
+	for order: Dictionary in _ctx.squads.orders_of(squad_id):
+		verbs.append(order["verb"])
+	return verbs
+
+
+## Queues three walks of 4 m each from the squad's anchor, the first replacing the queue and the
+## next two queued (as Shift right-clicks do), and returns the third point in metres. The event
+## recorder is cleared afterwards so the test reads only the order it gives next.
+func _queue_three_moves(squad_id: StringName) -> Vector2:
+	var anchor: Vector2 = _ctx.squads.anchor_of(squad_id)
+	var base: Vector2i = Vector2i(roundi(anchor.x * 100.0), roundi(anchor.y * 100.0))
+	var legs: Array[Vector2i] = [
+		base + Vector2i(400, 0), base + Vector2i(400, 400), base + Vector2i(0, 400)
+	]
+	for index: int in range(legs.size()):
+		var points: Array[Vector2i] = [legs[index]]
+		var intent: SquadOrderIntent = SquadOrderIntent.new(
+			[squad_id] as Array[StringName], SquadOrder.VERB_MOVE, points, index > 0
+		)
+		assert_eq(_ctx.commands.submit(intent), CommandProcessor.OK, "leg %d" % index)
+	_ordered = []
+	return Vector2(legs[2]) / 100.0
+
+
+## One press of an action with the queue key (Shift) held down for it.
+func _tap_queued(action: StringName) -> void:
+	Input.action_press(QUEUE_ACTION)
+	await _tap(action)
+	Input.action_release(QUEUE_ACTION)
+
+
 func test_hold_orders_the_selected_squad_to_hold() -> void:
 	await _setup()
 	_select([BARRACKS] as Array[StringName])
@@ -111,6 +148,82 @@ func test_a_verb_orders_every_selected_squad_in_creation_order() -> void:
 	assert_eq(_ordered.size(), 2, "two orders")
 	assert_eq(_ordered[0][0], BARRACKS, "the barracks first")
 	assert_eq(_ordered[1][0], ARCHERY, "then the range")
+
+
+func test_shift_hold_after_three_queued_moves_waits_behind_the_walks() -> void:
+	await _setup()
+	_select([BARRACKS] as Array[StringName])
+	var last_point: Vector2 = _queue_three_moves(BARRACKS)
+	await _tap_queued(&"squad_hold")
+	assert_eq(_ordered.size(), 1, "one order")
+	assert_eq(_ordered[0][1], SquadOrder.VERB_HOLD, "a hold")
+	assert_true(_ordered[0][2], "marked queued")
+	var expected: Array[StringName] = [
+		SquadOrder.VERB_MOVE, SquadOrder.VERB_MOVE, SquadOrder.VERB_MOVE, SquadOrder.VERB_HOLD
+	]
+	assert_eq(_verbs_of(BARRACKS), expected, "the hold waits behind the three walks")
+	assert_eq(_ctx.squads.resting_stance(BARRACKS), SquadOrder.STANCE_HOLD, "and it will hold")
+	var steps: int = 0
+	while not _ctx.squads.orders_of(BARRACKS).is_empty() and steps < MAX_ARRIVAL_STEPS:
+		_ctx.step()
+		steps += 1
+	assert_true(_ctx.squads.orders_of(BARRACKS).is_empty(), "the walks ended")
+	assert_eq(_ctx.squads.resting_stance(BARRACKS), SquadOrder.STANCE_HOLD, "and the squad holds")
+	var held: Vector2 = _ctx.squads.anchor_of(BARRACKS)
+	assert_almost_eq(held.x, last_point.x, ARRIVE_TOLERANCE_M, "at the last point, x")
+	assert_almost_eq(held.y, last_point.y, ARRIVE_TOLERANCE_M, "at the last point, z")
+
+
+func test_hold_without_shift_still_clears_the_queue_and_holds_at_the_centroid() -> void:
+	await _setup()
+	_select([BARRACKS] as Array[StringName])
+	_queue_three_moves(BARRACKS)
+	await _tap(&"squad_hold")
+	assert_eq(_ordered.size(), 1, "one order")
+	assert_eq(_ordered[0][1], SquadOrder.VERB_HOLD, "a hold")
+	assert_false(_ordered[0][2], "not queued")
+	assert_true(_ctx.squads.orders_of(BARRACKS).is_empty(), "the walks are gone")
+	assert_eq(_ctx.squads.resting_stance(BARRACKS), SquadOrder.STANCE_HOLD, "and it holds at once")
+	await _tap_queued(&"squad_hold")
+	assert_eq(_ordered.size(), 2, "Shift+H on an empty queue is an order too")
+	assert_true(_ordered[1][2], "marked queued")
+	assert_true(_ctx.squads.orders_of(BARRACKS).is_empty(), "nothing waits, the hold ran at once")
+	assert_eq(_ctx.squads.resting_stance(BARRACKS), SquadOrder.STANCE_HOLD, "and it holds")
+
+
+func test_shift_follow_and_shift_rally_queue_behind_the_walks() -> void:
+	await _setup()
+	_select([BARRACKS] as Array[StringName])
+	_queue_three_moves(BARRACKS)
+	await _tap_queued(&"squad_follow")
+	assert_eq(_ordered.size(), 1, "one order")
+	assert_eq(_ordered[0][1], SquadOrder.VERB_FOLLOW, "a follow")
+	assert_true(_ordered[0][2], "marked queued")
+	var follow_queue: Array[StringName] = [
+		SquadOrder.VERB_MOVE, SquadOrder.VERB_MOVE, SquadOrder.VERB_MOVE, SquadOrder.VERB_FOLLOW
+	]
+	assert_eq(_verbs_of(BARRACKS), follow_queue, "the follow waits behind the walks")
+	assert_eq(_ctx.squads.resting_stance(BARRACKS), SquadOrder.STANCE_FOLLOW, "and it will follow")
+	_select([ARCHERY] as Array[StringName])
+	_queue_three_moves(ARCHERY)
+	await _tap_queued(&"squad_rally")
+	assert_eq(_ordered.size(), 1, "one order")
+	assert_eq(_ordered[0][0], ARCHERY, "for the range")
+	assert_eq(_ordered[0][1], SquadOrder.VERB_RALLY, "a rally")
+	assert_true(_ordered[0][2], "marked queued")
+	var rally_queue: Array[StringName] = [
+		SquadOrder.VERB_MOVE,
+		SquadOrder.VERB_MOVE,
+		SquadOrder.VERB_MOVE,
+		SquadOrder.VERB_MOVE,
+		SquadOrder.VERB_HOLD,
+	]
+	assert_eq(_verbs_of(ARCHERY), rally_queue, "the rally is a move to the king then a hold")
+	var orders: Array[Dictionary] = _ctx.squads.orders_of(ARCHERY)
+	assert_eq(orders.size(), rally_queue.size(), "five entries")
+	if orders.size() > 3:
+		assert_eq(orders[3]["points"], [_ctx.king.get_position()], "the fourth walk is to the king")
+	assert_eq(_ctx.squads.resting_stance(ARCHERY), SquadOrder.STANCE_HOLD, "and it ends holding")
 
 
 func test_a_verb_with_nothing_selected_issues_no_order_and_says_so() -> void:
