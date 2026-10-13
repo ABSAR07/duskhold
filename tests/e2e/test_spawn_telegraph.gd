@@ -49,7 +49,20 @@ func _total(map: MapConfig, night_number: int) -> int:
 
 
 func _banner_text(map: MapConfig, night_number: int, left: int) -> String:
-	return "Night %d of %d — %d enemies left" % [night_number, map.nights.size(), left]
+	var noun: String = "enemy" if left == 1 else "enemies"
+	return "Night %d of %d — %d %s left" % [night_number, map.nights.size(), left, noun]
+
+
+## The shipped map with night one cut down to a single enemy from the west spawn point.
+func _map_with_one_enemy_on_night_one() -> MapConfig:
+	var map: MapConfig = E2eSupport.shipped_prototype_map()
+	var only: SpawnGroupDef = SpawnGroupDef.new()
+	only.spawn_point_id = WEST
+	only.enemy_id = &"grunt"
+	only.count = 1
+	var groups: Array[SpawnGroupDef] = [only]
+	map.night_def(1).groups = groups
+	return map
 
 
 func _step_n(ctx: RunContext, steps: int) -> void:
@@ -225,3 +238,31 @@ func test_a_waveless_map_shows_no_marker_no_preview_and_a_plain_night_banner() -
 	assert_false(preview.visible, "and no preview line")
 	assert_eq(ctx.commands.submit(StartNightIntent.new()), CommandProcessor.OK, "the night starts")
 	assert_eq(banner.text, "Night 1", "the timed night keeps the plain banner")
+
+
+func test_enemy_count_text_is_singular_only_for_one() -> void:
+	assert_eq(Hud.enemy_count_text(1), "1 enemy", "one enemy")
+	assert_eq(Hud.enemy_count_text(0), "0 enemies", "none")
+	assert_eq(Hud.enemy_count_text(2), "2 enemies", "two")
+	assert_eq(Hud.enemy_count_text(39), "39 enemies", "many")
+
+
+## G-03-14 (UAT test 14): "1 enemies left" and "1 enemies from 1 direction" read wrong.
+func test_one_enemy_reads_in_the_singular_on_the_preview_and_the_banner() -> void:
+	var map: MapConfig = _map_with_one_enemy_on_night_one()
+	var map_root: MapRoot = await _spawn_seeded(map)
+	var ctx: RunContext = map_root.get_context()
+	var preview: Label = _preview(map_root)
+	var banner: Label = _banner(map_root)
+	assert_not_null(preview, "the HUD has a night preview label")
+	assert_not_null(banner, "the HUD has a phase banner")
+	if preview == null or banner == null:
+		return
+	assert_eq(_total(map, 1), 1, "night one holds a single enemy")
+	assert_eq(preview.text, "Night 1: 1 enemy from 1 direction", "the day preview")
+
+	assert_eq(ctx.commands.submit(StartNightIntent.new()), CommandProcessor.OK, "the night starts")
+	_step_n(ctx, STEPS_TO_FIRST_SPAWN)
+	await wait_process_frames(2)
+
+	assert_eq(banner.text, "Night 1 of %d — 1 enemy left" % map.nights.size(), "the night banner")
