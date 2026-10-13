@@ -1,20 +1,36 @@
 ---
 phase: 03-king-combat-troops
-verified: 2026-10-12T09:16:48Z
+verified: 2026-10-13T20:11:11Z
 status: human_needed
-score: 5/5 roadmap success criteria verified in code and tests (0 failed); 11/11 requirement IDs have implementation evidence; owner feel gate (UAT) not yet run
+score: 5/5 roadmap success criteria verified in code and tests (0 failed); 6/6 UAT round-1 gap truths closed in code, tests and probes (0 failed); 11/11 requirement IDs have implementation evidence; owner feel gate (UAT test 15), the physical pad (test 9) and the E6 decision (test 12) not yet done
 must_haves:
   roadmap_truths: 5
   roadmap_truths_verified: 5
   roadmap_truths_failed: 0
-  plan_truths_declared: 149
-  plan_artifacts_checked: "55/55 pass (gsd-tools verify.artifacts over all 12 plans)"
-  plan_key_links_checked: "38/38 wired (gsd-tools verify.key-links over all 12 plans)"
-  prohibitions_declared: 14
-  prohibitions_note: "judgment-tier, non-authoritative reading, flagged unverified-prohibition - human review recommended; never absorbed into the pass"
+  gap_truths: 6
+  gap_truths_closed: 6
+  gap_truths_failed: 0
+  plan_truths_declared: 188
+  plan_artifacts_checked: "81/81 pass (gsd-tools verify.artifacts over all 19 plans)"
+  plan_key_links_checked: "52/52 wired (gsd-tools verify.key-links over all 19 plans)"
+  prohibitions_declared: 25
+  prohibitions_note: "judgment-tier, non-authoritative reading, flagged unverified-prohibition - human review recommended; never absorbed into the pass. The 11 new ones (plans 03-13 to 03-19) were read against git: no file under simulation/, project.godot, tests/golden or tests/fixtures changed since 90f54c6, and the only data files moved are tower.tres and prototype_map.tres"
   requirement_ids: 11
   requirement_ids_satisfied: 11
   requirement_ids_orphaned: 0
+re_verification:
+  previous_status: human_needed
+  previous_score: "5/5 roadmap success criteria verified in code and tests; 11/11 requirement IDs; 16 human items (the report of 2026-10-12T09:16:48Z at HEAD 008a9b0)"
+  report_number: "second report: re-verification after the UAT round-1 gap closure (plans 03-13 to 03-19, executed 2026-10-13); the first report was the initial verification"
+  gaps_closed:
+    - "G-03-4 / WR-01: the floating bar over the king follows regeneration (king.gd connects king_healed, line 54, handler lines 101-103; test_king_knockout 5/5 re-run by me)"
+    - "G-03-8: Shift (pad RT) queues the F, H and R verbs behind queued walks (command_key_controller.gd _give reads QUEUE_ACTION; test_command_keys 14/14 and test_pad_commands 18/18 re-run by me)"
+    - "G-03-13: the knocked-out '0 / 50' stays opaque on its own outline (king_widget.gd _apply_knocked_out dims only the bar, plate, icon and glyph; test_king_widget 15/15 re-run; contrast probe re-run by me: CONTRAST_OK ratio=5.88 on screenshots/hud_king_down.png)"
+    - "G-03-14: singular copy at a count of one (Hud.enemy_count_text; test_spawn_telegraph 22/22 re-run; hud_king_down.png read by me: 'Night 7 of 8 - 1 enemy left')"
+    - "G-03-14b: a plate behind the start-night prompt (StartNightPlate in hud.tscn; test_start_night_plate 6/6 re-run; hud_day_squads.png read by me: the plated prompt sits below the slots)"
+    - "G-03-11: Round 2 retune, balanced 8 of 10, army_balanced 8 of 10, squad_value_ratio 0.915 (bar 0.8, D-26), night 8 at 40 above night 7 at 39 (tower.tres tier 1 attack_interval 0.8 to 0.9, prototype_map.tres night 8 north grunts 10 to 11; test_balance_acceptance 12/12, test_night_data_contract 16/16, test_military_data_contract 7/7, test_balance_value_metric 5/5 re-run by me)"
+  gaps_remaining: []
+  regressions: []
 covered_files:
   - .claude/CLAUDE.md
   - .github/workflows/ci.yml
@@ -42,13 +58,30 @@ covered_files:
   - .planning/phases/03-king-combat-troops/03-11-SUMMARY.md
   - .planning/phases/03-king-combat-troops/03-12-PLAN.md
   - .planning/phases/03-king-combat-troops/03-12-SUMMARY.md
+  - .planning/phases/03-king-combat-troops/03-13-PLAN.md
+  - .planning/phases/03-king-combat-troops/03-13-SUMMARY.md
+  - .planning/phases/03-king-combat-troops/03-14-PLAN.md
+  - .planning/phases/03-king-combat-troops/03-14-SUMMARY.md
+  - .planning/phases/03-king-combat-troops/03-15-PLAN.md
+  - .planning/phases/03-king-combat-troops/03-15-SUMMARY.md
+  - .planning/phases/03-king-combat-troops/03-16-PLAN.md
+  - .planning/phases/03-king-combat-troops/03-16-SUMMARY.md
+  - .planning/phases/03-king-combat-troops/03-17-PLAN.md
+  - .planning/phases/03-king-combat-troops/03-17-SUMMARY.md
+  - .planning/phases/03-king-combat-troops/03-18-PLAN.md
+  - .planning/phases/03-king-combat-troops/03-18-SUMMARY.md
+  - .planning/phases/03-king-combat-troops/03-19-PLAN.md
+  - .planning/phases/03-king-combat-troops/03-19-SUMMARY.md
   - .planning/phases/03-king-combat-troops/03-BALANCE-REPORT.md
   - .planning/phases/03-king-combat-troops/03-CONTEXT.md
+  - .planning/phases/03-king-combat-troops/03-DISCUSSION-LOG.md
+  - .planning/phases/03-king-combat-troops/03-PATTERNS.md
   - .planning/phases/03-king-combat-troops/03-PLAYTEST-GATE.md
   - .planning/phases/03-king-combat-troops/03-RESEARCH.md
   - .planning/phases/03-king-combat-troops/03-REVIEW-DISPOSITION.md
   - .planning/phases/03-king-combat-troops/03-REVIEW.md
   - .planning/phases/03-king-combat-troops/03-SECURITY.md
+  - .planning/phases/03-king-combat-troops/03-UAT.md
   - .planning/phases/03-king-combat-troops/03-UI-REVIEW.md
   - .planning/phases/03-king-combat-troops/03-UI-SPEC.md
   - .planning/phases/03-king-combat-troops/03-VALIDATION.md
@@ -133,6 +166,7 @@ covered_files:
   - assets/third_party/kenney_mini_characters/models/character-male-a.glb
   - data/buildings/archery_range.tres
   - data/buildings/barracks.tres
+  - data/buildings/tower.tres
   - data/king/king.tres
   - data/king/sword.tres
   - data/maps/prototype_map.tres
@@ -199,6 +233,7 @@ covered_files:
   - tests/e2e/test_command_keys.gd
   - tests/e2e/test_control_group_keys.gd
   - tests/e2e/test_hud_contract.gd
+  - tests/e2e/test_king_knockout.gd
   - tests/e2e/test_king_widget.gd
   - tests/e2e/test_mouse_commands.gd
   - tests/e2e/test_order_markers.gd
@@ -207,10 +242,12 @@ covered_files:
   - tests/e2e/test_prompt_switch.gd
   - tests/e2e/test_select_one_type.gd
   - tests/e2e/test_selection_steering.gd
+  - tests/e2e/test_spawn_telegraph.gd
   - tests/e2e/test_squad_selection.gd
   - tests/e2e/test_squad_strip.gd
   - tests/e2e/test_squad_tracer_scene.gd
   - tests/e2e/test_start_night_hold.gd
+  - tests/e2e/test_start_night_plate.gd
   - tests/e2e/test_stretch_coordinates.gd
   - tests/e2e/test_unit_views.gd
   - tests/e2e/test_upgrade_at_spot.gd
@@ -222,6 +259,7 @@ covered_files:
   - tests/integration/test_army_replay_golden.gd
   - tests/integration/test_balance_acceptance.gd
   - tests/integration/test_balance_report.gd
+  - tests/integration/test_balance_value_metric.gd
   - tests/integration/test_replay_golden.gd
   - tests/integration/test_squad_determinism.gd
   - tests/integration/test_squad_lifecycle.gd
@@ -268,6 +306,7 @@ covered_files:
   - tests/unit/test_squad_stance_persistence.gd
   - tests/unit/test_stance_glyph.gd
   - tests/unit/test_weapon_def.gd
+  - tools/contrast_probe.sh
   - tools/playtest.sh
   - tools/replay.sh
   - tools/replay/balance_report.gd
@@ -277,6 +316,7 @@ covered_files:
   - tools/replay/replay_scenarios.gd
   - tools/replay/sim_recorder.gd
   - tools/screenshot.sh
+  - tools/screenshot/contrast_probe.gd
   - tools/screenshot/shot_army_scenarios.gd
   - tools/screenshot/shot_runner.gd
   - tools/screenshot/shot_scenarios.gd
@@ -300,7 +340,8 @@ covered_files:
   - ui/overlay/night_overlay_sections.gd
   - ui/overlay/squad_overlay_sections.gd
   - ui/theme/hud_theme.tres
-covered_digest: "v2:sha256:bb19fc27c0fa25a810f383bb625fd2ab9a513ca73a699d7f9a795c73e2aed03a"
+  - ui/hud/dawn_payout_vfx.gd
+covered_digest: "v2:sha256:dcff2126dbe66b173faed4b8e391d2cf2d8b2d8783131986d5ddeee2e863f2a3"
 behavior_unverified: 0
 overrides_applied: 0
 gaps: []
@@ -315,240 +356,233 @@ deferred:
     addressed_in: "Phase 4"
     evidence: "03-CONTEXT.md 'Not in this phase'; ROADMAP Phase 4 success criterion 2 (200+ enemies through a gate). Phase 3 keeps units in the manager so the switch needs no simulation change"
 warnings:
-  - id: "CR-01 (03-REVIEW, OPEN)"
-    where: "simulation/squads/squad_system.gd _fill and restore_for_dawn (while loops), simulation/squads/unit_system.gd spawn (health = def.max_health, unclamped), simulation/run/run_context.gd (push_error only)"
-    issue: "I re-read all four spots at HEAD and confirm the finding. A UnitDef with max_health <= 0 is reported by MapConfig validation but RunContext only push_errors; spawn stores the health unclamped, is_alive is health > 0, and both loops run until the living count reaches the cap, which a born-dead unit never allows. The first day step after a military building stands (or the first dawn) hangs the main thread and grows memory without bound. The shipped data (footman 10, archer 6) cannot trigger it, so no roadmap truth fails. 03-SECURITY.md closes T-03-04 and T-03-05 on the strength of the validation, which this finding shows is only advisory on the consumer side; that closure should be reopened until the loops are bounded."
-    decision_requested: "Fix in the review-fix pass (bound both loops by the missing seats, floor the stored health at 1, add a test that builds a Barracks over a max_health = 0 footman and expects the step to return). Not a gap: hand-corrupted .tres only, and the shipped data validates clean. I weighed it as a WARNING, not a BLOCKER, because no success criterion depends on corrupted data; it is still the one finding that must not ship."
-  - id: "WR-01 (03-REVIEW, OPEN)"
-    where: "presentation/king/king.gd bind_run (lines 51-54)"
-    issue: "Confirmed: king_healed is emitted by KingState._regenerate and has no consumer outside the recorder, so the king's floating HealthBar3D freezes at the damaged value while the HUD KingWidget (which polls) climbs back. Success criterion 3 (health regenerates) is true in the simulation and on the HUD; the in-world bar disagrees until the next hit, respawn or dawn."
-    decision_requested: "Fix in the review-fix pass (connect king_healed to set_health, plus an e2e assertion that the bar hides again). Not a gap."
-  - id: "WR-02 (03-REVIEW, OPEN)"
+  - id: "CR-01 (03-REVIEW-DISPOSITION, OPEN, critical)"
+    where: "simulation/squads/squad_system.gd lines 147 (_fill) and 457 (restore_for_dawn), simulation/squads/unit_system.gd line 29 (record.health = def.max_health, unclamped), simulation/run/run_context.gd (push_error only)"
+    issue: "Re-checked at HEAD e925538: the two `while _living_count(squad) < squad.cap` loops are unchanged and spawn still stores the health unclamped. A UnitDef with max_health <= 0 (reported by MapConfig validation but not refused by RunContext) spawns born-dead units and the loops never end. The gap round did not touch it (03-13 SUMMARY says so; no file under simulation/ changed since 90f54c6). The shipped footman (10) and archer (6) cannot trigger it and Round 2 changed no unit health (T-03-27), so no roadmap truth fails. 03-SECURITY.md still lists T-03-04 and T-03-05 as open (medium, below the high block threshold)."
+    decision_requested: "Fix in the review-fix pass (bound both loops by the missing seats, floor the stored health at 1, add a test that builds a Barracks over a max_health = 0 footman and expects the step to return). It remains the one finding that must not ship. Not a gap."
+  - id: "WR-02 (OPEN)"
     where: "tools/screenshot.sh lines 97-116"
-    issue: "Confirmed by reading: the wrapper passes a shot on exit status 0 plus a non-blank PNG and, unlike tools/replay.sh and tools/playtest.sh, does not scan the Godot output for SCRIPT ERROR or Parse Error. A script error in a HUD node would leave the CI screenshots job green. Tooling only."
+    issue: "The wrapper still passes a shot on exit 0 plus a non-blank PNG and does not scan the Godot output for SCRIPT ERROR or Parse Error, unlike replay.sh and playtest.sh. Tooling only; the new tools/contrast_probe.sh does have the script-error guard."
     decision_requested: "Fix in the review-fix pass or accept."
-  - id: "WR-03 (03-REVIEW, OPEN)"
-    where: "input/selection_controller.gd _order, input/pad_cursor_controller.gd _confirm, simulation/commands/command_processor.gd"
-    issue: "Confirmed: a repo-wide search of input/, presentation/ and ui/ finds no consumer of command_rejected, and both controllers drop the reason submit returns. A Shift-queued order behind a pending hold, follow or patrol is refused silently while the patrol disc on the ground suggests the queue is open. The refusal is also all-or-nothing for a mixed selection. Success criterion 2 is met (the order set works and the gate is tested); this is a feedback gap on a reachable edge."
-    decision_requested: "Fix in the review-fix pass (toast for QUEUE_CLOSED, per-squad skip) and add the copy to UI-SPEC, or accept and tell the owner at UAT."
-  - id: "IN-01 to IN-06 (03-REVIEW, all OPEN)"
-    where: "squad_system.gd (dead patrol budget), command_processor.gd and ground_pick.gd (ground bound twice), unit_system.gd and enemy_system.gd (35-line separate pass duplicated), test-only accessors, three unused ext_resource lines, the eighth patrol click dropped silently"
-    issue: "Info only; none changes a success criterion. Listed so the review-fix pass has the full ledger. All ten review findings are open per 03-REVIEW-DISPOSITION.md."
+  - id: "WR-03 (OPEN, widened by 03-13)"
+    where: "input/selection_controller.gd _order, input/pad_cursor_controller.gd _confirm, input/command_key_controller.gd _give, simulation/commands/command_processor.gd"
+    issue: "A repo-wide search of input/, presentation/ and ui/ still finds no consumer of command_rejected. 03-REVIEW notes that 03-13 gives the player a new way to reach it: Shift+F, Shift+H or Shift+R behind a queue that already ends in a hold, follow or patrol is refused with QUEUE_CLOSED and nothing says so."
+    decision_requested: "Fix in the review-fix pass (a toast for QUEUE_CLOSED, a per-squad skip for a mixed selection; add the copy to UI-SPEC) or accept and tell the owner at the gate. Not a gap."
+  - id: "WR-04 (OPEN, new in the 2026-10-13 review)"
+    where: "tools/screenshot/contrast_probe.gd lines 57-90 and 141-215 (parse_args, _safe_image, _parse_rect, measure, luminance, contrast_ratio)"
+    issue: "The probe is the sole real-window evidence for the G-03-13 legibility claim and its path guard decides which file the script opens, yet no test under tests/ exercises either. I re-ran the probe on the shipped capture (CONTRAST_OK 5.88) but that is one sample, not a regression guard."
+    decision_requested: "Add tests/unit/test_contrast_probe.gd in the review-fix pass (red text on black passes, on grey fails, no red pixels gives the error; `..`, a sibling prefix, an absolute path outside the project and a non-png name are rejected)."
+  - id: "IN-01 to IN-06 and IN-07 to IN-09 (all OPEN)"
+    where: "squad_system.gd (dead patrol budget), command_processor.gd and ground_pick.gd (ground bound twice), unit_system.gd and enemy_system.gd (35-line separate pass duplicated), test-only accessors, three unused ext_resource lines, the eighth patrol click dropped silently; balance_report.gd _mean strict versus summary tolerant; the queue action name literal in two controllers and a constant in a third; the #14141A 0.78 panel colour written in three places"
+    issue: "Info only. 03-REVIEW-DISPOSITION.md records open: 13 of 14 (CR-01, WR-02, WR-03, WR-04, IN-01 to IN-09); WR-01 is the only fixed one. I do not describe any open finding as addressed."
     decision_requested: "Fix or defer in the review-fix pass."
-  - id: "D-08 reading (judgment call, flagged)"
-    where: "03-CONTEXT.md D-08, 03-11-SUMMARY, 03-BALANCE-REPORT.md"
-    issue: "D-08 reads that the balanced bot still wins 7 or 8 of 10. The retune pinned the bar on the new army_balanced bot (8 of 10) and left the balanced bot at 9 of 10 (it loses 1, not the 2 or 3 the owner asked for in G-02-15). The report states this plainly and says counts alone cannot reach both bars. It also states that squads are not stronger than towers per gold under the bots. These are measurements, not the failure of a roadmap truth."
-    decision_requested: "Owner decides at the gate which bar the nights serve and whether the army is worth its gold."
-  - id: "E6 toast width (known, human_needed)"
+  - id: "Round 2 balance: what it cost (judgment call, flagged)"
+    where: "data/buildings/tower.tres tier 1 attack_interval 0.9, tests/integration/test_balance_acceptance.gd, 03-BALANCE-REPORT.md Round 2 'What the numbers say'"
+    issue: "All four owner goals are met on the measured data (balanced 8 of 10, army_balanced 8 of 10, ratio 0.915 against the 0.8 bar, night 8 at 40 against 39) and I reproduced the pinned results (test_balance_acceptance 12/12 in 201 s). The report itself says what it cost: (1) towers_first wins 0 of 10 (was 3 of 10) and houses_first 4 of 10 (was 9). The Phase 2 acceptance pin 'the owner's tower opening wins at least 2 of 3' (plan 02-16, which said not to loosen it) was re-pinned to 'survives at least 6 nights on every pinned seed'; this was a documented, plan-allowed route (29 candidates searched), but it is a relaxed Phase 2 pin. (2) The ratio rose mainly because the tower denominator fell (tower kills per tower gold 5.93 to 4.70) while squads only moved from 4.04 to 4.31 unit kills per military gold, so the squads were not made stronger, the towers were made weaker. (3) army_balanced loses 17.6 buildings a run and the balanced bot 10.4 (was 5.8). (4) The full_idle digest moved by design (6199 to 6941 ticks, no golden). The smoke and army goldens are byte-identical (re-run by me)."
+    decision_requested: "Owner judges at the gate whether a tier 1 tower firing every 0.9 s still feels rewarding, whether the lost tower-route wins matter, and whether squads feel worth their gold."
+  - id: "E6 toast width (known, unchanged, human_needed)"
     where: "ui/hud/toast.gd CANT_GO_THERE"
-    issue: "526 px wide at x 377..903, 7 px past the UI-SPEC literal x 384..896 band on each side, on one line below the protected rectangle (y 504..536; the centre band ends at y 500). The runner's clear-centre check passes. Recorded in .planning/WINDOWS.md. I treat it as a human decision, not an automated failure: it never enters the clear centre, which is what success criterion 5 protects."
-    decision_requested: "Owner: accept, shorten the copy (UI-REVIEW suggests a shorter line) or amend the bound."
+    issue: "Still 526 px wide at x 377..903, 7 px past the UI-SPEC literal x 384..896 band on each side, one line below the protected rectangle (y 504..536). The gap round did not touch it (03-19 SUMMARY, D-28: decided after the owner plays the fixed build). UI-REVIEW lists it as open Fix 2. UAT test 12 is pending."
+    decision_requested: "Owner: accept, shorten the copy (UI-REVIEW suggests 'Can't go there. Click visible ground.') or amend the bound."
+  - id: "Payout line: two records disagree (informational)"
+    where: "ui/hud/dawn_payout_vfx.gd TOTAL_SHOWN_SECONDS = 2.0 (a wall-clock tween), UAT test 14 p14, 03-UI-REVIEW.md Top 3 fix 1"
+    issue: "UAT p14 measured the '+N gold' line expiring within 1 s of the day starting in real time and called the night captures a fast-forward artefact; the 2026-10-13 UI review reads the same line under the gold counter in night captures and names the 2 s real-time tween as the cause. The code agrees with both (nothing hides it on a phase change; it is only the 2 s tween). It is Phase 1 and 2 code outside this phase's files and no success criterion depends on it."
+    decision_requested: "Owner glance at the re-check of test 14; fix later or in the review-fix pass if it shows in play."
+  - id: "Exported Windows build is stale (informational)"
+    where: "build/windows/Duskhold.exe (exported 2026-10-12 from c418b6c)"
+    issue: "It predates plans 03-13 to 03-19, so it holds none of the fixes or the retune. 03-PLAYTEST-GATE.md says so and tells the owner to run the editor binary or `bash tools/export.sh` first."
+    decision_requested: "Re-export (or use the editor binary) before the gate, or the owner would re-test the old build."
+  - id: "Shift is both sprint and queue (behaviour note from 03-13)"
+    where: "input/command_key_controller.gd _give, project.godot command_queue"
+    issue: "Pressing F, H or R while sprinting with Shift held now queues the verb behind the selection's walks instead of replacing them. It is consistent with D-09 and with Shift right-click moves; with nothing queued the verb runs at once, so it only shows when walks are queued."
+    decision_requested: "Owner to say at the gate whether this surprises in play."
 behavior_unverified_items: []
 human_verification:
-  - name: "Guard and commit readability at night"
-    requirement: "UNIT-04"
-    test: "Build a Barracks and an Archery Range, play a night and watch the squads: footmen holding the ground in front of the plot, picking one grunt and staying on it, then walking back to the post; archers staying back and shooting"
-    expected: "Units read as footmen and archers, guard rather than wander, commit to one target instead of flip-flopping and return to their formation after the fight, even as static bind-pose puppets"
-    why_human: "Commit and leash rules are pinned by test_squad_guard (14/14, re-run by me), but whether the behaviour reads as intelligent or as thrashing, and how small plain-coloured units read at night, is a visual judgement (03-01 D8)"
-  - name: "Barracks and Archery Range models and replacement pace"
-    requirement: "UNIT-07"
-    test: "Build each military plot to tier 3 and look at the models; lose units at night and watch the 10 / 7 / 4 s trickle at the building, then the full restore at dawn"
-    expected: "Each tier reads bigger than the last next to the House and Tower models, the trickle pace feels right for the gold spent, and dawn visibly makes every squad whole"
-    why_human: "Headless Godot cannot render; tests assert scene use and tier growth only (03-02 D8)"
-  - name: "HUD in a real window at 1920x1080 and 16:10"
+  - name: "G-03-4 re-check: the floating bar over the king and the bottom-left widget agree after a heal"
+    requirement: "KING-05, UI-01"
+    test: "Take a hit or two at night (or from an enemy by day), stop being hit, and watch the small bar floating over the king and the health bar bottom-left while the king regenerates; look at the moment he is whole again"
+    expected: "Both climb together, one point at a time, to the same number; the floating bar disappears once he is at full health (it used to freeze at the last damaged value while the widget climbed; fixed by plan 03-14, 10 heals measured equal in a real window)"
+    why_human: "The tests and the scripted real-window probe show the numbers agree; whether the two readouts read as one in motion, over the real scene, is a by-eye judgement (UAT test 4 re-check)"
+  - name: "G-03-8 re-check: Shift-queued hold (and RT on the pad)"
+    requirement: "UNIT-10, INPT-01, INPT-02"
+    test: "Select a squad, Shift + right-click three points, then press Shift + H; repeat with Shift + F and Shift + R; press plain H after a queued walk; on a pad hold RT and press D-pad down"
+    expected: "The squad walks all three points and then holds at the last one (move here, then hold); plain H still stops it at once and holds where it stands; Shift + F and Shift + R queue the follow and the rally the same way; Shift while sprinting now queues a verb, which should not surprise. A hold pressed behind a queue that already ends in a hold, follow or patrol is silently refused (open finding WR-03)"
+    why_human: "Real keys and a real window were driven by the executor (03-13 probe lines: orders move, move, move, hold, held at the third point), but the gesture's feel, the hint row's 'Queue' wording and the silent refusal behind a terminal order are the owner's to judge (UAT test 8 re-check)"
+  - name: "G-03-11 re-check: Round 2 balance feel (0.9 s first tower, nights 5 to 8 at 25 / 31 / 39 / 40)"
+    requirement: "UNIT-04, UNIT-07"
+    test: "Play three nights with an army, including nights 5 to 8, and read the Round 2 section of 03-BALANCE-REPORT.md; open with a tower on day 1 and see whether a first tower that fires every 0.9 s (was 0.8 s) still feels like a good opening"
+    expected: "Nights feel tense with squads; the owner accepts or rejects the reported trade: the balanced bot wins 8 of 10 and the army bot 8 of 10 (goals met), squads score 0.915 against the 0.8 bar mostly because towers got weaker, towers_first wins 0 of 10 and houses_first 4 of 10, the army bot loses 17.6 buildings a run, night 8 is now 40 against 39"
+    why_human: "The bots build instantly and react perfectly and cannot judge tension or whether an opening feels rewarding; the report states the numbers measure the data only (D-08, Phase 2 D-18, UAT test 11 re-check)"
+  - name: "G-03-13 re-check: the knocked-out king's '0 / 50'"
     requirement: "UI-01"
-    test: "Open the exported build at 1920x1080 and at a 16:10 resolution, play a day and a night, and compare with screenshots hud_day_squads_1080p, hud_night_squad_down_16x10 and hud_day_counter_long"
-    expected: "The HUD scales uniformly, Night N of 8 reads over the 3D scene, nothing overlaps and the middle of the screen stays clear"
-    why_human: "The look over the real scene is a judgement; headless proves only the 1280x720 base space (03-03 D6)"
-  - name: "Slam and regeneration feel"
-    requirement: "KING-04, KING-05"
-    test: "Press Q (pad X) amid enemies and by day; watch the ring, the sword icon fill and the ready flash; take a hit, stop being hit and watch health return"
-    expected: "The 4 m / 4 damage / 9 s slam feels useful, the ring and flash read, and regeneration (1 s delay, 10 percent of max per second) feels Thronefall-like and not too generous. The floating bar over the king and the bottom-left widget agree after a heal (see WR-01: today they do not)"
-    why_human: "Animation and balance feel (03-04 D8); the mechanics are test-pinned (test_king_slam 16/16 and test_king_regen 16/16, re-run by me)"
-  - name: "Squad slot look at 1280x720"
+    test: "Get the king knocked out at night and read the bottom-left widget (count, the dimmed bar and sword plate, the Slam caption) and the 'Knocked out, back in N s' label"
+    expected: "The red 0 / 50 and the Slam caption are crisp and readable, the bar and sword plate are visibly dimmed; the knocked-out state still reads as knocked out (measured 5.88:1 on the real capture, was 1.62:1; I viewed hud_king_down.png and the count is legible)"
+    why_human: "A contrast number and one capture approximate legibility; the owner's eyes on a real monitor and a real night decide (UAT test 13 re-check). Note the probe's own guard and measurement rule have no unit test (WR-04)"
+  - name: "G-03-14 re-check: singular copy at a count of one (and the payout line)"
     requirement: "UI-01"
-    test: "Compare the bottom-centre squad strip with 03-UI-SPEC.md in play: icon weight, alive / max, stance glyph at 20 px, replacement fill and the dawn border flash"
-    expected: "Slots read at a glance and the post, hold, follow, patrol and attack-move glyphs are tellable apart at slot size (03-UI-REVIEW notes post, hold and patrol look alike at that size)"
-    why_human: "Legibility is visual (03-05 D7)"
-  - name: "Selection, follow, hold and rally feel"
-    requirement: "UNIT-05, UNIT-06, UNIT-09"
-    test: "Click a squad, double-click a unit (every squad of that type), Tab, F2; press F, H and R; watch the rings and the slot highlight; end a night and check a held or following squad keeps its stance the next day"
-    expected: "Selection and the three verbs respond at once and read clearly; hold-at-centroid and rally-ignores-enemies match what the owner meant; stances persist across dawn"
-    why_human: "Feel and legibility (03-06 D9); persistence itself is test-pinned (test_squad_stance_persistence 3/3, re-run by me)"
-  - name: "Right-click move, attack-move on A, and the king standing still while a squad is selected"
-    requirement: "UNIT-10, INPT-01"
-    test: "Select a squad and hold A: the king must not move; then left-click ground to attack-move. Press Escape once to cancel an armed command and again to clear the selection. With nothing selected hold A and the king rides left. Right-click ground to move"
-    expected: "The D-15 amendment (keep A, movement goes to the selection, the king is the implicit selection, Escape clears) feels right in play, and the pings and the armed line read"
-    why_human: "The owner decided this routing at the 03-07 checkpoint and must confirm it in play (03-07 D8); the rule is test-pinned (test_selection_steering e2e, test_king_selection_steering 2/2 re-run by me)"
-  - name: "Patrol, Shift queue, drag box and control groups"
-    requirement: "UNIT-09, UNIT-10"
-    test: "Hold P and right-click points, release P; Shift-queue several moves then a hold; drag a box over both squads; Ctrl+1 to store and 1 to recall; build a new squad while a group exists"
-    expected: "The patrol line, numbered queue discs (nine orders kept, six drawn), hover rings, drag box, recall flash and slot badges read well. The owner decides whether a newly built squad should auto-join a group (today it joins none, assumption 9)"
-    why_human: "Feel, legibility and one open product question (03-08 D7)"
-  - name: "Gamepad on a physical pad"
-    requirement: "INPT-02"
-    test: "Play one full night on a real pad: ride, sprint (RB), build (A), start night (Y), slam (X), D-pad verbs, LB layer for move / attack-move / patrol with the right-stick cursor (900 px/s), R3 select all, LB+R3 select type, Start group mode, RT to queue, B to cancel, D-pad right to cycle"
-    expected: "Every in-run action is reachable on the pad with nothing needing a pointer; cursor speed, button feel, trigger edges and the chord layout feel right"
-    why_human: "Every pad event in every test and screenshot was synthetic; no physical pad was available to the executors (03-09 D6). The pad layout was chosen by Claude, not the owner (assumption 8)"
-  - name: "Prompts follow the device; glyph legibility at 24 px"
-    requirement: "INPT-02, UI-01"
-    test: "Switch between keyboard-and-mouse and the pad mid-run several times, in a day and in a fight, and read the start-night line, the slam badge and the hint row"
-    expected: "Every prompt flips at once on any press or stick move of the other device (mouse counts as keyboard); 24 px tiles are readable (the D-pad tile is a cross with one arm lit, the Shift and Q tiles are small); Xbox tiles are acceptable on a non-Xbox pad (deferred to Phase 13)"
-    why_human: "Legibility and taste on a real monitor and pad (03-10 D7); the switching logic is test-pinned (test_device_model, test_prompt_switch)"
-  - name: "Balance feel with an army"
-    requirement: "UNIT-04"
-    test: "Play three nights with an army, including nights 5 to 8 (now 25 / 31 / 39 / 39 enemies), and read 03-BALANCE-REPORT.md"
-    expected: "The owner says which balance finding to accept: squads are not stronger than towers per gold under the bots; the balanced bot loses 1 of 10, not the 2 or 3 asked for in G-02-15; night 8 equals night 7. Nights feel tense with squads"
-    why_human: "The bots build instantly and cannot judge tension; they measure the data only (03-11 D7, D-08, Phase 2 D-18)"
+    test: "Leave exactly one enemy at night and read the banner; on a day whose night has one enemy read the preview; after a dawn watch the '+N gold' line under the gold counter"
+    expected: "'Night N of 8 - 1 enemy left' and 'Night N: 1 enemy from 1 direction' (and plural for any other count); the payout line goes away by the time the day is under way and does not sit under the gold counter at night (UI-REVIEW saw it in fast-forwarded night captures; UAT p14 saw it expire within 1 s in real time)"
+    why_human: "The copy is test-pinned and I viewed the banner shot; whether the payout line behaves in real play, and whether it matters, is the owner's call (UAT test 14 re-check)"
+  - name: "G-03-14b re-check: the plated start-night prompt leads the day's bottom centre"
+    requirement: "UI-01"
+    test: "On a day with a squad selected (cyan slot border) look at the bottom-centre stack: hint row, squad slots, the plated 'Hold N to start Night N' prompt with its fill bar, and the preview line below it"
+    expected: "The start-night prompt reads as the day's focal point beside the selected slot (it now has a #14141A plate at y 624..690 below the strip, preview unplated below it); the five-layer column does not feel cluttered. UI-REVIEW still sees the cyan 4 px border as the most saturated element in the column and scores Visuals 3/4"
+    why_human: "Hierarchy and clutter are a visual judgement; the geometry is test-pinned (test_start_night_plate 6/6) and the clear-centre check passes on 33 of 33 shots, but whether the prompt leads is the owner's (UAT test 14 re-check, UI-REVIEW fix 3)"
   - name: "E6: longest toast inside x 384..896"
     requirement: "UI-01"
     test: "Select a squad, ride to the edge of the ground and right-click off the map to raise the Can't go there toast"
     expected: "The owner accepts a 526 px toast (x 377..903, one line, entirely below the clear centre), or has the copy shortened, or amends the UI-SPEC bound"
-    why_human: "A 7 px per side miss of a literal band that never touches the protected rectangle is a spec-versus-taste call (03-12 D4, .planning/WINDOWS.md)"
-  - name: "Knocked-out king widget legibility"
-    requirement: "UI-01"
-    test: "Get the king knocked out at night and read the bottom-left widget and the Knocked out countdown label (screenshot hud_king_down)"
-    expected: "The red 0 / 50 is readable (KNOCKED_OUT_ALPHA 0.4 gives about 1.6:1 contrast per 03-UI-REVIEW.md); otherwise raise the alpha or keep the label opaque"
-    why_human: "Contrast on the real scene is a visual judgement; 03-UI-REVIEW.md priority fix 1"
-  - name: "Bottom-centre hierarchy, plural copy and the lingering payout line"
-    requirement: "UI-01"
-    test: "On a day with a squad selected look at the bottom-centre stack (hint row, slots, start-night prompt, fill bar, preview); at one enemy left read the banner; after a dawn look for the +2 gold line"
-    expected: "The start-night prompt still reads as the day focal point beside a cyan selected slot; the banner says 1 enemy and not 1 enemies left; the payout line expires at the next day start. These are owner-flagged open points (UI-REVIEW fix 3, PLAYTEST-GATE open readability points); the plural and payout lines are Phase 1 and 2 copy outside the files of this phase"
-    why_human: "Taste and clutter judgement, plus the owner decision whether they block Phase 4"
+    why_human: "A 7 px per side miss of a literal band that never touches the protected rectangle is a spec-versus-taste call (03-12 D4, .planning/WINDOWS.md, D-28: decided after the owner plays the fixed build; UAT test 12 pending)"
+  - name: "Gamepad on a physical pad"
+    requirement: "INPT-02"
+    test: "Play one full night on a real pad: ride, sprint (RB), build (A), start night (Y), slam (X), D-pad verbs, hold RT for the queue (new: RT + D-pad now queues the verb), LB layer for move / attack-move / patrol with the right-stick cursor (900 px/s), R3 select all, LB+R3 select type, Start group mode, B to cancel, D-pad right to cycle"
+    expected: "Every in-run action is reachable on the pad with nothing needing a pointer; cursor speed, button feel, trigger edges and the chord layout feel right"
+    why_human: "No gamepad is connected to this machine, so every pad event in every test, probe and screenshot was synthetic; the pad layout was chosen by Claude, not the owner (UAT test 9 blocked on physical-device; 03-09 D6, assumption 8)"
   - name: "Owner Phase 3 gate: two or three full runs on both devices, then sign off or name fixes"
     requirement: "UNIT-04, UNIT-05, UNIT-06, UNIT-07, UNIT-09, UNIT-10, KING-04, KING-05, INPT-01, INPT-02, UI-01"
-    test: "Launch build/windows/Duskhold.exe (exported 2026-10-12 from c418b6c, launch-checked, exit 0) or the editor binary, play two or three full 8-night runs with an army, once on keyboard and mouse and once on a gamepad, switching device at least once per run, following 03-PLAYTEST-GATE.md"
-    expected: "A recorded decision through /gsd-verify-work: sign off (squads guard and commit, selection and commands feel right on both devices, slam and regeneration suit the game, the HUD reads at night with the centre clear, the retuned nights are tense) or a list of fixes and any of assumptions 1 to 15 to change. No Phase 4 work starts before it"
-    why_human: "The feel clauses of the success criteria (fun, tension, readability, commands that feel right) and the delegated playtest gate (D-08, Phase 2 D-18) are the owner decision; bots, CI, 1373 green tests and screenshot reviews are not the sign-off"
+    test: "Re-export first (`bash tools/export.sh`; build/windows/Duskhold.exe dates from c418b6c and holds none of the 03-13 to 03-19 fixes or the retune) or launch the editor binary; play two or three full 8-night runs with an army, once on keyboard and mouse and once on a gamepad, switching device at least once per run, following 03-PLAYTEST-GATE.md"
+    expected: "A recorded decision through /gsd-verify-work: sign off (squads guard and commit, selection and commands feel right on both devices, slam and regeneration suit the game, the HUD reads at night with the centre clear, the Round 2 nights are tense) or a list of fixes and any of assumptions 1 to 15 to change. No Phase 4 work starts before it"
+    why_human: "The feel clauses of the success criteria (fun, tension, readability, commands that feel right) and the delegated playtest gate (D-08, Phase 2 D-18) are the owner decision; bots, CI, 1397 green tests, probes and screenshot reviews are not the sign-off (UAT test 15)"
 ---
 
-# Phase 3: King Combat & Troops Verification Report
+# Phase 3: King Combat & Troops Verification Report (second report, after the UAT round-1 gap closure)
 
-**Phase Goal:** The king leads an army. The player builds a Barracks and an Archery Range whose squads fight on their own, commands them RTS-style with hotkeys, mouse selection and control groups, and fires the weapon active ability. All of it is fully playable on keyboard and mouse or on gamepad with a complete in-run HUD.
-**Verified:** 2026-10-12T09:16:48Z
+**Phase Goal:** The king leads an army. The player builds a Barracks and an Archery Range whose squads fight on their own, commands them RTS-style with hotkeys, mouse selection and control groups, and fires the weapon's active ability. All of it is fully playable on keyboard and mouse or on gamepad with a complete in-run HUD.
+**Verified:** 2026-10-13T20:11:11Z
 **Status:** human_needed
-**Re-verification:** No, initial verification (no earlier 03-VERIFICATION.md existed)
+**Re-verification:** Yes. This is the second report; it supersedes the initial report of 2026-10-12T09:16:48Z (HEAD 008a9b0) and checks plans 03-13 to 03-19 (executed 2026-10-13) against HEAD e925538.
 
 ## Verdict
 
-The engineering part of the goal is achieved and I found no FAILED roadmap truth, no missing or stubbed artifact, no unwired key link and no debt marker. I read the squad, king, command-gate, run-step, input-map and HUD code at HEAD (008a9b0; the last non-planning change is c418b6c, `git diff c418b6c HEAD` outside `.planning/` is empty and `git status` is clean), and re-ran the replays and eleven test scripts in my own process. The phase is not `passed` because the evidence it needs for that does not exist yet: UAT has not been run, and the feel half of the success criteria (squads that read as intelligent rather than thrashing, commands that feel right, a HUD that stays readable in a fight, nights that are tense with an army) is the owner delegated playtest gate (D-08, Phase 2 D-18). Every one of the twelve SUMMARYs also marks coverage items `human_judgment: true`; I harvested them into the 15 `human_verification` entries in the frontmatter so the orchestrator can turn them into 03-UAT.md one to one. Nothing here is the owner sign-off.
+The engineering part of the goal is still achieved and the gap round closed every gap it claimed. I found no FAILED roadmap truth, no FAILED gap truth, no missing or stubbed artifact, no unwired key link, no debt marker and no regression of the Phase 1 or Phase 2 suites. I read the changed code at HEAD (command_key_controller.gd, king.gd, king_widget.gd, hud.gd, hud.tscn, tower.tres, the night 8 diff in prototype_map.tres, test_balance_acceptance.gd), re-ran eleven test scripts, both golden replays, lint and the contrast probe in my own process, and viewed two of the re-captured screenshots. The status stays `human_needed`, not `passed`, because the evidence a pass needs does not exist yet: the owner has not re-checked the six fixed items by eye, has not decided the E6 toast, has not played on a physical pad and has not run the gate. Those nine items are in the frontmatter, one per owner judgement, so the orchestrator can append them to 03-UAT.md one to one. Nothing here is the owner sign-off.
 
-All ten findings of the code review (03-REVIEW.md, 2026-10-12: 1 critical, 3 warnings, 6 info) are OPEN (03-REVIEW-DISPOSITION.md: `open: 10`). I re-read the code behind CR-01, WR-01, WR-02 and WR-03 and confirm each one; none fails a roadmap truth (CR-01 needs a hand-corrupted unit file, the shipped footman and archer have 10 and 6 health), so they are carried as WARNINGS with a decision requested, not as gaps. A review-fix pass is the next step and is independent of the owner replay. CR-01 is the one that must not ship, and it contradicts the closed status of T-03-04 and T-03-05 in 03-SECURITY.md.
+Every one of the six UAT gap entries is closed in code and in a test that fails when the fix is switched off: the orchestrator's mutation probes (mutate_all.log, summarised in 03-VALIDATION.md) took each fix out and the named suite failed (3 of 14, 1 of 5, 1 of 6, 1 of 5, 2 of 15, 2 of 22). G-03-11, a data retune, is covered by its own recorded RED run and by the pinned goal tests, which I re-ran green.
 
-ROADMAP marks Phase 3 `Mode: mvp`, but the goal is not in "As a ..., I want ..., so that ..." form (same as Phase 2), so I verified with the standard goal-backward method and wrote no MVP user-flow table.
+Thirteen code-review findings are OPEN (CR-01, WR-02, WR-03, WR-04, IN-01 to IN-09; 03-REVIEW-DISPOSITION.md `open: 13`); only WR-01 is fixed, by plan 03-14. CR-01 is unchanged at HEAD and is still the one finding that must not ship. None fails a roadmap truth, so they are WARNINGS with a decision requested, not gaps. A review-fix pass is the next step and is independent of the owner replay.
+
+ROADMAP marks Phase 3 `Mode: mvp`, but the goal is not in "As a ..., I want ..., so that ..." form (as in Phase 2), so I verified with the standard goal-backward method and wrote no MVP user-flow table.
 
 ## What I ran and read
 
-Run in my own process at HEAD 008a9b0 (Godot 4.7.2, Windows). `git status` was clean before and after; no source file was modified, no process was killed, nothing was committed.
+Run in my own process at HEAD e925538 (Godot 4.7.2, Windows). `git status` was clean before and after; I modified no source, data or test file, killed no process and committed nothing. `git diff 2b43d84 HEAD -- . ':!.planning/'` is empty, so the orchestrator's full run at 2b43d84 is the full-suite evidence for the current code.
 
 | Check | Command | Result |
 |---|---|---|
-| Smoke replay vs golden | `bash tools/replay.sh --scenario=smoke --twice --expect-file=tests/golden/smoke.json` | `REPLAY_OK scenario=smoke seed=1 outcome=won ticks=703 digest=2599c7c250f45b3dfe6653a8fc683918cbdce768a9afcaf8e3752d3454ccf31f` |
-| Army replay vs golden | `bash tools/replay.sh --scenario=army --twice --expect-file=tests/golden/army.json` | `REPLAY_OK scenario=army seed=1 outcome=won ticks=1353 digest=f7a967edc68054f2a75ae55a54100cfc3f069d8f3029e8299cd31fec7a8959c4` |
-| Input capability table | `-gselect=test_input_capabilities` | 9/9, 296 asserts |
-| Guard, commit, leash | `-gselect=test_squad_guard` | 14/14, 169 asserts |
-| Night trickle and freeze | `-gselect=test_squad_respawn` | 14/14, 648 asserts |
-| Stances persist across dawn | `-gselect=test_squad_stance_persistence` | 3/3, 35 asserts |
-| King regeneration | `-gselect=test_king_regen` | 16/16, 43 asserts |
-| Slam and cooldown | `-gselect=test_king_slam` | 16/16, 69 asserts |
-| King stops while a squad is selected | `-gselect=test_king_selection_steering` | 2/2, 8 asserts |
-| Lint and format | `bash tools/lint.sh` | `262 files would be left unchanged`, `Success: no problems found` |
-| Plan artifacts | `gsd-tools query verify.artifacts` on all 12 plans | 55/55 pass |
-| Plan key links | `gsd-tools query verify.key-links` on all 12 plans | 38/38 verified |
-| Debt markers | grep TBD, FIXME, XXX, TODO, HACK, PLACEHOLDER over the 173 text files of the phase scope | none |
-| Phase file scope | `git diff --name-only fb2e0cd HEAD` minus `.planning/`, `screenshots/`, `.uid` and `.import` | 250 files, identical to the 173 text files of build/review_scope_filtered.txt plus 77 binary assets (2 GLB, 74 PNG, 1 licence); all are in `covered_files` |
+| Smoke replay vs golden | `bash tools/replay.sh --scenario=smoke --twice --expect-file=tests/golden/smoke.json` | `REPLAY_OK scenario=smoke seed=1 outcome=won ticks=703 digest=2599c7c250f45b3dfe6653a8fc683918cbdce768a9afcaf8e3752d3454ccf31f` (unchanged) |
+| Army replay vs golden | `bash tools/replay.sh --scenario=army --twice --expect-file=tests/golden/army.json` | `REPLAY_OK scenario=army seed=1 outcome=won ticks=1353 digest=f7a967edc68054f2a75ae55a54100cfc3f069d8f3029e8299cd31fec7a8959c4` (unchanged) |
+| G-03-8 keyboard queue | `-gselect=test_command_keys` | 14/14, 140 asserts |
+| G-03-8 pad RT queue | `-gselect=test_pad_commands` | 18/18, 200 asserts |
+| G-03-4 king bar follows heals | `-gselect=test_king_knockout` | 5/5, 52 asserts |
+| G-03-13 knocked-out widget | `-gselect=test_king_widget` | 15/15, 106 asserts |
+| G-03-14b plate | `-gselect=test_start_night_plate` | 6/6, 44 asserts |
+| G-03-14 singular copy | `-gselect=test_spawn_telegraph` | 22/22 (2 scripts matched), 358 asserts |
+| G-03-11 value metric | `-gselect=test_balance_value_metric` | 5/5, 45 asserts |
+| G-03-11 night totals and Phase 2 wall | `-gselect=test_night_data_contract` | 16/16, 136 asserts |
+| G-03-11 data pins | `-gselect=test_military_data_contract` | 7/7, 54 asserts |
+| G-03-11 four goals (runs the bots over seeds 1 to 10) | `-gselect=test_balance_acceptance` | 12/12, 38 asserts, 201 s, including `test_the_balanced_bot_wins_seven_or_eight_of_ten_seeds`, `test_squads_are_worth_their_gold_against_towers` and `test_the_army_building_bot_wins_seven_or_eight_of_ten_seeds` |
+| Order queue gate unchanged | `-gselect=test_squad_queue` | 15/15, 65 asserts |
+| Real-window contrast (G-03-13) | `bash tools/contrast_probe.sh --image=screenshots/hud_king_down.png --rect=280,648,96,56 --min=4.5` | `CONTRAST_OK ratio=5.88 min=4.50 text_luminance=0.2530 backdrop_luminance=0.0015 fill_pixels=443` |
+| Lint and format | `bash tools/lint.sh` | `265 files would be left unchanged`, `Success: no problems found` |
+| Plan artifacts | `gsd-tools query verify.artifacts` on all 19 plans | 81/81 pass |
+| Plan key links | `gsd-tools query verify.key-links` on all 19 plans | 52/52 verified |
+| Debt markers | grep TBD, FIXME, XXX, TODO, HACK, PLACEHOLDER over every non-planning source, data and test file changed since 008a9b0 (the .uid files hold no code) | none |
+| Scope of the gap round | `git diff --name-only 90f54c6 HEAD -- . ':!.planning/' ':!screenshots/'` | 25 files: two data files, five input, presentation and ui sources, thirteen test files (two of them .uid), five tools files (one .uid); nothing under `simulation/`, no `project.godot`, no golden, no fixture |
+| Screenshots viewed | `screenshots/hud_day_squads.png`, `screenshots/hud_king_down.png` | the plated "Hold N to start Night 1" prompt below the slot strip with the preview under it; "Night 7 of 8 - 1 enemy left" and a legible red "0 / 50" beside a dimmed bar |
 
-Taken from reports without re-running: the full suite at HEAD b7db3d5 (`build/test-results/postmerge_test_stdout.log`, which I read: Scripts 148, Tests 1373, Passing 1373, Asserts 15367, exit 0), CI run 38219154906 (lint, test, export and screenshots green, REPLAY_OK for smoke, army and full_idle, 33 of 33 screenshots; I did not query GitHub), the 33 screenshots and the screenshot reads in 03-PLAYTEST-GATE.md (not viewed by me), the plan-level truths beyond the ones listed below (149 declared; each rests on its named test being green in the gate run, not on my reading), and the mutation probes recorded in the SUMMARYs. I did not run the whole suite, the game window or the playtest bots. `build/test-results/gut-junit.xml` on disk now holds my last single-file run, not the full suite.
+Taken from reports without re-running: the post-merge full suites (wave 1 at 2841128: 1389/1389; wave 2 at b9c0d3d: 1392/1392; wave 3 at 2b43d84: 150 scripts, 1397/1397, 15664 asserts, 578 s, which I confirmed from the tail of `build/test-results/postmerge_test_stdout.log`), the orchestrator's mutation probes, the executors' scripted real-window probe lines quoted in the 03-13, 03-14 and 03-19 SUMMARYs, the 29-candidate Round 2 search log in 03-17-SUMMARY.md, the 33 screenshots (of which I viewed two) and CI. I did not run the full suite, the game window, the playtest bots or `tools/screenshot.sh`. `build/test-results/gut-junit.xml` on disk holds a recent single-script run, not the full suite.
+
+Regression gate: all 29 Phase 1 and Phase 2 test script names that appear in 01-VERIFICATION.md and 02-VERIFICATION.md and exist on disk (the orchestrator counted 22 distinct scripts; my grep also catches helpers named in prose) appear in the 2b43d84 full run, which passed 1397 of 1397. One Phase 2 pin was relaxed on purpose and is flagged below (the tower opening).
 
 ## Goal Achievement
 
-### ROADMAP success criteria (the contract)
+### ROADMAP success criteria (the contract), re-checked at HEAD
 
-| # | Success criterion | Status | Evidence |
+| # | Success criterion | Status | Evidence (delta since the first report) |
 |---|---|---|---|
-| 1 | Barracks and Archery Range; units guard their post and commit; night trickle back; full restore at dawn | VERIFIED in code and tests; feel is a human item | `data/buildings/barracks.tres` and `archery_range.tres`: costs 4 / 8 / 16, squads 4 / 8 / 14, respawn 10 / 7 / 4 s, unit ids footman and archer; two plots `barracks_1` and `archery_1` appended to the ten-spot list in `prototype_map.tres`. `SquadSystem._choose_target` keeps a live target inside leash_range of the anchor and only rescans on the unit own staggered tick (never swaps to a nearer enemy); `_step_unit` fires through PendingHits once per attack_interval; `_trickle` raises one unit at the post per respawn interval while the building stands and freezes if it fell; `RunManager._enter_dawn` calls `_squads.restore_for_dawn()` after the rebuild (survivors healed, every missing seat raised, anchor and orders untouched). `NightSim.step` and `step_day` both step the squads; `RunContext.step` runs them in every phase. Tests re-run by me: test_squad_guard 14/14 (including committed target kept when a nearer enemy appears, target beyond leash dropped), test_squad_respawn 14/14. Dawn restore and next-day settle are in test_squad_lifecycle (4 tests, green in the gate run) |
-| 2 | Select squads (click, box, Ctrl, pad cycling); control groups; hold, follow (all or one type), rally, move, attack-move, patrol, Shift queue; stances persist across dawn | VERIFIED in code and tests; feel is a human item | `project.godot` binds squad_follow F, squad_hold H, squad_rally R, squad_cycle Tab, select_all F2, squad_move right mouse, squad_attack_move A (kept, D-15 amendment), squad_patrol P, command_queue Shift, command_cancel Escape, group_0 to group_9, plus the pad-only command_layer, group_mode, select_type and cursor actions. `SquadSystem.apply_order`, `_enqueue` (MAX_QUEUE 9, rally as move then hold), `_begin` and `_advance_patrol` (ping-pong) implement the verbs; `CommandProcessor._submit_squad_order` gates ids, verbs, points (BAD_POINT, TOO_MANY_POINTS) and QUEUE_CLOSED and converts centimetres to metres. `SelectionController` handles click, drag box, Ctrl, double-click for one type, Escape; control groups live in `SelectionModel` (store_group, recall_group) and are covered by test_control_groups and test_control_group_keys. `restore_for_dawn` never touches `resting_stance`, queue or anchor; test_squad_stance_persistence 3/3 re-run by me (held squad keeps stance and spot through night, dawn and the next day; following squad still follows; a replacement appears at the post and walks to the squad) |
-| 3 | Active ability with visible cooldown; king health regenerates after a short time without damage | VERIFIED in code and tests; WR-01 is a presentation inconsistency | `data/king/sword.tres`: slam_radius 4.0, slam_damage 4, slam_cooldown_seconds 9.0; `data/king/king.tres`: regen_delay_seconds 1.0, regen_fraction_per_second 0.1, weapon = sword. `AbilityController` submits `ActivateAbilityIntent` on the ability action (Q, pad X); `CommandProcessor._ability_rejection` returns RUN_OVER, NO_ABILITY, KING_DOWN or ABILITY_COOLING; `KingState.activate_ability/resolve_ability` hit enemies only (no squads, buildings or castle) and `tick_timers` runs the cooldown and `_regenerate` in every phase (called first in `RunContext.step`). `KingWidget` polls `ability_cooldown_ratio()` for the radial fill and the ready flash. test_king_slam 16/16 and test_king_regen 16/16 re-run by me. WR-01: the floating king bar never listens to `king_healed` (confirmed by search) |
-| 4 | Every in-run action on keyboard and mouse and on gamepad; switch devices any time; prompts follow the device | VERIFIED in code and tests; the pad is untested on hardware | Move, sprint, build, start_night, ability, the three verbs, move, attack-move, patrol, queue, cancel, cycle, select_all and select_type, groups and cursor each have a keyboard-or-mouse binding and a joypad binding in `project.godot`; `test_input_capabilities` (9/9, re-run by me) pins a path per capability per device and fails if a project action is missing from the table. `LastDeviceTracker`/`DeviceModel` (debounce 0.25 s, axis threshold above the deadzone) and `GlyphResolver` re-render the start-night prompt, slam badge and hint row on a device change (test_device_model, test_prompt_switch, test_command_hints in the gate run). The selection-steering rule from the D-15 amendment is implemented in `King.steered_direction` (all movement input zeroed while the selection is non-empty) with Escape clearing it |
-| 5 | HUD shows gold, night N of total, king health, ability cooldown, unit group status without cluttering the play area | VERIFIED in code, tests and the runner check; E6 and legibility are human items | `ui/hud/hud.tscn` holds GoldLabel (top-left), `DayCounter` (top-centre, "Night %d of %d", shown by day and dawn, reads `RunManager.get_total_nights()`), `KingWidget` (bottom-left: health bar and number, sword icon with clockwise fill and ready flash), `SquadStrip` (bottom-centre: one `SquadSlot` per squad with icon, alive / max, stance glyph, group badge, selection highlight, replacement fill), Toast, CommandHints and DragBox, all under a mouse_filter IGNORE `HudRoot` and all in the `run_bound` group so `MapRoot` calls `bind_run` on them. `ShotRunner.protected_violations` fails any hud_ or cmd_ shot with a HUD control in x 384..896, y 96..500 (test_shot_protected_centre in the gate run; 33 of 33 shots passed in CI per the report) |
+| 1 | Barracks and Archery Range; units guard and commit; night trickle back; full restore at dawn | VERIFIED in code and tests; feel is a human item | Unchanged by the gap round: nothing under `simulation/` or in the squad data changed since 90f54c6 (only `tower.tres` and `prototype_map.tres`). The full run at 2b43d84 carries test_squad_guard, test_squad_respawn, test_squad_lifecycle and test_squad_stance_persistence green. The owner's UAT probes confirmed guard and commit in a real window (UAT test 1 passed, with 0 target switches while the target lived). CR-01 (unbounded spawn loops on a hand-corrupted unit file) is still open, see warnings |
+| 2 | Select squads (click, box, Ctrl; pad cycling); control groups; hold, follow, rally, move, attack-move, patrol, Shift queue; stances persist | VERIFIED in code and tests, now including the keyboard queue gesture; feel is a human item | `CommandKeyController._give` now submits `SquadOrderIntent.new(ids, verb, no_points, Input.is_action_pressed(QUEUE_ACTION))`, so Shift (pad RT) queues F, H and R behind queued walks; the simulation gate is untouched and still returns QUEUE_CLOSED behind a terminal order (test_squad_queue 15/15 re-run). test_command_keys 14/14 pins orders `[move, move, move, hold]` with the squad still walking, plain H still replacing the queue, Shift+F and Shift+R queuing, and test_pad_commands 18/18 pins RT + D-pad down. UAT tests 6 and 7 passed with real events. G-03-8 closed |
+| 3 | Active ability with visible cooldown; king health regenerates after a short time | VERIFIED in code and tests; the in-world bar now agrees | `King.bind_run` connects `ctx.events.king_healed` (king.gd:54); `_on_king_healed` (lines 101-103) calls `_health_bar.set_health(hp, max_hp)`; `KingState._regenerate` emits `king_healed` only when integer health changed (king_state.gd:242), and `HealthBar3D.should_show` hides it at full health. test_king_knockout 5/5 re-run checks the bar ratio at every heal event, the widget label and the hide at full. The executor's real-window probe lines show ten heals with sim, bar and widget equal (0.820 to 1.000). The weak link flagged last time (WR-01, a HOLLOW readout) is closed |
+| 4 | Every in-run action on keyboard and mouse and on gamepad; switch devices any time; prompts follow the device | VERIFIED in code and tests; the pad is untested on hardware | Unchanged: test_input_capabilities, test_device_model, test_prompt_switch, test_command_hints in the 2b43d84 run; UAT test 10 passed (8 of 8 alternating switches within one frame). RT-queue parity for the new gesture is in test_pad_commands. UAT test 9 stays blocked on a physical pad |
+| 5 | HUD shows gold, night N of total, king health, ability cooldown and unit status without cluttering the play area | VERIFIED in code, tests and the runner check; E6 and by-eye hierarchy are human items | `ui/hud/hud.tscn` now holds `StartNightPlate` (a PanelContainer with `StyleBoxFlat_start_night_plate`, #14141A at 0.78) inside `StartNightBox`; `Hud._start_night_plate.visible = by_day`; test_start_night_plate 6/6 pins the rect (top y 624, 8 px below the strip, bottom at most y 700, preview bottom at most 716), 8 px inset, mouse IGNORE and day-only visibility, clear of the protected centre x 384..896 y 96..500. `KingWidget._apply_knocked_out` dims only the bar, plate panel (self_modulate), icon bar and glyph, leaving the count and caption at alpha 1.0 (test_king_widget 15/15, contrast 5.88:1 re-run). `Hud.enemy_count_text` gives "1 enemy" / "N enemies" to the banner and both preview patterns (test_spawn_telegraph 22/22). The clear-centre check passed on 33 of 33 shots per 03-18-SUMMARY (not re-run by me); the two shots I viewed show the plate, the singular copy and the legible count |
+
+### UAT round-1 gaps (the second contract of this re-verification)
+
+| Gap | Truth | Status | Evidence |
+|---|---|---|---|
+| G-03-4 (WR-01) | The floating bar over the king and the widget agree after a heal | VERIFIED | king.gd lines 54 and 101-103 read at HEAD; test_king_knockout 5/5 re-run; executor probe lines in 03-14-SUMMARY; mutation probe M2 (listener removed) failed 1 of 5 |
+| G-03-8 | Shift-queue several moves then a hold: the hold runs after the walks (D-09) | VERIFIED | command_key_controller.gd `_give` reads `QUEUE_ACTION`; test_command_keys 14/14 and test_pad_commands 18/18 re-run; the executor's real-window probe (real right-click and key events) printed `orders_after_shift_h=["move","move","move","hold"]` and the squad held at (-3,-6); mutation probe M1 failed 3 of 14 |
+| G-03-13 | The knocked-out '0 / 50' is readable | VERIFIED (by measurement and one viewed capture) | king_widget.gd lines 263-271 read; test_king_widget 15/15; probe re-run CONTRAST_OK 5.88 (unfixed 1.62 per the 03-19 SUMMARY); I viewed hud_king_down.png; mutation probe M5 failed 2 of 15. The probe itself is untested (WR-04) |
+| G-03-14 | Singular copy at a count of one | VERIFIED | hud.gd lines 20-24 and 188-189 read (`ENEMY_ONE`, `ENEMY_MANY`, `enemy_count_text`, used at lines 204, 206, 224); test_spawn_telegraph 22/22; hud_king_down.png shows "1 enemy left"; mutation probe M6 failed 2 of 22 |
+| G-03-14b | The start-night prompt reads as the day focal point beside a cyan selected slot | VERIFIED in code and geometry; the hierarchy itself is a human item | hud.tscn plate nodes read; test_start_night_plate 6/6; hud_day_squads.png viewed (the prompt sits on its own dark plate below the strip); mutation probe M3 failed 1 of 6. 03-UI-REVIEW still scores Visuals 3/4 because the cyan border is the most saturated element in the column, and leaves the call to the owner (D-28 made the plate the fix, the owner judges the result) |
+| G-03-11 | Nights 5 to 8 serve the four owner goals at once | VERIFIED as pinned measurements; feel is a human item | `git diff 008a9b0 HEAD -- data/` shows exactly two values moved: tower tier 1 `attack_interval` 0.8 to 0.9 and the night 8 north grunt `count` 10 to 11. test_balance_acceptance 12/12 re-run (balanced 8 wins with lost seeds 3 and 9; army_balanced 8; squad_value_ratio at or above 0.8; the Phase 2 wall of nights 1 to 4 pinned in test_night_data_contract 16/16); both goldens byte-identical; MapConfig validate clean. Plan 03-18's report numbers equal 03-17's (balanced 8, army 8, ratio 0.915, nights 25 / 31 / 39 / 40). See the Round 2 warning for what it cost |
 
 ### Plan must_haves
 
-149 plan truths and 14 prohibitions are declared across the twelve plans. Beyond the roadmap contract above, I checked all 55 declared artifacts and 38 key links with gsd-tools (all pass), and spot-read the decisive code for D-01 to D-07, D-09, D-14, D-15 (amended), D-17, D-18, D-20, D-21 to D-23 against 03-CONTEXT.md:
+188 plan truths (149 in 03-01 to 03-12, 39 in 03-13 to 03-19) and 25 prohibitions are declared. All 81 declared artifacts and 52 key links pass gsd-tools. The 39 new truths rest on the named tests above (green in the 2b43d84 run; I re-ran the script behind each gap plan, see the table) and on the documents I read: 03-BALANCE-REPORT.md Round 2 (outcome, what changed, search log, after-Round-2 tables, determinism section) and 03-PLAYTEST-GATE.md (the six fixed gap ids, question 6 with the new night totals, and the stale-export warning), which I read in full.
 
-| Decision | Honored? | Evidence |
-|---|---|---|
-| D-01 / D-02 squad caps 4 / 8 / 14, costs 4 / 8 / 16 | Yes | barracks.tres and archery_range.tres as read; pinned by test_military_data_contract |
-| D-03 two plots added, the eight existing untouched | Yes | the spot list ends with barracks_1 and archery_1; the smoke golden is byte-identical (re-run by me) |
-| D-04 post guard, commit | Yes | `_choose_target`, `_walk_to_slot`, `_make_squad` (post is post_distance 3.5 toward the castle) |
-| D-05 trickle 10 / 7 / 4 s, dawn restore | Yes | `_trickle`, `restore_for_dawn`, data above |
-| D-06 / D-07 unit roles and strength | Yes | footman 10 hp, 1 damage, reach 1.2; archer 6 hp, range 8.5, arrow 16 m/s; a fifth of the king (50 hp, 5 damage) |
-| D-09 whole-squad verbs, Shift queues | Yes | `SquadOrderIntent` carries squad ids only; no per-unit command path exists (judgment prohibition read: no unit-id order API) |
-| D-14 stances persist | Yes | test_squad_stance_persistence |
-| D-15 amendment (keep A, movement goes to the selection, king implicit selection, Escape clears) | Yes | squad_attack_move = A in project.godot; `King.steered_direction`; test_selection_steering e2e has the A-hold, Escape and cleared-selection cases; test_king_selection_steering 2/2 re-run |
-| D-17 / D-18 slam and WeaponDef | Yes | `WeaponDef` read via `KingDef.weapon`; sword.tres |
-| D-20 regeneration 1 s then 10 percent per second, day and night | Yes | king.tres and `_regenerate`; `tick_timers` runs in every phase |
-| D-21 to D-23 HUD layout and slots | Yes | hud.tscn node list and KingWidget, SquadStrip, SquadSlot headers as read |
-| D-24 glyphs follow the active device | Yes in code; legibility is human | `GlyphResolver`, `PromptGlyph`, `LastDeviceTracker`; Kenney Input Prompts logged in the attribution file |
-| D-08 retune | Yes with a flagged reading | see the D-08 warning: the bar was pinned on the new army_balanced bot (8 of 10); the balanced bot sits at 9 of 10 |
+New-decision check against 03-CONTEXT.md: D-26 (squad value bar 0.8) honored (`SQUAD_VALUE_BAR 0.8` in test_balance_acceptance, no override exists); D-27 (all four goals, nights 1 to 4 untouched, locked D-01, D-05, D-07 values unmoved) honored (night totals 5 / 12 / 21 / 21 unchanged, only two values moved); D-28 honored (plate in 03-15, opaque count in 03-19, `Toast.CANT_GO_THERE` untouched so E6 stays pending, no auto-join of control groups, tests 9 and 15 left to the owner). Plan 03-15 relaxed the gap entry's "inside y 616..700" so the 18 px preview sits unplated below the plate (y 690..716): a recorded key decision, the plate itself ends at y 690, and the clear-centre bound holds.
 
-Prohibitions (all judgment-tier or backstop; my reading is NON-AUTHORITATIVE and flagged `unverified-prohibition - human review recommended`, none is absorbed into the pass): no gold from kills (a search of `simulation/` finds no economy credit on `enemy_died`), the slam queues hits on enemies only, no `Input`, `InputEvent`, `Camera3D`, `Viewport` or `DisplayServer` under `simulation/` (grep: 0 hits, plus test_sim_rules_guard), no mouse build or king aim (the mouse only reaches `SelectionController`), the camera is not moved by commands (not read in code; covered by the owner decision D-13 and screenshot reads), no economy tuning in the 03-11 retune (the military data contract is green; the balance report states only night counts moved), CC0-only assets (the attribution test is green; I did not inspect licence texts). The seven backstop rows (UI-SPEC E1, E2, E3, E5, E6, E7, E9) were lifted into plan 03-12 and confirmed from screenshots by the executor, except E6 (see warnings and human item).
+Prohibitions (all judgment-tier or backstop; my reading is NON-AUTHORITATIVE and flagged `unverified-prohibition - human review recommended`, none is absorbed into the pass): the new ones were read against git. No simulation, golden, fixture or input-map change in the gap round (the command-key queue flag is a plain bool in an existing intent; the gate re-validates it); the balance search edited no repository data (the SUMMARY states each candidate ran in a private project copy; I did not re-derive this, but `git diff` shows only the two intended data edits); no unit health moved (so the CR-01 loop is not made reachable by Round 2); the plate ignores the mouse (test pins it); E6 is untouched. The 14 prohibitions of the first report are unchanged and were not re-read beyond confirming that no file they concern was edited.
 
 ### Requirements Coverage
 
-All 11 phase IDs appear in at least one plan `requirements:` field (plan 03-12 lists all 11) and REQUIREMENTS.md maps exactly these 11 to Phase 3 (traceability lines 191 to 248, each ticked Complete). No ID is orphaned; none is missing from a plan. INPT-03 stays open in REQUIREMENTS.md by design (menus, a later phase); it is not a Phase 3 ID.
+All 11 phase IDs appear in at least one plan `requirements:` field (03-12 lists all 11; the gap plans add UNIT-10, UNIT-05, INPT-01, INPT-02, KING-05, UI-01, UNIT-04, UNIT-07 and KING-04 on top) and REQUIREMENTS.md maps exactly these 11 to Phase 3 (traceability lines 191 to 248, each ticked Complete). I re-read the requirement text for KING-04, KING-05, UNIT-04 to UNIT-07, UNIT-09, UNIT-10, INPT-01, INPT-02 and UI-01 against the criteria above. No ID is orphaned and none is missing from a plan. INPT-03 stays open by design (Phase 13, not a Phase 3 ID).
 
-| Requirement | Source plans | Status | Evidence |
+| Requirement | Source plans (gap round in bold) | Status | Evidence |
 |---|---|---|---|
-| UNIT-04 | 03-01, 03-02, 03-11, 03-12 | SATISFIED in code and tests | Truth 1 above |
-| UNIT-05 | 03-06, 03-12 | SATISFIED | hold on H and pad D-pad down; `_begin` VERB_HOLD freezes the anchor at the living centroid (the post when nobody is alive) |
-| UNIT-06 | 03-06, 03-12 | SATISFIED | follow on F / D-pad up; select_all (F2, R3) and select_type (double-click, LB+R3) give "all squads or one unit type"; the selection form is the default |
-| UNIT-07 | 03-02, 03-05, 03-11, 03-12 | SATISFIED | `_trickle`, `restore_for_dawn`, `replacement_progress` drives the slot fill |
-| UNIT-09 | 03-06, 03-08, 03-09, 03-12 | SATISFIED | click, box, Ctrl, double-click, Tab and pad cycling; groups Ctrl+digit store and digit recall; rings and highlighted slots with the group number |
-| UNIT-10 | 03-07, 03-08, 03-09, 03-11, 03-12 | SATISFIED | move, rally, attack-move, patrol and Shift queue in `SquadSystem`; points from the mouse or the right-stick cursor through `GroundPick` and the gate; stances persist |
-| KING-04 | 03-04, 03-10, 03-11, 03-12 | SATISFIED | Truth 3 |
-| KING-05 | 03-04, 03-12 | SATISFIED in the simulation and on the HUD; WR-01 for the in-world bar | Truth 3 |
-| INPT-01 | 03-06 to 03-09, 03-12 | SATISFIED in code; not played by a human | Truth 4 |
-| INPT-02 | 03-09, 03-10, 03-12 | SATISFIED in code; synthetic pad events only | Truth 4 |
-| UI-01 | 03-03, 03-04, 03-05, 03-10, 03-12 | SATISFIED in code and the runner check | Truth 5 |
+| UNIT-04 | 03-01, 03-02, 03-11, 03-12, **03-16, 03-17, 03-18** | SATISFIED in code and tests; feel at the gate | Criterion 1; Round 2 balance pinned |
+| UNIT-05 | 03-06, 03-12, **03-13** | SATISFIED | Hold on H and pad D-pad down; Shift+H now also queues a hold behind walks; plain H unchanged |
+| UNIT-06 | 03-06, 03-12 | SATISFIED | Follow on F / D-pad up; select all and select type; Shift+F queues (03-13) |
+| UNIT-07 | 03-02, 03-05, 03-11, 03-12, **03-16, 03-17, 03-18** | SATISFIED | Trickle and dawn restore unchanged and green |
+| UNIT-09 | 03-06, 03-08, 03-09, 03-12 | SATISFIED | Unchanged by the gap round; test_selection_*, test_control_group* green in the full run |
+| UNIT-10 | 03-07, 03-08, 03-09, 03-11, 03-12, **03-13** | SATISFIED | Criterion 2 |
+| KING-04 | 03-04, 03-10, 03-11, 03-12, **03-17, 03-18** | SATISFIED | Slam values unchanged (4 m / 4 damage / 9 s; the 03-17 search moved no slam value) |
+| KING-05 | 03-04, 03-12, **03-14, 03-17, 03-18** | SATISFIED in the simulation, on the widget and now on the floating bar | Criterion 3 |
+| INPT-01 | 03-06 to 03-09, 03-12, **03-13** | SATISFIED in code; the 03-13 gesture driven with real events in a window | Criterion 2 and 4 |
+| INPT-02 | 03-09, 03-10, 03-12, **03-13** | SATISFIED in code; synthetic pad events only | Criterion 4; UAT test 9 blocked |
+| UI-01 | 03-03, 03-04, 03-05, 03-10, 03-12, **03-14, 03-15, 03-19** | SATISFIED in code, tests and the runner check | Criterion 5 |
 
 REQUIREMENTS.md ticks reflect implementation, not the owner gate.
 
 ### Data-Flow Trace (Level 4)
 
-FLOWING: `BuildingSystem` tier and `UnitDef` -> `SquadSystem._sync` (cap, respawn seconds) -> `UnitSystem` records -> `SquadStrip`/`SquadSlot.refresh` (alive_count, max_count, resting_stance, replacement_progress) and `UnitViews` puppets. `KingState` health and `ability_cooldown_ratio()` -> `KingWidget._sync_health/_sync_ability` (polled each frame). `RunManager.get_total_nights()` and the phase -> `DayCounter`. Selection lives in `SelectionModel` (input layer) -> `SquadOrderIntent` -> `CommandProcessor` -> `SquadSystem.apply_order`; the simulation never reads `Input`. One broken link: `KingState` regeneration -> `king_healed` -> nothing in presentation (WR-01), so the floating `HealthBar3D` is the only HOLLOW readout. No hardcoded empty data reaches the UI.
+FLOWING for everything the gap round touched. `KingState._regenerate` -> `king_healed(gained, hp, max_hp)` -> `King._on_king_healed` -> `HealthBar3D.set_health` (the one HOLLOW link of the first report, now connected; `KingWidget` still polls the same state). `Input.is_action_pressed(command_queue)` at the press -> `SquadOrderIntent.queued` -> `CommandProcessor` -> `SquadSystem.apply_order` (queue kept behind walks, QUEUE_CLOSED behind a terminal verb). `KingState.is_down()` -> `KingWidget._apply_knocked_out` -> per-part alpha. `NightSim.remaining_count()` and the night total -> `Hud.enemy_count_text` -> banner and preview. `ReplayDriver.Tally` (a read-only listener on `building_built`) -> run entries -> `BalanceReport.summary` -> `squad_value_ratio` -> the report and the acceptance test; both goldens replay unchanged, which is the proof it writes nothing back. No hardcoded empty value reaches the UI. The payout line is Phase 1 and 2 code and unchanged (see the warning).
 
 ### Behavioral Spot-Checks and Replays
 
-See "What I ran". Behavior-dependent truths (commit instead of swap, leash drop, stance persistence across dawn, selection steering, cooldown gating, dawn restore) each have a passing named test that exercises the transition, so none is left PRESENT_BEHAVIOR_UNVERIFIED (`behavior_unverified: 0`). What is not behaviorally verified is everything that needs a human or hardware: see Human Verification.
+See "What I ran". Behavior-dependent truths of the gap round (a queued verb waits behind the walks and a plain verb replaces the queue; the bar follows each heal and hides at full health; the knocked-out count keeps alpha 1.0; the plate is mouse-transparent and day-only) each have a passing named test that exercises the transition, and the orchestrator's mutation probes show each test fails when its fix is removed. `behavior_unverified: 0`. What is not behaviorally verified is everything that needs a human or hardware: see Human Verification.
 
 ### Probe Execution
 
-No `probe-*.sh` files are declared by the phase plans or exist under `scripts/`: SKIPPED.
+No `probe-*.sh` files are declared by the phase plans or exist under `scripts/`: SKIPPED. (The phase's own `tools/contrast_probe.sh` is a measurement tool, run above, not a declared verification probe.)
 
 ### Anti-Patterns Found
 
-None blocking. No TBD, FIXME, XXX, TODO, HACK or PLACEHOLDER in the 173 text files of the phase. The grep for empty stubs hits only intentional defaults. One real defect class: unbounded `while _living_count(squad) < squad.cap` loops over unvalidated data (CR-01, below). The review INFO items (dead patrol-budget assignment, duplicated ground-bounds rule and 35-line separate pass, test-only accessors, unused ext_resource lines) are non-blocking.
+None blocking. No TBD, FIXME, XXX, TODO, HACK or PLACEHOLDER in the non-planning files changed by the gap round. The one real defect class remains CR-01 (unbounded `while _living_count(squad) < squad.cap` over unvalidated data), untouched. The new review items (WR-04, IN-07 to IN-09) are test-coverage and consistency notes, not defects in shipped behaviour.
 
-## Open code-review findings (all OPEN, none fixed)
+## Open code-review findings (13 OPEN, 1 FIXED)
 
-| ID | Severity (review) | My weighing |
-|---|---|---|
-| CR-01 | critical | WARNING. Confirmed by reading `_fill`, `restore_for_dawn`, `UnitSystem.spawn` and `RunContext._init`. Hang and unbounded memory growth on a unit with `max_health <= 0`. Needs a hand-corrupted `.tres`; shipped data is safe; no roadmap truth depends on it. Must be fixed before release; reopens T-03-04 / T-03-05 |
-| WR-01 | warning | WARNING. Confirmed (no `king_healed` consumer in `presentation/`). Two disagreeing health readouts mid-night |
-| WR-02 | warning | WARNING. Confirmed by reading `tools/screenshot.sh` against `replay.sh`; CI can stay green over a HUD script error |
-| WR-03 | warning | WARNING. Confirmed (no `command_rejected` consumer under `input/`, `presentation/`, `ui/`); refused queued orders are silent |
-| IN-01 to IN-06 | info | INFO. Not re-derived one by one; they do not touch a success criterion |
+| ID | Severity (review) | State | My weighing |
+|---|---|---|---|
+| CR-01 | critical | OPEN, re-confirmed unchanged at HEAD | WARNING. Hang and unbounded memory on a unit with `max_health <= 0`; shipped data safe; must be fixed before release; T-03-04 and T-03-05 still open |
+| WR-01 | warning | FIXED by 03-14 (ee21f6f), re-verified by the 2026-10-13 review and by me | Closed (G-03-4) |
+| WR-02 | warning | OPEN | WARNING. screenshot.sh cannot see script errors |
+| WR-03 | warning | OPEN, widened by 03-13 | WARNING. Refused queued orders, including Shift+verb behind a terminal order, are silent |
+| WR-04 | warning | OPEN (new) | WARNING. The contrast probe's guard and measurement have no test |
+| IN-01 to IN-06 | info | OPEN | INFO |
+| IN-07 to IN-09 | info | OPEN (new) | INFO |
 
 ## Human Verification Required
 
-The structured list is in the frontmatter (15 entries: one per `human_judgment: true` item in the twelve SUMMARYs, the E6 toast, the two UI-REVIEW legibility fixes and the owner gate itself). The orchestrator turns them into 03-UAT.md one to one. The decisive entry is the owner gate in 03-PLAYTEST-GATE.md: two or three full runs with an army on both devices, then sign off or name fixes, recorded through `/gsd-verify-work`. E6 (the 526 px toast) is a human item, not a failure, as agreed.
+The structured list is in the frontmatter: nine entries, one per owner judgement left after this round. They are the by-eye re-checks of the six fixed items (G-03-4, G-03-8, G-03-11, G-03-13, G-03-14, G-03-14b), the E6 toast decision, the physical pad and the gate itself. I did not repeat the seven items the owner passed in UAT round 1 (tests 1, 2, 3, 5, 6, 7, 10): the gap round did not change the code behind them (nothing under `simulation/` moved, and the only input change is the added queue flag in `_give`, which test 6 and 7's paths do not use). Test 11's data did change, so its re-check carries the new numbers. The decisive entry remains the owner gate in 03-PLAYTEST-GATE.md; re-export or use the editor binary first, because the exported build is stale.
 
 ## Gaps Summary
 
-No gaps and no blockers: all five roadmap success criteria are implemented, wired and tested, the replays are byte-identical to their goldens, lint is clean and the 1373-test suite was green at the last code change. The status is `human_needed` because the feel clauses of the criteria and the owner playtest gate have not happened, and because ten open review findings (one critical, three warnings) are waiting for a review-fix pass. Do not treat the 1373 green tests, the replay digests, the balance table, the screenshot review or this report as the sign-off, and do not start Phase 4 before the owner decides. Suggested order: run the review-fix pass (CR-01 first, then WR-01, WR-03, WR-02, then the info items), then the owner UAT. If the fix pass changes any file under the covered list, re-run `verification.status` to refresh the fingerprint.
+No gaps and no blockers. All five roadmap success criteria are implemented, wired and tested at HEAD; all six UAT round-1 gaps are closed in code with a test that fails when the fix is removed; the replays are byte-identical to their goldens, lint is clean, and the 1397-test suite was green on the code that is still current. The status is `human_needed` because the owner has not yet re-checked the fixed items, decided E6, played on a pad or run the gate, and because thirteen open review findings (one critical) wait for a review-fix pass. The Round 2 retune met its four measured goals but did so by slowing the first tower, which took the tower routes' wins with it (towers_first 0 of 10, houses_first 4 of 10) and relaxed a Phase 2 pin; the report is candid about it and the owner should say whether that is acceptable. Do not treat the 1397 green tests, the replay digests, the balance table, the contrast probe, the screenshot reads or this report as the sign-off, and do not start Phase 4 before the owner decides. Suggested order: the owner re-checks and the gate (UAT tests 4, 8, 11, 13, 14, 12, 9, 15) on a fresh export, and independently the review-fix pass (CR-01 first, then WR-03, WR-04, WR-02, then the info items). If the fix pass changes any file under the covered list, re-run `verification.status` to refresh the fingerprint.
+
+**Coverage fingerprint note.** `covered_files` is the orchestrator's 309-path list with two changes: 03-VERIFICATION.md itself was removed (a report cannot cover its own bytes, so its digest could never match) and `ui/hud/dawn_payout_vfx.gd` was added (I read it for the payout-line finding). `03-UAT.md` and the other phase documents stay covered, so appending the nine human items to 03-UAT.md changes the digest: after that edit, recompute it with `verification.fingerprint` over the frontmatter list and replace `covered_digest`, or `verification.status` will read `stale`.
 
 ---
 
-_Verified: 2026-10-12T09:16:48Z
+_Verified: 2026-10-13T20:11:11Z
 _Verifier: Claude (gsd-verifier)_

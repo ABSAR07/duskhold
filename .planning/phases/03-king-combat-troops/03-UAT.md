@@ -3,7 +3,7 @@ status: partial
 phase: 03-king-combat-troops
 source: [03-VERIFICATION.md]
 started: 2026-10-12T09:35:00Z
-updated: 2026-10-13T13:13:34Z
+updated: 2026-10-13T20:15:20Z
 ---
 
 ## Current Test
@@ -119,12 +119,49 @@ requirement: UNIT-04, UNIT-05, UNIT-06, UNIT-07, UNIT-09, UNIT-10, KING-04, KING
 expected: Launch build/windows/Duskhold.exe (exported 2026-10-12 from c418b6c, launch-checked) or the editor binary, play two or three full 8-night runs with an army, once on keyboard and mouse and once on a gamepad, switching device at least once per run, following 03-PLAYTEST-GATE.md. Record a decision through /gsd-verify-work: sign off (squads guard and commit, selection and commands feel right on both devices, slam and regeneration suit the game, the HUD reads at night with the centre clear, the retuned nights are tense) or list fixes and any of assumptions 1 to 15 to change. No Phase 4 work starts before it.
 result: [pending]
 
+### 16. G-03-4 re-check: the floating bar over the king and the bottom-left widget agree after a heal
+expected: Take a hit or two at night (or from an enemy by day), stop being hit, and watch the small bar floating over the king and the health bar bottom-left while the king regenerates; look at the moment he is whole again Expected: Both climb together, one point at a time, to the same number; the floating bar disappears once he is at full health (it used to freeze at the last damaged value while the widget climbed; fixed by plan 03-14, 10 heals measured equal in a real window) (Why human: The tests and the scripted real-window probe show the numbers agree; whether the two readouts read as one in motion, over the real scene, is a by-eye judgement (UAT test 4 re-check); requirement KING-05, UI-01)
+result: [pending]
+
+### 17. G-03-8 re-check: Shift-queued hold (and RT on the pad)
+expected: Select a squad, Shift + right-click three points, then press Shift + H; repeat with Shift + F and Shift + R; press plain H after a queued walk; on a pad hold RT and press D-pad down Expected: The squad walks all three points and then holds at the last one (move here, then hold); plain H still stops it at once and holds where it stands; Shift + F and Shift + R queue the follow and the rally the same way; Shift while sprinting now queues a verb, which should not surprise. A hold pressed behind a queue that already ends in a hold, follow or patrol is silently refused (open finding WR-03) (Why human: Real keys and a real window were driven by the executor (03-13 probe lines: orders move, move, move, hold, held at the third point), but the gesture's feel, the hint row's 'Queue' wording and the silent refusal behind a terminal order are the owner's to judge (UAT test 8 re-check); requirement UNIT-10, INPT-01, INPT-02)
+result: [pending]
+
+### 18. G-03-11 re-check: Round 2 balance feel (0.9 s first tower, nights 5 to 8 at 25 / 31 / 39 / 40)
+expected: Play three nights with an army, including nights 5 to 8, and read the Round 2 section of 03-BALANCE-REPORT.md; open with a tower on day 1 and see whether a first tower that fires every 0.9 s (was 0.8 s) still feels like a good opening Expected: Nights feel tense with squads; the owner accepts or rejects the reported trade: the balanced bot wins 8 of 10 and the army bot 8 of 10 (goals met), squads score 0.915 against the 0.8 bar mostly because towers got weaker, towers_first wins 0 of 10 and houses_first 4 of 10, the army bot loses 17.6 buildings a run, night 8 is now 40 against 39 (Why human: The bots build instantly and react perfectly and cannot judge tension or whether an opening feels rewarding; the report states the numbers measure the data only (D-08, Phase 2 D-18, UAT test 11 re-check); requirement UNIT-04, UNIT-07)
+result: [pending]
+
+### 19. G-03-13 re-check: the knocked-out king's '0 / 50'
+expected: Get the king knocked out at night and read the bottom-left widget (count, the dimmed bar and sword plate, the Slam caption) and the 'Knocked out, back in N s' label Expected: The red 0 / 50 and the Slam caption are crisp and readable, the bar and sword plate are visibly dimmed; the knocked-out state still reads as knocked out (measured 5.88:1 on the real capture, was 1.62:1; I viewed hud_king_down.png and the count is legible) (Why human: A contrast number and one capture approximate legibility; the owner's eyes on a real monitor and a real night decide (UAT test 13 re-check). Note the probe's own guard and measurement rule have no unit test (WR-04); requirement UI-01)
+result: [pending]
+
+### 20. G-03-14 re-check: singular copy at a count of one (and the payout line)
+expected: Leave exactly one enemy at night and read the banner; on a day whose night has one enemy read the preview; after a dawn watch the '+N gold' line under the gold counter Expected: 'Night N of 8 - 1 enemy left' and 'Night N: 1 enemy from 1 direction' (and plural for any other count); the payout line goes away by the time the day is under way and does not sit under the gold counter at night (UI-REVIEW saw it in fast-forwarded night captures; UAT p14 saw it expire within 1 s in real time) (Why human: The copy is test-pinned and I viewed the banner shot; whether the payout line behaves in real play, and whether it matters, is the owner's call (UAT test 14 re-check); requirement UI-01)
+result: [pending]
+
+### 21. G-03-14b re-check: the plated start-night prompt leads the day's bottom centre
+expected: On a day with a squad selected (cyan slot border) look at the bottom-centre stack: hint row, squad slots, the plated 'Hold N to start Night N' prompt with its fill bar, and the preview line below it Expected: The start-night prompt reads as the day's focal point beside the selected slot (it now has a #14141A plate at y 624..690 below the strip, preview unplated below it); the five-layer column does not feel cluttered. UI-REVIEW still sees the cyan 4 px border as the most saturated element in the column and scores Visuals 3/4 (Why human: Hierarchy and clutter are a visual judgement; the geometry is test-pinned (test_start_night_plate 6/6) and the clear-centre check passes on 33 of 33 shots, but whether the prompt leads is the owner's (UAT test 14 re-check, UI-REVIEW fix 3); requirement UI-01)
+result: [pending]
+
+### 22. E6: longest toast inside x 384..896
+expected: Select a squad, ride to the edge of the ground and right-click off the map to raise the Can't go there toast Expected: The owner accepts a 526 px toast (x 377..903, one line, entirely below the clear centre), or has the copy shortened, or amends the UI-SPEC bound (Why human: A 7 px per side miss of a literal band that never touches the protected rectangle is a spec-versus-taste call (03-12 D4, .planning/WINDOWS.md, D-28: decided after the owner plays the fixed build; UAT test 12 pending); requirement UI-01)
+result: [pending]
+
+### 23. Gamepad on a physical pad
+expected: Play one full night on a real pad: ride, sprint (RB), build (A), start night (Y), slam (X), D-pad verbs, hold RT for the queue (new: RT + D-pad now queues the verb), LB layer for move / attack-move / patrol with the right-stick cursor (900 px/s), R3 select all, LB+R3 select type, Start group mode, B to cancel, D-pad right to cycle Expected: Every in-run action is reachable on the pad with nothing needing a pointer; cursor speed, button feel, trigger edges and the chord layout feel right (Why human: No gamepad is connected to this machine, so every pad event in every test, probe and screenshot was synthetic; the pad layout was chosen by Claude, not the owner (UAT test 9 blocked on physical-device; 03-09 D6, assumption 8); requirement INPT-02)
+result: [pending]
+
+### 24. Owner Phase 3 gate: two or three full runs on both devices, then sign off or name fixes
+expected: Re-export first (`bash tools/export.sh`; build/windows/Duskhold.exe dates from c418b6c and holds none of the 03-13 to 03-19 fixes or the retune) or launch the editor binary; play two or three full 8-night runs with an army, once on keyboard and mouse and once on a gamepad, switching device at least once per run, following 03-PLAYTEST-GATE.md Expected: A recorded decision through /gsd-verify-work: sign off (squads guard and commit, selection and commands feel right on both devices, slam and regeneration suit the game, the HUD reads at night with the centre clear, the Round 2 nights are tense) or a list of fixes and any of assumptions 1 to 15 to change. No Phase 4 work starts before it (Why human: The feel clauses of the success criteria (fun, tension, readability, commands that feel right) and the delegated playtest gate (D-08, Phase 2 D-18) are the owner decision; bots, CI, 1397 green tests, probes and screenshot reviews are not the sign-off (UAT test 15); requirement UNIT-04, UNIT-05, UNIT-06, UNIT-07, UNIT-09, UNIT-10, KING-04, KING-05, INPT-01, INPT-02, UI-01)
+result: [pending]
+
+
 ## Summary
 
-total: 15
+total: 24
 passed: 7
 issues: 5
-pending: 2
+pending: 11
 skipped: 0
 blocked: 1
 
@@ -226,3 +263,5 @@ Round 1 (2026-10-13, self-verified by the orchestrator with scripted real-window
     - "A retune pass that moves squad value (unit damage, health, interval, squad size or cost) and, if needed, tower or regeneration values together with nights 5-8, measured with the existing bots over seeds 1-10, until: balanced 7-8 of 10, army_balanced 7-8 of 10, night 8 total above night 7, and the army bot's kills per gold within reach of the towers'"
     - "Re-pinned data contract tests; the smoke and army goldens stay byte-identical (they replay frozen fixture copies per the 03-11 design) and the full_idle digest before and after is recorded; plus an updated 03-BALANCE-REPORT.md section 'Round 2' with the table and the reasons"
     - "The owner judges feel at the gate afterwards (test 15); nights 1-4 untouched"
+
+Round 2 (2026-10-13, after the UAT round-1 gap closure 03-13 to 03-19 at HEAD e925538): tests 16 to 24 are the verifier's nine remaining owner judgements, one per item (re-checks of G-03-4, G-03-8, G-03-11, G-03-13, G-03-14 and G-03-14b; the E6 decision; the physical pad; the gate). Tests 12 and 15 of round 1 stay pending and are superseded in substance by tests 22 and 24. build/windows/Duskhold.exe was re-exported from this HEAD on 2026-10-13 for the gate. Resume with /gsd-verify-work 3.
