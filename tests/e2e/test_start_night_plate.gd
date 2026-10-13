@@ -18,7 +18,9 @@ const RADIUS: int = 8
 const LONG_PREVIEW := "Night 8: 99 enemies from 3 directions"
 const HINT_ROW_TOP: float = 504.0
 const HINT_ROW_BOTTOM: float = 536.0
-const PLATE_COLOR := Color(0.0784, 0.0784, 0.1019, 0.78)
+## The king widget's plate colour, read from it so retuning one plate fails this test until the
+## other follows (UI-SPEC: the start-night plate matches the king widget's plate).
+const PLATE_COLOR: Color = KingWidget.PLATE_COLOR
 const COLOR_TOLERANCE: float = 0.002
 const TOLERANCE_PX: float = 0.5
 const SETTLE_FRAMES: int = 3
