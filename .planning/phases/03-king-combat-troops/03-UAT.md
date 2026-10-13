@@ -224,5 +224,5 @@ Round 1 (2026-10-13, self-verified by the orchestrator with scripted real-window
     - "03-BALANCE-REPORT.md: the six-strategy table over seeds 1-10 and the levers it rules out"
   missing:
     - "A retune pass that moves squad value (unit damage, health, interval, squad size or cost) and, if needed, tower or regeneration values together with nights 5-8, measured with the existing bots over seeds 1-10, until: balanced 7-8 of 10, army_balanced 7-8 of 10, night 8 total above night 7, and the army bot's kills per gold within reach of the towers'"
-    - "Re-pinned data contract tests and regenerated goldens (smoke and army) with the new digests recorded, plus an updated 03-BALANCE-REPORT.md section 'Round 2' with the table and the reasons"
+    - "Re-pinned data contract tests; the smoke and army goldens stay byte-identical (they replay frozen fixture copies per the 03-11 design) and the full_idle digest before and after is recorded; plus an updated 03-BALANCE-REPORT.md section 'Round 2' with the table and the reasons"
     - "The owner judges feel at the gate afterwards (test 15); nights 1-4 untouched"
