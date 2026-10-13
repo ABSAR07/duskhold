@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 03
 current_phase_name: King Combat & Troops
 status: executing
-stopped_at: Completed 03-14-PLAN.md
-last_updated: "2026-10-13T16:15:50.112Z"
+stopped_at: Completed 03-15-PLAN.md
+last_updated: "2026-10-13T16:35:19.257Z"
 last_activity: 2026-10-13
 last_activity_desc: Phase 03 execution started
-state_head: ee21f6f863ea69542f765b058f2c79eb3cf092a4
+state_head: 93aa4adf33305ed549ea3c05c51d0a67a9824b1b
 progress:
   total_phases: 13
   completed_phases: 2
   total_plans: 59
-  completed_plans: 54
+  completed_plans: 55
   percent: 15
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-08)
 ## Current Position
 
 Phase: 03 (King Combat & Troops) — EXECUTING
-Plan: 3 of 19
+Plan: 4 of 19
 Status: Ready to execute
 Last activity: 2026-10-13 — Phase 03 execution started
 
@@ -111,6 +111,7 @@ Progress: [██░░░░░░░░] 15%
 | Phase 03 P12 | 2h 13m | 3 tasks | 11 files |
 | Phase 03 P13 | 20 min | 2 tasks | 3 files |
 | Phase 03 P14 | 25 min | 2 tasks | 2 files |
+| Phase 03 P15 | 19 min | 1 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -235,6 +236,7 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-12: E6 (the longest toast inside x 384..896) left human_needed, the line is 526 px at x 377..903, below the clear centre; the owner packet 03-PLAYTEST-GATE.md lists 15 assumptions and both 03-11 balance findings, the Phase 3 gate is open at /gsd-verify-work
 - [Phase 03]: 03-13: CommandKeyController._give reads command_queue (Shift / RT) at the press so F, H and R queue behind queued walks; Shift is also sprint, so sprinting and pressing a verb key now queues it (D-09)
 - [Phase 03]: 03-14: the king floating bar listens to king_healed and sets itself from the event's hp and max_hp (G-03-4, WR-01); simulation, HealthBar3D and KingWidget untouched
+- [Phase 03]: 03-15: StartNightPlate (#14141A 0.78, radius 8, 8 px inset, mouse ignored, day only) behind the start-night prompt and fill; StartNightBox offset_bottom -4 and separation 0 keep its top at y 624 with the 26 px preview ending at y 716 (G-03-14b)
 
 ### Pending Todos
 
@@ -267,6 +269,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-13T16:15:49.262Z
-Stopped at: Completed 03-14-PLAN.md
+Last session: 2026-10-13T16:35:18.418Z
+Stopped at: Completed 03-15-PLAN.md
 Resume file: None
