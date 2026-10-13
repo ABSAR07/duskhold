@@ -34,6 +34,7 @@ var _pending: int = 0
 var _payout_pending: int = 0
 
 @onready var _gold_label: Label = %GoldLabel
+@onready var _start_night_plate: Control = %StartNightPlate
 @onready var _start_night_prompt: Control = %StartNightPrompt
 @onready var _start_night_post: Label = %StartNightPost
 @onready var _start_night_glyph: PromptGlyph = %StartNightGlyph
@@ -166,10 +167,11 @@ func _on_enemy_died(
 	_refresh_banner()
 
 
-## The prompt and the preview show only by day (D-11); the banner only during the night itself
-## (D-12).
+## The prompt, its plate and the preview show only by day (D-11); the banner only during the
+## night itself (D-12).
 func _refresh_loop() -> void:
 	var by_day: bool = _ctx.run_manager.get_phase() == RunManager.RunPhase.DAY
+	_start_night_plate.visible = by_day
 	_start_night_prompt.visible = by_day
 	_start_night_fill.visible = by_day
 	if not by_day:

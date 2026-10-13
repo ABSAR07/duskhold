@@ -86,7 +86,7 @@ HUD palette (60/30/10 applied to HUD pixels, not the 3D scene).
 
 | Role | Value | Usage |
 |------|-------|-------|
-| Dominant 60% | #14141A at alpha 0.78 | Every panel behind HUD content: slot background, bar track, ability icon plate |
+| Dominant 60% | #14141A at alpha 0.78 | Every panel behind HUD content: slot background, bar track, ability icon plate, start-night plate (G-03-14b) |
 | Secondary 30% | #FFFFFF text; #C8CCD4 secondary text; #3A3F4B idle borders; #7A808C disabled | Numbers, verbs, idle slot border, empty-state dimming |
 | Accent 10% | #8CEBFF | Reserved list below |
 | Danger | #D9332E (fill) / #FF4040 (text) | Health bar fill; a squad at 0 alive and the king's "0 / 50" |
@@ -131,11 +131,11 @@ the king is knocked out). Existing nodes keep their position.
 | SquadStrip | `HBoxContainer`, bottom-centre (anchor_left=right=0.5, top=bottom=1.0), grow both, offset_top -176, offset_bottom -104, separation 8 | slots 136x72 | Stays put by day and night; 8 px above StartNightBox (top at y 624) |
 | CommandHints | `HBoxContainer`, same anchors, offset_top -216, offset_bottom -184, separation 16 | 32 tall | Only while at least one squad is selected |
 | Toast | `Label`, same anchors as CommandHints, offset_top -216, offset_bottom -184 (y 504..536; at 460 px wide it spans x 410..870, entirely below y 500) | 22 | One line, centred. It uses the CommandHints slot: while a toast shows, the hint strip (or the armed-point line) is hidden, and it returns when the toast ends. Same mechanism as the armed-point line that already replaces the strip. |
-| StartNightBox (existing) | bottom-centre, y 624..696 | prompt 22 | unchanged position; content gains glyphs (D-24) |
+| StartNightBox (existing) | bottom-centre, offset_top -96, offset_bottom -4 (y 624..716), separation 0 | prompt 22, preview 18 | top unchanged at y 624; content gains glyphs (D-24). **StartNightPlate** (G-03-14b, plan 03-15): a `PanelContainer` first in the box behind the prompt and the fill bar (inside a `StartNightRows` `VBoxContainer`, separation 4), #14141A at alpha 0.78, corner radius 8, 8 px inset on every side, top at y 624 (8 px below the SquadStrip), measured 400x66 at x 440..840, y 624..690 (never below y 700), `mouse_filter` IGNORE on the plate and its rows, hidden outside the day with the prompt. The NightPreview line (18) stays unplated directly under the plate, y 690..716 while shown. |
 | DragBox | `Panel` under HudRoot, `mouse_filter` IGNORE | free | see Interaction |
 | FastForwardLabel (existing) | top-right y 60..96 | font 22 (was 26; maps to Body, see Typography) | position unchanged; the executor edits the scene font size |
 
-**Focal points (hierarchy).** *Day screen:* primary focal point is the start-night prompt, "Hold [glyph] to start Night %d" with its fill bar, bottom-centre (the only 22 bold line with a glyph and a bar, on the clear bottom-centre of the screen); secondary are GoldLabel (top-left) and the DayCounter (top-centre); the SquadStrip and hint strip are tertiary (18 px, no accent unless a squad is selected). *Night screen:* primary focal point is the KingWidget, bottom-left: the health bar (the only large red fill) and the sword ability ring, whose single #8CEBFF ready flash is the one animated accent; secondary are the night banner and RespawnLabel when shown, the SquadStrip is tertiary, and the start-night prompt is hidden. No HUD element competes with the 3D action in the cleared centre.
+**Focal points (hierarchy).** *Day screen:* primary focal point is the start-night prompt, "Hold [glyph] to start Night %d" with its fill bar, bottom-centre (the only 22 bold line with a glyph and a bar, on the clear bottom-centre of the screen, on its own StartNightPlate, which is what keeps it above a cyan selected slot); secondary are GoldLabel (top-left) and the DayCounter (top-centre); the SquadStrip and hint strip are tertiary (18 px, no accent unless a squad is selected). *Night screen:* primary focal point is the KingWidget, bottom-left: the health bar (the only large red fill) and the sword ability ring, whose single #8CEBFF ready flash is the one animated accent; secondary are the night banner and RespawnLabel when shown, the SquadStrip is tertiary, and the start-night prompt is hidden. No HUD element competes with the 3D action in the cleared centre.
 
 Up to 6 slots fit (6x136+5x8 = 856 px). More than 6 is not reachable in Phase 3; scale the strip with
 `Control.scale` to a 720 px maximum if it ever happens.

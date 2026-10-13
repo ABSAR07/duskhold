@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://ui/hud/hud.gd" id="1_hud"]
 [ext_resource type="PackedScene" path="res://ui/overlay/debug_overlay.tscn" id="2_overlay"]
@@ -14,6 +14,17 @@
 [ext_resource type="Script" path="res://ui/hud/drag_box.gd" id="12_drag_box"]
 [ext_resource type="Script" path="res://ui/hud/command_hints.gd" id="14_command_hints"]
 [ext_resource type="Script" path="res://ui/hud/prompt_glyph.gd" id="13_prompt_glyph"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_start_night_plate"]
+bg_color = Color(0.0784, 0.0784, 0.1019, 0.78)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 8.0
+content_margin_top = 8.0
+content_margin_right = 8.0
+content_margin_bottom = 8.0
 
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1_hud")
@@ -51,26 +62,39 @@ anchor_bottom = 1.0
 offset_left = -200.0
 offset_top = -96.0
 offset_right = 200.0
-offset_bottom = -24.0
+offset_bottom = -4.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
+theme_override_constants/separation = 0
 
-[node name="StartNightPrompt" type="HBoxContainer" parent="StartNightBox"]
+[node name="StartNightPlate" type="PanelContainer" parent="StartNightBox"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_start_night_plate")
+
+[node name="StartNightRows" type="VBoxContainer" parent="StartNightBox/StartNightPlate"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="StartNightPrompt" type="HBoxContainer" parent="StartNightBox/StartNightPlate/StartNightRows"]
 unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
 alignment = 1
 
-[node name="StartNightPre" type="Label" parent="StartNightBox/StartNightPrompt"]
+[node name="StartNightPre" type="Label" parent="StartNightBox/StartNightPlate/StartNightRows/StartNightPrompt"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_font_sizes/font_size = 22
 text = "Hold"
 
-[node name="StartNightGlyph" type="Control" parent="StartNightBox/StartNightPrompt"]
+[node name="StartNightGlyph" type="Control" parent="StartNightBox/StartNightPlate/StartNightRows/StartNightPrompt"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 4
@@ -79,14 +103,14 @@ script = ExtResource("13_prompt_glyph")
 action = &"start_night"
 glyph_size = 32
 
-[node name="StartNightPost" type="Label" parent="StartNightBox/StartNightPrompt"]
+[node name="StartNightPost" type="Label" parent="StartNightBox/StartNightPlate/StartNightRows/StartNightPrompt"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_font_sizes/font_size = 22
 text = "to start Night 1"
 
-[node name="StartNightFill" type="ProgressBar" parent="StartNightBox"]
+[node name="StartNightFill" type="ProgressBar" parent="StartNightBox/StartNightPlate/StartNightRows"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 14)
 layout_mode = 2
