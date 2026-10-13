@@ -257,8 +257,11 @@ func _right_click(button: InputEventMouseButton) -> void:
 		feedback.emit(Toast.CANT_GO_THERE, true)
 		return
 	if _armed == Armed.PATROL:
-		if _patrol_points.size() < SquadOrder.MAX_PATROL_POINTS - 1:
+		var limit: int = SquadOrder.MAX_PATROL_POINTS - 1
+		if _patrol_points.size() < limit:
 			_patrol_points.append(cm as Vector2i)
+		else:
+			feedback.emit(Toast.PATROL_FULL % limit, true)
 		return
 	var points: Array[Vector2i] = [cm as Vector2i]
 	_order(SquadOrder.VERB_MOVE, points)

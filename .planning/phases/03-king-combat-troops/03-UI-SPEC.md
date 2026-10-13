@@ -280,6 +280,7 @@ the new widget scripts, matching the existing style ("Hold %s to start Night %d"
 | Error: command with nothing selected | Toast "Select a squad first" (1.5 s) |
 | Error: point outside the map or off the visible ground | Toast "Can't go there. Click a point on the visible ground." (1.5 s, Body 22, about 460 px, one line), no order issued; the squad does not move. Pad cursor is clamped to visible ground, so this appears for mouse input only. |
 | Error: queued order behind Hold, Follow or Patrol | Toast "Nothing can be queued after Hold, Follow or Patrol" (1.5 s, `Toast.QUEUE_CLOSED`), no order issued. Shown for Shift (RT) + F / H / R, a Shift right-click and a pad point verb with RT held, when every ordered squad already ends in a Hold, Follow or Patrol; in a mixed selection the order goes to the open squads and the closed ones are skipped without a toast. |
+| Error: patrol point past the limit | Toast "A patrol takes up to 7 points" (1.5 s, `Toast.PATROL_FULL`, the 7 is `SquadOrder.MAX_PATROL_POINTS - 1`) on a right click while patrol is armed and seven points are already collected; the click adds no point and no ping. |
 | Error: ability pressed while cooling or down | None (shake only) |
 | Knocked out | "Knocked out — back in %d s" (existing, unchanged) |
 | Night banner and preview counts | "Night %d of %d — %s left" by night, "Night %d: %s from %d directions" / "Night %d: %s from 1 direction" by day, where %s is "%d enemy" at a count of one and "%d enemies" otherwise (`Hud.enemy_count_text`, both lines use it; G-03-14) |

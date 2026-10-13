@@ -236,6 +236,25 @@ func test_holding_p_and_right_clicking_collects_a_patrol_that_commits_on_release
 	assert_eq(_ctx.squads.resting_stance(BARRACKS), SquadOrder.STANCE_PATROL, "they patrol")
 
 
+func test_the_eighth_patrol_point_is_refused_with_a_toast_and_the_seven_commit() -> void:
+	await _setup()
+	var limit: int = SquadOrder.MAX_PATROL_POINTS - 1
+	Input.action_press(&"squad_patrol")
+	await wait_process_frames(3)
+	for index: int in range(limit):
+		await _right_click(GROUND_A + Vector3(-1.0 * float(index), 0.0, 0.0))
+		assert_ne(
+			_toast.current_text(), Toast.PATROL_FULL % limit, "point %d is taken" % (index + 1)
+		)
+	await _right_click(GROUND_A + Vector3(-1.0 * float(limit), 0.0, 0.0))
+	assert_eq(_toast.current_text(), "A patrol takes up to 7 points", "the eighth says why")
+	assert_eq(limit, 7, "seven is what the copy says")
+	Input.action_release(&"squad_patrol")
+	await wait_process_frames(3)
+	assert_eq(_ordered.size(), 2, "one patrol per squad")
+	assert_eq((_ordered[0][3] as Array).size(), limit, "with the seven points that fit")
+
+
 func test_releasing_p_with_no_point_orders_nothing() -> void:
 	await _setup()
 	await _tap(&"squad_patrol")

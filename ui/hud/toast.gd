@@ -17,6 +17,7 @@ const ARMED_PAD := "Aim with the right stick, release to confirm"
 const GROUP_SAVED := "Group %d saved"
 const GROUP_EMPTY := "Group %d is empty"
 const QUEUE_CLOSED := "Nothing can be queued after Hold, Follow or Patrol"
+const PATROL_FULL := "A patrol takes up to %d points"
 const HOLD_SECONDS: float = 1.2
 const ERROR_SECONDS: float = 1.5
 const FADE_IN_SECONDS: float = 0.1
