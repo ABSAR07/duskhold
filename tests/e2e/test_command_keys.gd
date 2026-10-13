@@ -236,6 +236,36 @@ func test_a_verb_with_nothing_selected_issues_no_order_and_says_so() -> void:
 	assert_eq(Toast.SELECT_FIRST, "Select a squad first", "the UI-SPEC copy")
 
 
+func test_shift_a_verb_behind_a_queued_hold_is_refused_and_the_toast_says_so() -> void:
+	await _setup()
+	_select([BARRACKS] as Array[StringName])
+	_queue_three_moves(BARRACKS)
+	await _tap_queued(&"squad_hold")
+	assert_eq(_ordered.size(), 1, "the hold queued")
+	_toast.clear_line()
+	for action: StringName in [&"squad_follow", &"squad_hold", &"squad_rally"]:
+		await _tap_queued(action)
+		assert_eq(_ordered.size(), 1, "Shift+%s behind the hold orders nothing" % action)
+		assert_eq(_toast.current_text(), Toast.QUEUE_CLOSED, "%s says why" % action)
+		_toast.clear_line()
+	assert_eq(Toast.QUEUE_CLOSED, "Nothing can be queued after Hold, Follow or Patrol", "the copy")
+
+
+func test_a_mixed_selection_queues_for_the_open_squad_and_stays_silent() -> void:
+	await _setup()
+	_queue_three_moves(BARRACKS)
+	_queue_three_moves(ARCHERY)
+	_select([BARRACKS] as Array[StringName])
+	await _tap_queued(&"squad_hold")
+	_select([BARRACKS, ARCHERY] as Array[StringName])
+	_ordered = []
+	_toast.clear_line()
+	await _tap_queued(&"squad_follow")
+	assert_eq(_ordered.size(), 1, "only the open squad took the follow")
+	assert_eq(_ordered[0][0], ARCHERY, "the range")
+	assert_ne(_toast.current_text(), Toast.QUEUE_CLOSED, "the order was not refused")
+
+
 func test_cycle_selects_one_squad_at_a_time_in_creation_order_and_wraps() -> void:
 	await _setup()
 	await _tap(&"squad_cycle")

@@ -8,7 +8,9 @@ extends GutTest
 const FIXTURE := "res://tests/fixtures/fixture_map_squads.tres"
 const TUNING := "res://data/tuning/loop_tuning.tres"
 const BARRACKS: StringName = &"barracks_1"
+const ARCHERY: StringName = &"archery_1"
 const ONLY_BARRACKS: Array[StringName] = [&"barracks_1"]
+const BOTH: Array[StringName] = [&"barracks_1", &"archery_1"]
 const KING := Vector2(4.0, 6.0)
 const KING_LATER := Vector2(-6.0, 8.0)
 const FIRST := Vector2(0.0, 10.0)
@@ -237,6 +239,50 @@ func test_a_queued_order_after_hold_follow_or_patrol_is_refused_with_queue_close
 		)
 		assert_eq(_rejected, [[&"squad_order", BARRACKS, CommandProcessor.QUEUE_CLOSED]], "told")
 		assert_eq(_ctx.squads.orders_of(BARRACKS), before, "the queue is untouched")
+
+
+## A RunContext with both the barracks and the archery range standing (the mixed-selection checks).
+func _gate_both() -> void:
+	_gate()
+	assert_eq(_ctx.commands.submit(BuildIntent.new(ARCHERY)), CommandProcessor.OK, "range built")
+	_ctx.step()
+
+
+func _submit_both(verb: StringName, cm: Array[Vector2i], queued: bool) -> StringName:
+	return _ctx.commands.submit(SquadOrderIntent.new(BOTH, verb, cm, queued))
+
+
+func test_a_queued_order_for_a_mixed_selection_skips_the_closed_squad_only() -> void:
+	_gate_both()
+	var cm: Array[Vector2i] = [Vector2i(1500, 1000)]
+	var none: Array[Vector2i] = []
+	assert_eq(_submit_both(SquadOrder.VERB_MOVE, cm, false), CommandProcessor.OK, "both walk")
+	assert_eq(_submit(SquadOrder.VERB_HOLD, none, true), CommandProcessor.OK, "barracks will hold")
+	var closed_before: Array[Dictionary] = _ctx.squads.orders_of(BARRACKS)
+	var open_before: int = _ctx.squads.orders_of(ARCHERY).size()
+	_rejected = []
+	assert_eq(
+		_submit_both(SquadOrder.VERB_MOVE, cm, true),
+		CommandProcessor.OK,
+		"one open squad is enough: the order is not refused whole"
+	)
+	assert_eq(_rejected, [] as Array[Array], "and nobody is told it was refused")
+	assert_eq(_ctx.squads.orders_of(BARRACKS), closed_before, "the closed squad is skipped")
+	assert_eq(_ctx.squads.orders_of(ARCHERY).size(), open_before + 1, "the open squad queued it")
+
+
+func test_a_queued_order_is_refused_when_every_selected_squad_is_closed() -> void:
+	_gate_both()
+	var cm: Array[Vector2i] = [Vector2i(1500, 1000)]
+	var none: Array[Vector2i] = []
+	assert_eq(_submit_both(SquadOrder.VERB_MOVE, cm, false), CommandProcessor.OK, "both walk")
+	assert_eq(_submit_both(SquadOrder.VERB_HOLD, none, true), CommandProcessor.OK, "both will hold")
+	_rejected = []
+	assert_eq(
+		_submit_both(SquadOrder.VERB_MOVE, cm, true), CommandProcessor.QUEUE_CLOSED, "all closed"
+	)
+	assert_eq(_rejected.size(), 1, "told once")
+	assert_eq(_rejected[0][2], CommandProcessor.QUEUE_CLOSED, "with the reason")
 
 
 func test_a_non_queued_order_is_never_refused_for_a_closed_queue() -> void:

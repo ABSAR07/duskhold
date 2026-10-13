@@ -110,7 +110,10 @@ func _confirm() -> void:
 		feedback.emit(Toast.SELECT_FIRST, true)
 		return
 	var points: Array[Vector2i] = [cm as Vector2i]
-	_ctx.commands.submit(SquadOrderIntent.new(ids, verb, points, queued))
+	var reason: StringName = _ctx.commands.submit(SquadOrderIntent.new(ids, verb, points, queued))
+	var refusal: String = Toast.refusal_text(reason)
+	if not refusal.is_empty():
+		feedback.emit(refusal, true)
 
 
 ## The ground point under `screen` in whole centimetres, or null when the ray misses the ground or

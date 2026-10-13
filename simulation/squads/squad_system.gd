@@ -215,7 +215,8 @@ func step(
 ## within guard_range of each unit; patrol walks a path that starts at the squad centroid.
 ## A non-queued order clears the queue first. A queued one is appended: it runs when the walks
 ## before it are done, a tenth replaces the last, and one that would follow a hold, follow or patrol
-## still waiting in the queue is skipped (the command gate has already refused it, QUEUE_CLOSED).
+## still waiting in the queue is skipped for that squad (the command gate refuses the whole order,
+## QUEUE_CLOSED, only when every ordered squad is closed).
 ## The caller (CommandProcessor) has already validated the ids, the verb and the points; a point
 ## verb without a point is ignored here.
 func apply_order(

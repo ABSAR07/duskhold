@@ -230,6 +230,25 @@ func test_the_right_trigger_held_at_release_queues_the_order() -> void:
 	assert_false(_ordered[1][2], "not queued without the trigger")
 
 
+func test_the_right_trigger_behind_a_queued_hold_is_refused_and_the_toast_says_so() -> void:
+	await _setup()
+	await _hold_point_verb(JOY_BUTTON_DPAD_UP)
+	await _let_go(JOY_BUTTON_DPAD_UP)
+	var none: Array[Vector2i] = []
+	var hold: SquadOrderIntent = SquadOrderIntent.new(
+		[BARRACKS] as Array[StringName], SquadOrder.VERB_HOLD, none, true
+	)
+	assert_eq(_ctx.commands.submit(hold), CommandProcessor.OK, "a hold waits behind the walk")
+	_ordered = []
+	await _hold_point_verb(JOY_BUTTON_DPAD_UP)
+	_stick(JOY_AXIS_TRIGGER_RIGHT, 1.0)
+	await wait_process_frames(2)
+	await _let_go(JOY_BUTTON_DPAD_UP)
+	_stick(JOY_AXIS_TRIGGER_RIGHT, 0.0)
+	assert_eq(_ordered.size(), 0, "nothing was queued")
+	assert_eq(_toast.current_text(), Toast.QUEUE_CLOSED, "the toast says why")
+
+
 func test_b_while_held_hides_the_cursor_orders_nothing_and_keeps_the_selection() -> void:
 	await _setup()
 	await _hold_point_verb(JOY_BUTTON_DPAD_UP)

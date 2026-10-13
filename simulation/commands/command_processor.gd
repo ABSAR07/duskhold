@@ -132,7 +132,7 @@ func _squad_order_rejection(order: SquadOrderIntent) -> StringName:
 	reason = _point_rejection(order)
 	if reason != OK:
 		return reason
-	if order.queued and _queue_is_closed(order.squad_ids):
+	if order.queued and _every_queue_is_closed(order.squad_ids):
 		return QUEUE_CLOSED
 	return OK
 
@@ -185,14 +185,15 @@ func _ground_limit_cm() -> int:
 	return roundi(minf(extent, MapConfig.MAX_GROUND_HALF_EXTENT) * 100.0)
 
 
-## True when a squad's queue still ends in a hold, follow or patrol that has not run yet: nothing
-## can be queued behind it (D-09).
-func _queue_is_closed(squad_ids: Array[StringName]) -> bool:
+## True when every ordered squad's queue still ends in a hold, follow or patrol that has not run
+## yet: nothing can be queued behind it (D-09). A mixed selection is not refused whole: the order
+## goes to the squads that are open and SquadSystem.apply_order skips the closed ones.
+func _every_queue_is_closed(squad_ids: Array[StringName]) -> bool:
 	for squad_id: StringName in squad_ids:
 		var pending: Array[Dictionary] = _squads.orders_of(squad_id)
-		if not pending.is_empty() and SquadOrders.is_terminal(pending.back()["verb"] as StringName):
-			return true
-	return false
+		if pending.is_empty() or not SquadOrders.is_terminal(pending.back()["verb"] as StringName):
+			return false
+	return not squad_ids.is_empty()
 
 
 func _submit_start_night(_intent: RefCounted) -> StringName:

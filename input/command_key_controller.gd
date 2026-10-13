@@ -9,7 +9,7 @@ extends Node
 ## verb behind the selection's queued walks instead of replacing them, so "move here, then hold" is
 ## one gesture (D-09); the key is read at the moment of the press, as the pointer and pad cursor
 ## read it. Without it the verb replaces the queue; a verb behind a terminal order is refused by
-## the command gate.
+## the command gate and the refusal is shown as a toast.
 ##
 ## The point-command keys are polled here too and handed to the SelectionController, which owns
 ## the pointer: the attack-move key arms attack-move (it does nothing with nothing selected, since
@@ -200,9 +200,12 @@ func _give(verb: StringName) -> void:
 		feedback.emit(Toast.SELECT_FIRST, true)
 		return
 	var no_points: Array[Vector2i] = []
-	_ctx.commands.submit(
+	var reason: StringName = _ctx.commands.submit(
 		SquadOrderIntent.new(ids, verb, no_points, Input.is_action_pressed(QUEUE_ACTION))
 	)
+	var refusal: String = Toast.refusal_text(reason)
+	if not refusal.is_empty():
+		feedback.emit(refusal, true)
 
 
 ## Select one type: every squad of the type of the squad cycled last (else the first selected).

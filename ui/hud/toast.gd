@@ -16,6 +16,7 @@ const ARMED_PATROL := "Click a point to patrol"
 const ARMED_PAD := "Aim with the right stick, release to confirm"
 const GROUP_SAVED := "Group %d saved"
 const GROUP_EMPTY := "Group %d is empty"
+const QUEUE_CLOSED := "Nothing can be queued after Hold, Follow or Patrol"
 const HOLD_SECONDS: float = 1.2
 const ERROR_SECONDS: float = 1.5
 const FADE_IN_SECONDS: float = 0.1
@@ -39,6 +40,16 @@ func bind_run(_ctx: RunContext, map_root: MapRoot) -> void:
 			node.connect(&"feedback", _on_feedback)
 		if node.has_signal(&"prompt"):
 			node.connect(&"prompt", _on_prompt)
+
+
+## The error line for a squad order the command gate refused with `reason`, or an empty string when
+## the reason has no player-facing copy (the controllers already check the ground and the
+## selection, so only a closed queue reaches the player). Every controller that submits a squad
+## order runs the result of `submit` through this.
+static func refusal_text(reason: StringName) -> String:
+	if reason == CommandProcessor.QUEUE_CLOSED:
+		return QUEUE_CLOSED
+	return ""
 
 
 ## Shows `message` for `seconds`, replacing any toast that is showing.

@@ -278,7 +278,12 @@ func _attack_move_click(position: Vector2) -> void:
 ## Gives the selection `verb` at `points`, queued when the queue key is held as the order is given.
 func _order(verb: StringName, points: Array[Vector2i]) -> void:
 	var queued: bool = Input.is_action_pressed(&"command_queue")
-	_ctx.commands.submit(SquadOrderIntent.new(_selection.selected(), verb, points, queued))
+	var reason: StringName = _ctx.commands.submit(
+		SquadOrderIntent.new(_selection.selected(), verb, points, queued)
+	)
+	var refusal: String = Toast.refusal_text(reason)
+	if not refusal.is_empty():
+		feedback.emit(refusal, true)
 
 
 ## The ground point under `position` in whole centimetres, or null when the ray misses the ground

@@ -178,6 +178,22 @@ func test_shift_with_a_right_click_queues_the_move() -> void:
 	assert_eq(_ctx.squads.orders_of(BARRACKS).size(), 1, "and replaces the queue")
 
 
+func test_a_queued_click_behind_a_queued_hold_is_refused_and_the_toast_says_so() -> void:
+	await _setup()
+	await _right_click(GROUND_A)
+	var none: Array[Vector2i] = []
+	var hold: SquadOrderIntent = SquadOrderIntent.new(BOTH, SquadOrder.VERB_HOLD, none, true)
+	assert_eq(_ctx.commands.submit(hold), CommandProcessor.OK, "a hold waits behind the walk")
+	_ordered = []
+	_toast.clear_line()
+	Input.action_press(&"command_queue")
+	await _right_click(GROUND_B)
+	Input.action_release(&"command_queue")
+	assert_eq(_ordered.size(), 0, "nothing was queued")
+	assert_eq(_toast.current_text(), Toast.QUEUE_CLOSED, "the toast says why")
+	assert_eq(_markers.active_ping_count(), 1, "and only the first click pinged")
+
+
 func test_the_attack_move_key_arms_it_and_the_next_left_click_orders_it() -> void:
 	await _setup()
 	Input.action_press(&"squad_attack_move")
