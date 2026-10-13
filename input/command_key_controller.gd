@@ -53,7 +53,6 @@ const SELECT_TYPE_ACTION: StringName = &"select_type"
 const ATTACK_MOVE_ACTION: StringName = &"squad_attack_move"
 const PATROL_ACTION: StringName = &"squad_patrol"
 const CANCEL_ACTION: StringName = &"command_cancel"
-const QUEUE_ACTION: StringName = &"command_queue"
 ## The LB layer and the Start group mode of the gamepad.
 const LAYER_ACTION: StringName = &"command_layer"
 const GROUP_MODE_ACTION: StringName = &"group_mode"
@@ -201,7 +200,9 @@ func _give(verb: StringName) -> void:
 		return
 	var no_points: Array[Vector2i] = []
 	var reason: StringName = _ctx.commands.submit(
-		SquadOrderIntent.new(ids, verb, no_points, Input.is_action_pressed(QUEUE_ACTION))
+		SquadOrderIntent.new(
+			ids, verb, no_points, Input.is_action_pressed(SelectionController.QUEUE_ACTION)
+		)
 	)
 	var refusal: String = Toast.refusal_text(reason)
 	if not refusal.is_empty():

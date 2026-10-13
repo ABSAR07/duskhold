@@ -266,6 +266,12 @@ func test_a_mixed_selection_queues_for_the_open_squad_and_stays_silent() -> void
 	assert_ne(_toast.current_text(), Toast.QUEUE_CLOSED, "the order was not refused")
 
 
+func test_the_queue_action_is_named_once_and_exists_in_the_input_map() -> void:
+	assert_eq(SelectionController.QUEUE_ACTION, &"command_queue", "the name in project.godot")
+	assert_true(InputMap.has_action(SelectionController.QUEUE_ACTION), "a bound action")
+	assert_eq(QUEUE_ACTION, SelectionController.QUEUE_ACTION, "the one the tests press")
+
+
 func test_cycle_selects_one_squad_at_a_time_in_creation_order_and_wraps() -> void:
 	await _setup()
 	await _tap(&"squad_cycle")

@@ -100,7 +100,7 @@ func _on_pad_point_verb(verb: StringName, action: StringName) -> void:
 func _confirm() -> void:
 	var cm: Variant = _ground_cm(_cursor.position())
 	var verb: StringName = _verb
-	var queued: bool = Input.is_action_pressed(&"command_queue")
+	var queued: bool = Input.is_action_pressed(SelectionController.QUEUE_ACTION)
 	_stop()
 	if cm == null:
 		feedback.emit(Toast.CANT_GO_THERE, true)

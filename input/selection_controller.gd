@@ -28,6 +28,9 @@ signal prompt(text: String)
 ## What a click does next.
 enum Armed { NONE, ATTACK_MOVE, PATROL }
 
+## The Input Map action that queues an order behind the running ones (Shift, the right trigger). The
+## one name every controller reads, so a rename in project.godot is one edit here.
+const QUEUE_ACTION: StringName = &"command_queue"
 ## Pixels around a unit's projected ground point that count as a hit (UI-SPEC click select).
 const CLICK_RADIUS_PX := 32.0
 ## Motion farther than this from a press starts a drag box.
@@ -280,7 +283,7 @@ func _attack_move_click(position: Vector2) -> void:
 
 ## Gives the selection `verb` at `points`, queued when the queue key is held as the order is given.
 func _order(verb: StringName, points: Array[Vector2i]) -> void:
-	var queued: bool = Input.is_action_pressed(&"command_queue")
+	var queued: bool = Input.is_action_pressed(QUEUE_ACTION)
 	var reason: StringName = _ctx.commands.submit(
 		SquadOrderIntent.new(_selection.selected(), verb, points, queued)
 	)
