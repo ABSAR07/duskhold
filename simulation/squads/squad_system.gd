@@ -128,7 +128,8 @@ func patrol_path_of(squad_id: StringName) -> Array[Vector2]:
 	return squad.patrol_path.duplicate()
 
 
-## Where the squad formation centres; the zero vector for an unknown squad.
+## Where the squad formation centres; the zero vector for an unknown squad. Test hook: nothing in
+## the game reads it, the tests do.
 func anchor_of(squad_id: StringName) -> Vector2:
 	var squad: Squad = _squads.get(squad_id) as Squad
 	return squad.anchor if squad != null else Vector2.ZERO

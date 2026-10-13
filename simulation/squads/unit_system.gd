@@ -72,7 +72,8 @@ func health_of(id: int) -> int:
 	return record.health if record != null else 0
 
 
-## The squad (military spot id) the unit belongs to; empty for an unknown id.
+## The squad (military spot id) the unit belongs to; empty for an unknown id. Test hook: nothing in
+## the game reads it, the tests do.
 func squad_of(id: int) -> StringName:
 	var record: Record = _records.get(id) as Record
 	return record.squad_id if record != null else &""
