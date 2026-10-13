@@ -7,10 +7,13 @@ extends HBoxContainer
 ## ignores the mouse. The widget row spans x 16..376 and y 648..704 at 1280x720, the caption
 ## reaches up to y 624, and nothing of it enters the protected clear centre.
 ##
-## Knocked out (KING-06): the bar is empty, the label reads "0 / 50" in red and the whole widget is
-## dimmed to alpha 0.4; the RespawnLabel carries the countdown. A respawn restores both without a
-## flash. A press that the command gate refused (AbilityController.denied) shakes the icon; there
-## is no error text.
+## Knocked out (KING-06): the bar is empty and the label reads "0 / 50" in red. The bar, the plate
+## panel (its own self_modulate), the sword icon and the slam glyph dim to alpha 0.4; the count and
+## the "Slam" caption stay at full alpha (G-03-13). Neither sits on a panel (the label is beside the
+## bar, the caption above the plate), and the opaque black outline Godot draws around every glyph is
+## their immediate surround, which is why they read at 4.5:1 or better whatever the ground is. The
+## RespawnLabel carries the countdown. A respawn restores everything without a flash. A press that
+## the command gate refused (AbilityController.denied) shakes the icon; there is no error text.
 
 const HEALTH_TEXT := "%d / %d"
 const ABILITY_CAPTION := "Slam"
@@ -255,8 +258,14 @@ func _sync_health(snap: bool) -> void:
 		_apply_knocked_out(down)
 
 
+## G-03-13: dims the parts that are not text (the bar, the plate's own panel, the sword and the
+## glyph) and leaves the widget, the count and the caption at full alpha.
 func _apply_knocked_out(down: bool) -> void:
-	modulate.a = KNOCKED_OUT_ALPHA if down else 1.0
+	var alpha: float = KNOCKED_OUT_ALPHA if down else 1.0
+	_health_bar.modulate.a = alpha
+	_plate.self_modulate.a = alpha
+	_icon_bar.modulate.a = alpha
+	_ability_glyph.modulate.a = alpha
 	if down:
 		_health_label.add_theme_color_override("font_color", KNOCKED_OUT_COLOR)
 	else:

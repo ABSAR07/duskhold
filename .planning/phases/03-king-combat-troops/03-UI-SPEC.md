@@ -106,7 +106,7 @@ Accent #8CEBFF reserved for (complete list, each with its reason):
 10. The existing knocked-out label (RespawnLabel).
 Never for generic text, the resting or hover border of any slot, or decoration. The slot Hover state therefore uses the
 secondary #C8CCD4, not the accent. Contrast: white on #14141A over 15:1; #8CEBFF on
-#14141A about 12:1; #FF4040 on #14141A about 5:1; every glyph sits on a dark panel or carries a 6 px outline, so
+#14141A about 12:1; #FF4040 on #14141A about 5:1; #FF4040 on its own opaque black outline about 6:1 (the knocked-out "0 / 50", which sits on no panel; the outline is its immediate surround); every glyph sits on a dark panel or carries a 6 px outline, so
 night lighting cannot dim it (HUD is on a CanvasLayer, unaffected by the WorldEnvironment). State is never colour-only:
 selection = ring + thicker border + brighter plate; zero alive = red text + dimmed icon.
 
@@ -150,12 +150,12 @@ Up to 6 slots fit (6x136+5x8 = 856 px). More than 6 is not reachable in Phase 3;
 | Ready state | Progress full: icon white, plate border #8CEBFF 2 px. One-shot flash on reaching ready: plate scale 1.0 to 1.2 to 1.0 over 0.25 s and modulate to #8CEBFF and back over 0.2 s. No repeating pulse. |
 | On use | Fill snaps to 0, plate scales 1.0 to 0.9 to 1.0 over 0.12 s, border returns to #3A3F4B. Used by day too (D-19); it just hits nothing. |
 | Pressed while cooling | Plate shakes +-3 px on x for 0.15 s (3 oscillations); no text, no sound hook beyond the Phase 8 SFX slot. |
-| Ability caption (text fallback) | `Label` "Slam", Label 18 Regular, white, outline 6, centred, a child of the 56x56 plate positioned at offset (0,-24) size 56x24 (above the icon, outside the HBox, so KingWidget's row stays 56 tall; its footprint now reaches y 624..704 and x 16..72 for the caption, clear of SquadStrip and StartNightBox). Always visible, shares the widget alpha (0.4 when knocked out). The icon is therefore never icon-only, and it still reads if the glyph tile fails to load. |
+| Ability caption (text fallback) | `Label` "Slam", Label 18 Regular, white, outline 6, centred, a child of the 56x56 plate positioned at offset (0,-24) size 56x24 (above the icon, outside the HBox, so KingWidget's row stays 56 tall; its footprint now reaches y 624..704 and x 16..72 for the caption, clear of SquadStrip and StartNightBox). Always visible, stays at full alpha when knocked out (G-03-13). The icon is therefore never icon-only, and it still reads if the glyph tile fails to load. |
 | Ability glyph | 24x24 `TextureRect` at plate offset (32,32), bottom-right, showing the active-ability action's glyph for the last-used device (prompt rules below). |
 | HealthBar | 192x24 `ProgressBar`, `show_percentage` false, `step` 0.001; background `StyleBoxFlat` #14141A@0.78 radius 4, 2 px border #000000; fill `StyleBoxFlat` #D9332E radius 4. Value tweens to the sim value over 0.15 s (regen climbs smoothly). |
 | Damage taken | Border flashes #FFFFFF for 0.1 s on each hit. No shake. |
 | HealthLabel | "%d / %d" (e.g. "38 / 50"), Body 22 bold, white, outline 6, left-aligned, 8 px after the bar, min width 96 so "50 / 50" and "5 / 50" do not shift the layout. |
-| Knocked out (KING-06) | Bar value 0, HealthLabel "0 / 50" in #FF4040, whole widget `modulate` alpha 0.4, ability presses ignored. The existing RespawnLabel (centre-top, #8CEBFF, y 100..150) carries the countdown; the widget adds no timer. On respawn: widget returns to full alpha, bar jumps to full (no flash), cooldown shows whatever the sim holds. |
+| Knocked out (KING-06) | Bar value 0, ability presses ignored. The health bar, the plate panel (its `self_modulate`, so its children are untouched), the sword icon and the slam glyph dim to alpha 0.4. HealthLabel "0 / 50" in #FF4040 and the "Slam" caption stay at alpha 1.0 with their opaque black outline (outline_size 6), which Godot draws contiguous around every glyph and which is therefore their immediate surround, since neither sits on a panel (the label is beside the bar, the caption above the plate). Fill over outline is about 6.1:1 for the count and about 21:1 for the caption, at least 4.5:1, and `bash tools/contrast_probe.sh` confirms the count on the real-window hud_king_down capture (G-03-13). The existing RespawnLabel (centre-top, #8CEBFF, y 100..150) carries the countdown; the widget adds no timer. On respawn: everything returns to full alpha, bar jumps to full (no flash), cooldown shows whatever the sim holds. |
 | Always visible | The widget never hides (it is the king's lifeline); it is not hurt-only like the world bars. The world `HealthBar3D` over the king is unchanged. |
 | Slam in the world | Expanding flat ring at the king's feet: radius 0 to `WeaponDef` slam radius over 0.25 s, white #FFFFFF alpha 0.85 to 0, 0.15 m thick, unshaded, plus 4 radial dust billboards if the budget allows. Radius comes from data, never a literal. |
 
@@ -301,7 +301,7 @@ Copywriting Contract; rows here reference it rather than restate it.
 |----------|---------|--------|---------------------|
 | overflow | DayCounter (E1) | resolved (verification: explicit) | DayCounter is a full-width CenterContainer with one 28 px line; the longest shipped text "Night 8 of 8" fits with room to spare, nothing clips. |
 | long-text | DayCounter (E1) | resolved (verification: backstop) | Two-digit night numbers ("Night 12 of 12") stay on one centred line; screenshot check on the longest authored map. |
-| empty | KingWidget (E2) | resolved (verification: explicit) | The king always exists, so the widget is never empty; at 0 health it shows "0 / 50" in #FF4040 at alpha 0.4 with ability input ignored and the RespawnLabel countdown. |
+| empty | KingWidget (E2) | resolved (verification: explicit) | The king always exists, so the widget is never empty; at 0 health it shows "0 / 50" in #FF4040 at full alpha with its outline while the bar and the icon dim to 0.4, with ability input ignored and the RespawnLabel countdown (G-03-13). |
 | loading | KingWidget (E2) | dismissed | Health and cooldown come from the local simulation every frame; there is no in-flight state. |
 | error | KingWidget (E2) | resolved (verification: explicit) | A press of the ability while knocked out or on cooldown does nothing and plays the ±3 px denied shake on the icon; no error text. |
 | populated | KingWidget (E2) | resolved (verification: explicit) | Bar at the sim health with "38 / 50" beside the sword icon filling clockwise over the cooldown; ready flash once. |
