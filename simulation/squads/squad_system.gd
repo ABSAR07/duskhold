@@ -365,8 +365,10 @@ func _begin(squad: Squad, order: SquadOrder, king_position: Vector2, at_apply: b
 		squad.patrol_path.append_array(order.points)
 		squad.patrol_index = 0
 		squad.patrol_direction = 1
+		# Leg 0 runs from the centroid to the centroid: the counters stay 0 (a patrol leaves the
+		# queue at once and _run_queue zeroes them), so the first _advance_patrol ends it and sets
+		# the budget of the first real leg.
 		squad.anchor = squad.patrol_path[0]
-		squad.moving_ticks_left = _walk_budget_ticks(squad)
 
 
 ## Steps a one-shot walk may take: the time the farthest unit needs to reach its slot plus the
