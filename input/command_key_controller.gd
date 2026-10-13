@@ -5,6 +5,11 @@ extends Node
 ## H and R give the selection a follow, hold or rally order through the one command gate; Tab
 ## selects the next squad in creation order and F2 selects them all. A verb with nothing selected
 ## issues no order and reports "Select a squad first" through `feedback`, which the HUD toast shows.
+## Holding the queue key (Shift on the keyboard, RT on the pad) while pressing F, H or R appends the
+## verb behind the selection's queued walks instead of replacing them, so "move here, then hold" is
+## one gesture (D-09); the key is read at the moment of the press, as the pointer and pad cursor
+## read it. Without it the verb replaces the queue; a verb behind a terminal order is refused by
+## the command gate.
 ##
 ## The point-command keys are polled here too and handed to the SelectionController, which owns
 ## the pointer: the attack-move key arms attack-move (it does nothing with nothing selected, since
@@ -48,6 +53,7 @@ const SELECT_TYPE_ACTION: StringName = &"select_type"
 const ATTACK_MOVE_ACTION: StringName = &"squad_attack_move"
 const PATROL_ACTION: StringName = &"squad_patrol"
 const CANCEL_ACTION: StringName = &"command_cancel"
+const QUEUE_ACTION: StringName = &"command_queue"
 ## The LB layer and the Start group mode of the gamepad.
 const LAYER_ACTION: StringName = &"command_layer"
 const GROUP_MODE_ACTION: StringName = &"group_mode"
@@ -186,13 +192,17 @@ func _pressed_now(action: StringName) -> bool:
 	return edge
 
 
-## Orders the whole selection; with nothing selected it submits nothing and says so.
+## Orders the whole selection; with nothing selected it submits nothing and says so. The queue key
+## is read now, at the press, so a held Shift queues the verb behind the walks (D-09).
 func _give(verb: StringName) -> void:
 	var ids: Array[StringName] = _selection.selected()
 	if ids.is_empty():
 		feedback.emit(Toast.SELECT_FIRST, true)
 		return
-	_ctx.commands.submit(SquadOrderIntent.new(ids, verb))
+	var no_points: Array[Vector2i] = []
+	_ctx.commands.submit(
+		SquadOrderIntent.new(ids, verb, no_points, Input.is_action_pressed(QUEUE_ACTION))
+	)
 
 
 ## Select one type: every squad of the type of the squad cycled last (else the first selected).
