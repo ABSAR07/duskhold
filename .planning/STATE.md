@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 03
 current_phase_name: King Combat & Troops
 status: executing
-stopped_at: Completed 03-12-PLAN.md
-last_updated: "2026-10-13T15:28:14.196Z"
+stopped_at: Completed 03-13-PLAN.md
+last_updated: "2026-10-13T15:54:23.490Z"
 last_activity: 2026-10-13
 last_activity_desc: Phase 03 execution started
-state_head: 9e01f23596c6cd691ce3e2bbbada51b00ea3ddda
+state_head: cddfec18c8d191ad32ac5fe117a08cc102b4d984
 progress:
   total_phases: 13
   completed_phases: 2
   total_plans: 59
-  completed_plans: 52
+  completed_plans: 53
   percent: 15
 ---
 
@@ -28,8 +28,8 @@ See: .planning/PROJECT.md (updated 2026-10-08)
 ## Current Position
 
 Phase: 03 (King Combat & Troops) — EXECUTING
-Plan: 1 of 19
-Status: Executing Phase 03
+Plan: 2 of 19
+Status: Ready to execute
 Last activity: 2026-10-13 — Phase 03 execution started
 
 Progress: [██░░░░░░░░] 15%
@@ -109,6 +109,7 @@ Progress: [██░░░░░░░░] 15%
 | Phase 03 P09 | 68 min | 2 tasks | 29 files |
 | Phase 03 P10 | 66 min | 2 tasks | 178 files |
 | Phase 03 P12 | 2h 13m | 3 tasks | 11 files |
+| Phase 03 P13 | 20 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -231,6 +232,7 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-12: the 18 Phase 3 shots live in ShotArmyScenarios (shot_scenarios.gd would pass the 1000-line cap); ShotRunner.protected_violations fails any hud_ or cmd_ shot with a visible HUD control in x 384..896, y 96..500; shots that hurt the king use a regeneration-off king copy
 - [Phase 03]: 03-12: CI run 38219154906 on c418b6c is green on all four jobs with REPLAY_OK smoke, army and full_idle and 33 of 33 screenshots; the first run failed two shots on the slow software renderer and was fixed by making the scenes frame-time independent
 - [Phase 03]: 03-12: E6 (the longest toast inside x 384..896) left human_needed, the line is 526 px at x 377..903, below the clear centre; the owner packet 03-PLAYTEST-GATE.md lists 15 assumptions and both 03-11 balance findings, the Phase 3 gate is open at /gsd-verify-work
+- [Phase 03]: 03-13: CommandKeyController._give reads command_queue (Shift / RT) at the press so F, H and R queue behind queued walks; Shift is also sprint, so sprinting and pressing a verb key now queues it (D-09)
 
 ### Pending Todos
 
@@ -263,6 +265,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-12T08:01:20.210Z
-Stopped at: Completed 03-12-PLAN.md
+Last session: 2026-10-13T15:54:22.676Z
+Stopped at: Completed 03-13-PLAN.md
 Resume file: None
