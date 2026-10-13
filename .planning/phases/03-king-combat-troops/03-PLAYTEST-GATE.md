@@ -4,7 +4,7 @@ You are the gate (D-08 feel half, Phase 2 D-18, ROADMAP success criteria 1 to 5)
 
 ## How to play
 
-- **Exported build:** `build/windows/Duskhold.exe`, freshly exported on 2026-10-12 (UTC) from commit `c418b6c`, the state the latest CI run checked. It launched and quit cleanly in the headless check `timeout 90 build/windows/Duskhold.exe --headless --quit-after 120` (exit 0 in about 3 s). It replaces the Phase 2 export.
+- **Exported build:** `build/windows/Duskhold.exe`, freshly exported on 2026-10-12 (UTC) from commit `c418b6c`, the state the latest CI run checked. It launched and quit cleanly in the headless check `timeout 90 build/windows/Duskhold.exe --headless --quit-after 120` (exit 0 in about 3 s). It replaces the Phase 2 export. **That export predates the fixes since UAT round 1 and the Round 2 retune below**, so it does not hold them; to play the current build, run the editor binary below, or re-export first (`bash tools/export.sh` from Git Bash).
 - **From the editor binary, in PowerShell** (PowerShell's `bash` is WSL, so the Git Bash wrappers are not your entry point):
 
   ```powershell
@@ -33,7 +33,7 @@ You are the gate (D-08 feel half, Phase 2 D-18, ROADMAP success criteria 1 to 5)
 | Move | right click on the ground |
 | Attack-move (walk there and fight on the way) | A, then left click on the ground (the key is also the king's move-left, so with nothing selected it does nothing) |
 | Patrol | hold P, right click each point, let go of P (up to 7 points) |
-| Queue an order behind the current ones | hold Shift while giving it (up to 9 orders per squad) |
+| Queue an order behind the current ones | hold Shift while giving it, including F, H and R (sprinting with Shift while pressing one of them now queues it instead of replacing the queue; up to 9 orders per squad) |
 | Cancel a waiting point command, then clear the selection | Escape |
 | Store the selection as a control group | Ctrl + 1 to 9 or 0 |
 | Recall a control group | the digit 1 to 9 or 0 |
@@ -55,7 +55,7 @@ You are the gate (D-08 feel half, Phase 2 D-18, ROADMAP success criteria 1 to 5)
 | Select every squad | right stick press (R3) |
 | Select every squad of one unit type (the type of the squad cycled last) | LB + R3 |
 | Move / attack-move / patrol | hold LB and press D-pad up / right / down: a ring appears on the ground, steer it with the right stick, let go of the D-pad button to confirm (a pad patrol takes one point) |
-| Queue an order behind the current ones | hold the right trigger (RT) when you confirm |
+| Queue an order behind the current ones | hold the right trigger (RT) when you confirm, or when you press a D-pad verb |
 | Cancel the cursor, then clear the selection | B |
 | Control groups | hold Start; D-pad left and right step the number 1 to 9 and 0 on the selected squad's badge, D-pad up recalls it; let go of Start to store |
 | Camera zoom | right stick up and down (suppressed while the cursor is out) |
@@ -72,18 +72,53 @@ Play two or three full runs with an army, on keyboard and mouse and on a gamepad
 3. **Do selection and commands feel right?** Mouse: clicking a squad, the drag box, right-click moves, the attack-move key, patrol and Shift queueing, control groups. Gamepad: the right-stick ground cursor (it moves at 900 px/s across the screen at full stick), the LB layer, the Start group mode, the D-pad verbs. Does the king stopping while a squad is selected help or annoy?
 4. **Do the slam and the regeneration suit the game?** The slam hits everything within 4 m for 4 damage with a 9 s cooldown and no knockback; regeneration starts 1 s after the last hit at 10 % of 50 health per second, by day and by night.
 5. **Does the HUD read at night and keep the centre clear?** Gold top-left, the day counter top-centre, the king's health and slam badge bottom-left, the squad slots and the hint row bottom-centre. Can you read the slots, the glyphs (24 px tiles on the hint row) and the toasts in the middle of a fight?
-6. **Do the retuned nights feel tense with squads?** Nights 1 to 4 are unchanged (5, 12, 21, 21 enemies); nights 5 to 8 are now 25, 31, 39 and 39. Is the army worth its gold against a tower, or do you feel nothing is gained (see the first balance finding below)?
+6. **Do the retuned nights feel tense with squads?** Nights 1 to 4 are unchanged (5, 12, 21, 21 enemies); nights 5 to 8 are now 25, 31, 39 and **40**, so the last night is at last one enemy larger than the night before (Round 2 raised night 8's north road from 10 to 11 grunts). The first tower tier also fires every **0.9 s instead of 0.8 s**. Is the army worth its gold against a tower now (the bots measure 0.92 of a tower's kills per gold, against 0.68 before), and does the slower first tower still feel like a rewarding opening (the pure tower route no longer wins under the bots)?
+
+## Fixed since UAT round 1
+
+Your first UAT pass found these gaps; each is fixed and covered by tests, and you should find them gone in play. One line each:
+
+- **G-03-8 (plan 03-13):** the follow, hold and rally keys now queue behind the squad's walks when Shift is held (right trigger on the pad), in line with D-09; sprinting with Shift while pressing F, H or R used to replace the queue and now appends to it, and a plain press still clears the queue and acts at once.
+- **G-03-4 (plan 03-14):** the floating health bar over the king now follows every regeneration point, climbing with the bottom-left widget and hiding again at full health (it used to stay frozen at its last hit).
+- **G-03-14b (plan 03-15):** the start-night prompt and its fill bar sit on a dark plate between the squad slots and the bottom of the screen, so the bottom-centre hierarchy reads and the prompt is the focal point by day.
+- **G-03-13 (plan 03-19):** a knocked-out king's "0 / 50" and the "Slam" caption stay fully opaque on their dark outline (measured at 5.88:1 contrast, was 1.62:1) while the bar, plate, sword and slam glyph dim.
+- **G-03-14 (plan 03-19):** one enemy now reads "1 enemy" on the night banner and the day preview; "N enemies" everywhere else. The "1 enemies" copy is no longer an open point.
+- **G-03-11 (plans 03-16, 03-17 and 03-18):** the balance retune you asked for on 2026-10-13: squad value is now measured (03-16), two numbers moved so all four goals are met under the bots (03-17: the first tower tier fires every 0.9 s, night 8's north road holds 11 grunts), and the results are published in `03-BALANCE-REPORT.md` (03-18). Your feel check is still to come at this gate.
 
 ## What Claude already checked
 
-**Automated checks** (final state, commit `c418b6c`; this plan changed no game data and no simulation code, only the screenshot tooling, one CI timeout and the size of the queued-order numbers):
+**Automated checks** (the first block is the state at commit `c418b6c`, the end of plan 03-12; the fixes since UAT round 1 and the Round 2 retune landed after it, so its CI run, export and replay lines below describe that commit, and the "Since then" lines say what has been re-checked on the current data):
 
-- **Test suite:** 1373 tests in 148 scripts, all passing, 15364 asserts, exit 0 in 630 s (`bash tools/test.sh`); lint and format clean (`bash tools/lint.sh`).
+- **Since then (current data, plans 03-13 to 03-19):** the full suite is **1397 tests in 150 scripts, all passing**, exit 0 in 621.8 s (`bash tools/test.sh`, plan 03-17's run); lint and format clean on 265 files; the smoke and army goldens replay unchanged (digests below); `full_idle` moved by design to `f417c7f500d1e9978ebdb01fcbda35628607a904a58e2959061c1325d8aca064` (6941 ticks, was `ab4d17d9...` at 6199) and replays to one digest twice in one process; `bash tools/playtest.sh --seeds=10` prints `PLAYTEST_OK runs=60`; all 33 real-window screenshots were re-captured on the retuned data (details in the screenshot review below).
+- **Test suite at `c418b6c`:** 1373 tests in 148 scripts, all passing, 15364 asserts, exit 0 in 630 s (`bash tools/test.sh`); lint and format clean (`bash tools/lint.sh`).
 - **Seeded replays:** smoke `REPLAY_OK scenario=smoke seed=1 outcome=won ticks=703 digest=2599c7c250f45b3dfe6653a8fc683918cbdce768a9afcaf8e3752d3454ccf31f` (golden unchanged); army `REPLAY_OK scenario=army seed=1 outcome=won ticks=1353 digest=f7a967edc68054f2a75ae55a54100cfc3f069d8f3029e8299cd31fec7a8959c4` (golden unchanged); both twice in one process, locally and in CI. CI also ran `full_idle` (shipped data, balanced bot): `REPLAY_OK scenario=full_idle seed=1 outcome=won ticks=6199 digest=ab4d17d91e197347f66e24008fffbc3f7061b0b1ab27de312423212797650b7a` (it has no golden and moved with the night retune by design).
 - **CI:** https://github.com/ABSAR07/duskhold/actions/runs/38219154906 on `c418b6c` succeeded on all four jobs: lint 25 s, test 6 min 31 s (with the smoke, army and full_idle replay checks), export 33 s, screenshots 2 min 25 s with **33 of 33 screenshots saved** (artifact `duskhold-screenshots`, kept 7 days). The first CI run of this plan (`38215930089`, on `549e53c`) failed its screenshots job on two of the new shots, `cmd_queue_ten` and `cmd_move_ping`, because a frame on the software renderer is long enough for a squad's first leg to end during ten clicks and for the half-second ping to expire; the scenes were made independent of frame time (`85990e9`, run `38217462543` green), and a third change made the slam ring show in the CI frame too (`c418b6c`). The screenshots job needed 2 to 3 minutes, so its 60-minute timeout is generous; it stays as the plan said.
 - **Windows build:** `bash tools/export.sh` exported `build/windows/Duskhold.exe`; the launch check above exits 0 in about 3 s.
 
-**Balance, from scripted bots** (`03-BALANCE-REPORT.md`, plan 03-11, seeds 1 to 10, shipped data; reproduce with `bash tools/playtest.sh --seeds=10`). The bots build instantly without riding, react perfectly and start every night at once, so this measures the data, not a player and not the feel of squads.
+**Balance, Round 2, from scripted bots** (`03-BALANCE-REPORT.md` section "Round 2 (G-03-11)", plans 03-16, 03-17 and 03-18, seeds 1 to 10, shipped data; reproduce with `bash tools/playtest.sh --seeds=10`, which prints `PLAYTEST_OK runs=60`). The bots build instantly without riding, react perfectly and start every night at once, so this measures the data, not a player and not the feel of squads. You asked on 2026-10-13 for a retune toward all four goals at once; two numbers moved to reach them: **tower tier 1 now fires every 0.9 s (was 0.8 s)** and **night 8's north road holds 11 grunts (was 10)**. Squad sizes, replacement times, the footman, the king, nights 1 to 4 and every enemy are as before.
+
+| Your goal | Bar | Before | Now |
+|---|---|---|---|
+| The balanced bot loses 2 to 3 of 10 | 7 or 8 wins | 9 wins | **8 wins** (seeds 3 and 9 lost) |
+| The army bot loses 2 to 3 of 10 | 7 or 8 wins | 8 wins | **8 wins** (seeds 1 and 9 lost) |
+| Night 8 is larger than night 7 | strictly above | 39 and 39 | **40 and 39** |
+| Squads are worth their gold against towers | kills per gold, squads over towers, at least 0.8 (your bar, D-26) | 0.68 | **0.92** (4.31 enemy kills per squad gold, 4.70 per tower gold) |
+
+| Strategy | Win rate | Nights survived (mean / min / max) | Median loss night | Gold earned (mean) | Buildings lost (mean) | Knockouts (mean) |
+|---|---:|---:|---:|---:|---:|---:|
+| no_build | 0% | 1.0 / 1 / 1 | 2 | 1.0 | 0.0 | 0.0 |
+| greedy_economy | 0% | 2.9 / 2 / 4 | 4 | 9.2 | 5.0 | 1.8 |
+| houses_first | 40% | 6.7 / 2 / 8 | 7 | 21.1 | 14.7 | 1.1 |
+| towers_first | 0% | 6.1 / 6 / 7 | 7 | 6.1 | 5.9 | 2.6 |
+| balanced | 80% | 7.3 / 2 / 8 | 3 | 22.2 | 10.4 | 0.6 |
+| army_balanced | 80% | 7.5 / 5 / 8 | 6 | 15.0 | 17.6 | 1.3 |
+
+Two findings the report leaves for you, plainly:
+
+- **The pure tower opening no longer wins under the bots.** To lower the balanced bot to 8 wins and lift the squads' worth, the first tower had to get slower, and every route that leans on first-tier towers paid: towers_first went from 3 wins of 10 to **0** (it falls on night 7 on nine seeds, night 8 on one) and houses_first from 9 to **4**. The search tried 29 candidates (squad speed and cost, tier 2, tier 1 cost, range, health, arrow speed, king regeneration, night counts) and none that met your four goals kept the tower route winning. Whether a 0.9 s first tower still feels like a good opening is yours to judge; keeping its wins would cost one of the four goals.
+- **The ratio understates a squad that holds a line.** Footmen that stand in front of a tower get no kill credit for the kills they make possible, and only the army bot buys squads, so 0.92 compares its squads with its own small tower spend (about 4 gold a run). The army bot also loses a lot of buildings (17.6 a run; the balanced bot 10.4); it has no notion of defending its plots, and a player who fights beside the squad or posts the footmen where they shield a tower may do better or worse.
+
+The earlier Phase 3 numbers (plan 03-11, before Round 2), kept for reference and **superseded by the tables above**:
 
 | Strategy | Win rate | Nights survived (mean / min / max) | Median loss night | Gold earned (mean) | Buildings lost (mean) | Knockouts (mean) |
 |---|---:|---:|---:|---:|---:|---:|
@@ -94,20 +129,19 @@ Play two or three full runs with an army, on keyboard and mouse and on a gamepad
 | balanced | 90% | 7.4 / 2 / 8 | 3 | 24.0 | 5.8 | 0.5 |
 | army_balanced | 80% | 7.5 / 5 / 8 | 6 | 15.3 | 16.4 | 1.1 |
 
-Two findings the report leaves for you, plainly:
-
-- **Squads are not stronger than towers per gold under these bots.** The army bot (footmen follow the king, archers hold, the king slams at three enemies) won 10 of 10 on the old night counts but falls faster than the tower-heavy balanced bot as the late nights grow, and it loses far more buildings (16.4 a run against 5.8). The units do real work (4 to 11 enemy kills per late night), but the balanced order puts that gold into towers, which kill more. A player who fights beside the squad, or posts the footmen where they shield a tower, may do better or worse than the bot.
-- **The balanced bot still loses 1 of 10, not the 2 or 3 you asked for in Phase 2 (G-02-15).** Regeneration (plan 03-04) moved it from 2 losses to 1, and raising the early nights to cost it a run breaks the Phase 2 night-3 wall (a x1.5 raise lost every seed on night 3). Night 8 equals night 7 (39 each) because a larger last night ends the tower opening on every seed. The two goals cannot both be reached by night counts alone with these squads; you decide which bar the nights serve.
+Its two findings were that squads were not stronger than towers per gold (ratio 0.68) and that the balanced bot lost 1 of 10 with night 8 equal to night 7 (39 each); Round 2 answers both.
 
 **Screenshot review** (Claude opened every new image: all 18 locally in a real window with the Forward+ renderer, and again from the CI artifact, which is flatter and paler because it is the Compatibility renderer under Mesa; the content is the same). Every `hud_` and `cmd_` shot also passes the runner's clear-centre check (no visible HUD control other than the banner, the knocked-out label, the drag box while dragging and world-anchored markers inside x 384..896, y 96..500 of the 1280x720 base space), or it would have failed:
 
+**Re-check on the Round 2 data (plan 03-18):** the night shots fast-forward the shipped data with the bots, so all 33 shots were captured again after the retune with `bash tools/screenshot.sh` (real window, Forward+): `Saved 33 of 33 screenshots`, every blank check and every clear-centre check passed, exit 0. Claude opened `hud_night_squad_down.png` and `night_combat.png` again: the first still shows Night 7 of 8 with 9 enemies left, the Barracks slot a red 0 / 4 and the Range 3 / 4, the king hurt at 36 / 50 with his cyan silhouette behind the keep; the second still shows a night fight (Night 5 of 8, 23 enemies left, the king beside a tower with red and purple enemies and pink shots closing in on his left). The rows below describe the original captures; the two changes since (the start-night plate and the knocked-out count) are noted in their rows.
+
 | Shot | What it shows | Result |
 |---|---|---|
-| `hud_day_squads` | Day 1, Barracks and Range raised, the Barracks squad selected: both slots 4 / 4 with the selected one outlined, the hint row (7 items, 318 to 964 px wide) above them, rings under the four footmen, the king widget bottom-left, the start-night prompt below the slots | Pass; widgets stand apart, centre empty |
+| `hud_day_squads` | Day 1, Barracks and Range raised, the Barracks squad selected: both slots 4 / 4 with the selected one outlined, the hint row (7 items, 318 to 964 px wide) above them, rings under the four footmen, the king widget bottom-left, the start-night prompt on its dark plate below the slots (plan 03-15, G-03-14b) | Pass; widgets stand apart, centre empty |
 | `hud_night_squad_down` | Night 7 of 8, 9 enemies left: the Barracks slot reads a red 0 / 4 with its fill showing a replacement on the way, the Range 3 / 4, the king at 36 / 50, his cyan X-ray silhouette behind the keep, health bars over enemies and the keep | Pass; all text reads on the dark ground |
 | `hud_drag_box` | A drag box (fill 16 %, border 2 px, cyan) from the top-left to the middle right across the keep, the slots unselected and no hint row | Pass; the box is the one thing allowed in the centre |
 | `hud_pad_cursor` | Pad as last device: the start-night glyph is a Y tile, the slam badge shows an X tile, the cursor ring and its line run from the king toward the east, the hint row is replaced by "Aim with the right stick, release to confirm" at y 504 | Pass |
-| `hud_king_down` | Night 7, knocked out: widget at alpha 0.4 with a red 0 / 50, "Knocked out - back in 6 s" in cyan under the banner, the squad slots unchanged | Pass |
+| `hud_king_down` | Night 7, knocked out: the bar, plate, sword and slam glyph dimmed to alpha 0.4 while the red "0 / 50" and the "Slam" caption stay opaque on their outline (plan 03-19, G-03-13), "Knocked out - back in 6 s" in cyan under the banner, the squad slots unchanged | Pass |
 | `hud_ability_ready` | Day, the slam used and recharged: the badge plate and its caption are tinted cyan on the ready flash, the border is cyan | Pass; the 0.25 s flash is a still frame here, judge it in play |
 | `hud_long_toast` | A squad selected, the king at the edge of the ground, a right click off the map: "Can't go there. Click a point on the visible ground." on one line at y 504..536 above the slots, the dark void right of the ground edge | Pass for one line and below the centre; **measured 526 px wide, x 377..903**, see the backstop table |
 | `hud_day_squads_1080p` | The same scene in a 1920x1080 window (1920x1050 on this laptop, whose title bar leaves no room for 1080 rows; exactly 1920x1080 on CI): the HUD scales uniformly, nothing overlaps | Pass |
@@ -141,7 +175,6 @@ Two findings the report leaves for you, plainly:
 **Open readability points (not changed; each is your call):**
 
 - **The longest toast is 526 px wide**, 7 px past the x 384..896 band on each side (above), because the Godot default font measures wider than the spec's estimate.
-- **Copy:** the night banner and the preview line print "1 enemies left" and "Night 12: 1 enemies from 1 direction" at a count of one (Phase 2 copy; the fix is a plural rule in `hud.gd`, outside this plan's files).
 - **A "+2 gold" payout line stays under the gold counter** through the day after a dawn and through the following night (seen in four new shots). It is the Phase 1 dawn-payout label; nothing in this phase changed it.
 - **The patrol line** is a 12 cm dashed beige line at 80 % alpha, thin on the green ground at the game camera distance; legible, but faint.
 - **The king widget's slam badge** and the hint-row glyphs are small by design (56 px and 24 px); Claude could read them in every shot, but 24 px tiles are an eyesight question.
@@ -163,14 +196,14 @@ Two findings the report leaves for you, plainly:
 11. **The planner's key choices, all in the Input Map and rebindable in Phase 13:** Q for the slam (pad X), T for fast-forward (it moved off F), F2 for select all (pad R3), double-click for "every squad of this type" (pad LB + R3), Tab to cycle. **Attack-move stays on A**, your choice at the 03-07 checkpoint, shared with the king's move-left. **Shift is both sprint and queue:** a queue only counts when Shift is held at the moment the order lands.
 12. **Selecting a squad stops the king (your 03-07 rule):** WASD and the left stick go to nobody while a squad is selected; Escape (pad B) with nothing armed clears the selection; clicking empty ground also clears it. Device switches keep the selection and the groups.
 13. **A squad's stance persists across dawn (D-14):** a held, following or patrolling squad stays so day after day until you change it; dawn restores numbers only.
-14. **The bots' army plan and the retuned nights:** the army bot's footmen follow the king and its archers hold, and it slams at three enemies in reach; the night totals are 5, 12, 21, 21, 25, 31, 39, 39 (only nights 5 to 8 moved), and no economy, squad or unit number was changed to get there.
+14. **The bots' army plan and the Round 2 numbers:** the army bot's footmen follow the king and its archers hold, and it slams at three enemies in reach, with no riding and perfect reactions. The night totals are 5, 12, 21, 21, 25, 31, 39, 40 (only nights 5 to 8 ever moved: Round 1 set 25, 31, 39, 39; Round 2 added one grunt to night 8's north road), and Round 2 moved exactly two numbers: tower tier 1 attack interval 0.8 s to 0.9 s and that one grunt. No economy, squad, unit, king or enemy number changed. The squad-value bar is your 0.8 (D-26), measured as unit kills per military gold over tower kills per tower gold for the army bot; it reads 0.915. The pure tower opening and the houses-first opening no longer win under the bots (0 and 4 of 10); that is a result of the slower first tower, not an accident.
 15. **The mouse is back for squads only (D-11):** building stays hold-only, the mouse never aims the king and never moves the camera, and the camera stays locked on the king, so a point off screen needs him to ride closer (D-13).
 
 ## Your decision
 
 Choose one and tell Claude in the `/gsd-verify-work` session:
 
-- **Sign off:** squads guard and commit instead of thrashing, selection and commands feel right on both devices, the slam and the regeneration suit the game, the HUD reads at night with the centre clear, and the retuned nights are tense with an army. Say which of the two balance findings (squads not stronger than towers per gold; the balanced bot losing 1 of 10, not 2 or 3) you accept for now. Phase 3 closes and Phase 4 can begin.
-- **Fixes first:** list the feel and tuning fixes that must land before Phase 4 (for example: a unit or squad number, the slam's radius, damage or cooldown, the regeneration pace, a pad button, the cursor speed, the toast width, the "1 enemies" copy, the control-group rule, which balance bar the nights serve), and any of assumptions 1 to 15 you want changed.
+- **Sign off:** squads guard and commit instead of thrashing, selection and commands feel right on both devices, the slam and the regeneration suit the game, the HUD reads at night with the centre clear, and the retuned nights are tense with an army. Say whether you accept the Round 2 balance as it stands, in particular that the pure tower opening no longer wins under the bots (towers_first 0 of 10, houses_first 4 of 10). Phase 3 closes and Phase 4 can begin.
+- **Fixes first:** list the feel and tuning fixes that must land before Phase 4 (for example: a unit or squad number, the slam's radius, damage or cooldown, the regeneration pace, a pad button, the cursor speed, the toast width, the control-group rule, the first tower's firing interval or which of the four balance goals gives way if the tower opening should win again), and any of assumptions 1 to 15 you want changed.
 
 The decision is recorded through `/gsd-verify-work`. No Phase 4 work starts before it.
