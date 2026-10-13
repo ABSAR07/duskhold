@@ -2,8 +2,8 @@ extends GutTest
 ## UI-01 / D-22 (plan 03-04): the bottom-left KingWidget on the real scene and laid out in a
 ## 1280x720 SubViewport. Health text and bar follow the simulation, the sword icon fills clockwise
 ## as the slam recharges and flashes once when it is ready, a refused press shakes the icon, a
-## knocked-out king dims the widget, and the row never leaves x 16..376 / y 624..704 or enters the
-## clear centre.
+## knocked-out king dims the bar and the icon but keeps the count and the caption opaque, and the
+## row never leaves x 16..376 / y 624..704 or enters the clear centre.
 ## The map's own process is switched off in the timing tests so the test steps the simulation by
 ## hand and nothing regenerates behind its back.
 
@@ -23,6 +23,8 @@ const SETTLE_FRAMES: int = 3
 const BAR_SETTLE_S: float = 0.4
 const SHAKE_SETTLE_S: float = 0.4
 const KO_ALPHA: float = 0.4
+## WCAG AA for normal text.
+const MIN_CONTRAST: float = 4.5
 const MAX_STEPS: int = 4000
 const LONG_MAX_HEALTH: int = 120
 const LONG_HURT_TO: int = 87
@@ -88,6 +90,58 @@ func _press_ability(frames: int) -> void:
 	await wait_process_frames(frames)
 	Input.action_release(&"ability")
 	await wait_process_frames(frames)
+
+
+## Asserts the knocked-out dimming rule at `expected` alpha: the bar, the plate panel (its own
+## self_modulate), the sword icon and the slam glyph dim, the caption and the count never do.
+func _assert_dimmed(widget: KingWidget, expected: float, when: String) -> void:
+	assert_almost_eq(widget.get_health_bar().modulate.a, expected, 0.001, "%s: bar" % when)
+	assert_almost_eq(widget.get_plate().self_modulate.a, expected, 0.001, "%s: plate" % when)
+	assert_almost_eq(widget.get_ability_bar().modulate.a, expected, 0.001, "%s: sword" % when)
+	assert_almost_eq(widget.get_ability_glyph().modulate.a, expected, 0.001, "%s: glyph" % when)
+	assert_almost_eq(_effective_alpha(widget.get_health_label()), 1.0, 0.001, "%s: count" % when)
+	assert_almost_eq(_effective_alpha(widget.get_caption()), 1.0, 0.001, "%s: caption" % when)
+
+
+## The node's own modulate.a and self_modulate.a times the modulate.a of every CanvasItem ancestor.
+## An ancestor's self_modulate tints only that ancestor's own drawing, so it is not multiplied in.
+func _effective_alpha(item: CanvasItem) -> float:
+	var alpha: float = item.modulate.a * item.self_modulate.a
+	var node: Node = item.get_parent()
+	while node != null:
+		if node is CanvasItem:
+			alpha *= (node as CanvasItem).modulate.a
+		node = node.get_parent()
+	return alpha
+
+
+## `top` drawn over `below` at `alpha` times top.a (a straight sRGB "over" blend).
+func _over(top: Color, alpha: float, below: Color) -> Color:
+	var weight: float = clampf(alpha * top.a, 0.0, 1.0)
+	return Color(
+		lerpf(below.r, top.r, weight),
+		lerpf(below.g, top.g, weight),
+		lerpf(below.b, top.b, weight),
+		1.0
+	)
+
+
+func _linear(channel: float) -> float:
+	if channel <= 0.04045:
+		return channel / 12.92
+	return pow((channel + 0.055) / 1.055, 2.4)
+
+
+## WCAG relative luminance of an sRGB colour.
+func _luminance(color: Color) -> float:
+	return 0.2126 * _linear(color.r) + 0.7152 * _linear(color.g) + 0.0722 * _linear(color.b)
+
+
+## WCAG contrast ratio of two colours, (lighter + 0.05) / (darker + 0.05).
+func _contrast(first: Color, second: Color) -> float:
+	var lighter: float = maxf(_luminance(first), _luminance(second))
+	var darker: float = minf(_luminance(first), _luminance(second))
+	return (lighter + 0.05) / (darker + 0.05)
 
 
 func test_the_widget_lives_under_the_hud_root_and_ignores_the_mouse() -> void:
@@ -190,7 +244,7 @@ func test_a_press_while_knocked_out_shakes_the_icon_too() -> void:
 	assert_eq(ctx.king.ability_ticks_left(), 0, "and starts no cooldown")
 
 
-func test_a_knocked_out_king_shows_zero_in_red_and_dims_the_widget_until_the_respawn() -> void:
+func test_a_knocked_out_king_keeps_the_count_and_caption_opaque_and_dims_the_rest() -> void:
 	var map_root: MapRoot = await _spawn()
 	var ctx: RunContext = map_root.get_context()
 	var widget: KingWidget = _widget_of(map_root)
@@ -198,9 +252,15 @@ func test_a_knocked_out_king_shows_zero_in_red_and_dims_the_widget_until_the_res
 	ctx.king.take_damage(ctx.king.get_max_health())
 	await wait_process_frames(SETTLE_FRAMES)
 	var label: Label = widget.get_health_label()
+	var caption: Label = widget.get_caption()
 	assert_eq(label.text, "0 / 50", "0 / 50")
 	assert_eq(label.get_theme_color(&"font_color"), Color("#FF4040"), "in red")
-	assert_almost_eq(widget.modulate.a, KO_ALPHA, 0.001, "the widget is dimmed to 0.4")
+	assert_eq(widget.modulate.a, 1.0, "the widget as a whole is not dimmed")
+	assert_almost_eq(_effective_alpha(label), 1.0, 0.001, "the count stays opaque")
+	assert_almost_eq(_effective_alpha(caption), 1.0, 0.001, "and so does the caption")
+	assert_eq(label.get_theme_constant(&"outline_size"), KingWidget.OUTLINE_SIZE, "count outline")
+	assert_eq(caption.get_theme_constant(&"outline_size"), KingWidget.OUTLINE_SIZE, "caption")
+	_assert_dimmed(widget, KO_ALPHA, "knocked out")
 	assert_eq(widget.get_health_bar().value, 0.0, "the bar is empty")
 	var steps: int = 0
 	while ctx.king.is_down() and steps < MAX_STEPS:
@@ -208,10 +268,41 @@ func test_a_knocked_out_king_shows_zero_in_red_and_dims_the_widget_until_the_res
 		steps += 1
 	assert_false(ctx.king.is_down(), "he is back")
 	await wait_process_frames(SETTLE_FRAMES)
-	assert_eq(widget.modulate.a, 1.0, "full strength again")
+	_assert_dimmed(widget, 1.0, "after the respawn")
 	assert_eq(label.text, "50 / 50", "full health")
 	assert_eq(label.get_theme_color(&"font_color"), Color.WHITE, "in white")
+	assert_false(label.has_theme_color_override(&"font_color"), "the red override is gone")
 	assert_eq(widget.get_health_bar().value, 1.0, "the bar jumps to full at once")
+
+
+## G-03-13 (UAT test 13): the knocked-out "0 / 50" and the "Slam" caption read against their own
+## outline. Neither sits on a panel (the label is beside the bar, the caption above the plate), and
+## Godot draws the outline opaque and contiguous around every glyph, so the outline is the glyphs'
+## immediate surround and the 3D ground behind it does not enter the fill-over-outline ratio.
+## The one composite over black is kept only so that a regressed alpha shows up as a number. The
+## real-window check of the same ratio is tools/contrast_probe.sh on screenshots/hud_king_down.png.
+func test_the_knocked_out_count_reads_at_least_4_5_to_1_on_its_opaque_outline() -> void:
+	var map_root: MapRoot = await _spawn()
+	var ctx: RunContext = map_root.get_context()
+	var widget: KingWidget = _widget_of(map_root)
+	assert_true(ctx.run_manager.start_night(), "the timed night starts")
+	ctx.king.take_damage(ctx.king.get_max_health())
+	await wait_process_frames(SETTLE_FRAMES)
+	for label: Label in [widget.get_health_label(), widget.get_caption()]:
+		var outline: Color = label.get_theme_color(&"font_outline_color")
+		var alpha: float = _effective_alpha(label)
+		assert_eq(outline.a, 1.0, "%s outline is opaque" % label.name)
+		assert_gte(
+			label.get_theme_constant(&"outline_size"),
+			KingWidget.OUTLINE_SIZE,
+			"%s outline is at least 6" % label.name
+		)
+		assert_almost_eq(alpha, 1.0, 0.001, "%s has an effective alpha of 1.0" % label.name)
+		var backdrop: Color = _over(outline, alpha * outline.a, Color.BLACK)
+		var text: Color = _over(label.get_theme_color(&"font_color"), alpha, backdrop)
+		assert_gte(
+			_contrast(text, backdrop), MIN_CONTRAST, "%s over its outline is 4.5:1" % label.name
+		)
 
 
 func test_the_widget_stays_in_its_corner_and_clear_of_the_centre() -> void:
