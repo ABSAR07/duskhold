@@ -26,7 +26,7 @@ func spawn(def: UnitDef, squad_id: StringName, slot: int, pos: Vector2) -> int:
 	record.slot = slot
 	record.position = pos
 	record.previous = pos
-	record.health = def.max_health
+	record.health = maxi(def.max_health, 1)
 	_next_id += 1
 	_records[record.id] = record
 	_order.append(record.id)
@@ -122,7 +122,7 @@ func remove_dead() -> void:
 func heal_to_full(id: int) -> void:
 	var record: Record = _records.get(id) as Record
 	if record != null and record.health > 0:
-		record.health = record.def.max_health
+		record.health = maxi(record.def.max_health, 1)
 
 
 ## Writer for SquadSystem: remembers every unit position as "one step ago", before the step moves

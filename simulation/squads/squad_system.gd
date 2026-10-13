@@ -144,7 +144,7 @@ func restore_for_dawn() -> void:
 		for unit_id: int in squad.unit_ids:
 			if _units.is_alive(unit_id):
 				_units.heal_to_full(unit_id)
-		while _living_count(squad) < squad.cap:
+		for _seat: int in range(maxi(squad.cap - _living_count(squad), 0)):
 			_raise_unit(squad, false)
 		_clear_countdown(squad)
 		_events.squad_restored.emit(squad.id, _living_count(squad))
@@ -452,9 +452,10 @@ func _make_squad(spot_id: StringName, building_def: BuildingDef, unit_def: UnitD
 	return squad
 
 
-## Seats a new unit in every free slot up to the squad cap, lowest slot first.
+## Seats a new unit in every free slot up to the squad cap, lowest slot first. Bounded by the number
+## of missing seats, so a definition whose units can never count as living cannot loop forever.
 func _fill(squad: Squad) -> void:
-	while _living_count(squad) < squad.cap:
+	for _seat: int in range(maxi(squad.cap - _living_count(squad), 0)):
 		_raise_unit(squad, false)
 
 
