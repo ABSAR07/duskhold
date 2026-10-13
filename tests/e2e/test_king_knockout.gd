@@ -8,6 +8,11 @@ const MAP_SCENE := "res://presentation/map/prototype_map.tscn"
 const TUNING := "res://data/tuning/loop_tuning.tres"
 const KING_PATH := "res://data/king/king.tres"
 const KING_HEALTH: int = 4
+## The heal case keeps the shipped king (no max_health override) and hurts him by this much.
+const HEAL_DAMAGE: int = 10
+## Real-time slack on top of the derived regeneration waits.
+const HEAL_SLACK_S: float = 3.0
+const HEALTH_TEXT := "%d / %d"
 const GRUNTS: int = 8
 const CASTLE_HEALTH: int = 10000
 const KO_TIMEOUT_S: float = 6.0
@@ -49,14 +54,16 @@ func _ambush_map() -> MapConfig:
 	return map
 
 
-func _spawn(map: MapConfig) -> MapRoot:
+## Spawns the map scene. `king_health` replaces the king's max_health; 0 keeps the shipped king.
+func _spawn(map: MapConfig, king_health: int = KING_HEALTH) -> MapRoot:
 	var scene: PackedScene = load(MAP_SCENE)
 	var map_root: MapRoot = scene.instantiate()
 	map_root.map_config = map
 	map_root.fixed_run_seed = 1
 	var king: King = map_root.get_node("King") as King
 	var def: KingDef = (load(KING_PATH) as KingDef).duplicate_deep(Resource.DEEP_DUPLICATE_ALL)
-	def.max_health = KING_HEALTH
+	if king_health > 0:
+		def.max_health = king_health
 	king.def = def
 	add_child_autofree(map_root)
 	await wait_process_frames(2)
@@ -163,6 +170,55 @@ func test_the_king_bar_hides_at_full_health_and_shows_once_hurt() -> void:
 	assert_almost_eq(
 		bar.get_fill_ratio(), float(KING_HEALTH - 1) / float(KING_HEALTH), 0.0001, "fill ratio"
 	)
+
+
+## Records the bar's fill ratio at the instant of each king_healed event (this handler connects
+## after the King's own, so the bar has already been told) next to the event's own numbers.
+func _on_healed(_amount: int, hp: int, max_hp: int, bar: HealthBar3D, heals: Array) -> void:
+	heals.append({"hp": hp, "max_hp": max_hp, "bar_ratio": bar.get_fill_ratio()})
+
+
+func test_after_regeneration_the_king_bar_follows_each_heal_and_hides_at_full() -> void:
+	var map_root: MapRoot = await _spawn(E2eSupport.waveless_prototype_map(), 0)
+	var ctx: RunContext = map_root.get_context()
+	var king_def: KingDef = ctx.king.get_def()
+	var max_hp: int = ctx.king.get_max_health()
+	var bar: HealthBar3D = map_root.get_king().get_health_bar()
+	var widget: KingWidget = map_root.get_node("HUD").find_child("KingWidget", true, false)
+	assert_not_null(widget, "the HUD has the king widget")
+	if bar == null or widget == null:
+		return
+	var label: Label = widget.get_health_label()
+	assert_gt(max_hp, HEAL_DAMAGE, "the shipped king survives the damage dealt here")
+	var heals: Array = []
+	ctx.events.king_healed.connect(_on_healed.bind(bar, heals))
+	ctx.king.take_damage(HEAL_DAMAGE)
+	await wait_process_frames(1)
+	assert_true(bar.visible, "the bar shows once he is hurt")
+	var points_per_second: float = float(max_hp) * king_def.regen_fraction_per_second
+	var first_heal_s: float = (
+		SimClock.seconds(SimClock.ticks(king_def.regen_delay_seconds))
+		+ 1.0 / points_per_second
+		+ HEAL_SLACK_S
+	)
+	var healed: Callable = func() -> bool: return not heals.is_empty()
+	assert_true(await E2eSupport.wait_until(self, healed, first_heal_s), "the first heal arrives")
+	await wait_process_frames(1)
+	assert_true(bar.visible, "the bar stays up while he is still hurt")
+	var expected_ratio: float = float(ctx.king.get_health()) / float(max_hp)
+	assert_almost_eq(bar.get_fill_ratio(), expected_ratio, 0.0001, "the bar shows the simulation")
+	var shown: Callable = func() -> bool:
+		return label.text == HEALTH_TEXT % [ctx.king.get_health(), max_hp]
+	assert_true(await E2eSupport.wait_until(self, shown, HEAL_SLACK_S), "the widget agrees")
+	var whole_s: float = float(HEAL_DAMAGE) / points_per_second + HEAL_SLACK_S
+	var whole: Callable = func() -> bool: return ctx.king.get_health() >= max_hp
+	assert_true(await E2eSupport.wait_until(self, whole, whole_s), "he regenerates to full health")
+	await wait_process_frames(1)
+	assert_false(bar.visible, "the bar hides again at full health")
+	assert_eq(label.text, HEALTH_TEXT % [max_hp, max_hp], "the widget reads full")
+	for heal: Dictionary in heals:
+		var heal_ratio: float = float(heal["hp"]) / float(heal["max_hp"])
+		assert_almost_eq(heal["bar_ratio"], heal_ratio, 0.0001, "the bar followed this heal")
 
 
 func test_the_castle_bar_hides_at_full_health_and_shows_once_hurt() -> void:
