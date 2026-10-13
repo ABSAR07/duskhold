@@ -3,13 +3,29 @@ phase: 03
 review: 03-REVIEW.md
 titles: json
 findings:
+  - id: WR-04
+    severity: warning
+    disposition: open
+    title: "The contrast probe's pure functions (path guard and measurement) have no automated test"
+  - id: IN-07
+    severity: info
+    disposition: open
+    title: "`to_markdown` indexes the new run keys strictly while `summary` reads them tolerantly"
+  - id: IN-08
+    severity: info
+    disposition: open
+    title: "The queue action name is a literal in two controllers and a constant in a third"
+  - id: IN-09
+    severity: info
+    disposition: open
+    title: "The panel colour #14141A at alpha 0.78 is written out in three places"
   - id: CR-01
     severity: critical
     disposition: open
     title: "A unit with `max_health <= 0` hangs the game in an unbounded spawn loop; the validation only reports it"
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "The king's in-world health bar never follows regeneration"
   - id: WR-02
     severity: warning
@@ -43,25 +59,29 @@ findings:
     severity: info
     disposition: open
     title: "The eighth patrol click is dropped without a word"
-open: 10
-total: 10
-recorded: 2026-10-12T08:59:10.798Z
+open: 13
+total: 14
+recorded: 2026-10-13T19:50:43.130Z
 ---
 
 # Phase 03: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| CR-01 | critical | open | - |
-| WR-01 | warning | open | - |
-| WR-02 | warning | open | - |
-| WR-03 | warning | open | - |
-| IN-01 | info | open | - |
-| IN-02 | info | open | - |
-| IN-03 | info | open | - |
-| IN-04 | info | open | - |
-| IN-05 | info | open | - |
-| IN-06 | info | open | - |
+| WR-04 | warning | open | - |
+| IN-07 | info | open | - |
+| IN-08 | info | open | - |
+| IN-09 | info | open | - |
+| CR-01 | critical | open | - (not in the current review) |
+| WR-01 | warning | fixed | plan 03-14 (commit ee21f6f: King.bind_run connects king_healed to _on_king_healed); re-verified fixed by the 2026-10-13 review (03-REVIEW.md section "WR-01 from the previous review") (not in the current review) |
+| WR-02 | warning | open | - (not in the current review) |
+| WR-03 | warning | open | - (not in the current review) |
+| IN-01 | info | open | - (not in the current review) |
+| IN-02 | info | open | - (not in the current review) |
+| IN-03 | info | open | - (not in the current review) |
+| IN-04 | info | open | - (not in the current review) |
+| IN-05 | info | open | - (not in the current review) |
+| IN-06 | info | open | - (not in the current review) |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
 Set `deferred` by hand and put the reason in the Source cell; both are preserved. A `|` in the reason is kept as prose and escaped on the next run.
