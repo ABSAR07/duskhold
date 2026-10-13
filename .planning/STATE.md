@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 03
 current_phase_name: King Combat & Troops
 status: executing
-stopped_at: Completed 03-15-PLAN.md
-last_updated: "2026-10-13T16:35:19.257Z"
+stopped_at: Completed 03-16-PLAN.md
+last_updated: "2026-10-13T17:02:23.327Z"
 last_activity: 2026-10-13
 last_activity_desc: Phase 03 execution started
-state_head: 93aa4adf33305ed549ea3c05c51d0a67a9824b1b
+state_head: c2e265900df390ca97cdf288abf02005f97afd03
 progress:
   total_phases: 13
   completed_phases: 2
   total_plans: 59
-  completed_plans: 55
+  completed_plans: 56
   percent: 15
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-08)
 ## Current Position
 
 Phase: 03 (King Combat & Troops) — EXECUTING
-Plan: 4 of 19
+Plan: 5 of 19
 Status: Ready to execute
 Last activity: 2026-10-13 — Phase 03 execution started
 
@@ -112,6 +112,7 @@ Progress: [██░░░░░░░░] 15%
 | Phase 03 P13 | 20 min | 2 tasks | 3 files |
 | Phase 03 P14 | 25 min | 2 tasks | 2 files |
 | Phase 03 P15 | 19 min | 1 tasks | 5 files |
+| Phase 03 P16 | 26 min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -237,6 +238,7 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-13: CommandKeyController._give reads command_queue (Shift / RT) at the press so F, H and R queue behind queued walks; Shift is also sprint, so sprinting and pressing a verb key now queues it (D-09)
 - [Phase 03]: 03-14: the king floating bar listens to king_healed and sets itself from the event's hp and max_hp (G-03-4, WR-01); simulation, HealthBar3D and KingWidget untouched
 - [Phase 03]: 03-15: StartNightPlate (#14141A 0.78, radius 8, 8 px inset, mouse ignored, day only) behind the start-night prompt and fill; StartNightBox offset_bottom -4 and separation 0 keep its top at y 624 with the 26 px preview ending at y 716 (G-03-14b)
+- [Phase 03]: 03-16: squad value is measured per building role (military = unit_id, towers = attacking tier, economy = rest) from building_built at the tier's own price; the free dawn rebuild is not counted — A read-only Tally keeps every golden digest unchanged; the ratio divides sums over seeds 1-10 (D-26 bar 0.8); baseline army_balanced ratio 0.68
 
 ### Pending Todos
 
@@ -269,6 +271,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-13T16:35:18.418Z
-Stopped at: Completed 03-15-PLAN.md
+Last session: 2026-10-13T17:02:22.492Z
+Stopped at: Completed 03-16-PLAN.md
 Resume file: None

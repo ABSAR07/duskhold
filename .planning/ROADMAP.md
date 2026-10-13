@@ -189,7 +189,7 @@ Plans:
   4. Every in-run action (move, sprint, hold-to-build/upgrade, active ability, unit selection and commands, start night) works on keyboard and mouse and on gamepad. The player can switch devices at any moment, and on-screen prompts update to match the active device.
   5. The HUD shows gold, current night out of total, king health, ability cooldown, and unit group status without cluttering the play area.
 
-**Plans**: 15/19 plans executed (03-13 to 03-19 close the 2026-10-13 UAT round-1 gaps G-03-4, G-03-8, G-03-11, G-03-13, G-03-14 and G-03-14b; the owner gate, test 15, follows them)
+**Plans**: 16/19 plans executed (03-13 to 03-19 close the 2026-10-13 UAT round-1 gaps G-03-4, G-03-8, G-03-11, G-03-13, G-03-14 and G-03-14b; the owner gate, test 15, follows them)
 **UI hint**: yes
 
 Plans:
@@ -231,7 +231,7 @@ Plans:
 - [x] 03-13: Shift (pad RT) queues F, H and R behind the walks, so "move here, then hold" is one gesture (G-03-8)
 - [x] 03-14: The floating king bar follows regeneration and hides at full health (G-03-4, review WR-01)
 - [x] 03-15: A plate behind the start-night prompt, below the squad strip and clear of the centre; UI-SPEC rows and re-captured day shots (G-03-14b)
-- [ ] 03-16: Kills per gold by building role in the balance report; Round 2 targets and today's baseline (G-03-11, part 1)
+- [x] 03-16: Kills per gold by building role in the balance report; Round 2 targets and today's baseline (G-03-11, part 1)
 
 **Gap wave 2** *(blocked on 03-15)*
 - [ ] 03-19: An opaque knocked-out "0 / 50" and "1 enemy" copy; UI-SPEC rows, the full suite and all 33 shots re-checked with the plate (G-03-13, G-03-14)
@@ -406,7 +406,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 |-------|----------------|--------|-----------|
 | 1. Foundation & Day Loop | 18/18 | Complete    | 2026-10-03 |
 | 2. Night Defense & Playtest Gate | 22/22 | Complete    | 2026-10-08 |
-| 3. King Combat & Troops | 15/19 | In Progress|  |
+| 3. King Combat & Troops | 16/19 | In Progress|  |
 | 4. Crowd-Scale Battles & Walls | 0/TBD | Not started | - |
 | 5. Castle Center & Economy Depth | 0/TBD | Not started | - |
 | 6. Enemy Roster & Tower Specializations | 0/TBD | Not started | - |
