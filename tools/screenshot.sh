@@ -9,6 +9,8 @@
 #   with a named bot (tools/replay/playtest_strategies.gd) before the real-time capture. Every hud_
 #   and cmd_ shot also fails when a visible HUD control sits in the clear centre (ShotRunner).
 #   The window is 1280x720, 1920x1080 for a name ending _1080p and 1600x1000 for one ending _16x10.
+#   Each shot's output is kept in build/screenshot-<shot>.log and a script error in it fails the shot
+#   (a runtime script error still exits 0 in Godot, as tools/replay.sh and tools/playtest.sh note).
 #
 # Screenshots need a real renderer, so this never runs the capture under --headless (the dummy
 # renderer would save blank images). The only headless call is the one-time --import warm-up.
@@ -97,13 +99,23 @@ saved=()
 for shot in "${SHOTS[@]}"; do
   rm -f "${OUT_DIR}/${shot}.png"
   echo "== ${shot}"
+  shot_log="${DUSKHOLD_ROOT}/build/screenshot-${shot}.log"
   ${wrapper[@]+"${wrapper[@]}"} timeout "${RUN_TIMEOUT_S}" "${GODOT_BIN}" \
     --path "${DUSKHOLD_ROOT_NATIVE}" --resolution "$(resolution_for "${shot}")" \
     ${renderer_args[@]+"${renderer_args[@]}"} \
-    res://tools/screenshot/shot_runner.tscn -- "--shot=${shot}" "--out=${OUT_DIR_NATIVE}"
-  status=$?
+    res://tools/screenshot/shot_runner.tscn -- "--shot=${shot}" "--out=${OUT_DIR_NATIVE}" 2>&1 \
+    | tee "${shot_log}"
+  status="${PIPESTATUS[0]}"
   if [ "${status}" -ne 0 ]; then
     echo "FAIL: ${shot} exited with ${status}" >&2
+    fail=1
+    continue
+  fi
+  # A runtime script error in a HUD node still exits 0 and the frame still renders, so read the log
+  # the way tools/replay.sh and tools/playtest.sh do.
+  if grep -hE 'SCRIPT ERROR|Parse Error|Failed to load script' "${shot_log}" | grep -v 'addons/gut' | grep -q .; then
+    echo "FAIL: script errors while capturing ${shot}:" >&2
+    grep -hE 'SCRIPT ERROR|Parse Error|Failed to load script' "${shot_log}" | grep -v 'addons/gut' >&2
     fail=1
     continue
   fi
