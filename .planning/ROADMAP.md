@@ -189,7 +189,7 @@ Plans:
   4. Every in-run action (move, sprint, hold-to-build/upgrade, active ability, unit selection and commands, start night) works on keyboard and mouse and on gamepad. The player can switch devices at any moment, and on-screen prompts update to match the active device.
   5. The HUD shows gold, current night out of total, king health, ability cooldown, and unit group status without cluttering the play area.
 
-**Plans**: 17/19 plans executed (03-13 to 03-19 close the 2026-10-13 UAT round-1 gaps G-03-4, G-03-8, G-03-11, G-03-13, G-03-14 and G-03-14b; the owner gate, test 15, follows them)
+**Plans**: 18/19 plans executed (03-13 to 03-19 close the 2026-10-13 UAT round-1 gaps G-03-4, G-03-8, G-03-11, G-03-13, G-03-14 and G-03-14b; the owner gate, test 15, follows them)
 **UI hint**: yes
 
 Plans:
@@ -237,7 +237,7 @@ Plans:
 - [x] 03-19: An opaque knocked-out "0 / 50" and "1 enemy" copy; UI-SPEC rows, the full suite and all 33 shots re-checked with the plate (G-03-13, G-03-14)
 
 **Gap wave 3** *(blocked on 03-13 to 03-16 and 03-19)*
-- [ ] 03-17: Round 2 retune: the owner's four balance goals as tests, a measured search of squad, tower, cost and regeneration values with nights 5 to 8 and re-pinned contracts, or an owner decision on the best three candidates if the allowed levers cannot reach all four (G-03-11, part 2)
+- [x] 03-17: Round 2 retune: the owner's four balance goals as tests, a measured search of squad, tower, cost and regeneration values with nights 5 to 8 and re-pinned contracts, or an owner decision on the best three candidates if the allowed levers cannot reach all four (G-03-11, part 2)
 
 **Gap wave 4** *(blocked on 03-17 and 03-19)*
 - [ ] 03-18: Round 2 published: outcome, what changed, search log, after-retune tables and goldens in the balance report; the updated gate packet and the 33 shots re-captured (G-03-11, part 3)
@@ -406,7 +406,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 |-------|----------------|--------|-----------|
 | 1. Foundation & Day Loop | 18/18 | Complete    | 2026-10-03 |
 | 2. Night Defense & Playtest Gate | 22/22 | Complete    | 2026-10-08 |
-| 3. King Combat & Troops | 17/19 | In Progress|  |
+| 3. King Combat & Troops | 18/19 | In Progress|  |
 | 4. Crowd-Scale Battles & Walls | 0/TBD | Not started | - |
 | 5. Castle Center & Economy Depth | 0/TBD | Not started | - |
 | 6. Enemy Roster & Tower Specializations | 0/TBD | Not started | - |
