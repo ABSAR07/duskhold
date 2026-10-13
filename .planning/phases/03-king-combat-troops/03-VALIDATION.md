@@ -7,7 +7,7 @@ status: validated
 nyquist_compliant: true
 wave_0_complete: true
 created: "2026-10-09"
-validated: "2026-10-12"
+validated: "2026-10-13"
 ---
 
 # Phase 3 — Validation Strategy
@@ -24,7 +24,7 @@ validated: "2026-10-12"
 | **Config file** | `.gutconfig.json` (dirs `tests/unit`, `tests/integration`, `tests/e2e`; JUnit to `build/test-results/gut-junit.xml`) |
 | **Quick run command** | `bash tools/test.sh -gselect=<test_script_substring>` (one selection per invocation) |
 | **Full suite command** | `bash tools/test.sh` then `bash tools/lint.sh`; replays `bash tools/replay.sh --scenario=smoke --twice --expect-file=tests/golden/smoke.json` and `--scenario=army --twice --expect-file=tests/golden/army.json` |
-| **Estimated runtime** | quick run 20-90 s per script; full suite 630 s at the end of the phase (148 scripts, 1373 tests, 15367 asserts); lint 15 s |
+| **Estimated runtime** | quick run 20-90 s per script; full suite 528 to 622 s at the end of the gap round (150 scripts, 1397 tests, about 15600 asserts); lint 15 s |
 
 ---
 
@@ -70,12 +70,27 @@ validated: "2026-10-12"
 | 3-12-01 | 12 | 10 | UI-01 | T-03-20 | ShotRunner.protected_violations fails any hud_/cmd_ shot with a HUD control inside x 384..896, y 96..500 | unit + real-window run | `-gselect=test_shot_protected_centre`, `-gselect=test_shot_list`; `bash tools/screenshot.sh` (33 of 33 saved) | ✅ | ✅ green |
 | 3-12-02 | 12 | 10 | all phase IDs | T-03-20 | CI permissions unchanged (contents: read); only the screenshots timeout changed | CI | `gh run view 38219154906` (lint, test, export, screenshots all success; REPLAY_OK smoke, army, full_idle; 33 screenshots) | ✅ | ✅ green |
 | 3-12-03 | 12 | 10 | all phase IDs | T-03-21 | Unsigned local build for the owner's playtest (accepted, no code-signing budget) | launch check | `bash tools/export.sh && timeout 90 build/windows/Duskhold.exe --headless --quit-after 120` (exit 0 in 3 s) | ✅ | ✅ green |
+| 3-13-01 | 13 | 1 (gap) | UNIT-10, UNIT-05, INPT-01 | T-03-22 | The queue flag is a plain bool inside the existing intent; CommandProcessor re-validates every intent (QUEUE_CLOSED, RUN_OVER, unknown squads) | tracer e2e (TDD RED then GREEN) | `bash tools/test.sh -gselect=test_command_keys` (3 Shift-queue cases) | ✅ | ✅ green |
+| 3-13-02 | 13 | 1 (gap) | INPT-02, UNIT-10 | T-03-22 | Same gate for the pad RT path; real-window probe lines recorded in the SUMMARY | e2e + real-window probe | `bash tools/test.sh -gselect=test_pad_commands`, `bash tools/test.sh` (1377/1377) | ✅ | ✅ green |
+| 3-14-01 | 14 | 1 (gap) | KING-05, UI-01 | T-03-23 | The handler only passes the event's hp and max_hp to HealthBar3D.set_health; no KingState writer is called | tracer e2e (TDD RED then GREEN) | `bash tools/test.sh -gselect=test_king_knockout` (bar follows each heal, hides at full) | ✅ | ✅ green |
+| 3-14-02 | 14 | 1 (gap) | KING-05, UI-01 | T-03-23 | Read-only real-window measurement: sim, floating bar and widget agree at every heal | real-window probe + full suite | `bash tools/godot.sh --path . -s <probe>` (10 heals, 0.820 to 1.000 all equal), `bash tools/test.sh` (1378/1378) | ✅ | ✅ green |
+| 3-15-01 | 15 | 1 (gap) | UI-01 | T-03-24 | StartNightPlate and its rows are mouse_filter IGNORE, pinned by the plate contract test; the prompt copy is unchanged | tracer e2e (TDD RED then GREEN) + shots | `bash tools/test.sh -gselect=test_start_night_plate` (6 tests), `bash tools/screenshot.sh hud_day_squads hud_day_squads_1080p` (clear-centre check), `bash tools/test.sh` (1384/1384) | ✅ | ✅ green |
+| 3-16-01 | 16 | 1 (gap) | UNIT-04, UNIT-07 | T-03-25 | Tally only connects to SimEvents and reads defs; the smoke and army goldens replay unchanged | tracer integration (TDD RED then GREEN) | `bash tools/test.sh -gselect=test_balance_value_metric` (5 tests), `bash tools/replay.sh --scenario=smoke --twice --expect-file=tests/golden/smoke.json`, `... --scenario=army ...` | ✅ | ✅ green |
+| 3-16-02 | 16 | 1 (gap) | UNIT-04, UNIT-07 | T-03-26 | No new CLI argument; runs stay bounded by BalanceReport.MAX_TICKS, the 50-seed cap and PLAYTEST_TIMEOUT_S | bot measurement | `bash tools/playtest.sh --seeds=10` (PLAYTEST_OK runs=60; squad_value_ratio 0.68 baseline), `bash tools/test.sh` (1389/1389) | ✅ | ✅ green |
+| 3-19-01 | 19 | 2 (gap) | UI-01 | T-03-31 | KingWidget reads KingState only; the count and caption keep alpha 1.0 on an opaque outline | tracer e2e (TDD RED then GREEN) + committed contrast probe | `bash tools/test.sh -gselect=test_king_widget` (4.5:1 fill over outline), `bash tools/contrast_probe.sh --image=screenshots/hud_king_down.png --rect=280,648,96,56 --min=4.5` (CONTRAST_OK ratio=5.88; 1.62 unfixed) | ✅ | ✅ green |
+| 3-19-02 | 19 | 2 (gap) | UI-01 | T-03-31 | Hud.enemy_count_text is a pure formatter of the night counts | e2e (TDD RED then GREEN) + shots | `bash tools/test.sh -gselect=test_spawn_telegraph` (singular at one), `bash tools/screenshot.sh` (33 of 33), `bash tools/test.sh` (1392/1392) | ✅ | ✅ green |
+| 3-17-01 | 17 | 3 (gap) | UNIT-04, UNIT-07, KING-04, KING-05 | T-03-27 | The four owner goals are contract tests that failed RED on the pre-retune data | integration + unit (TDD RED) | `bash tools/test.sh -gselect=test_balance_acceptance`, `bash tools/test.sh -gselect=test_night_data_contract` | ✅ | ✅ green |
+| 3-17-02 | 17 | 3 (gap) | UNIT-04, UNIT-07, KING-04, KING-05 | T-03-27 / T-03-28 | Only two values moved (tower I interval 0.9 s, night 8 north grunts 11), each pinned old to new; 29 candidates, each measured in a private project copy; MapConfig.validate() clean; goldens byte-identical | bot measurement + contracts + replays | `bash tools/playtest.sh --seeds=10` (balanced 8, army_balanced 8, ratio 0.915, night 8 at 40), `bash tools/replay.sh --scenario=full_idle --twice` (digest recorded before and after), `bash tools/test.sh` (1397/1397) | ✅ | ✅ green |
+| 3-18-01 | 18 | 4 (gap) | UNIT-04, UNIT-07, KING-04, KING-05 | T-03-29 / T-03-30 | Round 2 tables come from a fresh deterministic run on the committed data, checked against 03-17-SUMMARY.md | bot re-measurement + document grep | `bash tools/playtest.sh --seeds=10` (every figure equal to 03-17), grep of the five Round 2 headings | ✅ | ✅ green |
+| 3-18-02 | 18 | 4 (gap) | all phase IDs | T-03-30 | screenshot.sh runs the existing bounded shot list; no data, code or test changed | shots + document check | `bash tools/screenshot.sh` (Saved 33 of 33, blank and clear-centre checks), hud_night_squad_down.png and night_combat.png read | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
-Requirement coverage: KING-04 (3-04-01, 3-04-03, 3-10-02, 3-11-01), KING-05 (3-04-02), UNIT-04 (3-01-01, 3-01-02, 3-02-01, 3-11-01, 3-11-02), UNIT-05 and UNIT-06 (3-06-01, 3-06-03), UNIT-07 (3-02-01, 3-02-02, 3-05-01, 3-11-02), UNIT-09 (3-06-02, 3-08-02, 3-08-03, 3-09-01), UNIT-10 (3-07-02, 3-07-03, 3-08-01, 3-09-02, 3-11-01), INPT-01 (3-06-03, 3-07-03, 3-08-03), INPT-02 (3-09-01, 3-09-02, 3-10-01, 3-10-02), UI-01 (3-03-01, 3-03-02, 3-04-03, 3-05-01, 3-05-02, 3-10-01, 3-10-02, 3-12-01). Every requirement is COVERED: the named scripts exist, target the behaviour, and ran green in the final full suite.
+Requirement coverage: KING-04 (3-04-01, 3-04-03, 3-10-02, 3-11-01), KING-05 (3-04-02), UNIT-04 (3-01-01, 3-01-02, 3-02-01, 3-11-01, 3-11-02), UNIT-05 and UNIT-06 (3-06-01, 3-06-03), UNIT-07 (3-02-01, 3-02-02, 3-05-01, 3-11-02), UNIT-09 (3-06-02, 3-08-02, 3-08-03, 3-09-01), UNIT-10 (3-07-02, 3-07-03, 3-08-01, 3-09-02, 3-11-01), INPT-01 (3-06-03, 3-07-03, 3-08-03), INPT-02 (3-09-01, 3-09-02, 3-10-01, 3-10-02), UI-01 (3-03-01, 3-03-02, 3-04-03, 3-05-01, 3-05-02, 3-10-01, 3-10-02, 3-12-01). Every requirement is COVERED: the named scripts exist, target the behaviour, and ran green in the final full suite. UAT round-1 gap closure (2026-10-13) adds 3-13-01 to 3-18-02: UNIT-10 and UNIT-05 (3-13-01, 3-13-02), KING-05 (3-14-01, 3-14-02, 3-17-01, 3-17-02), UI-01 (3-14-01, 3-15-01, 3-19-01, 3-19-02), UNIT-04 and UNIT-07 (3-16-01, 3-16-02, 3-17-01, 3-17-02, 3-18-01), KING-04 (3-17-01, 3-17-02, 3-18-01), INPT-01 and INPT-02 (3-13-01, 3-13-02); every gap task has an automated command and the final full suite at HEAD dcf3ed1 is 150 scripts, 1397/1397 tests, lint clean.
 
 Mutation probes recorded by the executors (behaviour switched off, the matching test failed, code restored): 03-07 steering rule disabled (4 of 7 steering e2e tests failed), 03-08 off-ground drag drop disabled, 03-09 `CameraRig.set_zoom_suppressed` made a no-op, 03-10 stick threshold `>=` changed to `>`.
+
+Mutation probes run by the orchestrator at the 2026-10-13 re-audit (each fix switched off entirely, the named suite run, the file restored from a backup): 03-13 queue flag forced false (3 of 14 test_command_keys failed), 03-14 king_healed listener removed (1 of 5 test_king_knockout failed), 03-15 plate hidden by day (1 of 6 test_start_night_plate failed), 03-16 squad_value_ratio zeroed (1 of 5 test_balance_value_metric failed), 03-19 knocked-out label dimmed with the rest (2 of 15 test_king_widget failed), 03-19 singular copy removed (2 of 22 test_spawn_telegraph failed); 03-17's retune is covered by its own recorded RED run on the pre-retune data (three of the four goal tests failed on assertions).
 
 ---
 
@@ -101,6 +116,8 @@ Existing infrastructure covers all phase requirements. No Wave 0 stubs were need
 | Prompt tile legibility at 24 px; Xbox tiles on non-Xbox pads (03-10) | INPT-02, UI-01 | Visual judgement on a real monitor and pad | Switch between keyboard and pad mid-run and read the prompts |
 | Balance feel: squads versus towers per gold; the balanced bot's 1-of-10 loss rate (03-11) | UNIT-04 | The bots measure the data; the owner judges difficulty | Read 03-BALANCE-REPORT.md and play three nights with an army |
 | E6 longest toast inside x 384..896 (03-12) | UI-01 | The line is 526 px wide at x 377..903, 7 px past the literal band on each side, one line below the centre; left human_needed and logged as an unmet-truth in .planning/WINDOWS.md | Trigger "Can't go there. Click a point on the visible ground." and judge whether it intrudes on the play area |
+| Balance feel after Round 2: the 0.9 s first tower as an opening, nights 5 to 8 at 25 / 31 / 39 / 40 with an army (03-17, 03-18) | UNIT-04, UNIT-07 | The bots measure the data (balanced 8 of 10, army 8 of 10, squad value 0.915); the owner judges feel at the gate | Play two or three full runs with an army on both devices (UAT test 15) and compare against `03-PLAYTEST-GATE.md` |
+| Bottom-centre hierarchy with the plate, the opaque knocked-out count and the singular copy as seen in play (03-15, 03-19) | UI-01 | Measured in tests and the contrast probe; whether the prompt leads and the count reads by eye is a judgement | Re-check UAT tests 13 and 14 on the fixed build |
 
 All of these are owner items in `03-PLAYTEST-GATE.md`; `/gsd-verify-work 3` walks them.
 
@@ -108,14 +125,14 @@ All of these are owner items in `03-PLAYTEST-GATE.md`; `/gsd-verify-work 3` walk
 
 ## Validation Sign-Off
 
-- [x] All tasks have `<automated>` verify or Wave 0 dependencies (33 of 34 tasks; 3-07-01 is an owner decision task whose outcome 3-07-03's tests pin)
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies (46 of 47 tasks after the gap round; 3-07-01 is an owner decision task whose outcome 3-07-03's tests pin)
 - [x] Sampling continuity: no 3 consecutive tasks without automated verify
 - [x] Wave 0 covers all MISSING references (none)
 - [x] No watch-mode flags (GUT runs with `-gexit`)
 - [x] Feedback latency within the project's accepted bound (single script under 90 s; full suite 11 min)
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** approved 2026-10-12 (validate-phase audit, state A)
+**Approval:** approved 2026-10-12 (validate-phase audit, state A); re-approved 2026-10-13 after the UAT round-1 gap closure (state A re-audit)
 
 ## Validation Audit 2026-10-12
 | Metric | Count |
@@ -125,3 +142,12 @@ All of these are owner items in `03-PLAYTEST-GATE.md`; `/gsd-verify-work 3` walk
 | Escalated | 0 |
 
 Audit basis: 12 PLAN and 12 SUMMARY files, the per-plan test scripts listed in each SUMMARY's `key-files`, the ten post-merge gate runs, the final full suite at HEAD b7db3d5 (148 scripts, 1373/1373, 15367 asserts), lint clean, smoke and army goldens byte-identical, CI run 38219154906 green. No auditor spawn was needed.
+
+## Validation Audit 2026-10-13
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Audit basis (UAT round-1 gap closure, plans 03-13 to 03-19): 7 PLAN and 7 SUMMARY files, 13 tasks each with an automated command (12 test or replay commands, 1 bounded screenshot run), every TDD task with a RED commit before its GREEN commit, the four post-merge gate runs (1389, 1392, 1397 and the empty-diff wave 4), the final full suite at HEAD dcf3ed1 (150 scripts, 1397/1397), lint clean (265 files), smoke and army goldens byte-identical, the full_idle digest recorded before and after the retune, 33 of 33 real-window shots. Mutation probes above: every gap fix is caught by its own suite when switched off. No auditor spawn was needed.
