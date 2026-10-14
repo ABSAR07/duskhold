@@ -3,6 +3,14 @@ phase: 03
 review: 03-REVIEW.md
 titles: json
 findings:
+  - id: IN-10
+    severity: info
+    disposition: open
+    title: "The \"outside the project\" path case in test_contrast_probe is actually inside the project"
+  - id: IN-11
+    severity: info
+    disposition: open
+    title: "test_separation pins results that depend on shipped unit radii, and calls a private method by name"
   - id: WR-04
     severity: warning
     disposition: fixed
@@ -59,19 +67,21 @@ findings:
     severity: info
     disposition: fixed
     title: "The eighth patrol click is dropped without a word"
-open: 0
-total: 14
-recorded: 2026-10-13T21:40:14.031Z
+open: 2
+total: 16
+recorded: 2026-10-14T06:20:51.842Z
 ---
 
 # Phase 03: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-04 | warning | fixed | 03-REVIEW-FIX.md |
-| IN-07 | info | fixed | 03-REVIEW-FIX.md |
-| IN-08 | info | fixed | 03-REVIEW-FIX.md |
-| IN-09 | info | fixed | 03-REVIEW-FIX.md |
+| IN-10 | info | open | - |
+| IN-11 | info | open | - |
+| WR-04 | warning | fixed | 03-REVIEW-FIX.md (not in the current review) |
+| IN-07 | info | fixed | 03-REVIEW-FIX.md (not in the current review) |
+| IN-08 | info | fixed | 03-REVIEW-FIX.md (not in the current review) |
+| IN-09 | info | fixed | 03-REVIEW-FIX.md (not in the current review) |
 | CR-01 | critical | fixed | 03-REVIEW-FIX.md (not in the current review) |
 | WR-01 | warning | fixed | plan 03-14 (commit ee21f6f: King.bind_run connects king_healed to _on_king_healed); re-verified fixed by the 2026-10-13 review (03-REVIEW.md section "WR-01 from the previous review") (not in the current review) |
 | WR-02 | warning | fixed | 03-REVIEW-FIX.md (not in the current review) |
