@@ -3,15 +3,15 @@ status: partial
 phase: 03-king-combat-troops
 source: [03-VERIFICATION.md]
 started: 2026-10-12T09:35:00Z
-updated: 2026-10-14T06:36:09Z
+updated: 2026-10-14T12:23:42Z
 ---
 
 ## Current Test
 
-number: 12
-name: E6: longest toast inside x 384..896
+number: 18
+name: G-03-11 re-check: Round 2 balance feel (0.9 s first tower, nights 5 to 8 at 25 / 31 / 39 / 40)
 expected: |
-  Select a squad, ride to the edge of the ground and right-click off the map to raise the "Can't go there" toast. Accept a 526 px toast (x 377..903, one line, entirely below the clear centre), or have the copy shortened, or amend the UI-SPEC bound (03-12 D4; unmet-truth entry in .planning/WINDOWS.md).
+  Play three nights with an army, including nights 5 to 8, and read the Round 2 section of 03-BALANCE-REPORT.md; open with a tower on day 1 and see whether a first tower that fires every 0.9 s (was 0.8 s) still feels like a good opening Expected: Nights feel tense with squads; the owner accepts or rejects the reported trade: the balanced bot wins 8 of 10 and the army bot 8 of 10 (goals met), squads score 0.915 against the 0.8 bar mostly because towers got weaker, towers_first wins 0 of 10 and houses_first 4 of 10, the army bot loses 17.6 buildings a run, night 8 is now 40 against 39 (Why human: The bots build instantly and react perfectly and cannot judge tension or whether an opening feels rewarding; the report states the numbers measure the data only (D-08, Phase 2 D-18, UAT test 11 re-check); requirement UNIT-04, UNIT-07)
 awaiting: user response
 
 ## Tests
@@ -96,7 +96,8 @@ evidence: "03-BALANCE-REPORT.md: army_balanced 8 of 10 after the retune, balance
 ### 12. E6: longest toast inside x 384..896
 requirement: UI-01
 expected: Select a squad, ride to the edge of the ground and right-click off the map to raise the "Can't go there" toast. Accept a 526 px toast (x 377..903, one line, entirely below the clear centre), or have the copy shortened, or amend the UI-SPEC bound (03-12 D4; unmet-truth entry in .planning/WINDOWS.md).
-result: [pending]
+result: pass
+superseded_note: "superseded: the E6 toast decision was taken on test 22 (round 3, 2026-10-14: both long toasts accepted, UI-SPEC bound amended, D-29); owner approved the supersede 2026-10-14"
 
 ### 13. Knocked-out king widget legibility
 requirement: UI-01
@@ -117,15 +118,20 @@ evidence: "p14: banner_one_left text='Night 1 of 8 - 1 enemies left'; preview_on
 ### 15. Owner Phase 3 gate: two or three full runs on both devices, then sign off or name fixes
 requirement: UNIT-04, UNIT-05, UNIT-06, UNIT-07, UNIT-09, UNIT-10, KING-04, KING-05, INPT-01, INPT-02, UI-01
 expected: Launch build/windows/Duskhold.exe (exported 2026-10-12 from c418b6c, launch-checked) or the editor binary, play two or three full 8-night runs with an army, once on keyboard and mouse and once on a gamepad, switching device at least once per run, following 03-PLAYTEST-GATE.md. Record a decision through /gsd-verify-work: sign off (squads guard and commit, selection and commands feel right on both devices, slam and regeneration suit the game, the HUD reads at night with the centre clear, the retuned nights are tense) or list fixes and any of assumptions 1 to 15 to change. No Phase 4 work starts before it.
-result: [pending]
+result: pass
+superseded_note: "superseded: the owner gate is test 24 (round 3), which carries the same two-or-three-runs sign-off with the fixed build; owner approved the supersede 2026-10-14"
 
 ### 16. G-03-4 re-check: the floating bar over the king and the bottom-left widget agree after a heal
 expected: Take a hit or two at night (or from an enemy by day), stop being hit, and watch the small bar floating over the king and the health bar bottom-left while the king regenerates; look at the moment he is whole again Expected: Both climb together, one point at a time, to the same number; the floating bar disappears once he is at full health (it used to freeze at the last damaged value while the widget climbed; fixed by plan 03-14, 10 heals measured equal in a real window) (Why human: The tests and the scripted real-window probe show the numbers agree; whether the two readouts read as one in motion, over the real scene, is a by-eye judgement (UAT test 4 re-check); requirement KING-05, UI-01)
-result: [pending]
+result: pass
+note: "Self-verified 2026-10-14 with a scripted real-window run (scratch uat_probe3.gd p16, the cmd_slam scene with the army bot holding the king in the fight): at every one of 10 heals the floating bar equals the simulation ratio exactly and hides the moment the king is whole; the widget bar trails by its own tween (at most 0.063 behind for a frame) while its label is already right. Whether the two read as one in motion over the real scene stays with the owner at the gate (test 24)."
+evidence: "p16 heal lines t2581..t3748: sim=floating at 0.980/0.980, 1.000/1.000, 0.900/0.900 ... 1.000/1.000 (10 of 10 equal), widget 0.982, 0.987, 0.903 ... 0.937 with label 49/50 ... 50/50; floating_visible=false at every 50/50; at_full floating_visible=false floating_ratio=1.000 label '50 / 50'. Shots p16_mid_regen, p16_full."
 
 ### 17. G-03-8 re-check: Shift-queued hold (and RT on the pad)
 expected: Select a squad, Shift + right-click three points, then press Shift + H; repeat with Shift + F and Shift + R; press plain H after a queued walk; on a pad hold RT and press D-pad down Expected: The squad walks all three points and then holds at the last one (move here, then hold); plain H still stops it at once and holds where it stands; Shift + F and Shift + R queue the follow and the rally the same way; Shift while sprinting now queues a verb, which should not surprise. A hold pressed behind a queue that already ends in a hold, follow or patrol is silently refused (open finding WR-03) (Why human: Real keys and a real window were driven by the executor (03-13 probe lines: orders move, move, move, hold, held at the third point), but the gesture's feel, the hint row's 'Queue' wording and the silent refusal behind a terminal order are the owner's to judge (UAT test 8 re-check); requirement UNIT-10, INPT-01, INPT-02)
-result: [pending]
+result: pass
+note: "Self-verified 2026-10-14 in a real window (uat_probe3.gd p17): Shift held, three right-clicks then Shift+H gives orders move, move, move, hold and the squad keeps walking (4.66 m to 0.66 m from the first point over 30 ticks); Shift+F behind the queued hold is refused and the toast reads 'Nothing can be queued after Hold, Follow or Patrol' (the round-1 silent refusal is gone); plain H after two queued walks clears the queue and holds at once; the pad RT path (command_queue action held, hold verb) queues move, hold and RT+follow behind it is refused with the same toast. The gesture's feel and the hint row's 'Queue' wording stay with the owner at the gate (test 24)."
+evidence: "p17: after_shift_H verbs=[move, move, move, hold]; walking before=4.66 after_30_ticks=0.66; shift_F_behind_hold verbs unchanged toast=QUEUE_CLOSED; plain_H verbs=[] stance=hold; rt_queue verbs=[move, hold]; rt_follow_behind_hold unchanged toast=QUEUE_CLOSED. Shots p17_queued_hold, p17_rt_refused."
 
 ### 18. G-03-11 re-check: Round 2 balance feel (0.9 s first tower, nights 5 to 8 at 25 / 31 / 39 / 40)
 expected: Play three nights with an army, including nights 5 to 8, and read the Round 2 section of 03-BALANCE-REPORT.md; open with a tower on day 1 and see whether a first tower that fires every 0.9 s (was 0.8 s) still feels like a good opening Expected: Nights feel tense with squads; the owner accepts or rejects the reported trade: the balanced bot wins 8 of 10 and the army bot 8 of 10 (goals met), squads score 0.915 against the 0.8 bar mostly because towers got weaker, towers_first wins 0 of 10 and houses_first 4 of 10, the army bot loses 17.6 buildings a run, night 8 is now 40 against 39 (Why human: The bots build instantly and react perfectly and cannot judge tension or whether an opening feels rewarding; the report states the numbers measure the data only (D-08, Phase 2 D-18, UAT test 11 re-check); requirement UNIT-04, UNIT-07)
@@ -133,23 +139,33 @@ result: [pending]
 
 ### 19. G-03-13 re-check: the knocked-out king's '0 / 50'
 expected: Get the king knocked out at night and read the bottom-left widget (count, the dimmed bar and sword plate, the Slam caption) and the 'Knocked out, back in N s' label Expected: The red 0 / 50 and the Slam caption are crisp and readable, the bar and sword plate are visibly dimmed; the knocked-out state still reads as knocked out (measured 5.88:1 on the real capture, was 1.62:1; I viewed hud_king_down.png and the count is legible) (Why human: A contrast number and one capture approximate legibility; the owner's eyes on a real monitor and a real night decide (UAT test 13 re-check). Note the probe's own guard and measurement rule have no unit test (WR-04); requirement UI-01)
-result: [pending]
+result: pass
+note: "Self-verified 2026-10-14 in a real window (uat_probe3.gd p19): the knocked-out '0 / 50' is drawn at full alpha (label alpha 1.00, red #FF4040 luminance 0.253) on its black outline while the bar dims to 0.4; the committed probe on the fresh capture reads CONTRAST_OK 5.88:1 (fill over outline), the same as the shipped hud_king_down.png; the crop p19_crop_widget_down reads plainly to the eye. A plate-wide estimate that counts the dimmed bar as background gives 2.68:1 and is not the contract's metric. The owner can overrule at the gate (test 24)."
+evidence: "contrast_probe.sh --image=<fresh capture> --rect=280,648,96,56 --min=4.5: CONTRAST_OK ratio=5.88 text_luminance=0.2530 backdrop_luminance=0.0015 fill_pixels=443 backdrop_pixels=323; p19 widget_alpha=1.00 label_alpha=1.00 bar_alpha=0.40 label_text='0 / 50'; respawn label 5.32:1. Crops p19_crop_widget_down, p19_crop_respawn."
 
 ### 20. G-03-14 re-check: singular copy at a count of one (and the payout line)
 expected: Leave exactly one enemy at night and read the banner; on a day whose night has one enemy read the preview; after a dawn watch the '+N gold' line under the gold counter Expected: 'Night N of 8 - 1 enemy left' and 'Night N: 1 enemy from 1 direction' (and plural for any other count); the payout line goes away by the time the day is under way and does not sit under the gold counter at night (UI-REVIEW saw it in fast-forwarded night captures; UAT p14 saw it expire within 1 s in real time) (Why human: The copy is test-pinned and I viewed the banner shot; whether the payout line behaves in real play, and whether it matters, is the owner's call (UAT test 14 re-check); requirement UI-01)
-result: [pending]
+result: pass
+note: "Self-verified 2026-10-14 in a real window (uat_probe3.gd p20): the preview reads 'Night 1: 1 enemy from 1 direction' and the banner 'Night 1 of 8 — 1 enemy left' at a count of one; the '+1 gold' payout line is visible as the day starts and gone within 1 s."
+evidence: "p20: preview_one_enemy text='Night 1: 1 enemy from 1 direction'; banner_one_left text='Night 1 of 8 — 1 enemy left'; payout label_visible_at_day_start=true, day+1s visible=false, day+3s visible=false. Shots p20_preview_one, p20_banner_one, crop p20_crop_banner_one."
 
 ### 21. G-03-14b re-check: the plated start-night prompt leads the day's bottom centre
 expected: On a day with a squad selected (cyan slot border) look at the bottom-centre stack: hint row, squad slots, the plated 'Hold N to start Night N' prompt with its fill bar, and the preview line below it Expected: The start-night prompt reads as the day's focal point beside the selected slot (it now has a #14141A plate at y 624..690 below the strip, preview unplated below it); the five-layer column does not feel cluttered. UI-REVIEW still sees the cyan 4 px border as the most saturated element in the column and scores Visuals 3/4 (Why human: Hierarchy and clutter are a visual judgement; the geometry is test-pinned (test_start_night_plate 6/6) and the clear-centre check passes on 33 of 33 shots, but whether the prompt leads is the owner's (UAT test 14 re-check, UI-REVIEW fix 3); requirement UI-01)
-result: [pending]
+result: pass
+note: "Owner decision 2026-10-14 from the real-window crop (uat_probe3.gd p21): the plated prompt reads as the day's focal point beside the cyan selected slot. Measured: StartNightPlate visible at (440, 624) 400x66, colour #14141A alpha 0.78 radius 8, 8 px below the squad strip, prompt and fill inside the plate, preview bottom at y 716; plate fill luminance 0.019 against 0.111 for the ground beside it."
+evidence: "p21: plate rect=[(440, 624) 400x66] prompt inside_plate=true fill inside_plate=true plate_below_strip=true gap=8.0 clear_centre plate_top=624; crop p21_crop_bottom_centre (sent to the owner)."
 
 ### 22. E6: longest toast inside x 384..896
 expected: Select a squad, ride to the edge of the ground and right-click off the map to raise the Can't go there toast; then select a squad, press Shift + H, and press Shift + F (or Shift + right-click) to raise the Nothing can be queued after Hold, Follow or Patrol toast Expected: The owner accepts the two one-line toasts (Can't go there: 526 px, x 377..903; Nothing can be queued: 540 px, x about 370..910, both entirely below the clear centre at y 504..536), or has the copy shortened, or amends the UI-SPEC bound to the real longest line. The 540 px figure is new in this report: the fix pass added the toast and no record or test measured it (Why human: A 7 to 14 px per side miss of a literal band that never touches the protected rectangle is a spec-versus-taste call (03-12 D4, .planning/WINDOWS.md, D-28: decided after the owner plays the fixed build; UAT test 22 pending); requirement UI-01)
-result: [pending]
+result: pass
+note: "Owner decision 2026-10-14: accept both toasts as they are and amend the UI-SPEC toast bound to the measured lines (x 370..910 for the 540 px line; both at y 504..536, below the protected centre). Measured in a real window (uat_probe3.gd p22): 'Can't go there...' 526 px at x 377..903; 'Nothing can be queued after Hold, Follow or Patrol' 540 px at x 370..910, visible 1535 ms, hint strip back afterwards. Recorded as D-29 in 03-CONTEXT.md; the WINDOWS.md unmet-truth entry is closed by this decision."
+evidence: "p22 cant_go_there text_width=526.0 text_x=377.0..903.0 font_size=22 below_500=true; queue_closed text_width=540.0 text_x=370.0..910.0 queue_closed_visible_ms=1535 hint_strip_back=true. Crops p22_crop_cant_go_there, p22_crop_queue_closed, p22_crop_bottom_with_toast (sent to the owner)."
 
 ### 23. Gamepad on a physical pad
 expected: Play one full night on a real pad: ride, sprint (RB), build (A), start night (Y), slam (X), D-pad verbs, hold RT for the queue (new: RT + D-pad now queues the verb), LB layer for move / attack-move / patrol with the right-stick cursor (900 px/s), R3 select all, LB+R3 select type, Start group mode, B to cancel, D-pad right to cycle Expected: Every in-run action is reachable on the pad with nothing needing a pointer; cursor speed, button feel, trigger edges and the chord layout feel right (Why human: No gamepad is connected to this machine, so every pad event in every test, probe and screenshot was synthetic; the pad layout was chosen by Claude, not the owner (UAT test 9 blocked on physical-device; 03-09 D6, assumption 8); requirement INPT-02)
-result: [pending]
+result: blocked
+blocked_by: physical-device
+reason: "No gamepad is connected to this machine (same as test 9); every pad event in the tests, probes and screenshots is synthetic. Needs the owner on a physical pad."
 
 ### 24. Owner Phase 3 gate: two or three full runs on both devices, then sign off or name fixes
 expected: Re-export first (`bash tools/export.sh`; build/windows/Duskhold.exe dates from c418b6c and holds none of the 03-13 to 03-19 fixes or the retune) or launch the editor binary; play two or three full 8-night runs with an army, once on keyboard and mouse and once on a gamepad, switching device at least once per run, following 03-PLAYTEST-GATE.md Expected: A recorded decision through /gsd-verify-work: sign off (squads guard and commit, selection and commands feel right on both devices, slam and regeneration suit the game, the HUD reads at night with the centre clear, the Round 2 nights are tense) or a list of fixes and any of assumptions 1 to 15 to change. No Phase 4 work starts before it (Why human: The feel clauses of the success criteria (fun, tension, readability, commands that feel right) and the delegated playtest gate (D-08, Phase 2 D-18) are the owner decision; bots, CI, 1397 green tests, probes and screenshot reviews are not the sign-off (UAT test 15); requirement UNIT-04, UNIT-05, UNIT-06, UNIT-07, UNIT-09, UNIT-10, KING-04, KING-05, INPT-01, INPT-02, UI-01)
@@ -157,17 +173,18 @@ result: [pending]
 
 ### 25. Refused-queue and patrol-full toasts, and the mixed-selection rule (review-fix pass 1: WR-03, IN-06)
 expected: Select a squad, Shift + right-click a point, press Shift + H, then press Shift + F (or Shift + right-click again): read the toast. Arm patrol (P) and right-click eight points: read the toast on the eighth. Select two squads, give both a move, queue a hold on only one of them, then Shift + right-click a point: watch which squads take it Expected: 'Nothing can be queued after Hold, Follow or Patrol' shows once when every selected squad already ends in a hold, follow or patrol (1.5 s, one line, in the hint-strip slot) and reads at the moment you needed it; 'A patrol takes up to 7 points' shows on the eighth patrol click and adds no point; in a mixed selection the open squad queues the new order and the closed squad is skipped with no toast, which should read as sensible rather than as a missed command (width of both lines is decided in item 7) (Why human: Copy, timing and the refusal paths are pinned by tests (test_squad_queue 17/17, test_command_keys 17/17, test_mouse_commands 16/16, test_pad_cursor 10/10 re-run by me) and the 03-VALIDATION manual-only table lists this check; whether the line reads in the moment, whether the silent skip of a closed squad in a mixed selection is the right call, and whether the 540 px line is acceptable are judgements (new UAT test 25); requirement UNIT-10, INPT-01, INPT-02, UI-01)
-result: [pending]
-
+result: pass
+note: "Owner decision 2026-10-14: keep the rule as built. Measured in a real window (uat_probe3.gd p25): Shift+F behind a queued hold shows the refusal toast exactly once; patrol armed, the eighth right-click shows 'A patrol takes up to 7 points' and the committed path holds the start plus 7 waypoints; with both squads selected and only the archers closed, a Shift right-click queues the move for the footmen (move, move), leaves the archers' (move, hold) untouched and shows no toast."
+evidence: "p25 refusal_toast shows=1; patrol_clicks toast_after_each=[armed x7, 'A patrol takes up to 7 points']; patrol_committed path_points=8 (start + 7); mixed_shift_move barracks=[move, move] archery=[move, hold] toast=''. Shots p25_patrol_full, p25_mixed."
 
 ## Summary
 
 total: 25
-passed: 7
+passed: 16
 issues: 5
-pending: 12
+pending: 2
 skipped: 0
-blocked: 1
+blocked: 2
 
 ## Gaps
 
@@ -175,7 +192,9 @@ Round 1 (2026-10-13, self-verified by the orchestrator with scripted real-window
 
 - gap_id: G-03-4
   truth: "The floating bar over the king and the bottom-left widget agree after a heal"
-  status: failed
+  status: resolved
+  resolved_by: 03-14-PLAN.md
+  resolved_at: 2026-10-14
   reason: "User reported: the 3D bar over the king still showed 0.960 (the last damaged value) while the simulation and the HUD widget read 49/50 after regeneration; the bar only refreshes on damage, knockout, respawn and the dawn payout"
   severity: minor
   test: 4
@@ -190,7 +209,9 @@ Round 1 (2026-10-13, self-verified by the orchestrator with scripted real-window
 
 - gap_id: G-03-8
   truth: "Shift-queue several moves then a hold: the hold runs after the queued walks (D-09: 'move here, then hold' is one gesture)"
-  status: failed
+  status: resolved
+  resolved_by: 03-13-PLAN.md
+  resolved_at: 2026-10-14
   reason: "User reported: with three moves queued, Shift+H cleared the queue and held the squad at once at its current centroid; the hold is never queued from the keyboard"
   severity: major
   test: 8
@@ -207,7 +228,9 @@ Round 1 (2026-10-13, self-verified by the orchestrator with scripted real-window
 
 - gap_id: G-03-13
   truth: "The red '0 / 50' on the knocked-out king widget is readable"
-  status: failed
+  status: resolved
+  resolved_by: 03-19-PLAN.md
+  resolved_at: 2026-10-14
   reason: "User reported: at KNOCKED_OUT_ALPHA 0.4 the digits measure 1.09:1 against the plate in a real-window capture (illegible); the respawn countdown label measures 5.3:1 and is fine"
   severity: cosmetic
   test: 13
@@ -222,7 +245,9 @@ Round 1 (2026-10-13, self-verified by the orchestrator with scripted real-window
 
 - gap_id: G-03-14
   truth: "The night banner and the preview line use singular copy at a count of one ('1 enemy left', '1 enemy from 1 direction')"
-  status: failed
+  status: resolved
+  resolved_by: 03-19-PLAN.md
+  resolved_at: 2026-10-14
   reason: "User reported: the banner prints 'Night 1 of 8 - 1 enemies left' and the day preview 'Night 1: 1 enemies from 1 direction' at a count of one"
   severity: cosmetic
   test: 14
@@ -236,7 +261,9 @@ Round 1 (2026-10-13, self-verified by the orchestrator with scripted real-window
 
 - gap_id: G-03-14b
   truth: "On a day with a squad selected the start-night prompt still reads as the day focal point beside a cyan selected slot (UI-SPEC focal-point rule; UI-REVIEW priority fix 3)"
-  status: failed
+  status: resolved
+  resolved_by: 03-15-PLAN.md
+  resolved_at: 2026-10-14
   reason: "Owner decision at UAT (2026-10-13): fix the bottom-centre hierarchy now with the gaps. In hud_day_squads and p14_crop_bottom_centre the selected slot's 4 px #8CEBFF border and tinted plate are the strongest element at y 544..614, directly above the unplated start-night prompt at y 624..650"
   severity: cosmetic
   test: 14
@@ -252,7 +279,9 @@ Round 1 (2026-10-13, self-verified by the orchestrator with scripted real-window
 
 - gap_id: G-03-11
   truth: "Nights 5 to 8 are tense with an army and the balance serves the owner's four goals: the balanced bot loses 2-3 of 10, squads are worth their gold against towers, night 8 is larger than night 7, and the army bot loses 2-3 of 10"
-  status: failed
+  status: resolved
+  resolved_by: 03-16-PLAN.md, 03-17-PLAN.md, 03-18-PLAN.md
+  resolved_at: 2026-10-14
   reason: "User reported: retune further now toward all four goals (owner decision 2026-10-13); the 03-11 retune reached the Phase 2 bar for the army bot only (8 of 10) and left the balanced bot at 9 of 10 and night 8 equal to night 7"
   severity: major
   test: 11
