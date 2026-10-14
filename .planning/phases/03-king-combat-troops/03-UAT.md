@@ -3,7 +3,7 @@ status: partial
 phase: 03-king-combat-troops
 source: [03-VERIFICATION.md]
 started: 2026-10-12T09:35:00Z
-updated: 2026-10-13T20:15:20Z
+updated: 2026-10-14T06:36:09Z
 ---
 
 ## Current Test
@@ -144,7 +144,7 @@ expected: On a day with a squad selected (cyan slot border) look at the bottom-c
 result: [pending]
 
 ### 22. E6: longest toast inside x 384..896
-expected: Select a squad, ride to the edge of the ground and right-click off the map to raise the Can't go there toast Expected: The owner accepts a 526 px toast (x 377..903, one line, entirely below the clear centre), or has the copy shortened, or amends the UI-SPEC bound (Why human: A 7 px per side miss of a literal band that never touches the protected rectangle is a spec-versus-taste call (03-12 D4, .planning/WINDOWS.md, D-28: decided after the owner plays the fixed build; UAT test 12 pending); requirement UI-01)
+expected: Select a squad, ride to the edge of the ground and right-click off the map to raise the Can't go there toast; then select a squad, press Shift + H, and press Shift + F (or Shift + right-click) to raise the Nothing can be queued after Hold, Follow or Patrol toast Expected: The owner accepts the two one-line toasts (Can't go there: 526 px, x 377..903; Nothing can be queued: 540 px, x about 370..910, both entirely below the clear centre at y 504..536), or has the copy shortened, or amends the UI-SPEC bound to the real longest line. The 540 px figure is new in this report: the fix pass added the toast and no record or test measured it (Why human: A 7 to 14 px per side miss of a literal band that never touches the protected rectangle is a spec-versus-taste call (03-12 D4, .planning/WINDOWS.md, D-28: decided after the owner plays the fixed build; UAT test 22 pending); requirement UI-01)
 result: [pending]
 
 ### 23. Gamepad on a physical pad
@@ -155,13 +155,17 @@ result: [pending]
 expected: Re-export first (`bash tools/export.sh`; build/windows/Duskhold.exe dates from c418b6c and holds none of the 03-13 to 03-19 fixes or the retune) or launch the editor binary; play two or three full 8-night runs with an army, once on keyboard and mouse and once on a gamepad, switching device at least once per run, following 03-PLAYTEST-GATE.md Expected: A recorded decision through /gsd-verify-work: sign off (squads guard and commit, selection and commands feel right on both devices, slam and regeneration suit the game, the HUD reads at night with the centre clear, the Round 2 nights are tense) or a list of fixes and any of assumptions 1 to 15 to change. No Phase 4 work starts before it (Why human: The feel clauses of the success criteria (fun, tension, readability, commands that feel right) and the delegated playtest gate (D-08, Phase 2 D-18) are the owner decision; bots, CI, 1397 green tests, probes and screenshot reviews are not the sign-off (UAT test 15); requirement UNIT-04, UNIT-05, UNIT-06, UNIT-07, UNIT-09, UNIT-10, KING-04, KING-05, INPT-01, INPT-02, UI-01)
 result: [pending]
 
+### 25. Refused-queue and patrol-full toasts, and the mixed-selection rule (review-fix pass 1: WR-03, IN-06)
+expected: Select a squad, Shift + right-click a point, press Shift + H, then press Shift + F (or Shift + right-click again): read the toast. Arm patrol (P) and right-click eight points: read the toast on the eighth. Select two squads, give both a move, queue a hold on only one of them, then Shift + right-click a point: watch which squads take it Expected: 'Nothing can be queued after Hold, Follow or Patrol' shows once when every selected squad already ends in a hold, follow or patrol (1.5 s, one line, in the hint-strip slot) and reads at the moment you needed it; 'A patrol takes up to 7 points' shows on the eighth patrol click and adds no point; in a mixed selection the open squad queues the new order and the closed squad is skipped with no toast, which should read as sensible rather than as a missed command (width of both lines is decided in item 7) (Why human: Copy, timing and the refusal paths are pinned by tests (test_squad_queue 17/17, test_command_keys 17/17, test_mouse_commands 16/16, test_pad_cursor 10/10 re-run by me) and the 03-VALIDATION manual-only table lists this check; whether the line reads in the moment, whether the silent skip of a closed squad in a mixed selection is the right call, and whether the 540 px line is acceptable are judgements (new UAT test 25); requirement UNIT-10, INPT-01, INPT-02, UI-01)
+result: [pending]
+
 
 ## Summary
 
-total: 24
+total: 25
 passed: 7
 issues: 5
-pending: 11
+pending: 12
 skipped: 0
 blocked: 1
 
@@ -265,3 +269,5 @@ Round 1 (2026-10-13, self-verified by the orchestrator with scripted real-window
     - "The owner judges feel at the gate afterwards (test 15); nights 1-4 untouched"
 
 Round 2 (2026-10-13, after the UAT round-1 gap closure 03-13 to 03-19 at HEAD e925538): tests 16 to 24 are the verifier's nine remaining owner judgements, one per item (re-checks of G-03-4, G-03-8, G-03-11, G-03-13, G-03-14 and G-03-14b; the E6 decision; the physical pad; the gate). Tests 12 and 15 of round 1 stay pending and are superseded in substance by tests 22 and 24. build/windows/Duskhold.exe was re-exported from this HEAD on 2026-10-13 for the gate. Resume with /gsd-verify-work 3.
+
+Round 3 (2026-10-14, after review-fix pass 1 fixed the 13 open code-review findings at commits 56b2828 to e01971e; fourth review 0 critical, 0 warning, 2 info; third verification report): test 25 is the verifier's one new owner judgement (the two new toasts and the mixed-selection rule); test 22 now covers both the 526 px and the new 540 px toast; tests 16 to 21, 23 and 24 are unchanged. build/windows/Duskhold.exe was re-exported from commit ca8086a (the fix pass plus its docs) on 2026-10-13T21:51Z. Resume with /gsd-verify-work 3.
