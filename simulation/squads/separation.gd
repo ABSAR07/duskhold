@@ -13,10 +13,16 @@ extends RefCounted
 
 
 ## One displacement per circle (all zero for fewer than two). `positions`, `radii` and `ids` are
-## parallel arrays in ascending id order.
+## parallel arrays in ascending id order: precondition, all three the same size. The assert below
+## checks it in debug builds only (GDScript strips assert from release exports), so this note is
+## the durable statement of it; both callers build the three arrays in lockstep.
 static func displacements(
 	positions: PackedVector2Array, radii: PackedFloat64Array, ids: PackedInt64Array
 ) -> PackedVector2Array:
+	assert(
+		radii.size() == positions.size() and ids.size() == positions.size(),
+		"Separation.displacements: positions, radii and ids must be parallel arrays"
+	)
 	var count: int = positions.size()
 	var displacement: PackedVector2Array = PackedVector2Array()
 	displacement.resize(count)

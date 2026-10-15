@@ -7,6 +7,13 @@ extends GutTest
 ## three passes (captured from the two copies of the routine before they were merged).
 
 const TOLERANCE: float = 0.000001
+## The radii the two system cases pin, written here rather than loaded from res://data/ so a retune
+## of a shipped definition cannot fail them (review IN-11). They equal the shipped footman, archer,
+## grunt and ranged values at the time the positions below were captured.
+const FOOTMAN_RADIUS: float = 0.45
+const ARCHER_RADIUS: float = 0.4
+const GRUNT_RADIUS: float = 0.5
+const RANGED_RADIUS: float = 0.45
 const CLUSTER: Array[Vector2] = [
 	Vector2(0.0, 0.0),
 	Vector2(0.0, 0.0),
@@ -50,6 +57,18 @@ const ENEMY_RESULT: Array[Vector2] = [
 	Vector2(10, 10),
 	Vector2(1.2437756, -0.97218007)
 ]
+
+
+func _unit_def(radius: float) -> UnitDef:
+	var def: UnitDef = UnitDef.new()
+	def.radius = radius
+	return def
+
+
+func _enemy_def(radius: float) -> EnemyDef:
+	var def: EnemyDef = EnemyDef.new()
+	def.radius = radius
+	return def
 
 
 func _positions(points: Array[Vector2]) -> PackedVector2Array:
@@ -119,8 +138,8 @@ func test_the_displacements_come_from_one_snapshot_and_are_summed() -> void:
 func test_unit_system_separates_the_cluster_to_the_pinned_positions() -> void:
 	var events: SimEvents = SimEvents.new()
 	var units: UnitSystem = UnitSystem.new(events)
-	var footman: UnitDef = load("res://data/units/footman.tres")
-	var archer: UnitDef = load("res://data/units/archer.tres")
+	var footman: UnitDef = _unit_def(FOOTMAN_RADIUS)
+	var archer: UnitDef = _unit_def(ARCHER_RADIUS)
 	for index: int in range(CLUSTER.size()):
 		units.spawn(footman if index % 3 != 0 else archer, &"s", index, CLUSTER[index])
 	for _pass: int in range(PASSES):
@@ -138,11 +157,13 @@ func test_unit_system_separates_the_cluster_to_the_pinned_positions() -> void:
 func test_enemy_system_separates_the_cluster_to_the_pinned_positions() -> void:
 	var events: SimEvents = SimEvents.new()
 	var enemies: EnemySystem = EnemySystem.new(events)
-	var grunt: EnemyDef = load("res://data/enemies/grunt.tres")
-	var ranged: EnemyDef = load("res://data/enemies/ranged.tres")
+	var grunt: EnemyDef = _enemy_def(GRUNT_RADIUS)
+	var ranged: EnemyDef = _enemy_def(RANGED_RADIUS)
 	for index: int in range(CLUSTER.size()):
 		enemies.spawn(grunt if index % 3 != 0 else ranged, CLUSTER[index])
 	for _pass: int in range(PASSES):
+		# The private pass, called by name on purpose: the enemy system runs it inside its tick and
+		# has no public seam for it. A rename breaks this line at run time (review IN-11).
 		enemies.call("_separate")
 	var ids: Array[int] = enemies.ids()
 	for index: int in range(ids.size()):
