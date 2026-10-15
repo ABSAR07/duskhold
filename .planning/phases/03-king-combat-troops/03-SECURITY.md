@@ -101,6 +101,7 @@ None. All twelve SUMMARY `## Threat Flags` sections read "None" (the seven gap-c
 | 2026-10-12 (after code review) | 22 | 20 | 2 (T-03-04, T-03-05: medium, below the high block threshold; CR-01 in 03-REVIEW.md) | execute-phase orchestrator, from gsd-verifier and gsd-code-reviewer findings |
 | 2026-10-13 (UAT round-1 gap closure) | 32 (T-03-01 to T-03-31 plus the per-plan T-03-SC row) | 30 | 2 (T-03-04, T-03-05: medium, below the high block threshold; CR-01 still open in 03-REVIEW.md) | execute-phase orchestrator (ASVS L1 grep verification of T-03-22 to T-03-31, short-circuit rule; HEAD e47ac01) |
 | 2026-10-14 (after review-fix pass 1) | 32 (T-03-01 to T-03-31 plus the per-plan T-03-SC row) | 32 | 0 | execute-phase orchestrator (ASVS L1 grep re-verification of T-03-04 and T-03-05 against commit 56b2828 and of the fix pass's new surface, short-circuit rule; HEAD ca8086a) |
+| 2026-10-15 (after review-fix pass 2) | 32 (T-03-01 to T-03-31 plus the per-plan T-03-SC row) | 32 | 0 | execute-phase orchestrator (ASVS L1 grep re-verification of the pass-2 surface: two test files and a debug-only precondition assert, short-circuit rule; HEAD 7f5cb65) |
 
 ---
 
@@ -130,3 +131,12 @@ Short-circuit rule applied: `threats_open: 0`, every gap plan carried a plan-tim
 | Open | 0 |
 
 New surface reviewed at L1 (grep): WR-02 makes `tools/screenshot.sh` write `build/screenshot-<shot>.log` (under `build/`, export-excluded and a forbidden path in `tools/prepush_check.sh`) and read it with the same error filter as `tools/replay.sh`; ci.yml uploads those logs with the screenshots artifact. WR-03 and IN-06 add two toast strings and a static `Toast.refusal_text` (UI reads of the gate's return value, no simulation write; the mixed-selection rule is recorded in the UI-SPEC Copywriting Contract). IN-02's `MapConfig.ground_limit_cm` is now the single ground-bounds rule for the command gate and the ground picker, which strengthens T-03-12 (the toast can no longer disagree with the gate). IN-03's `Separation.displacements` is a pure static routine over packed arrays; both replay goldens are byte-identical. `bash tools/prepush_check.sh` PASSED before the push (no forbidden path, no credential-shaped string, no blob over 5 MB) and CI run 38473757849 is green. Short-circuit rule applied: `threats_open: 0`, plan-time registers, ASVS level 1; no auditor was spawned.
+
+## Security Audit 2026-10-15 (after review-fix pass 2)
+| Metric | Count |
+|--------|-------|
+| Threats found | 0 new (the two fix commits db5e138 and 2471438 touch two test scripts and add a debug-only `assert` to `Separation.displacements`; no trust boundary, input, file, network or save surface changes) |
+| Closed | 0 |
+| Open | 0 |
+
+New surface reviewed at L1 (grep): IN-10 changes only `tests/unit/test_contrast_probe.gd` (the "outside the project" case is now the project's parent folder, absolute on Windows and on the Linux runner, with an assertion that it localizes outside `res://`), which strengthens the T-03-31 path-guard evidence without touching `tools/screenshot/contrast_probe.gd`. IN-11 changes `tests/unit/test_separation.gd` (inline `UnitDef` / `EnemyDef` radii instead of `load("res://data/...")`, the private `_separate` seam kept and commented) and adds to `simulation/squads/separation.gd` a parallel-array precondition `assert` that Godot strips from release exports (the header note is the durable statement); both callers build the arrays in lockstep, both replay goldens are byte-identical (smoke 703 ticks, army 1353 ticks) and the shipped data is untouched. `bash tools/prepush_check.sh` PASSED before the push (no forbidden path, no credential-shaped string, no blob over 5 MB) and CI run 38774381177 on 7f5cb65 is green. Short-circuit rule applied: `threats_open: 0`, plan-time registers, ASVS level 1; no auditor was spawned.
