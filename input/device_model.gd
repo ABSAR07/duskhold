@@ -1,5 +1,6 @@
 class_name DeviceModel
 extends RefCounted
+## Gamepad support is unsupported since 2026-10-16 (owner decision); kept as shipped, not extended.
 ## INPT-02 / D-24: which device the player touched last, as a pure rule with an injected clock so
 ## it is testable without a window. A key press, any mouse button or at least 8 px of mouse motion
 ## inside 0.25 s means keyboard; a pad button, or a stick or trigger at abs(value) >= 0.5, means
@@ -13,6 +14,12 @@ const AXIS_THRESHOLD: float = 0.5
 const MOTION_THRESHOLD_PX: float = 8.0
 ## Mouse motion counts only when it adds up to the threshold inside this window.
 const MOTION_WINDOW_S: float = 0.25
+## While false, a pad event is still classified by `_device_of` but never applied, so `device()`
+## stays GlyphResolver.DEVICE_KEYBOARD whatever the last event was, and every PromptGlyph and the
+## CommandHints strip keep their keyboard glyphs while a pad drives the game. Pad input itself
+## (PadChords, PadCursorController, the pad bindings in project.godot) is untouched. True restores
+## the shipped Phase 3 switching.
+const PAD_PROMPTS_SUPPORTED: bool = false
 
 var _device: int = GlyphResolver.DEVICE_KEYBOARD
 var _last_switch_s: float = -INF
@@ -20,7 +27,8 @@ var _motion_px: float = 0.0
 var _motion_start_s: float = -INF
 
 
-## GlyphResolver.DEVICE_KEYBOARD or DEVICE_PAD.
+## GlyphResolver.DEVICE_KEYBOARD or DEVICE_PAD. Always DEVICE_KEYBOARD while
+## PAD_PROMPTS_SUPPORTED is false.
 func device() -> int:
 	return _device
 
@@ -28,6 +36,8 @@ func device() -> int:
 ## Feeds one input event at time `now_s`. True only when the event switched the device.
 func feed(event: InputEvent, now_s: float) -> bool:
 	var wanted: int = _device_of(event, now_s)
+	if wanted == GlyphResolver.DEVICE_PAD and not PAD_PROMPTS_SUPPORTED:
+		return false
 	if wanted < 0 or wanted == _device:
 		return false
 	return _switch(wanted, now_s)

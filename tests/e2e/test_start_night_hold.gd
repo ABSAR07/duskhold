@@ -480,7 +480,7 @@ func test_the_prompt_keeps_key_modifiers_and_reads_unbound_for_an_event_naming_n
 	assert_eq(blank_text, GlyphResolver.UNBOUND_TEXT, "no stray separator or blank name")
 
 
-func test_a_device_switch_during_the_hold_swaps_the_glyph_and_leaves_the_hold_alone() -> void:
+func test_a_pad_press_during_the_hold_keeps_the_keyboard_glyph_and_leaves_the_hold_alone() -> void:
 	var map_root: MapRoot = await E2eSupport.spawn_map(self, null, _tuning)
 	var night_hold: StartNightHoldController = _night_hold(map_root)
 	var tracker: LastDeviceTracker = map_root.get_device_tracker()
@@ -497,8 +497,8 @@ func test_a_device_switch_during_the_hold_swaps_the_glyph_and_leaves_the_hold_al
 	touch.pressed = true
 	Input.parse_input_event(touch.duplicate())
 	Input.flush_buffered_events()
-	assert_eq(_glyph(map_root).shown_text(), "xbox_button_y", "the glyph swapped at once")
-	assert_eq(night_hold.get_ratio(), before, "the fill is untouched by the switch")
+	assert_eq(_glyph(map_root).shown_text(), "keyboard_n", "the glyph stays on the keyboard")
+	assert_eq(night_hold.get_ratio(), before, "the fill is untouched by the pad press")
 	await wait_process_frames(3)
 	assert_gt(night_hold.get_ratio(), before, "and the hold keeps filling")
 	Input.action_release(ACTION)

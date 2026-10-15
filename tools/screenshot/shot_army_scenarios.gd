@@ -65,7 +65,6 @@ const DRAG_TO := Vector2(900.0, 470.0)
 const PAD_STICK := Vector2(0.8, -0.5)
 const PAD_STICK_SECONDS: float = 0.35
 const PAD_DEBOUNCE_S: float = 0.35
-const PAD_RETRIES: int = 4
 const PATROL_POINTS: Array[Vector3] = [Vector3(-12.0, 0.0, 0.0), Vector3(-6.0, 0.0, 2.0)]
 const PING_POINT := Vector3(-8.0, 0.0, 2.0)
 
@@ -191,8 +190,8 @@ static func _drag_box(runner: Node, map_root: MapRoot) -> bool:
 	return dragging
 
 
-## A pad button first, so the pad is the last device and every prompt turns to its Xbox tile, then
-## LB with the D-pad up held and the right stick moved: the ground cursor is out.
+## A pad button first (the prompts stay on the keyboard: gamepad prompts are unsupported since
+## 2026-10-16), then LB with the D-pad up held and the right stick moved: the ground cursor is out.
 static func _pad_cursor(runner: Node, map_root: MapRoot) -> bool:
 	if not await _raise_squads(runner, map_root):
 		return false
@@ -218,8 +217,9 @@ static func _pad_cursor(runner: Node, map_root: MapRoot) -> bool:
 	if not cursor.is_active():
 		printerr("the pad cursor is not out")
 		return false
-	if not await _ensure_pad(runner, map_root.get_device_tracker()):
-		printerr("the pad is not the last device")
+	var tracker: LastDeviceTracker = map_root.get_device_tracker()
+	if tracker == null or tracker.device() != GlyphResolver.DEVICE_KEYBOARD:
+		printerr("the prompts left the keyboard")
 		return false
 	return true
 
@@ -552,19 +552,6 @@ static func _slam(runner: Node, map_root: MapRoot) -> bool:
 	if not ringed:
 		printerr("no slam ring is showing")
 	return ringed
-
-
-## A pad button press when the pad is not the last device (a mouse nudge from the desktop can have
-## switched it back), repeated until the tracker agrees. True once the pad is the last device.
-static func _ensure_pad(runner: Node, tracker: LastDeviceTracker) -> bool:
-	for _attempt: int in range(PAD_RETRIES):
-		if tracker != null and tracker.device() == GlyphResolver.DEVICE_PAD:
-			return true
-		_pad_button(JOY_BUTTON_A, true)
-		await ShotScenarios._wait_frames(runner, 2)
-		_pad_button(JOY_BUTTON_A, false)
-		await ShotScenarios._wait(runner, PAD_DEBOUNCE_S)
-	return tracker != null and tracker.device() == GlyphResolver.DEVICE_PAD
 
 
 ## Builds both squads and waits until all eight puppets stand.

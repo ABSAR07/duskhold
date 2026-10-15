@@ -1,5 +1,6 @@
 class_name PadCursorController
 extends Node
+## Gamepad support is unsupported since 2026-10-16 (owner decision); kept as shipped, not extended.
 ## The pad's right-stick ground cursor for the point verbs move, attack-move and patrol (D-12,
 ## INPT-02, RESEARCH Pattern 6). CommandKeyController resolves a pad press of a point verb (the
 ## D-pad with the LB layer held) and hands it here through `pad_point_verb`. The cursor starts on

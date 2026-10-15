@@ -1,5 +1,6 @@
 class_name LastDeviceTracker
 extends Node
+## Gamepad support is unsupported since 2026-10-16 (owner decision); kept as shipped, not extended.
 ## INPT-02 / D-24: the one place that knows which device the player touched last. It feeds every
 ## input event to a DeviceModel and emits `device_changed` on an applied switch; every PromptGlyph
 ## listens to that one signal, so all prompts switch in the same frame. While the pad is the active
@@ -9,6 +10,8 @@ extends Node
 ## Device detection lives here, in the input layer; the simulation never reads it. It never marks an
 ## event handled, so it cannot steal input from any other node. It is the last child of the map so
 ## that it is also the first to see each event, before a controller that handles one.
+## Since 2026-10-16 DeviceModel never reports the pad, so `device_changed` stays silent and the
+## cursor stays shown.
 
 ## `device` is GlyphResolver.DEVICE_KEYBOARD or DEVICE_PAD.
 signal device_changed(device: int)

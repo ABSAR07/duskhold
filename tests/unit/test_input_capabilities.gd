@@ -6,6 +6,7 @@ extends GutTest
 ## capability that is not an action, select one type by double-click, is a gesture marker backed by
 ## its own scene test, so a marker with no test fails here. The pad-only actions of plan 03-09
 ## (command layer, group mode, select type, the ground cursor) are pinned to their pad bindings.
+## The pad column is unsupported since 2026-10-16 (owner decision); it pins the shipped bindings.
 
 const CURSOR_ACTIONS: Array[StringName] = [
 	&"cursor_left", &"cursor_right", &"cursor_up", &"cursor_down"
@@ -27,6 +28,8 @@ const GROUP_DIGITS: Array[StringName] = [
 const GESTURE_MARKERS: Dictionary = {
 	"double_click": "res://tests/e2e/test_select_one_type.gd",
 }
+## The "pad" column of every row below pins the shipped pad bindings, which stay unsupported.
+const PAD_COLUMN_STATUS: String = "unsupported since 2026-10-16 (owner decision)"
 const CAPABILITIES: Dictionary = {
 	"move": {"keys": MOVE_ACTIONS, "pad": MOVE_ACTIONS},
 	"sprint": {"keys": [&"sprint"], "pad": [&"sprint"]},
@@ -151,6 +154,10 @@ func _has_pad_event(action: StringName) -> bool:
 		if event is InputEventJoypadButton or event is InputEventJoypadMotion:
 			return true
 	return false
+
+
+func test_the_pad_column_is_marked_unsupported() -> void:
+	assert_string_contains(PAD_COLUMN_STATUS, "unsupported since 2026-10-16")
 
 
 func test_every_action_named_in_the_table_exists_in_the_input_map() -> void:

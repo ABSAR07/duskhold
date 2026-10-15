@@ -1,15 +1,25 @@
 extends GutTest
 ## UI-01 / KING-04 (plan 03-10): the command hint strip. On the real scene (squad fixture) it is
 ## hidden until a squad is selected, then lists Follow, Hold, Rally, Move, Attack, Patrol and Queue
-## left to right with the glyph of each action on the device in use (the pad point verbs as LB +
-## D-pad pairs), and it yields the shared slot to a toast or an armed line. Its row is laid out in a
-## 1280x720 SubViewport: y 504..536, 8 px above the squad strip, below the protected centre.
+## left to right with the keyboard glyph of each action (a pad press changes nothing: gamepad
+## prompts are unsupported since 2026-10-16), and it yields the shared slot to a toast or an armed
+## line. Its row is laid out in a 1280x720 SubViewport: y 504..536, 8 px above the squad strip,
+## below the protected centre.
 
 const FIXTURE := "res://tests/fixtures/fixture_map_squads.tres"
 const HUD_SCENE := "res://ui/hud/hud.tscn"
 const BARRACKS: StringName = &"barracks_1"
 const ARCHERY: StringName = &"archery_1"
 const WORDS: Array[String] = ["Follow", "Hold", "Rally", "Move", "Attack", "Patrol", "Queue"]
+const KEYBOARD_GLYPHS: Dictionary = {
+	"Follow": "keyboard_f",
+	"Hold": "keyboard_h",
+	"Rally": "keyboard_r",
+	"Move": "mouse_right",
+	"Attack": "keyboard_a",
+	"Patrol": "keyboard_p",
+	"Queue": "keyboard_shift",
+}
 const BASE_SIZE := Vector2i(1280, 720)
 const PROTECTED_RECT := Rect2(384.0, 96.0, 512.0, 404.0)
 const SLOT_TOP: float = 504.0
@@ -123,18 +133,9 @@ func test_a_selected_squad_shows_the_seven_verbs_in_order_with_keyboard_glyphs()
 	assert_true(_hints.visible, "the hints show")
 	assert_eq(_hints.visible_item_count(), 7, "seven items")
 	assert_eq(_hints.item_words(), WORDS, "in reading order")
-	var expected: Dictionary = {
-		"Follow": "keyboard_f",
-		"Hold": "keyboard_h",
-		"Rally": "keyboard_r",
-		"Move": "mouse_right",
-		"Attack": "keyboard_a",
-		"Patrol": "keyboard_p",
-		"Queue": "keyboard_shift",
-	}
 	var last_x: float = -1.0
 	for word: String in WORDS:
-		assert_eq(_glyph(word).shown_text(), expected[word], "the glyph of %s" % word)
+		assert_eq(_glyph(word).shown_text(), KEYBOARD_GLYPHS[word], "the glyph of %s" % word)
 		var left: float = _hints.get_item(word).get_global_rect().position.x
 		assert_gt(left, last_x, "%s sits right of the one before" % word)
 		last_x = left
@@ -143,32 +144,17 @@ func test_a_selected_squad_shows_the_seven_verbs_in_order_with_keyboard_glyphs()
 		assert_false(_hints.get_item(word).get_node("Plus").visible, "and no plus: %s" % word)
 
 
-func test_on_the_pad_the_point_verbs_show_lb_plus_the_d_pad() -> void:
+func test_after_a_pad_press_the_hints_keep_the_keyboard_glyphs_and_no_layer() -> void:
 	await _spawn(true)
 	await _select_all()
 	_touch_pad()
 	await wait_process_frames(2)
-	var expected: Dictionary = {
-		"Follow": "xbox_dpad_up",
-		"Hold": "xbox_dpad_down",
-		"Rally": "xbox_dpad_left",
-		"Move": "xbox_dpad_up",
-		"Attack": "xbox_dpad_right",
-		"Patrol": "xbox_dpad_down",
-		"Queue": "xbox_rt",
-	}
-	assert_eq(_hints.item_words(), WORDS, "the same order on the pad")
+	assert_eq(_hints.item_words(), WORDS, "the same order after a pad press")
 	for word: String in WORDS:
-		assert_eq(_glyph(word).shown_text(), expected[word], "the glyph of %s" % word)
+		assert_eq(_glyph(word).shown_text(), KEYBOARD_GLYPHS[word], "the glyph of %s" % word)
 	for word: String in ["Move", "Attack", "Patrol"]:
-		var layer: PromptGlyph = _glyph(word, "Layer")
-		var plus: Label = _hints.get_item(word).get_node("Plus") as Label
-		assert_true(layer.visible, "the layer glyph shows: %s" % word)
-		assert_eq(layer.shown_text(), "xbox_lb", "LB: %s" % word)
-		assert_true(plus.visible, "joined by a plus: %s" % word)
-		assert_eq(plus.text, "+", "the plus text: %s" % word)
-		assert_lt(layer.get_global_rect().position.x, plus.get_global_rect().position.x, "LB first")
-		assert_lt(plus.get_global_rect().position.x, _glyph(word).get_global_rect().position.x, "+")
+		assert_false(_glyph(word, "Layer").visible, "no layer glyph after a pad press: %s" % word)
+		assert_false(_hints.get_item(word).get_node("Plus").visible, "and no plus: %s" % word)
 
 
 func test_deselecting_hides_the_hints() -> void:

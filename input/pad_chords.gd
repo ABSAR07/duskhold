@@ -1,5 +1,6 @@
 class_name PadChords
 extends RefCounted
+## Gamepad support is unsupported since 2026-10-16 (owner decision); kept as shipped, not extended.
 ## Pure resolution of the gamepad twin presses (D-12, RESEARCH Open Question 3). A D-pad button is
 ## bound to a bare verb and to the point verb of the LB layer (up follow / move, down hold / patrol,
 ## right cycle / attack-move), and R3 to select all and select one type, so one press makes both

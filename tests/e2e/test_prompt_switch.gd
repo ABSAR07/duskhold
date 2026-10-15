@@ -1,8 +1,8 @@
 extends GutTest
-## INPT-02 / D-24 on the real scene (squad fixture, both squads built and selected): touching the
-## pad makes every on-screen prompt (the start-night glyph, the slam badge and the command hints)
-## show pad tiles in the same frame, and touching the keyboard or mouse switches them all back. The
-## tracker runs on a hand-stepped clock so the 0.25 s debounce is stepped, not waited for. Events
+## INPT-02 / D-24 on the real scene (squad fixture, both squads built and selected): since the owner
+## decision of 2026-10-16 gamepad prompts are unsupported, so a pad press leaves every on-screen
+## prompt (the start-night glyph, the slam badge and the command hints) on keyboard glyphs, and
+## keyboard or mouse input keeps them there. The tracker still runs on a hand-stepped clock. Events
 ## go through Input.parse_input_event and are flushed, so they reach the tracker exactly as real
 ## ones do. The mouse cursor itself cannot be read back under the headless display server (its
 ## mouse mode is not stored), so the test reads the hidden flag the tracker asked for; the real
@@ -14,7 +14,6 @@ const ARCHERY: StringName = &"archery_1"
 const SETTLE_FRAMES: int = 3
 const RAISE_TIMEOUT_S: float = 2.0
 const KEYBOARD: int = GlyphResolver.DEVICE_KEYBOARD
-const PAD: int = GlyphResolver.DEVICE_PAD
 
 var _map: MapRoot
 var _tracker: LastDeviceTracker
@@ -96,28 +95,29 @@ func test_the_tracker_starts_on_the_keyboard_and_every_prompt_shows_keyboard_gly
 	assert_eq(_hint_glyph("Move").shown_text(), "mouse_right", "move")
 
 
-func test_a_pad_button_switches_every_prompt_to_pad_tiles_in_the_same_frame() -> void:
+func test_a_pad_button_leaves_every_prompt_on_keyboard_glyphs() -> void:
 	await _setup()
+	watch_signals(_tracker)
 	_touch_pad()
-	# No frame has passed since the press: the one signal switched them all.
-	assert_eq(_tracker.device(), PAD, "now the pad")
-	assert_true(_tracker.cursor_hidden(), "the cursor hides while the pad is active")
-	assert_eq(_start_night_glyph().shown_text(), "xbox_button_y", "start night")
-	assert_eq(_widget.get_ability_glyph().shown_text(), "xbox_button_x", "the slam badge")
-	assert_eq(_hint_glyph("Follow").shown_text(), "xbox_dpad_up", "follow")
-	assert_eq(_hint_glyph("Hold").shown_text(), "xbox_dpad_down", "hold")
-	assert_eq(_hint_glyph("Rally").shown_text(), "xbox_dpad_left", "rally")
-	assert_eq(_hint_glyph("Move").shown_text(), "xbox_dpad_up", "move, behind the layer glyph")
-	assert_eq(_hint_glyph("Move", "Layer").shown_text(), "xbox_lb", "the layer glyph")
-	assert_eq(_hint_glyph("Queue").shown_text(), "xbox_rt", "queue")
+	assert_eq(_tracker.device(), KEYBOARD, "still the keyboard")
+	assert_false(_tracker.cursor_hidden(), "the cursor stays shown")
+	assert_eq(_start_night_glyph().shown_text(), "keyboard_n", "start night")
+	assert_eq(_widget.get_ability_glyph().shown_text(), "keyboard_q", "the slam badge")
+	assert_eq(_hint_glyph("Follow").shown_text(), "keyboard_f", "follow")
+	assert_eq(_hint_glyph("Hold").shown_text(), "keyboard_h", "hold")
+	assert_eq(_hint_glyph("Rally").shown_text(), "keyboard_r", "rally")
+	assert_eq(_hint_glyph("Move").shown_text(), "mouse_right", "move")
+	assert_false(_hint_glyph("Move", "Layer").visible, "no layer glyph")
+	assert_eq(_hint_glyph("Queue").shown_text(), "keyboard_shift", "queue")
+	assert_signal_not_emitted(_tracker, "device_changed", "no device change was announced")
 
 
-func test_a_key_press_switches_every_prompt_back_and_shows_the_cursor() -> void:
+func test_a_key_press_after_the_pad_keeps_the_keyboard_prompts_and_the_cursor() -> void:
 	await _setup()
 	_touch_pad()
 	_touch_keyboard()
-	assert_eq(_tracker.device(), KEYBOARD, "back on the keyboard")
-	assert_false(_tracker.cursor_hidden(), "the cursor is back")
+	assert_eq(_tracker.device(), KEYBOARD, "still on the keyboard")
+	assert_false(_tracker.cursor_hidden(), "the cursor is still shown")
 	assert_eq(_start_night_glyph().shown_text(), "keyboard_n", "start night")
 	assert_eq(_widget.get_ability_glyph().shown_text(), "keyboard_q", "the slam badge")
 	assert_eq(_hint_glyph("Hold").shown_text(), "keyboard_h", "hold")
@@ -127,13 +127,14 @@ func test_a_key_press_switches_every_prompt_back_and_shows_the_cursor() -> void:
 func test_mouse_input_counts_as_the_keyboard() -> void:
 	await _setup()
 	_touch_pad()
+	assert_eq(_tracker.device(), KEYBOARD, "a pad press is no switch")
 	_now += 1.0
 	var motion: InputEventMouseMotion = InputEventMouseMotion.new()
 	motion.relative = Vector2(20.0, 0.0)
 	motion.position = Vector2(100.0, 100.0)
 	_send(motion)
-	assert_eq(_tracker.device(), KEYBOARD, "moving the mouse switches back")
-	assert_eq(_start_night_glyph().shown_text(), "keyboard_n", "and the prompts follow")
+	assert_eq(_tracker.device(), KEYBOARD, "moving the mouse stays on the keyboard")
+	assert_eq(_start_night_glyph().shown_text(), "keyboard_n", "and the prompts stay")
 	_touch_pad()
 	_now += 1.0
 	var middle: InputEventMouseButton = InputEventMouseButton.new()
@@ -145,7 +146,7 @@ func test_mouse_input_counts_as_the_keyboard() -> void:
 	assert_eq(_tracker.device(), KEYBOARD, "so does a mouse button")
 
 
-func test_a_second_switch_inside_a_quarter_second_is_ignored() -> void:
+func test_a_key_shortly_after_a_pad_press_finds_the_keyboard_already_active() -> void:
 	await _setup()
 	_touch_pad()
 	_now += 0.1
@@ -153,22 +154,24 @@ func test_a_second_switch_inside_a_quarter_second_is_ignored() -> void:
 	key.physical_keycode = KEY_F12
 	key.pressed = true
 	_send(key)
-	assert_eq(_tracker.device(), PAD, "the pad stays inside the debounce")
-	assert_eq(_start_night_glyph().shown_text(), "xbox_button_y", "and so do the prompts")
+	assert_eq(_tracker.device(), KEYBOARD, "the keyboard stays inside the old debounce")
+	assert_eq(_start_night_glyph().shown_text(), "keyboard_n", "and so do the prompts")
 	_now += 0.15
 	_send(key)
-	assert_eq(_tracker.device(), KEYBOARD, "at 0.25 s the switch applies")
+	assert_eq(_tracker.device(), KEYBOARD, "and at 0.25 s")
 
 
-func test_the_pad_disconnecting_falls_back_to_the_keyboard() -> void:
+func test_a_pad_disconnecting_leaves_the_keyboard_prompts_alone() -> void:
 	await _setup()
+	watch_signals(_tracker)
 	_touch_pad()
 	Input.joy_connection_changed.emit(7, false)
-	assert_eq(_tracker.device(), PAD, "a different pad leaving changes nothing")
+	assert_eq(_tracker.device(), KEYBOARD, "a different pad leaving changes nothing")
 	Input.joy_connection_changed.emit(0, false)
-	assert_eq(_tracker.device(), KEYBOARD, "the pad in use leaving falls back")
-	assert_false(_tracker.cursor_hidden(), "and the cursor returns")
+	assert_eq(_tracker.device(), KEYBOARD, "nor does the pad in use leaving")
+	assert_false(_tracker.cursor_hidden(), "the cursor is not hidden")
 	assert_eq(_start_night_glyph().shown_text(), "keyboard_n", "with the keyboard prompts")
+	assert_signal_not_emitted(_tracker, "device_changed", "no device change was announced")
 
 
 func test_the_tracker_is_last_in_the_tree_so_it_sees_input_first() -> void:
