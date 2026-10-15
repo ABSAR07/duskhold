@@ -1,23 +1,23 @@
 ---
 phase: 03-king-combat-troops
-fixed_at: 2026-10-13T21:38:17Z
+fixed_at: 2026-10-15T16:54:45Z
 review_path: .planning/phases/03-king-combat-troops/03-REVIEW.md
 iteration: 1
-findings_in_scope: 13
-fixed: 13
+findings_in_scope: 15
+fixed: 15
 skipped: 0
 status: all_fixed
 ---
 
 # Phase 3: Code Review Fix Report
 
-**Fixed at:** 2026-10-13T21:38:17Z
+**Fixed at:** 2026-10-15T16:54:45Z (pass 2; pass 1 was 2026-10-13T21:38:17Z)
 **Source review:** .planning/phases/03-king-combat-troops/03-REVIEW.md (the full text of the nine carried-forward findings CR-01, WR-02, WR-03 and IN-01 to IN-06 was read from the orchestrator's carried_findings.md, reproduced from commit 86e60eb)
 **Iteration:** 1
 
 **Summary:**
-- Findings in scope: 13
-- Fixed: 13
+- Findings in scope: 15 (13 in pass 1, 2 in pass 2)
+- Fixed: 15
 - Skipped: 0
 
 **Where verification ran:** in the main checkout (`C:/Users/burha/Desktop/Projects/Thronefall-like Game`, branch `gsd/phase-01-foundation-day-loop`), not in a worktree. The orchestrator resolved `workflow.use_worktrees` to false for this pass because the Godot toolchain and the Python venv live in the git-ignored `.tools/` directory. The numbers below are reproducible from the working tree. Every commit carries the Co-Authored-By trailer.
@@ -28,6 +28,8 @@ status: all_fixed
 - `bash tools/replay.sh --scenario=army --twice --expect-file=tests/golden/army.json`: REPLAY_OK, ticks=1353, digest f7a967ed...8959c4
 
 The full suite was not run (the orchestrator does that). No shipped data value or golden file was touched, no file under `.planning/` other than this report and the UI-SPEC copy table was edited, and nothing was pushed.
+
+**Pass 2 (2026-10-15):** the two open info rows of the fourth review (IN-10, IN-11); the thirteen pass-1 entries below are unchanged. Verification ran in the main checkout again (`workflow.use_worktrees` resolved to false), PROJECT_ROOT pin guard OK before each edit and commit. Lint after each fix: `bash tools/lint.sh` exit 0, 269 files clean. Both replay goldens, run after the IN-11 fix (the only one touching `simulation/`), still match unchanged: smoke REPLAY_OK ticks=703 digest 2599c7c2...f31f, army REPLAY_OK ticks=1353 digest f7a967ed...8959c4. No data value or golden changed, the full suite was not run, nothing was pushed.
 
 ## Fixed Issues
 
@@ -111,8 +113,20 @@ The full suite was not run (the orchestrator does that). No shipped data value o
 **Commit:** 5001367
 **Applied fix:** the plate test's `PLATE_COLOR` is now `KingWidget.PLATE_COLOR`, and hud.tscn carries a `;` comment above the sub_resource naming the dependency. Retuning the widget's alpha (temporarily, reverted) failed the plate test. The same colour is also written in `ui/hud/prompt_glyph.gd` and `ui/hud/squad_slot.gd`; the finding did not name them and they were left unchanged. Runs: test_start_night_plate 6/6, test_king_widget 15/15, test_hud_contract 15/15.
 
+### IN-10: The "outside the project" path case in test_contrast_probe is actually inside the project
+
+**Files modified:** `tests/unit/test_contrast_probe.gd`
+**Commit:** db5e138
+**Applied fix:** the variable `outside` is now `in_parent_folder`, built as `ProjectSettings.globalize_path("res://").path_join("../outside/x.png").simplify_path()`, an absolute path in the project's parent folder and so outside the project on Windows and on the Linux runner alike. The literal cases `/etc/a.png` and `C:/Windows/a.png` stay. The test now asserts, before the loop, that `ProjectSettings.localize_path(in_parent_folder)` does not begin with `res://`. RED first: the assertion was added against the OLD variable and failed with "the outside-the-project case really is outside: 'C:/Users/burha/Desktop/Projects/Thronefall-like Game/x.png'" (9/10); after switching the path it passes. Run: test_contrast_probe 10/10 (68 asserts, was 67). No production code changed.
+
+### IN-11: test_separation pins results that depend on shipped unit radii, and calls a private method by name
+
+**Files modified:** `tests/unit/test_separation.gd`, `simulation/squads/separation.gd`
+**Commit:** 2471438
+**Applied fix:** the two system cases build their definitions inline (`UnitDef.new()` and `EnemyDef.new()` with only `radius` set, from constants `FOOTMAN_RADIUS` 0.45, `ARCHER_RADIUS` 0.4, `GRUNT_RADIUS` 0.5, `RANGED_RADIUS` 0.45 written in the test), so the pinned positions depend only on numbers in the test file. The radii equal the shipped data values (checked in data/units and data/enemies) and the pinned `UNIT_RESULT` and `ENEMY_RESULT` pass unchanged. The `enemies.call("_separate")` seam stays, with a comment saying it is the private pass on purpose (EnemySystem has 14 public methods, so a `separate_for_test` would have fit under the cap, but the string seam is documented and was kept as the lighter option). The optional guard was added: `Separation.displacements` asserts that `radii` and `ids` match `positions` in size, and its header says the precondition is the durable statement because GDScript strips `assert` from release exports. Runs: test_separation 7/7 (40 asserts), test_enemy_targeting 15/15, test_squad_guard 14/14, test_squad_orders 13/13, test_squad_respawn 14/14, test_ranged_enemy 7/7, test_sim_rules_guard 4/4. Both goldens match unchanged (digests above). (`-gselect=test_unit_system` and `-gselect=test_enemy_system` match no script in this repo, so the suites that drive `UnitSystem.separate` and `EnemySystem._separate` were run instead.)
+
 ---
 
-_Fixed: 2026-10-13T21:38:17Z_
+_Fixed: 2026-10-15T16:54:45Z_
 _Fixer: Claude (gsd-code-fixer)_
-_Iteration: 1_
+_Iteration: 1 (pass 2)_
