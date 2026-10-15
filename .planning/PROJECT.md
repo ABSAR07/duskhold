@@ -23,7 +23,7 @@ The day/night build-then-defend loop must feel as tight and satisfying as Throne
 - ✓ Seeded deterministic simulation with an event recorder, golden replays, bot playtests and a CI replay step; the owner signed off the core loop after four playtest rounds (2026-10-08) — Phase 2
 - ✓ Barracks and Archery Range squads that guard their post, commit to targets, trickle back from their building at night and are restored at dawn; RTS-style selection (click, drag box, Ctrl, strip slot, pad cycling), numbered control groups, and hold / follow / rally / move / attack-move / patrol orders with Shift (pad RT) queuing — Phase 3 (Hero's Quarter and the per-building unit choices follow later)
 - ✓ The king's weapon active ability (sword slam on Q / pad X, 9 s cooldown shown on the HUD) and health regeneration after 1 s without damage — Phase 3
-- ✓ Every in-run action on keyboard and mouse or on gamepad (D-pad verbs with an LB layer, right-stick ground cursor), prompts that follow the active device, and the in-run HUD (gold, night counter, king widget, squad strip, command hints) with a clear centre; the owner signed off on keyboard and mouse and a DualShock 4 (2026-10-15) — Phase 3
+- ✓ Every in-run action on keyboard and mouse or on gamepad (D-pad verbs with an LB layer, right-stick ground cursor), prompts that follow the active device, and the in-run HUD (gold, night counter, king widget, squad strip, command hints) with a clear centre; the owner signed off on keyboard and mouse and a DualShock 4 (2026-10-15) — Phase 3 (gamepad parity shipped, declared unsupported 2026-10-16)
 
 ### Active
 
@@ -52,8 +52,8 @@ Full, testable list with REQ-IDs: `.planning/REQUIREMENTS.md`. Summary:
 - [ ] Thronefall-style scoring, per-map high scores, soft retry penalty
 
 **Presentation & platform**
-- [ ] Menus (main, map select, loadout, pause, settings, results), reachable on keyboard and mouse or gamepad like the in-run HUD shipped in Phase 3
-- [ ] Settings: key/button rebinding, display, audio volume, graphics quality
+- [ ] Menus (main, map select, loadout, pause, settings, results), reachable on keyboard and mouse like the in-run HUD shipped in Phase 3
+- [ ] Settings: key rebinding, display, audio volume, graphics quality
 - [ ] Stylized low-poly 3D using normalized CC0 asset packs; readable at night
 - [ ] SFX for core feedback
 - [ ] Versioned save of campaign progress
@@ -92,6 +92,8 @@ Full, testable list with REQ-IDs: `.planning/REQUIREMENTS.md`. Summary:
 
 **Controls change (2026-10-09):** While discussing Phase 3 the owner brought the mouse back for unit commands: "mouse use is kind of a necessity now i realize in hindsight." Squads are selected by click, drag box and Ctrl, stored as numbered control groups, and ordered to move, rally, attack-move or patrol with mouse-supplied ground points, Age of Empires style; the gamepad reaches the same commands by cycling squads and a right-stick cursor. Building stays ride-up-and-hold, the king's attacks stay automatic, and the follow camera stays locked on the king. Recorded in `.planning/phases/03-king-combat-troops/03-CONTEXT.md` (D-09 to D-16, D-25) and REQUIREMENTS.md (UNIT-09, UNIT-10, INPT-01, INPT-03).
 
+**Controls change (2026-10-16):** the owner dropped the gamepad as a requirement. The shipped pad layout (03-09) remains in the build but is unsupported: the HUD no longer offers pad prompts and later phases are keyboard-and-mouse only.
+
 **Development context:**
 - Portfolio/learning project; Claude writes most of the code, so the project favors text-editable scenes/data and headless/CLI test runs
 - Engine chosen by research: Godot 4.7.2-stable + GDScript (see `.planning/research/STACK.md`)
@@ -103,7 +105,7 @@ Full, testable list with REQ-IDs: `.planning/REQUIREMENTS.md`. Summary:
 - **Tech stack**: Godot 4.7.2-stable, GDScript (standard build), GUT 9.7.1 tests, gdtoolkit lint/format — text-based scenes/resources and headless CLI for AI-driven development
 - **Assets**: CC0 (or equally permissive) only — clean licensing for a public portfolio; attribution log maintained
 - **IP**: No Thronefall trademarks, names, or assets; the mechanics are recreated, the content is original
-- **Platform**: Windows PC; keyboard and mouse, or gamepad, for all gameplay (Thronefall-style: ride up and hold the action key to build; RTS-style squad selection, control groups and orders with the mouse or a pad cursor); click-to-build stays dropped, mouse unit commands returned 2026-10-09
+- **Platform**: Windows PC; keyboard and mouse for all gameplay (Thronefall-style ride-up-and-hold building; RTS-style squad selection, control groups and orders with the mouse). A gamepad is no longer a requirement (owner decision 2026-10-16): the pad bindings shipped in Phases 1 to 3 stay in the project unsupported, and no later phase adds pad parity, pad prompts or pad tests.
 - **Budget**: Zero-cost tools and assets (no code-signing certificate)
 - **Performance**: Modest hardware (roughly GTX 970 / 4 GB RAM); 60 fps with hundreds of units and projectiles on screen
 
@@ -128,8 +130,9 @@ Full, testable list with REQ-IDs: `.planning/REQUIREMENTS.md`. Summary:
 | Deterministic fixed-step simulation (SimClock 1/30 s, seeded RNG, integer event recorder, golden replays) under simulation/, with a presentation layer that never writes the sim | Seeded replays and bot playtests are the agent's own playtest (DEV-05); nothing under simulation/ may read time, OS or the time scale | ✓ Good — the smoke golden held across 22 plans and Linux matched the Windows digest |
 | While a squad is selected all movement input (keys and stick) steers the selection and the king stands; attack-move stays on A; Escape with nothing armed clears the selection | Owner decision at the 03-07 checkpoint (2026-10-10, amending D-11 and D-15) | ✓ Good — passed UAT rounds 1 and 3 |
 | Round 2 balance: tower tier 1 attack interval 0.9 s and night 8 north count 11, with a 0.8 squad-value bar (D-26 to D-28); the balanced and army bots win 8 of 10 seeds and night 8 (40) rises above night 7 (39) | Owner asked for all four balance goals at once; the retune moved the fewest values of 29 candidates and no locked value | ✓ Good — the owner passed the fixed build (UAT test 18, 2026-10-14) |
-| Gamepad layout: D-pad verbs with an LB layer for move / attack-move / patrol on a 900 px/s right-stick cursor, R3 select all, LB+R3 select type, Start group mode, RT queue, B cancel; Xbox glyph tiles for every pad | RESEARCH A11; chosen by Claude pending a real pad | ✓ Good — passed on a DualShock 4 (UAT test 23, 2026-10-15) |
+| Gamepad layout: D-pad verbs with an LB layer for move / attack-move / patrol on a 900 px/s right-stick cursor, R3 select all, LB+R3 select type, Start group mode, RT queue, B cancel; Xbox glyph tiles for every pad | RESEARCH A11; chosen by Claude pending a real pad | ✓ Good — passed on a DualShock 4 (UAT test 23, 2026-10-15), unsupported from 2026-10-16 |
 | Long refusal toasts (526 and 540 px at Body 22) accepted below the clear centre; UI-SPEC toast bound amended (D-29) | Owner decision at UAT test 22 (2026-10-14): readable copy beats the estimated width | ✓ Good — WINDOWS.md entry 4 waived |
+| Gamepad dropped as a requirement; shipped pad code kept but unsupported (HUD stops offering pad prompts, no pad parity in later phases) | Owner decision 2026-10-16: pad parity doubled the input and prompt work of every feature for a device the project no longer targets; removal is risk without benefit | — Recorded 2026-10-16 |
 
 ## Evolution
 
@@ -149,4 +152,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-15 after Phase 3*
+*Last updated: 2026-10-16 after the gamepad decision*

@@ -4,7 +4,7 @@
 
 Duskhold goes from an empty Godot 4.7.2 project to a released 5-map Windows campaign. The first two phases prove the day/night build-then-defend loop on one prototype map with no meta-progression. Phase 1 sets up the project and the agent-verification tooling (headless tests, lint, CI with a Windows export, screenshots, debug overlay, asset log) alongside a playable day phase: riding the king, building, upgrading, and earning gold. Phase 2 adds nights, dawn, win/loss, and seeded replays, and it ends in a human playtest gate. Next, the king and his troops fight together, and the unit/enemy simulation is scaled to Thronefall-size battles before content breadth is added. Day-phase depth comes next (castle center, branching upgrades, income curves), then enemy variety and tower specializations as counter pairs, then army variety. After that the game gets its cohesive art and sound. Then it becomes a campaign: scoring, retry, and versioned saves on maps 1–2, followed by the meta-progression loadout (second playtest gate) and the maps 3–5 finale with boss nights. Research buildings are isolated as the designated scope cut, and the project closes with settings, menus, and the itch.io release.
 
-**Controls (changed 2026-09-28):** every phase uses Thronefall's original scheme. The king moves with WASD / left stick; building and upgrading happen by riding to a build spot and holding the action key; units take hotkey commands (hold; follow the king); gameplay works on keyboard and gamepad. **The mouse is used only in menus.** The earlier keyboard + mouse plan (click-to-build, mouse unit commands) was dropped and must not reappear in phase plans. On 2026-10-09 the owner brought the mouse back for squad selection, control groups and the ground points of move, attack-move and patrol (Phase 3, 03-CONTEXT.md D-11 and D-25), with building still ride-up-and-hold and king attacks automatic, matching PROJECT.md.
+**Controls (changed 2026-09-28):** every phase uses Thronefall's original scheme. The king moves with WASD / left stick; building and upgrading happen by riding to a build spot and holding the action key; units take hotkey commands (hold; follow the king); gameplay works on keyboard and gamepad. **The mouse is used only in menus.** The earlier keyboard + mouse plan (click-to-build, mouse unit commands) was dropped and must not reappear in phase plans. On 2026-10-09 the owner brought the mouse back for squad selection, control groups and the ground points of move, attack-move and patrol (Phase 3, 03-CONTEXT.md D-11 and D-25), with building still ride-up-and-hold and king attacks automatic, matching PROJECT.md. Amended 2026-10-16: a gamepad is no longer required; later phases are keyboard and mouse only, the shipped pad paths are unsupported.
 
 Sequencing rules this roadmap honors:
 - The verification tooling and the day phase (Phase 1) are testable on their own before nights are layered on top (Phase 2). Phase 1's enemy-free day-to-day transition is the same loop that Phase 2 fills with real nights, not a throwaway.
@@ -263,7 +263,7 @@ Plans:
 **Depends on**: Phase 4
 **Requirements**: BLDG-05, BLDG-08, BLDG-09, ECON-03, ECON-04, ECON-05, ECON-06, META-08, UI-02
 **Success Criteria** (what must be TRUE):
-  1. At a branching upgrade tier, the player picks one of the offered choice cards (icon, name, short description) with keyboard or gamepad. The choice stays locked for the rest of the run.
+  1. At a branching upgrade tier, the player picks one of the offered choice cards (icon, name, short description) with keyboard or mouse. The choice stays locked for the rest of the run.
   2. The player can upgrade the castle center through its tiers for more health, choosing one of four run-wide abilities or passives at each tier. Higher building tiers stay locked until the castle reaches the required tier.
   3. The player can build four new economic buildings:
      - a Gold Mine, whose high income drops each night
@@ -388,8 +388,8 @@ Plans:
 **Depends on**: Phase 11 (and Phase 12 unless deferred)
 **Requirements**: INPT-03, UI-04, UI-07, PLAT-02, PLAT-03
 **Success Criteria** (what must be TRUE):
-  1. The settings menu offers key/button rebinding, resolution, window mode, vsync, master and SFX volume, and graphics quality presets. Changes persist between sessions.
-  2. Every menu can be navigated with mouse, keyboard, or gamepad, with the focused element always visible.
+  1. The settings menu offers key rebinding, resolution, window mode, vsync, master and SFX volume, and graphics quality presets. Changes persist between sessions.
+  2. Every menu can be navigated with mouse or keyboard, with the focused element always visible.
   3. A credits screen lists every third-party asset and its license, matching the repository's attribution log.
   4. A Windows build exported from the command line launches and plays the full campaign on a clean Windows machine with no extra installs, holding 60 fps in the largest campaign battles.
   5. The game is live on itch.io with a store page that uses only original branding (no Thronefall names or assets) and explains the Windows SmartScreen warning.

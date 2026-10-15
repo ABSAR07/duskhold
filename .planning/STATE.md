@@ -4,9 +4,9 @@ current_phase: 4
 current_phase_name: Crowd-Scale Battles & Walls
 status: planning
 stopped_at: Phase 03 complete, ready to plan Phase 4
-last_updated: "2026-10-15T19:52:49.608Z"
-last_activity: 2026-10-15
-last_activity_desc: Phase 03 re-verified after review-fix pass 2 (fifth review clean, fourth verification passed, ledger 0 of 16 open); complete, ready to plan Phase 4
+last_updated: "2026-10-15T20:30:58Z"
+last_activity: 2026-10-16
+last_activity_desc: Gamepad dropped as a requirement (owner decision 2026-10-16); pad support marked unsupported
 state_head: ef413eead33d1c5305b02cb02f12ff4d24dc713d
 progress:
   total_phases: 13
@@ -249,6 +249,7 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-18: Round 2 published as outcome (a) with the owner's 0.8 bar (D-26); Round 1 text kept below and declared superseded; gate packet flags that the exported build predates the fixes and the retune
 - [Phase 03]: Phase 3 closed 2026-10-15: UAT 25 of 25 pass (7 superseded rows, 2 pad rows passed on a DualShock 4); the owner passed the Phase 3 gate (test 24) without the full two-or-three-run playtest ("it seems fine, might come back and change stuff later"), so the 15 assumptions in 03-PLAYTEST-GATE.md stand as accepted by default; D-29 accepts the two long toasts and amends the UI-SPEC bound; review-fix pass 1 fixed 13 findings (CR-01, WR-02 to WR-04, IN-01 to IN-09), the fourth review left IN-10 and IN-11 (info) open; suite 1427 tests, goldens unchanged
 - [Phase 03]: Re-verification after review-fix pass 2 (2026-10-15): the ledger step reads every `### <ID>:` heading in REVIEW.md as a finding, so a review's fix-verification sections must not use that shape (the fifth review's two were reworded to `### Fix <ID> verified:`); the verifier returned `passed` directly because 03-UAT.md is complete, keeping the ten human items with their UAT test numbers and results
+- [Quick 261016-1o5]: Gamepad dropped as a requirement (owner decision 2026-10-16). The shipped pad code (pad bindings in project.godot, PadChords, PadCursorController, the glyph tiles and the hud_pad_cursor shot) stays in the build unsupported, kept as shipped and not extended; DeviceModel never reports the pad, so every HUD prompt stays on keyboard glyphs while a pad drives the game; no later phase adds pad parity, pad prompts or pad tests. Recorded in PROJECT.md (Constraints, Validated, Active, Context, Key Decisions), REQUIREMENTS.md (amendment note, INPT-02, INPT-03, BLDG-05), ROADMAP.md (controls note, Phase 5 and Phase 13 criteria) and CLAUDE.md
 
 ### Pending Todos
 

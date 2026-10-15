@@ -33,7 +33,7 @@ Requirements for the initial release (5-map campaign). Each maps to exactly one 
 - [x] **BLDG-02**: When the king is near a build spot during the day, player sees what can be built there and its gold cost
 - [x] **BLDG-03**: Player can build on an empty spot by holding the action key near it, with a visible hold-progress indicator, if they can afford the cost
 - [x] **BLDG-04**: Player can upgrade an existing building the same way, seeing the next tier's cost and effect
-- [ ] **BLDG-05**: When an upgrade tier offers branching options, player picks one of the offered choice cards (with keyboard or gamepad), and that choice is permanent for the run
+- [ ] **BLDG-05**: When an upgrade tier offers branching options, player picks one of the offered choice cards (with keyboard or mouse), and that choice is permanent for the run
 - [x] **BLDG-06**: Building and upgrading is only possible during the day
 - [x] **BLDG-07**: Buildings have health, take damage from enemies, and are visibly destroyed at zero health
 - [ ] **BLDG-08**: Player can upgrade the castle center through its tiers for more health, picking one of four run-wide abilities or passives at each tier
@@ -101,10 +101,12 @@ Requirements for the initial release (5-map campaign). Each maps to exactly one 
 > **Controls scheme (changed 2026-09-28):** Gameplay uses Thronefall's original controls on keyboard and gamepad — ride the king to a build spot and hold the action key to build/upgrade (BLDG-03/04), hotkeys for unit commands (UNIT-05/06). **The mouse is used for menus only (INPT-03).** The earlier keyboard + mouse plan (click-to-build, mouse unit commands) was dropped — see Out of Scope.
 >
 > **Amended 2026-10-09 (owner decision, Phase 3 discuss-phase, 03-CONTEXT.md D-11):** the mouse returns to runs for **unit commands only**: it selects squads (click, drag box, Ctrl to add), stores and recalls control groups (Ctrl + 0–9, 0–9) and supplies the ground point of move, attack-move and patrol (UNIT-09/10). Building stays ride-up-and-hold and the king's attacks stay automatic. The gamepad reaches the same commands by cycling squads and a right-stick ground cursor (INPT-02).
+>
+> **Amended 2026-10-16 (owner decision):** a gamepad is no longer required. INPT-02 stays checked as shipped history; its pad paths are unsupported from this date. The pad clauses of KING-01 (left stick), UNIT-09 (cycling on gamepad) and UNIT-10 (right-stick cursor) describe shipped behaviour, not an ongoing requirement. From Phase 4 on, no requirement implies pad parity.
 
 - [x] **INPT-01**: Player can play the game entirely on keyboard and mouse: move, sprint, action (hold to build or upgrade), active ability, unit selection and commands, and start night
-- [x] **INPT-02**: Player can play the game entirely on a gamepad with equivalent bindings, switching between keyboard and gamepad at any time with on-screen prompts matching the active device
-- [ ] **INPT-03**: Player can navigate every menu with mouse, keyboard, or gamepad (amended 2026-10-09: the mouse is also used in runs for squad selection and commands, UNIT-09/10, never for building or aiming)
+- [x] **INPT-02**: Player can play the game entirely on a gamepad with equivalent bindings, switching between keyboard and gamepad at any time with on-screen prompts matching the active device (no longer required from 2026-10-16; the shipped pad paths stay unsupported)
+- [ ] **INPT-03**: Player can navigate every menu with mouse or keyboard (amended 2026-10-09: the mouse is also used in runs for squad selection and commands, UNIT-09/10, never for building or aiming; gamepad dropped 2026-10-16)
 
 ### Interface & Presentation
 
