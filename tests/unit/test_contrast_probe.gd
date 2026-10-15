@@ -102,7 +102,16 @@ func test_an_absolute_path_inside_the_screenshots_folder_is_accepted() -> void:
 
 
 func test_every_unsafe_image_path_is_rejected() -> void:
-	var outside: String = ProjectSettings.globalize_path("res://").get_base_dir().path_join("x.png")
+	# An absolute path in the project's parent folder: outside the project on Windows and on the
+	# Linux CI runner alike (review IN-10; the literal "/etc" and "C:/Windows" cases below are
+	# absolute on only one of the two platforms).
+	var in_parent_folder: String = (
+		ProjectSettings.globalize_path("res://").path_join("../outside/x.png").simplify_path()
+	)
+	assert_false(
+		ProjectSettings.localize_path(in_parent_folder).begins_with("res://"),
+		"the outside-the-project case really is outside: '%s'" % in_parent_folder
+	)
 	var bad: Array[String] = [
 		"screenshots/../project.godot",
 		"screenshots/../screenshots/a.png",
@@ -117,7 +126,7 @@ func test_every_unsafe_image_path_is_rejected() -> void:
 		"a.png",
 		"C:/Windows/a.png",
 		"/etc/a.png",
-		outside,
+		in_parent_folder,
 		"",
 	]
 	for path: String in bad:
