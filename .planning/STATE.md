@@ -4,10 +4,10 @@ current_phase: 4
 current_phase_name: Crowd-Scale Battles & Walls
 status: planning
 stopped_at: Phase 03 complete, ready to plan Phase 4
-last_updated: "2026-10-15T20:30:58Z"
+last_updated: "2026-10-15T20:52:50.571Z"
 last_activity: 2026-10-16
 last_activity_desc: Gamepad dropped as a requirement (owner decision 2026-10-16); pad support marked unsupported
-state_head: ef413eead33d1c5305b02cb02f12ff4d24dc713d
+state_head: 2e765274d92f7f19c871b9966ae66a1c7eff127b
 progress:
   total_phases: 13
   completed_phases: 3
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 Phase: 4 — Crowd-Scale Battles & Walls
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-10-15 — Phase 03 re-verified after review-fix pass 2 (fifth review clean, verification passed); ready to plan Phase 4
+Last activity: 2026-10-16 - Completed quick task 261016-1o5: Record gamepad no longer required (pad support kept but unsupported, HUD prompts stay on the keyboard)
 
 Progress: [██░░░░░░░░] 23%
 
@@ -274,6 +274,7 @@ None yet.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 261001-0dd | Resolve Phase 1 owner decisions: widen CI to every push (DEV-02) and record the horse licence keep decision (ART-02) | 2026-09-30 | bfe3c97 | [261001-0dd-resolve-phase-1-owner-decisions-widen-ci](./quick/261001-0dd-resolve-phase-1-owner-decisions-widen-ci/) |
+| 261016-1o5 | Record gamepad no longer required: owner decision 2026-10-16 recorded in PROJECT, REQUIREMENTS, ROADMAP, CLAUDE.md and STATE; HUD prompts stay on the keyboard, pad support kept unsupported | 2026-10-15 | 2e76527 | [261016-1o5-record-gamepad-no-longer-required](./quick/261016-1o5-record-gamepad-no-longer-required/) |
 
 ## Deferred Items
 
