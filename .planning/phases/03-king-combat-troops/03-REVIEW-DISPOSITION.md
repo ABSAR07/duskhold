@@ -5,11 +5,11 @@ titles: json
 findings:
   - id: IN-10
     severity: info
-    disposition: open
+    disposition: fixed
     title: "The \"outside the project\" path case in test_contrast_probe is actually inside the project"
   - id: IN-11
     severity: info
-    disposition: open
+    disposition: fixed
     title: "test_separation pins results that depend on shipped unit radii, and calls a private method by name"
   - id: WR-04
     severity: warning
@@ -67,17 +67,17 @@ findings:
     severity: info
     disposition: fixed
     title: "The eighth patrol click is dropped without a word"
-open: 2
+open: 0
 total: 16
-recorded: 2026-10-14T06:20:51.842Z
+recorded: 2026-10-15T16:56:00.760Z
 ---
 
 # Phase 03: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| IN-10 | info | open | - |
-| IN-11 | info | open | - |
+| IN-10 | info | fixed | 03-REVIEW-FIX.md |
+| IN-11 | info | fixed | 03-REVIEW-FIX.md |
 | WR-04 | warning | fixed | 03-REVIEW-FIX.md (not in the current review) |
 | IN-07 | info | fixed | 03-REVIEW-FIX.md (not in the current review) |
 | IN-08 | info | fixed | 03-REVIEW-FIX.md (not in the current review) |
