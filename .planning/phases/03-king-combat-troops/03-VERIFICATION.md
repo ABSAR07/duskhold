@@ -1,8 +1,8 @@
 ---
 phase: 03-king-combat-troops
 verified: 2026-10-14T06:30:48Z
-status: human_needed
-score: 5/5 roadmap success criteria verified in code and tests (0 failed); 6/6 UAT round-1 gap truths closed in code, tests and probes (0 failed); 13/13 review-fix-pass findings fixed and re-verified (0 regressions); 11/11 requirement IDs have implementation evidence; owner feel gate (UAT test 24), the physical pad (test 23), the E6 decision (test 22, now covering two toasts) and the new toast and mixed-selection judgement (test 25) not yet done
+status: passed
+score: 5/5 roadmap success criteria verified in code and tests (0 failed); 6/6 UAT round-1 gap truths closed in code, tests and probes (0 failed); 13/13 review-fix-pass findings fixed and re-verified (0 regressions); 11/11 requirement IDs have implementation evidence; owner feel gate (UAT test 24), the physical pad (test 23, DualShock 4), the E6 decision (test 22, D-29) and the new toast and mixed-selection judgement (test 25) all passed in UAT round 3 (03-UAT.md complete, 25 passed, 0 issues, 2026-10-15)
 must_haves:
   roadmap_truths: 5
   roadmap_truths_verified: 5
@@ -363,7 +363,7 @@ covered_files:
   - ui/overlay/night_overlay_sections.gd
   - ui/overlay/squad_overlay_sections.gd
   - ui/theme/hud_theme.tres
-covered_digest: "v2:sha256:93976fc7a159583e80ec7e977c99d0975ae292a81cf54f2b880c7f6610b83efd"
+covered_digest: "v2:sha256:2e257ae83edea25d3f57e1743cb281c7f304d09e9a3e1573e202dc623bab057a"
 behavior_unverified: 0
 overrides_applied: 0
 gaps: []
@@ -630,6 +630,8 @@ The structured list is in the frontmatter: ten entries. The first nine keep the 
 ## Gaps Summary
 
 No gaps and no blockers. All five roadmap success criteria are implemented, wired and tested at HEAD; all six UAT round-1 gaps are closed with a test that fails when the fix is removed; all 13 findings of review-fix pass 1 are fixed and re-verified; the replays are byte-identical to their goldens, lint is clean and the 1427-test suite was green on the code that is still current (no source file differs between ca8086a and HEAD). The status is `human_needed` because the owner has not yet re-checked the fixed items, decided E6 (now two toasts, the longer one a fresh 540 px), played on a pad or run the gate, and because two info findings (IN-10, IN-11) remain open. The Round 2 retune still carries its cost (towers_first 0 of 10, houses_first 4 of 10, a relaxed Phase 2 pin) and the owner should say whether it is acceptable. Do not treat the green tests, the replay digests, the balance table, the contrast probe, the screenshot reads or this report as the sign-off, and do not start Phase 4 before the owner decides. Suggested order: confirm or redo the export, then the owner re-checks and the gate (UAT tests 16 to 25); independently, an optional review-fix pass 2 for IN-10 and IN-11, and a one-line copy or bound decision for the toast width that also updates UI-SPEC, WINDOWS.md and the UI review. If any file in the covered list changes, re-run `verification.status` to refresh the fingerprint.
+
+**Canonicalization note (2026-10-15).** `status` was set from `human_needed` to `passed` by /gsd-verify-work 3 after the UAT session closed (25 of 25 tests passed, 0 issues; the ten human items of this report are UAT tests 16 to 25; the five round-1 issue rows and the two blocked pad rows were superseded or passed with the owner's approval). No source, data or test file changed after this report was written (`git diff 6069f00 HEAD -- . ':!.planning/'` is empty); the covered documents that changed are 03-UAT.md (results), 03-CONTEXT.md (D-29), 03-UI-SPEC.md (E6 bound) and .planning/WINDOWS.md, so `covered_digest` was recomputed over the same 314 paths.
 
 **Coverage fingerprint note.** `covered_files` is the orchestrator's 315-path list minus 03-VERIFICATION.md itself (a report cannot cover its own bytes), 314 paths. `03-UAT.md` and the other phase documents stay covered, so appending the tenth human item to 03-UAT.md changes the digest: after that edit, recompute it with `verification.fingerprint` over the frontmatter list and replace `covered_digest`, or `verification.status` will read `stale`.
 
