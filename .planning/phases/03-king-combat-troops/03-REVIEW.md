@@ -35,7 +35,7 @@ All claims below were checked against the code and by running the allowed comman
 
 ## Verification of the 2 fixes
 
-### IN-10: the "outside the project" path case is really outside - fixed
+### Fix IN-10 verified: the "outside the project" path case is really outside
 
 `tests/unit/test_contrast_probe.gd:108-114,129`. The old variable localized to `res://x.png` (inside the project). The new `in_parent_folder` is `globalize_path("res://").path_join("../outside/x.png").simplify_path()`, and the test asserts before the loop that `localize_path` of it does not begin with `res://`. The case is also in the `bad` list, so it goes through `ContrastProbe.parse_args` and must be rejected with an empty `image`.
 
@@ -46,7 +46,7 @@ I probed `ProjectSettings` with a scratch script (outside the repo) to check the
 - Project at a filesystem root: `simplify_path` clamps an over-reaching `..` instead of keeping it (`C:/../outside/x.png` gives `C:/outside/x.png`, `/../outside/x.png` gives `/outside/x.png`). Both are still absolute and outside `res://`, so the assertion and the rejection still hold; the assertion would only be a false red if a platform returned the `..` unsimplified, and none of the three behaviours probed does.
 - Prefix siblings, which the new case does not cover but the production code depends on: `.../Thronefall-like Game-evil/screenshots/a.png` and `.../Thronefall-like Game2/screenshots/a.png` both stay unlocalized (the engine matches the project folder with its trailing slash). An upper-cased spelling of the project path on Windows is also left unlocalized, i.e. rejected, which is the safe direction.
 
-### IN-11: test_separation pinned to radii written in the test, and the seam - fixed
+### Fix IN-11 verified: test_separation pinned to radii written in the test, and the seam
 
 `tests/unit/test_separation.gd:13-16,62-71,138-175` and `simulation/squads/separation.gd:15-25`.
 
