@@ -1,43 +1,43 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 03
-current_phase_name: King Combat & Troops
-status: verifying
-stopped_at: Completed 03-18-PLAN.md
-last_updated: "2026-10-13T19:27:47.404Z"
-last_activity: 2026-10-14
-last_activity_desc: Phase 03 re-verified after review-fix pass 1 (fourth review 0 critical, 0 warning, 2 info open; validation and security re-audited; verifier human_needed, UAT 25 tests, 12 pending) — waiting on the owner gate via /gsd-verify-work 3
-state_head: bea054d0c0c4f894b9fb76c5bf872c58f10564d0
+current_phase: 4
+current_phase_name: Crowd-Scale Battles & Walls
+status: planning
+stopped_at: Phase 3 complete, ready to plan Phase 4
+last_updated: "2026-10-15T16:30:38.546Z"
+last_activity: 2026-10-15
+last_activity_desc: Phase 3 complete, transitioned to Phase 4
+state_head: a46333593e06691e7e76578d41b684da9f098851
 progress:
   total_phases: 13
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 59
   completed_plans: 59
-  percent: 15
+  percent: 23
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-10-08)
+See: .planning/PROJECT.md (updated 2026-10-15)
 
 **Core value:** The day/night build-then-defend loop must feel as tight and satisfying as Thronefall's, with meaningful gold trade-offs by day and readable, tense defense by night. It must be fun on a single map with zero meta-progression.
-**Current focus:** Phase 03 — King Combat & Troops
+**Current focus:** Phase 4 — Crowd-Scale Battles & Walls
 
 ## Current Position
 
-Phase: 03 (King Combat & Troops) — VERIFYING
-Plan: 19 of 19
-Status: Phase complete — ready for verification
-Last activity: 2026-10-13 — Phase 03 UAT round-1 gap closure executed (03-13 to 03-19)
+Phase: 4 — Crowd-Scale Battles & Walls
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-10-15 — Phase 3 complete, transitioned to Phase 4
 
-Progress: [██░░░░░░░░] 15%
+Progress: [██░░░░░░░░] 23%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 40
+- Total plans completed: 59
 - Average duration: -
 - Total execution time: 0.0 hours
 
@@ -47,6 +47,7 @@ Progress: [██░░░░░░░░] 15%
 |-------|-------|-------|----------|
 | 01 | 18 | - | - |
 | 02 | 22 | - | - |
+| 3 | 19 | - | - |
 
 **Recent Trend:**
 - Last 5 plans: -
@@ -246,6 +247,7 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-19: one enemy reads '1 enemy' through Hud.enemy_count_text on the banner and both preview patterns (G-03-14); tools/contrast_probe.sh is the committed real-window contrast gate (5.88:1 on hud_king_down, 1.62:1 unfixed)
 - [Phase 03]: 03-17: Round 2 retune is outcome (a): tower tier 1 attack_interval 0.8 -> 0.9 s and night 8 north grunts 10 -> 11 meet all four goals (balanced 8, army_balanced 8, squad_value_ratio 0.915 vs bar 0.8, night 8 = 40 > 39) — Fewest values of 29 measured candidates; no locked value moved; the slower tier 1 leaves towers_first with 0 of 10 wins and houses_first with 4 of 10 (finding for the owner, pinned as nights survived); full_idle ab4d17d9 (6199 ticks) -> f417c7f5 (6941 ticks), smoke and army goldens unchanged
 - [Phase 03]: 03-18: Round 2 published as outcome (a) with the owner's 0.8 bar (D-26); Round 1 text kept below and declared superseded; gate packet flags that the exported build predates the fixes and the retune
+- [Phase 03]: Phase 3 closed 2026-10-15: UAT 25 of 25 pass (7 superseded rows, 2 pad rows passed on a DualShock 4); the owner passed the Phase 3 gate (test 24) without the full two-or-three-run playtest ("it seems fine, might come back and change stuff later"), so the 15 assumptions in 03-PLAYTEST-GATE.md stand as accepted by default; D-29 accepts the two long toasts and amends the UI-SPEC bound; review-fix pass 1 fixed 13 findings (CR-01, WR-02 to WR-04, IN-01 to IN-09), the fourth review left IN-10 and IN-11 (info) open; suite 1427 tests, goldens unchanged
 
 ### Pending Todos
 
@@ -257,6 +259,9 @@ None yet.
 - [Phase 1]: On upgrades the drip coins fly into the already-built model and are hidden; the label coin row shows the pace (seen at UAT 59 and 60, not yet logged as a task)
 - [Phase 2]: Three info findings of the first Phase 2 code review (2026-10-05, text in 02-REVIEW.md at commit baae3a9) are still open and no longer have a row in 02-REVIEW-DISPOSITION.md, because the second review reused their ids: an arrow in flight when the last enemy dies is dropped though drawn landing; `BuildingViews.bind_run` and `DayNightLighting.bind_run` have no repeat-bind guard; replay.sh and playtest.sh do not fail on `push_error` output
 - [Phase 2]: Review-ledger history after the fifth code review (2026-10-07T00:45:45Z, scoped to the round-3 gap plans 02-17 to 02-19): the fourth review's WR-01 (leaked test controllers) was closed by plan 02-18, its WR-02 (castle validation accepting INF, NaN and sub-step intervals) and IN-01 (dawn_payout doc) by plan 02-17; its IN-02 (test_results_layout.gd asserts the 11 px scene constant, not the visible gap) is still OPEN by choice but lost its ledger row when the fifth review reused the id, and the second review's fixed IN-03 and IN-04 decisions were dropped the same way. The third review's WR-01 (grace tests ending `pending`) was fixed in review-fix pass 2 (2026-10-06) and its IN-05 stays open with a row. The fifth review's own findings are open in 02-REVIEW-DISPOSITION.md: WR-01 (a huge finite castle_attack_interval such as 1e30 overflows `ceili` in SimClock.ticks, passes validate() and fires the castle every tick), WR-02 (the Engine.time_scale single-writer scan misses `*=`, `+=` and Engine.set), IN-01 (BALANCED_MIN_WINS 7 unreachable; a stale test name), IN-02 (is_armed() does not check castle_projectile_speed is finite), IN-03 (validate() accepts a NaN castle_radius and enemy floats), IN-04 (orphaned doc line in loop_tuning.gd); IN-06 stays open. After the sixth review (2026-10-07T11:26:46Z, scoped to the round-4 gap plan 02-21's four files: 0 critical, 0 warnings, 2 info) the ledger reused the ids again: all six fifth-review findings above are STILL OPEN but have no row in 02-REVIEW-DISPOSITION.md (its WR-01, WR-02, IN-03 and IN-04 rows now carry the second review's fixed titles, reconciled from 02-REVIEW-FIX.md, and its IN-01 and IN-02 rows are the sixth review's). The sixth review's own findings IN-01 (the multiplier assert_eq left inside test_sprint_is_at_least_one_and_a_half_times_the_original_sprint duplicated the exact-12 pin) and IN-02 (the script-defaults pin omitted turn_speed) were FIXED by the 2026-10-08 /gsd-code-review 2 --fix --all pass (commits eeafe56 and 00b9894, ledger rows fixed). A files-scoped seventh review the same day (/gsd-code-review 2 --files=<the nine files> --fix --all, REVIEW.md 2026-10-08T05:19:25Z: 0 critical, 2 warnings, 4 info, all six fifth-review findings re-confirmed) then FIXED them all: WR-01 saturated SimClock.ticks/flight_ticks at MAX_TICKS and bounded castle_attack_interval at MapConfig.MAX_CASTLE_ATTACK_INTERVAL_S (7b58ca9), WR-02 widened the Engine.time_scale single-writer scan (162644d), IN-01 derived the balanced win count from the exact-seed pin (13af2b3), IN-04 rejoined the doc line (16628a4), IN-02 arms the castle only with a finite non-negative arrow speed (4b25e89), IN-03 reports non-finite castle_radius and enemy floats (61a918a); ledger 2 of 9 open (only IN-05 and IN-06, both info, deliberately left). No open code-review finding remains from Phase 2
+- [Phase 3]: Two info findings of the fourth code review are open by choice in 03-REVIEW-DISPOSITION.md: IN-10 (a test case labelled "outside" exercises the inside path) and IN-11 (the separation characterization test is coupled to the shipped radii); a later `/gsd-code-review 3 --fix --all` can take them
+- [Phase 3]: The owner skipped the full Phase 3 gate playtest (two or three 8-night runs on both devices) and passed test 24 on feel from shorter sessions; balance, slam, regeneration and the pad layout may be revisited later (03-PLAYTEST-GATE.md assumptions 1 to 15)
+- [Phase 3]: The HUD draws Xbox glyph tiles for every pad; a DualShock shows A/B/X/Y labels (read as Cross/Circle/Square/Triangle at the UAT) — a PlayStation tile set is a possible later polish item
 - [Phase 4]: Research flag: validate MultiMesh + NavigationServer3D avoidance vs flow fields empirically on Godot 4.7; decide GTX 970-class measurement method
 - [Phase 6/8]: Night readability under hundreds of units needs automated screenshot review throughout the content phases
 - [Phase 11]: Boss-night difficulty cliffs; tune with seeded simulated playthroughs plus owner playtest
@@ -278,6 +283,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-13T19:27:46.672Z
-Stopped at: Completed 03-18-PLAN.md
+Last session: 2026-10-15T16:32:09Z
+Stopped at: Phase 3 complete, ready to plan Phase 4
 Resume file: None

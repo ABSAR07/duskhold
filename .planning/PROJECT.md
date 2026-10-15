@@ -21,6 +21,9 @@ The day/night build-then-defend loop must feel as tight and satisfying as Throne
 - ✓ Full day → night → dawn loop: telegraphed per-spawn-point enemy counts, hold-to-confirm night start, escalating waves, dawn rebuild of destroyed buildings (marked as paying nothing that morning) and House income, loss the instant the castle falls, win after the final night on a results screen — Phase 2
 - ✓ King passive auto-attack, knockout and respawn at the castle after a visible countdown; castle attack and base dawn income added at the owner's playtest gate — Phase 2 (active ability follows in Phase 3)
 - ✓ Seeded deterministic simulation with an event recorder, golden replays, bot playtests and a CI replay step; the owner signed off the core loop after four playtest rounds (2026-10-08) — Phase 2
+- ✓ Barracks and Archery Range squads that guard their post, commit to targets, trickle back from their building at night and are restored at dawn; RTS-style selection (click, drag box, Ctrl, strip slot, pad cycling), numbered control groups, and hold / follow / rally / move / attack-move / patrol orders with Shift (pad RT) queuing — Phase 3 (Hero's Quarter and the per-building unit choices follow later)
+- ✓ The king's weapon active ability (sword slam on Q / pad X, 9 s cooldown shown on the HUD) and health regeneration after 1 s without damage — Phase 3
+- ✓ Every in-run action on keyboard and mouse or on gamepad (D-pad verbs with an LB layer, right-stick ground cursor), prompts that follow the active device, and the in-run HUD (gold, night counter, king widget, squad strip, command hints) with a clear centre; the owner signed off on keyboard and mouse and a DualShock 4 (2026-10-15) — Phase 3
 
 ### Active
 
@@ -29,9 +32,6 @@ Full, testable list with REQ-IDs: `.planning/REQUIREMENTS.md`. Summary:
 **Core loop**
 - [ ] Retry a failed night at a score penalty
 
-**King (player avatar)**
-- [ ] King fires the weapon's active ability (movement and the passive auto-attack shipped in Phases 1 and 2)
-
 **Economy & building**
 - [ ] Single currency (gold); economic buildings (House, Gold Mine, Mill + Fields, Fishing Harbor, Shrine) pay at dawn with distinct income curves
 - [ ] Full-depth branching upgrades (pick 1-of-N per tier) for Castle Center, Towers, and military buildings
@@ -39,8 +39,7 @@ Full, testable list with REQ-IDs: `.planning/REQUIREMENTS.md`. Summary:
 - [ ] Blacksmith and Royal Forge multi-day research with global buffs
 
 **Military**
-- [ ] Barracks, Archery Range, Hero's Quarter with 4 unit/hero choices each
-- [ ] Units fight autonomously; hotkeys for hold position and rally/follow
+- [ ] Hero's Quarter, and the 4 unit/hero choices per military building (the default Barracks and Archery Range squads shipped in Phase 3)
 
 **Enemies & waves**
 - [ ] Varied enemy roster (melee, ranged, fast, tank, flying, siege, anti-king, exploder) that counters single-strategy defenses
@@ -53,9 +52,8 @@ Full, testable list with REQ-IDs: `.planning/REQUIREMENTS.md`. Summary:
 - [ ] Thronefall-style scoring, per-map high scores, soft retry penalty
 
 **Presentation & platform**
-- [ ] Minimal HUD; menus (main, map select, loadout, pause, settings, results)
+- [ ] Menus (main, map select, loadout, pause, settings, results), reachable on keyboard and mouse or gamepad like the in-run HUD shipped in Phase 3
 - [ ] Settings: key/button rebinding, display, audio volume, graphics quality
-- [ ] Keyboard and mouse, or gamepad, for every in-run action; the mouse selects and commands squads (decision reversed 2026-10-09)
 - [ ] Stylized low-poly 3D using normalized CC0 asset packs; readable at night
 - [ ] SFX for core feedback
 - [ ] Versioned save of campaign progress
@@ -119,7 +117,7 @@ Full, testable list with REQ-IDs: `.planning/REQUIREMENTS.md`. Summary:
 | All optional buildings in v1, including Blacksmith/Royal Forge | Owner choice; research flags research buildings as the safest cut if scope pressure hits | — Pending |
 | Boss nights on maps 3, 4 and 5 | Owner choice; research warns about boss difficulty cliffs — tune carefully | — Pending |
 | Thronefall-style controls: ride up + hold action key to build; hotkeys for units; keyboard + gamepad; mouse for menus only | Research flagged click-to-build as the #1 design risk (removes travel cost and king-centric camera); owner chose to stay true to Thronefall | ✓ Good — build hold validated in Phase 1 UAT; the mouse-for-menus-only half was reversed for unit commands on 2026-10-09 (next row) |
-| Mouse returns for squad commands (selection, control groups, move / rally / attack-move / patrol points), Age of Empires style; gamepad parity by squad cycling and a right-stick cursor; building and king attacks unchanged | Owner decision at the Phase 3 discussion ("mouse use is kind of a necessity now i realize in hindsight"); hotkeys alone could not express custom control groups and point orders | — Pending (Phase 3) |
+| Mouse returns for squad commands (selection, control groups, move / rally / attack-move / patrol points), Age of Empires style; gamepad parity by squad cycling and a right-stick cursor; building and king attacks unchanged | Owner decision at the Phase 3 discussion ("mouse use is kind of a necessity now i realize in hindsight"); hotkeys alone could not express custom control groups and point orders | ✓ Good — Phase 3 shipped it; the owner signed off on keyboard and mouse and on a DualShock 4 (UAT 25 of 25, 2026-10-15) |
 | Player level (XP from map runs) instead of separate per-map levels | Matches Thronefall's actual progression model | — Pending |
 | Low-poly 3D, CC0 asset packs | Matches Thronefall's look; zero cost; fast cohesive visuals | — Pending |
 | SFX only in v1 | Core feedback matters most; music can be added later | — Pending |
@@ -128,6 +126,10 @@ Full, testable list with REQ-IDs: `.planning/REQUIREMENTS.md`. Summary:
 | Build hold pacing: first coin after 0.25 s, accelerating (decay 0.9) to one coin every 0.05 s, no time cap, all-or-nothing refund | Owner feel checks in Phase 1 UAT (tests 58 to 60); expensive buildings must not drag, and nothing is fast-forwarded | ✓ Good — Phase 1 |
 | Playtest-gate tuning after four owner rounds: base income 1 gold per dawn, castle attack (2 damage every 1.5 s, 22 m reach, 27 m/s arrows), walk 7.5 m/s with a 12 m/s sprint, night-only 2x fast-forward toggle, full-wall night counts (balanced bot wins 7 or 8 of 10 seeds) | Owner feel decisions recorded through /gsd-verify-work rounds 1 to 4; the balance bots measure, only the owner judges fun | ✓ Good — owner signed off the core loop 2026-10-08 |
 | Deterministic fixed-step simulation (SimClock 1/30 s, seeded RNG, integer event recorder, golden replays) under simulation/, with a presentation layer that never writes the sim | Seeded replays and bot playtests are the agent's own playtest (DEV-05); nothing under simulation/ may read time, OS or the time scale | ✓ Good — the smoke golden held across 22 plans and Linux matched the Windows digest |
+| While a squad is selected all movement input (keys and stick) steers the selection and the king stands; attack-move stays on A; Escape with nothing armed clears the selection | Owner decision at the 03-07 checkpoint (2026-10-10, amending D-11 and D-15) | ✓ Good — passed UAT rounds 1 and 3 |
+| Round 2 balance: tower tier 1 attack interval 0.9 s and night 8 north count 11, with a 0.8 squad-value bar (D-26 to D-28); the balanced and army bots win 8 of 10 seeds and night 8 (40) rises above night 7 (39) | Owner asked for all four balance goals at once; the retune moved the fewest values of 29 candidates and no locked value | ✓ Good — the owner passed the fixed build (UAT test 18, 2026-10-14) |
+| Gamepad layout: D-pad verbs with an LB layer for move / attack-move / patrol on a 900 px/s right-stick cursor, R3 select all, LB+R3 select type, Start group mode, RT queue, B cancel; Xbox glyph tiles for every pad | RESEARCH A11; chosen by Claude pending a real pad | ✓ Good — passed on a DualShock 4 (UAT test 23, 2026-10-15) |
+| Long refusal toasts (526 and 540 px at Body 22) accepted below the clear centre; UI-SPEC toast bound amended (D-29) | Owner decision at UAT test 22 (2026-10-14): readable copy beats the estimated width | ✓ Good — WINDOWS.md entry 4 waived |
 
 ## Evolution
 
@@ -147,4 +149,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-08 after Phase 2*
+*Last updated: 2026-10-15 after Phase 3*

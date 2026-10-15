@@ -26,7 +26,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation & Day Loop** - Godot project with headless test/lint/CI/screenshot/debug tooling, plus a playable day of riding, building, upgrading, and earning gold on the prototype map (completed 2026-10-03)
 - [x] **Phase 2: Night Defense & Playtest Gate** - Telegraphed nights, combat, king knockout, dawn rebuild and income, win/loss, and seeded replays; ends in a human playtest gate (completed 2026-10-08)
-- [ ] **Phase 3: King Combat & Troops** - Barracks and Archery Range squads with hold/follow hotkeys, king active ability, full HUD, keyboard + gamepad
+- [x] **Phase 3: King Combat & Troops** - Barracks and Archery Range squads with hold/follow hotkeys, king active ability, full HUD, keyboard + gamepad (completed 2026-10-15)
 - [ ] **Phase 4: Crowd-Scale Battles & Walls** - Walls and barricades, jam-free pathing, and hundreds of units/enemies/projectiles at 60 fps
 - [ ] **Phase 5: Castle Center & Economy Depth** - Branching choice-card upgrades, castle tiers with run-wide abilities, stat-modifier order, four new income curves
 - [ ] **Phase 6: Enemy Roster & Tower Specializations** - Eight enemy roles (incl. flyers and siege) paired with 4+4 tower specializations that answer them
@@ -189,7 +189,7 @@ Plans:
   4. Every in-run action (move, sprint, hold-to-build/upgrade, active ability, unit selection and commands, start night) works on keyboard and mouse and on gamepad. The player can switch devices at any moment, and on-screen prompts update to match the active device.
   5. The HUD shows gold, current night out of total, king health, ability cooldown, and unit group status without cluttering the play area.
 
-**Plans**: 19/19 plans executed (03-13 to 03-19 close the 2026-10-13 UAT round-1 gaps G-03-4, G-03-8, G-03-11, G-03-13, G-03-14 and G-03-14b; the owner gate, test 15, follows them)
+**Plans**: 19/19 plans complete (03-13 to 03-19 close the 2026-10-13 UAT round-1 gaps G-03-4, G-03-8, G-03-11, G-03-13, G-03-14 and G-03-14b; the owner gate, test 15, follows them)
 **UI hint**: yes
 
 Plans:
@@ -406,7 +406,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 |-------|----------------|--------|-----------|
 | 1. Foundation & Day Loop | 18/18 | Complete    | 2026-10-03 |
 | 2. Night Defense & Playtest Gate | 22/22 | Complete    | 2026-10-08 |
-| 3. King Combat & Troops | 19/19 | In Progress|  |
+| 3. King Combat & Troops | 19/19 | Complete    | 2026-10-15 |
 | 4. Crowd-Scale Battles & Walls | 0/TBD | Not started | - |
 | 5. Castle Center & Economy Depth | 0/TBD | Not started | - |
 | 6. Enemy Roster & Tower Specializations | 0/TBD | Not started | - |
