@@ -37,6 +37,9 @@ const HANDLED: Array[String] = [
 	"king_ability_used",
 	"king_healed",
 	"squad_ordered",
+	"wall_damaged",
+	"wall_segment_broken",
+	"walls_restored",
 ]
 ## Written in place of an empty id so every token is non-empty.
 const EMPTY_TOKEN := "-"
@@ -78,6 +81,9 @@ static func attach(ctx: RunContext) -> SimRecorder:
 	events.king_ability_used.connect(recorder._on_king_ability_used)
 	events.king_healed.connect(recorder._on_king_healed)
 	events.squad_ordered.connect(recorder._on_squad_ordered)
+	events.wall_damaged.connect(recorder._on_wall_damaged)
+	events.wall_segment_broken.connect(recorder._on_wall_segment_broken)
+	events.walls_restored.connect(recorder._on_walls_restored)
 	return recorder
 
 
@@ -208,6 +214,18 @@ func _on_building_destroyed(spot_id: StringName, building_id: StringName, tier: 
 ## One token per rebuilt spot id, in the order given; none when nothing fell.
 func _on_buildings_rebuilt(spot_ids: Array) -> void:
 	_record("buildings_rebuilt", spot_ids)
+
+
+func _on_wall_damaged(spot_id: StringName, segment: int, amount: int, hp: int, max_hp: int) -> void:
+	_record("wall_damaged", [spot_id, segment, amount, hp, max_hp])
+
+
+func _on_wall_segment_broken(spot_id: StringName, segment: int) -> void:
+	_record("wall_segment_broken", [spot_id, segment])
+
+
+func _on_walls_restored(spot_ids: Array) -> void:
+	_record("walls_restored", spot_ids)
 
 
 func _on_run_ended(outcome: StringName) -> void:

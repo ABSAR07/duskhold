@@ -35,6 +35,8 @@ const TOWER_LAUNCH_HEIGHT: float = 3.2
 const CASTLE_LAUNCH_HEIGHT: float = BuildingViews.KEEP_SIZE.y + BuildingViews.TURRET_HEIGHT
 const UNIT_HEIGHT: float = 1.2
 const BUILDING_TARGET_HEIGHT: float = 1.5
+## An arrow at a wall segment lands at this height above the segment's middle.
+const WALL_TARGET_HEIGHT: float = 0.8
 const SLASH_HEIGHT: float = 1.1
 ## A position that could not be resolved (an attacker that is already gone).
 const NO_POSITION := Vector3(INF, INF, INF)
@@ -343,6 +345,9 @@ func _target_position(kind: StringName, id: int, fallback: Vector3) -> Vector3:
 	elif kind == PendingHits.KIND_CASTLE:
 		var castle_ground: Vector2 = _ctx.castle.get_position()
 		found = Vector3(castle_ground.x, BUILDING_TARGET_HEIGHT, castle_ground.y)
+	elif kind == PendingHits.KIND_WALL and id >= 0 and id < _ctx.walls.segment_count():
+		var middle: Vector2 = (_ctx.walls.segment_start(id) + _ctx.walls.segment_end(id)) * 0.5
+		found = Vector3(middle.x, WALL_TARGET_HEIGHT, middle.y)
 	return found
 
 

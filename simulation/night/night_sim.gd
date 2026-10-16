@@ -1,7 +1,8 @@
 class_name NightSim
 extends RefCounted
 ## Orchestrates one night in a fixed order (DR-8): spawn, king, squads (creation order, units in id
-## order), towers (spot order), castle, enemies (id order), resolve due hits, remove the dead
+## order), towers (spot order), castle, enemies (id order, then pushed out of the intact wall
+## segments), resolve due hits (a wall segment that reaches 0 breaks here), remove the dead
 ## enemies, remove the dead units. Outside the night `step_day` steps the army alone. Pure
 ## RefCounted code on integer ticks (DR-1, DR-3); the only randomness is the night's seeded spawn
 ## stream, drawn at spawn time in spawn order (DR-4).
@@ -11,6 +12,8 @@ var _events: SimEvents
 var _king: KingState
 var _castle: CastleState
 var _buildings: BuildingSystem
+var _walls: WallSystem
+var _pathing: Pathing
 var _run_seed: int
 var _enemies: EnemySystem
 var _towers: TowerSystem
@@ -32,13 +35,16 @@ func _init(
 	run_seed: int,
 	castle: CastleState = null,
 	buildings: BuildingSystem = null,
-	squads: SquadSystem = null
+	squads: SquadSystem = null,
+	walls: WallSystem = null
 ) -> void:
 	_map = map
 	_events = events
 	_king = king
 	_castle = castle if castle != null else CastleState.new(map, events)
 	_buildings = buildings if buildings != null else BuildingSystem.new(map, events)
+	_walls = walls if walls != null else WallSystem.new(map, _buildings, events)
+	_pathing = Pathing.new(map, _walls)
 	_run_seed = run_seed
 	_squads = squads if squads != null else SquadSystem.new(map, _buildings, events)
 	_enemies = EnemySystem.new(events)
@@ -84,7 +90,7 @@ func step(tick: int) -> void:
 	_squads.step(night_tick, _enemies, _hits, true, _king.get_position())
 	_towers.step(night_tick, _enemies, _hits)
 	_castle_attack.step(night_tick, _enemies, _hits)
-	_enemies.step(night_tick, _castle, _king, _hits, _buildings, _squads.get_units())
+	_enemies.step(night_tick, _castle, _king, _hits, _buildings, _squads.get_units(), _pathing)
 	_resolve_hits(night_tick)
 	_enemies.remove_dead()
 	_squads.remove_dead()
@@ -139,6 +145,21 @@ func get_squads() -> SquadSystem:
 	return _squads
 
 
+func get_walls() -> WallSystem:
+	return _walls
+
+
+## The steering and solidity facade the enemies, squads, king and bots share.
+func get_pathing() -> Pathing:
+	return _pathing
+
+
+## Dawn (LOOP-04, D-05): heals every hurt wall segment and rebuilds every broken one for free.
+## Returns the wall plots that changed in MapConfig order; see WallSystem.restore_all.
+func restore_walls() -> Array[StringName]:
+	return _walls.restore_all()
+
+
 func get_night_number() -> int:
 	return _night_number
 
@@ -172,3 +193,5 @@ func _resolve_hits(night_tick: int) -> void:
 			_buildings.damage_building(_buildings.spot_at_index(hit.target_id), hit.amount)
 		elif hit.target_kind == PendingHits.KIND_UNIT:
 			_squads.damage_unit(hit.target_id, hit.amount, hit.attacker_kind)
+		elif hit.target_kind == PendingHits.KIND_WALL:
+			_walls.damage_segment(hit.target_id, hit.amount)

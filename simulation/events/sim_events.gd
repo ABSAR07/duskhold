@@ -43,6 +43,15 @@ signal building_destroyed(spot_id: StringName, building_id: StringName, tier: in
 ## Dawn rebuilt the buildings that fell in the night, listed in MapConfig order (empty when nothing
 ## fell). Emitted once per dawn, after the repairs and before the payout.
 signal buildings_rebuilt(spot_ids: Array)
+## A wall segment lost `amount` hit points (the points actually lost) and has `hp` of `max_hp`
+## left. `segment` is the global segment index; `spot_id` is the wall plot that owns it.
+signal wall_damaged(spot_id: StringName, segment: int, amount: int, hp: int, max_hp: int)
+## A wall segment fell to 0 hit points and is a hole open to everyone until dawn. Emitted exactly
+## once per break.
+signal wall_segment_broken(spot_id: StringName, segment: int)
+## Dawn healed and rebuilt the wall runs that were hurt or broken, listed in MapConfig order (never
+## emitted empty). Emitted once per dawn, after the repairs and before the buildings_rebuilt.
+signal walls_restored(spot_ids: Array[StringName])
 ## The run ended: `outcome` is &"victory" (the last night was cleared) or &"defeat" (the castle
 ## fell). Emitted exactly once per run; nothing is emitted after it.
 signal run_ended(outcome: StringName)

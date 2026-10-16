@@ -14,6 +14,8 @@ const HOUSE_MARKER_COLOR := Color(0.82, 0.7, 0.48)
 const TOWER_MARKER_COLOR := Color(0.36, 0.44, 0.62)
 ## Plots of military buildings (Barracks, Archery Range): a muted red between the other two.
 const MILITARY_MARKER_COLOR := Color(0.62, 0.3, 0.28)
+## Wall plots (BLDG-10): a stone grey, so the king can tell a wall plot from the others.
+const WALL_MARKER_COLOR := Color(0.55, 0.55, 0.58)
 const HOUSE_COLOR := Color(0.78, 0.66, 0.45)
 const TOWER_COLOR := Color(0.42, 0.5, 0.68)
 const KEEP_COLOR := Color(0.55, 0.55, 0.58)
@@ -179,6 +181,8 @@ func _add_marker(spot_id: StringName) -> void:
 
 
 func _marker_color(spot_id: StringName, building_id: StringName) -> Color:
+	if _ctx.buildings.get_spot(spot_id).wall_run != null:
+		return WALL_MARKER_COLOR
 	var building_def: BuildingDef = _ctx.buildings.get_building_def_for_spot(spot_id)
 	if building_def != null and building_def.unit_id != &"":
 		return MILITARY_MARKER_COLOR
@@ -187,7 +191,11 @@ func _marker_color(spot_id: StringName, building_id: StringName) -> Color:
 	return HOUSE_MARKER_COLOR
 
 
+## A wall plot gets no model, no stand-in and no bar: WallViews draws its segments, and the plot
+## marker stays so the king can find the plot (RESEARCH Pitfall 5).
 func _on_building_built(spot_id: StringName, building_id: StringName, new_tier: int) -> void:
+	if _ctx.buildings.get_spot(spot_id).wall_run != null:
+		return
 	_place_building(spot_id, building_id, new_tier)
 
 

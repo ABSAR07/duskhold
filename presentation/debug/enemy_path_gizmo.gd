@@ -11,6 +11,8 @@ const KING_COLOR := Color(1.0, 0.85, 0.2, 1.0)
 const CASTLE_COLOR := Color(1.0, 0.35, 0.3, 1.0)
 const BUILDING_COLOR := Color(0.35, 0.75, 1.0, 1.0)
 const UNIT_COLOR := Color(0.45, 1.0, 0.55, 1.0)
+## An enemy that heads for a wall segment standing in its way (D-07).
+const WALL_COLOR := Color(1.0, 0.6, 0.2, 1.0)
 ## Lines float a little above the ground so they are not lost in it.
 const LINE_HEIGHT: float = 0.4
 
@@ -107,7 +109,7 @@ func _segments() -> Array[Dictionary]:
 			. append(
 				{
 					"from": _lifted(enemies.position_of(id)),
-					"to": _lifted(_target_position(target)),
+					"to": _lifted(_target_position(target, enemies.position_of(id))),
 					"color": _target_color(target["kind"]),
 				}
 			)
@@ -115,10 +117,12 @@ func _segments() -> Array[Dictionary]:
 	return segments
 
 
-func _target_position(target: Dictionary) -> Vector2:
+func _target_position(target: Dictionary, from: Vector2 = Vector2.ZERO) -> Vector2:
 	var kind: StringName = target["kind"]
 	if kind == PendingHits.KIND_KING:
 		return _ctx.king.get_position()
+	if kind == PendingHits.KIND_WALL:
+		return _ctx.night.get_pathing().closest_point(target["id"], from)
 	if kind == PendingHits.KIND_UNIT:
 		var units: UnitSystem = _ctx.squads.get_units()
 		if units.is_alive(target["id"]):
@@ -137,6 +141,8 @@ func _target_color(kind: StringName) -> Color:
 		return BUILDING_COLOR
 	if kind == PendingHits.KIND_UNIT:
 		return UNIT_COLOR
+	if kind == PendingHits.KIND_WALL:
+		return WALL_COLOR
 	return CASTLE_COLOR
 
 

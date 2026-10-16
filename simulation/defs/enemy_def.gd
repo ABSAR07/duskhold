@@ -25,3 +25,6 @@ extends Resource
 @export var retarget_interval_seconds: float = 0.5
 ## Metres per second of a ranged attacker's shot; 0.0 means a melee enemy.
 @export var projectile_speed: float = 0.0
+## True for an enemy that passes over walls (Phase 6 flyers): no segment is solid to it and it never
+## attacks one. No shipped enemy sets it.
+@export var ignores_walls: bool = false

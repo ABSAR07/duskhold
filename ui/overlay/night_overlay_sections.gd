@@ -70,14 +70,16 @@ static func king_rows(ctx: RunContext) -> Array:
 	]
 
 
-## How many living enemies head for the king, the castle, a building or a friendly unit, and how
-## many are still marching with no target. The five counts add up to the alive count.
+## How many living enemies head for the king, the castle, a building, a friendly unit or a wall
+## segment in their way, and how many are still marching with no target. The six counts add up to
+## the alive count.
 static func path_rows(ctx: RunContext) -> Array:
 	var enemies: EnemySystem = ctx.night.get_enemies()
 	var to_king: int = 0
 	var to_castle: int = 0
 	var to_building: int = 0
 	var to_unit: int = 0
+	var to_wall: int = 0
 	var marching: int = 0
 	for id: int in enemies.ids():
 		var target: Dictionary = enemies.target_of(id)
@@ -90,6 +92,8 @@ static func path_rows(ctx: RunContext) -> Array:
 			to_building += 1
 		elif kind == PendingHits.KIND_UNIT:
 			to_unit += 1
+		elif kind == PendingHits.KIND_WALL:
+			to_wall += 1
 		else:
 			marching += 1
 	return [
@@ -97,5 +101,6 @@ static func path_rows(ctx: RunContext) -> Array:
 		["To castle", str(to_castle)],
 		["To building", str(to_building)],
 		["To unit", str(to_unit)],
+		["To wall", str(to_wall)],
 		["Marching", str(marching)],
 	]

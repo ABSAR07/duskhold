@@ -12,6 +12,8 @@ const MATH_ROOTS: Array[String] = [
 	"res://simulation/king",
 	"res://simulation/castle",
 	"res://simulation/squads",
+	"res://simulation/walls",
+	"res://simulation/nav",
 ]
 const GLOBAL_RAND := "(^|[^A-Za-z0-9_.])"
 const WORD_START := "(^|[^A-Za-z0-9_])"

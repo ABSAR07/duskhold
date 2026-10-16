@@ -7,3 +7,6 @@ extends Resource
 @export var position: Vector3 = Vector3.ZERO
 ## The one building type this spot allows.
 @export var building_id: StringName = &""
+## A non-null run marks a wall plot (D-01): holding at it builds every segment of the run at once.
+## The plot's kind is data, not an id convention; null is an ordinary plot.
+@export var wall_run: WallRunDef

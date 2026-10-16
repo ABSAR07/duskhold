@@ -27,6 +27,8 @@ var _grid_dirty: bool = true
 ## Counts the changes that can alter the read view; the view carries the count it was built at.
 var _changes: int = 0
 var _view: CrowdReadView = CrowdReadView.new()
+## The pathing facade of the step in progress; null when the caller has none (Phase 3 behaviour).
+var _pathing: Pathing
 
 
 func _init(events: SimEvents) -> void:
@@ -135,16 +137,22 @@ func damage(id: int, amount: int, killer_kind: StringName) -> void:
 ## castle leaves nothing to march on, so the field stands still. `king` may be null in tests that
 ## have none; then nobody targets him. `buildings` may be null in tests that have none; then the
 ## castle is the only structure to attack. `units` may be null; then nobody targets friendly
-## units, byte for byte the Phase 2 behaviour.
+## units, byte for byte the Phase 2 behaviour. `pathing` may be null; then no wall is solid and no
+## enemy attacks one. While no wall segment stands the step is the same code as without `pathing`.
+## Otherwise an enemy whose straight line to its goal crosses an intact segment attacks that
+## segment (the sealed case of D-07), and after the push-apart every enemy is pushed out of the
+## intact segments (D-04), except one whose def sets ignores_walls.
 func step(
 	tick: int,
 	castle: CastleState,
 	king: KingState,
 	hits: PendingHits,
 	buildings: BuildingSystem = null,
-	units: UnitSystem = null
+	units: UnitSystem = null,
+	pathing: Pathing = null
 ) -> void:
 	_units = units
+	_pathing = pathing
 	_mark_changed()
 	for id: int in _order:
 		var record: Record = _records[id]
@@ -159,6 +167,8 @@ func step(
 		_choose_target(record, tick, castle, king, buildings)
 		_advance_and_strike(record, tick, castle, king, hits, buildings)
 	_separate()
+	if _walls_are_solid():
+		_push_out_of_walls()
 	_mark_changed()
 
 
@@ -237,23 +247,111 @@ func clear() -> void:
 func _choose_target(
 	record: Record, tick: int, castle: CastleState, king: KingState, buildings: BuildingSystem
 ) -> void:
+	var chosen: bool = _choose_base_target(record, tick, castle, king, buildings)
+	if _walls_are_solid() and not record.def.ignores_walls:
+		_target_walls_in_the_way(record, tick, chosen, castle, king, buildings)
+
+
+## The target choice of Phase 3, unchanged. True when it assigned a target on this call (the king
+## or the nearest structure), false when it kept the committed one or found none.
+func _choose_base_target(
+	record: Record, tick: int, castle: CastleState, king: KingState, buildings: BuildingSystem
+) -> bool:
 	var valid: bool = record.target_kind != &"" and _target_valid(record, castle, king, buildings)
 	if valid and not is_rescan_tick(tick, record.id, record.rescan_ticks):
-		return
+		return false
 	if valid and record.target_kind == PendingHits.KIND_KING:
-		return
+		return false
 	if (
 		_king_up(king)
 		and record.position.distance_to(king.get_position()) <= record.def.aggro_range
 	):
 		record.target_kind = PendingHits.KIND_KING
 		record.target_id = 0
-		return
+		return true
 	if valid:
-		return
+		return false
 	record.target_kind = &""
 	record.target_id = 0
 	_pick_nearest_structure(record)
+	return record.target_kind != &""
+
+
+## D-07, the sealed case: an enemy whose straight line to its goal crosses an intact segment attacks
+## that segment until it breaks, then walks on through the hole. A target chosen on this call is
+## line-tested at once and a held target on the enemy's own rescan tick. An enemy with no target
+## tests its line to the castle only on its rescan tick, caches the answer on the record and takes
+## the segment once it is within aggro_range, so 300 marchers pay about 20 line tests a tick.
+func _target_walls_in_the_way(
+	record: Record,
+	tick: int,
+	chosen: bool,
+	castle: CastleState,
+	king: KingState,
+	buildings: BuildingSystem
+) -> void:
+	if record.target_kind == PendingHits.KIND_WALL:
+		return
+	var rescan: bool = is_rescan_tick(tick, record.id, record.rescan_ticks)
+	if record.target_kind == &"":
+		if rescan:
+			record.castle_blocker = _pathing.first_blocking(
+				record.position, castle.get_position(), record.def.radius
+			)
+		_take_wall(record, record.castle_blocker, record.def.aggro_range)
+		return
+	if not chosen and not rescan:
+		return
+	var goal: Vector2 = _goal_of(record, castle, king, buildings)
+	_take_wall(
+		record,
+		_pathing.first_blocking(record.position, goal, record.def.radius),
+		record.def.leash_range
+	)
+
+
+## Makes `segment` the record's target when it still stands and its face is within `reach`.
+func _take_wall(record: Record, segment: int, reach: float) -> void:
+	if segment < 0 or not _pathing.walls().is_intact(segment):
+		return
+	if _wall_edge(record.position, segment) > reach:
+		return
+	record.target_kind = PendingHits.KIND_WALL
+	record.target_id = segment
+
+
+## Distance from `pos` to the face of the segment; negative inside its solid.
+func _wall_edge(pos: Vector2, segment: int) -> float:
+	var nearest: Vector2 = _pathing.closest_point(segment, pos)
+	return pos.distance_to(nearest) - _pathing.walls().half_thickness_of(segment)
+
+
+## Where the record's target stands: the king, the unit or building, else the castle.
+func _goal_of(
+	record: Record, castle: CastleState, king: KingState, buildings: BuildingSystem
+) -> Vector2:
+	if record.target_kind == PendingHits.KIND_KING:
+		return king.get_position()
+	if record.target_kind == PendingHits.KIND_BUILDING:
+		var spot: BuildSpotDef = buildings.get_spot(buildings.spot_at_index(record.target_id))
+		return Vector2(spot.position.x, spot.position.z)
+	if record.target_kind == PendingHits.KIND_UNIT:
+		return _units.position_of(record.target_id)
+	return castle.get_position()
+
+
+## True when a pathing facade was given and a wall segment stands somewhere.
+func _walls_are_solid() -> bool:
+	return _pathing != null and _pathing.has_intact_walls()
+
+
+## D-04: after the push-apart every living enemy, in ascending id, is moved out of the intact
+## segments, unless its def lets it pass over them.
+func _push_out_of_walls() -> void:
+	for id: int in _order:
+		var record: Record = _records[id]
+		if record.health > 0 and not record.def.ignores_walls:
+			record.position = _pathing.push_out(record.position, record.def.radius)
 
 
 ## Sets the target to the nearest living unit, standing building or the castle by edge distance
@@ -294,15 +392,22 @@ func _target_valid(
 	if record.target_kind == PendingHits.KIND_KING:
 		return _king_target_valid(record, king)
 	if record.target_kind == PendingHits.KIND_CASTLE:
-		if castle.is_destroyed():
-			return false
-		var to_castle: float = record.position.distance_to(castle.get_position())
-		return to_castle <= record.def.leash_range + castle.get_radius()
+		return _castle_target_valid(record, castle)
 	if record.target_kind == PendingHits.KIND_BUILDING:
 		return _building_target_valid(record, buildings)
 	if record.target_kind == PendingHits.KIND_UNIT:
 		return _unit_target_valid(record)
+	if record.target_kind == PendingHits.KIND_WALL:
+		return _wall_target_valid(record)
 	return false
+
+
+## The castle is a valid target while it stands and is inside leash_range.
+func _castle_target_valid(record: Record, castle: CastleState) -> bool:
+	if castle.is_destroyed():
+		return false
+	var to_castle: float = record.position.distance_to(castle.get_position())
+	return to_castle <= record.def.leash_range + castle.get_radius()
 
 
 ## The king is a valid target while he is up and inside leash_range.
@@ -310,6 +415,13 @@ func _king_target_valid(record: Record, king: KingState) -> bool:
 	if not _king_up(king):
 		return false
 	return record.position.distance_to(king.get_position()) <= record.def.leash_range
+
+
+## A wall target is valid while its segment stands and its face is inside leash_range.
+func _wall_target_valid(record: Record) -> bool:
+	if _pathing == null or not _pathing.walls().is_intact(record.target_id):
+		return false
+	return _wall_edge(record.position, record.target_id) <= record.def.leash_range
 
 
 ## A unit target is valid while it lives and its edge is inside leash_range.
@@ -363,6 +475,9 @@ func _advance_and_strike(
 	elif record.target_kind == PendingHits.KIND_UNIT:
 		goal = _units.position_of(record.target_id)
 		goal_radius = _units.def_of(record.target_id).radius
+	elif record.target_kind == PendingHits.KIND_WALL:
+		goal = _pathing.closest_point(record.target_id, record.position)
+		goal_radius = _pathing.walls().half_thickness_of(record.target_id)
 	var attacking: bool = record.target_kind != &""
 	var stop_distance: float = goal_radius + record.def.attack_range
 	var remaining: float = record.position.distance_to(goal) - stop_distance
@@ -431,3 +546,6 @@ class Record:
 	var cooldown_ready_tick: int = 0
 	## Ticks between its target rescans, fixed at spawn from its def's retarget interval.
 	var rescan_ticks: int = 1
+	## The intact segment across its straight line to the castle as of its last rescan tick, or -1
+	## (D-07): a marching enemy pays a line test once per rescan period, not once per tick.
+	var castle_blocker: int = -1

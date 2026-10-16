@@ -73,13 +73,15 @@ func next_action_cost(spot_id: StringName) -> int:
 
 
 ## What each standing building pays at dawn: spot_id -> gold, in MapConfig order, listing only
-## spots whose current tier pays more than 0. A destroyed building pays nothing, and neither does
-## one rebuilt this dawn (LOOP-05). Pure: it never mutates anything.
+## spots whose current tier pays more than 0. A wall plot never pays. A destroyed building pays
+## nothing, and neither does one rebuilt this dawn (LOOP-05). Pure: it never mutates anything.
 func dawn_income_by_spot() -> Dictionary:
 	var income: Dictionary = {}
 	for spot_id: StringName in _order:
 		var instance: BuildingInstance = _instances.get(spot_id) as BuildingInstance
 		if instance == null or instance.destroyed or instance.rebuilt_this_dawn:
+			continue
+		if (_spots[spot_id] as BuildSpotDef).wall_run != null:
 			continue
 		var building_def: BuildingDef = _defs.get(instance.building_id) as BuildingDef
 		if building_def == null:
@@ -139,12 +141,14 @@ func spot_at_index(index: int) -> StringName:
 	return _order[index]
 
 
-## Spots with a building that has not fallen, in MapConfig order. A fresh array.
+## Spots with a building that has not fallen, in MapConfig order. A fresh array. A wall plot is
+## never listed: its segments take the hits, never the plot, so enemies and towers never see it.
 func standing_spot_ids() -> Array[StringName]:
 	var standing: Array[StringName] = []
 	for spot_id: StringName in _order:
 		var instance: BuildingInstance = _instances.get(spot_id) as BuildingInstance
-		if instance != null and not instance.destroyed:
+		var spot: BuildSpotDef = _spots[spot_id]
+		if instance != null and not instance.destroyed and spot.wall_run == null:
 			standing.append(spot_id)
 	return standing
 
