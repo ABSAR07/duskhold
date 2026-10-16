@@ -1,16 +1,18 @@
 class_name ProjectileVfx
 extends Node3D
-## Makes every attack the simulation decides visible (KING-03, D-13). A tower, castle or
-## skirmisher shot spawns a thin emissive arrow that flies from the attacker to the target's current
-## position for exactly SimClock.flight_ticks of simulation time, arcing on the way. The king's
-## passive strike has no flight, so it shows a short flat slash at the king pointing at his target
-## instead.
+## Makes every attack the simulation decides visible (KING-03, D-13). A tower, castle, skirmisher
+## or archer shot flies a thin emissive arrow from the attacker to the target's current position for
+## exactly SimClock.flight_ticks of simulation time, arcing on the way. Every arrow in the air is
+## one instance of a single batch (PLAT-01): the flights live in a ring of MAX_PROJECTILES slots
+## held in parallel arrays, and each frame the live ones are written into the batch in slot order
+## and uploaded once. The king's passive strike has no flight, so it shows a short flat slash at
+## the king pointing at his target instead (a node, capped at MAX_SLASHES).
 ## Purely visual: the simulation has already decided the hit by the target's id (RESEARCH Pattern
 ## 2), so an arrow cannot miss, cannot hit anything else and, when its target is gone, finishes at
-## the target's last known position. Every arrow and slash frees itself; arrows are capped at
-## MAX_PROJECTILES (T-02-10) and a shot past the cap is simply not drawn.
+## the target's last known position. Arrows are capped at MAX_PROJECTILES (T-02-10, T-04-03) and a
+## shot past the cap is simply not drawn.
 
-const MAX_PROJECTILES: int = 128
+const MAX_PROJECTILES: int = 512
 ## Slashes live a fraction of a second; this only bounds a pathological burst.
 const MAX_SLASHES: int = 8
 ## Peak height of an arrow's arc per metre of distance, and the highest peak any arrow reaches.
@@ -36,13 +38,31 @@ const BUILDING_TARGET_HEIGHT: float = 1.5
 const SLASH_HEIGHT: float = 1.1
 ## A position that could not be resolved (an attacker that is already gone).
 const NO_POSITION := Vector3(INF, INF, INF)
+## The arrow's heading is the slope of its path between these two progress values either side.
+const HEADING_STEP: float = 0.02
+## The culling box of the arrow batch reaches this high above the ground.
+const BOUNDS_HEIGHT: float = 8.0
+const CROWD_SHADER: Shader = preload("res://presentation/crowd/crowd_instance.gdshader")
 
 var _ctx: RunContext
-var _flights: Array[Flight] = []
-var _tower_mesh: BoxMesh
-var _skirmisher_mesh: BoxMesh
-var _unit_mesh: BoxMesh
+var _batch: CrowdBatch
 var _slash_mesh: BoxMesh
+## The ring of flights, parallel arrays indexed by slot. A slot is free while `_active` is 0.
+var _origins: PackedVector3Array = PackedVector3Array()
+var _last_targets: PackedVector3Array = PackedVector3Array()
+var _elapsed: PackedFloat32Array = PackedFloat32Array()
+var _durations: PackedFloat32Array = PackedFloat32Array()
+var _target_kinds: Array[StringName] = []
+var _target_ids: PackedInt32Array = PackedInt32Array()
+var _colors: PackedColorArray = PackedColorArray()
+var _active: PackedByteArray = PackedByteArray()
+var _live: int = 0
+var _cursor: int = 0
+## Arrows written into the batch by the latest frame; an idle frame after an idle frame uploads
+## nothing.
+var _drawn: int = 0
+## The launch point of each arrow drawn by the latest frame, in drawn order (test hook mirror).
+var _drawn_launches: PackedVector3Array = PackedVector3Array()
 
 
 ## Seconds a projectile of `flight_ticks` simulation ticks stays in the air.
@@ -60,40 +80,63 @@ static func arc_height(t: float, distance: float) -> float:
 	return 4.0 * t * (1.0 - t) * peak
 
 
-## RED stub: replaced by the real arrow pose in the GREEN commit.
-static func arrow_transform(_origin: Vector3, _target: Vector3, _t: float) -> Transform3D:
-	return Transform3D.IDENTITY
+## Where an arrow flying from `origin` to `target` is at progress `t` (clamped to 0 to 1), turned
+## along its path: the origin on the straight line plus the arc, the basis z axis along the
+## direction of travel (the arc's slope included), y as upright as that allows and x across. The
+## identity basis when origin and target coincide.
+static func arrow_transform(origin: Vector3, target: Vector3, t: float) -> Transform3D:
+	var progress: float = clampf(t, 0.0, 1.0)
+	var distance: float = origin.distance_to(target)
+	var here: Vector3 = _path_point(origin, target, progress, distance)
+	var behind: Vector3 = _path_point(origin, target, maxf(progress - HEADING_STEP, 0.0), distance)
+	var ahead: Vector3 = _path_point(origin, target, minf(progress + HEADING_STEP, 1.0), distance)
+	var heading: Vector3 = ahead - behind
+	if heading.length() < 0.0001:
+		heading = target - origin
+	if heading.length() < 0.0001:
+		return Transform3D(Basis.IDENTITY, here)
+	var forward: Vector3 = heading.normalized()
+	var across: Vector3 = Vector3.UP.cross(forward)
+	across = across.normalized() if across.length() > 0.001 else Vector3.RIGHT
+	var upright: Vector3 = forward.cross(across)
+	return Transform3D(Basis(across, upright, forward), here)
+
+
+static func _path_point(origin: Vector3, target: Vector3, t: float, distance: float) -> Vector3:
+	return origin.lerp(target, t) + Vector3.UP * arc_height(t, distance)
 
 
 func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 	if _ctx != null:
 		return
 	_ctx = ctx
-	_tower_mesh = _make_box(ARROW_SIZE, TOWER_COLOR)
-	_skirmisher_mesh = _make_box(ARROW_SIZE, SKIRMISHER_COLOR)
-	_unit_mesh = _make_box(ARROW_SIZE, UNIT_ARROW_COLOR)
+	_allocate_ring()
+	_build_batch(ctx.map)
 	_slash_mesh = _make_box(SLASH_SIZE, SLASH_COLOR)
 	ctx.events.attack_fired.connect(_on_attack_fired)
 
 
 ## Arrows in the air. Test hook, read-only.
 func live_count() -> int:
-	return _flights.size()
+	return _live
 
 
-## RED stub: arrows drawn by the latest frame.
+## Arrows drawn by the latest frame. Test hook, read-only.
 func arrow_count() -> int:
-	return 0
+	return _batch.count() if _batch != null else 0
 
 
-## RED stub: the colour of arrow `index`.
-func arrow_color_at(_index: int) -> Color:
-	return Color.WHITE
+## The colour of arrow `index` of the latest frame, from the batch mirror; white past the last.
+func arrow_color_at(index: int) -> Color:
+	return _batch.color_of(index) if _batch != null else Color.WHITE
 
 
-## RED stub: where arrow `index` left from.
-func arrow_launch_at(_index: int) -> Vector3:
-	return Vector3.ZERO
+## Where arrow `index` of the latest frame left from, launch height included; the zero vector past
+## the last. Test hook, read-only.
+func arrow_launch_at(index: int) -> Vector3:
+	if index < 0 or index >= _drawn:
+		return Vector3.ZERO
+	return _drawn_launches[index]
 
 
 ## Slashes showing. Test hook, read-only.
@@ -108,24 +151,26 @@ func slash_count() -> int:
 func _process(delta: float) -> void:
 	if _ctx == null:
 		return
-	var index: int = _flights.size() - 1
-	while index >= 0:
-		var flight: Flight = _flights[index]
-		if not is_instance_valid(flight.node):
-			_flights.remove_at(index)
-		else:
-			flight.elapsed += delta
-			flight.last_target = _target_position(
-				flight.target_kind, flight.target_id, flight.last_target
-			)
-			var t: float = clampf(flight.elapsed / flight.duration, 0.0, 1.0)
-			var distance: float = flight.origin.distance_to(flight.last_target)
-			var along: Vector3 = flight.origin.lerp(flight.last_target, t)
-			_place(flight.node, along + Vector3.UP * arc_height(t, distance))
-			if t >= 1.0:
-				flight.node.queue_free()
-				_flights.remove_at(index)
-		index -= 1
+	if _live == 0 and _drawn == 0:
+		return
+	_batch.begin()
+	_drawn = 0
+	for slot: int in range(MAX_PROJECTILES):
+		if _active[slot] == 0:
+			continue
+		_elapsed[slot] += delta
+		_last_targets[slot] = _target_position(
+			_target_kinds[slot], _target_ids[slot], _last_targets[slot]
+		)
+		var t: float = clampf(_elapsed[slot] / _durations[slot], 0.0, 1.0)
+		var xform: Transform3D = arrow_transform(_origins[slot], _last_targets[slot], t)
+		if _batch.add_transform(xform, Color(0.0, 0.0, 0.0, 0.0), _colors[slot]):
+			_drawn_launches[_drawn] = _origins[slot]
+			_drawn += 1
+		if t >= 1.0:
+			_active[slot] = 0
+			_live -= 1
+	_batch.commit()
 
 
 func _on_attack_fired(
@@ -141,26 +186,23 @@ func _on_attack_fired(
 		return
 	if not _draws_arrows(attacker_kind):
 		return
-	if _flights.size() >= MAX_PROJECTILES:
+	if _live >= MAX_PROJECTILES:
 		return
 	var origin: Vector3 = _attacker_position(attacker_kind, attacker_id)
 	if not origin.is_finite():
 		return
-	var flight: Flight = Flight.new()
-	flight.origin = origin
-	flight.target_kind = target_kind
-	flight.target_id = target_id
-	flight.last_target = _target_position(target_kind, target_id, origin)
-	flight.duration = maxf(flight_seconds(flight_ticks), SimClock.STEP)
-	var arrow: MeshInstance3D = MeshInstance3D.new()
-	arrow.name = "Arrow"
-	arrow.mesh = _arrow_mesh_for(attacker_kind)
-	arrow.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(arrow)
-	arrow.global_position = origin
-	_place(arrow, origin)
-	flight.node = arrow
-	_flights.append(flight)
+	var slot: int = _free_slot()
+	if slot < 0:
+		return
+	_origins[slot] = origin
+	_last_targets[slot] = _target_position(target_kind, target_id, origin)
+	_elapsed[slot] = 0.0
+	_durations[slot] = maxf(flight_seconds(flight_ticks), SimClock.STEP)
+	_target_kinds[slot] = target_kind
+	_target_ids[slot] = target_id
+	_colors[slot] = _color_for(attacker_kind)
+	_active[slot] = 1
+	_live += 1
 
 
 ## Towers, the castle, enemies and friendly archers shoot arrows; the king and melee units strike
@@ -174,12 +216,58 @@ func _draws_arrows(attacker_kind: StringName) -> bool:
 	)
 
 
-func _arrow_mesh_for(attacker_kind: StringName) -> BoxMesh:
+func _color_for(attacker_kind: StringName) -> Color:
 	if attacker_kind == PendingHits.KIND_ENEMY:
-		return _skirmisher_mesh
+		return SKIRMISHER_COLOR
 	if attacker_kind == PendingHits.KIND_UNIT:
-		return _unit_mesh
-	return _tower_mesh
+		return UNIT_ARROW_COLOR
+	return TOWER_COLOR
+
+
+## The next free slot at or after the cursor (the ring), or -1 when every slot is taken.
+func _free_slot() -> int:
+	for step: int in range(MAX_PROJECTILES):
+		var slot: int = (_cursor + step) % MAX_PROJECTILES
+		if _active[slot] == 0:
+			_cursor = (slot + 1) % MAX_PROJECTILES
+			return slot
+	return -1
+
+
+func _allocate_ring() -> void:
+	_origins.resize(MAX_PROJECTILES)
+	_last_targets.resize(MAX_PROJECTILES)
+	_elapsed.resize(MAX_PROJECTILES)
+	_durations.resize(MAX_PROJECTILES)
+	_target_kinds.resize(MAX_PROJECTILES)
+	_target_ids.resize(MAX_PROJECTILES)
+	_colors.resize(MAX_PROJECTILES)
+	_active.resize(MAX_PROJECTILES)
+	_drawn_launches.resize(MAX_PROJECTILES)
+
+
+## The one arrow batch: a thin box per arrow, tinted per instance through the crowd shader, white
+## albedo, the same emission the arrows had as nodes, no shadow.
+func _build_batch(map: MapConfig) -> void:
+	var mesh: BoxMesh = BoxMesh.new()
+	mesh.size = ARROW_SIZE
+	var material: ShaderMaterial = ShaderMaterial.new()
+	material.shader = CROWD_SHADER
+	material.set_shader_parameter(&"albedo", Color.WHITE)
+	material.set_shader_parameter(&"calm_energy", EMISSION_ENERGY)
+	material.set_shader_parameter(&"flash_energy", EMISSION_ENERGY)
+	_batch = CrowdBatch.new()
+	_batch.setup(mesh, material, MAX_PROJECTILES, true)
+	_batch.name = "Arrows"
+	_batch.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var half: float = map.ground_half_extent
+	_batch.set_bounds(
+		AABB(
+			Vector3(map.castle_position.x - half, 0.0, map.castle_position.z - half),
+			Vector3(half * 2.0, BOUNDS_HEIGHT, half * 2.0)
+		)
+	)
+	add_child(_batch)
 
 
 ## A flat bar from the king toward his target that shrinks away in SLASH_SECONDS.
@@ -203,14 +291,6 @@ func _spawn_slash(target_kind: StringName, target_id: int) -> void:
 	var tween: Tween = slash.create_tween()
 	tween.tween_property(slash, "scale", Vector3(1.0, 1.0, 0.2), SLASH_SECONDS)
 	tween.tween_callback(slash.queue_free)
-
-
-## Moves the node to `point` and turns it along the direction it just travelled.
-func _place(node: MeshInstance3D, point: Vector3) -> void:
-	var heading: Vector3 = point - node.global_position
-	node.global_position = point
-	if heading.length() > 0.001 and absf(heading.normalized().y) < 0.99:
-		node.look_at(point + heading, Vector3.UP)
 
 
 ## Where the attacker stands, launch height included; NO_POSITION when it is gone.
@@ -276,15 +356,3 @@ func _make_box(size: Vector3, color: Color) -> BoxMesh:
 	mesh.size = size
 	mesh.material = material
 	return mesh
-
-
-## One arrow in the air. Private to the node.
-class Flight:
-	extends RefCounted
-	var node: MeshInstance3D
-	var origin: Vector3 = Vector3.ZERO
-	var last_target: Vector3 = Vector3.ZERO
-	var target_kind: StringName = &""
-	var target_id: int = 0
-	var elapsed: float = 0.0
-	var duration: float = 0.0
