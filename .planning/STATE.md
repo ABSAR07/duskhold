@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
 status: executing
-stopped_at: Completed 04-07-PLAN.md
-last_updated: "2026-10-16T09:18:09.804Z"
+stopped_at: Completed 04-08-PLAN.md
+last_updated: "2026-10-16T10:41:46.207Z"
 last_activity: 2026-10-16
 last_activity_desc: Phase 04 execution started
-state_head: 11d7110aee45a1a6096f9731b4448a734773823f
+state_head: a8c409bd0f12ac76435e9c2100e4872d86261557
 progress:
   total_phases: 13
   completed_phases: 3
   total_plans: 70
-  completed_plans: 66
+  completed_plans: 67
   percent: 23
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 04 (Crowd-Scale Battles & Walls) — EXECUTING
-Plan: 8 of 11
+Plan: 9 of 11
 Status: Ready to execute
 Last activity: 2026-10-16 — Phase 04 execution started
 
@@ -124,6 +124,7 @@ Progress: [██░░░░░░░░] 23%
 | Phase 04 P05 | 44 min | 2 tasks | 25 files |
 | Phase 04 P06 | 56 min | 2 tasks | 35 files |
 | Phase 04 P07 | 50 min | 2 tasks | 18 files |
+| Phase 04 P08 | 66 min | 2 tasks | 31 files |
 
 ## Accumulated Context
 
@@ -278,6 +279,9 @@ Recent decisions affecting current work:
 - [Phase 04]: 04-07: an enemy never retakes a wall segment it gave up for the detour while a way round exists — the crowd near a segment thins as others walk through, so ttd dithers past the 15 tick hysteresis band; one grunt flipped four times
 - [Phase 04]: 04-07: detour and sealed are read from a probe stepped off the blocking wall (Pathing._probe_of) — FlowField.cost_at on a blocked cell reads the open neighbour, which for a sealed ring is across the wall
 - [Phase 04]: 04-07: a due wall segment with no crowd near is published as never (MAX_TICKS) — a stale small time to destruction must not make a lone enemy break a strong wall
+- [Phase 04]: 04-08: the gate stress passes on the first run with no pathing change (300 of 300 cross, 0 stuck at the end, median 14.9 s, max 21.9 s); the pass rule counts every living enemy flagged stuck at the final tick, and its finish line and sink radius come from the stress map data — D-09 locks 'still stuck at its end'; crossed enemies stay alive until the sink removes them, so a stall after the gate must fail the gate on its own
+- [Phase 04]: 04-08: the debug overlay is laid out in two columns (whole sections, get_text joins both) so the Walls, Field and Crowd sections fit a 720p window — The single column ran off the bottom after Segments broken; layout only, no row or test contract moved
+- [Phase 04]: 04-08: the CI Gate stress step first runs on plan 04-11's push; the test job's 20 minute timeout has about 9 minutes of margin over a 10 minute local suite plus about 40 s of gate runs — Untested on a slower runner; watch it at the first push
 
 ### Pending Todos
 
@@ -314,6 +318,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-16T09:18:09.034Z
-Stopped at: Completed 04-07-PLAN.md
+Last session: 2026-10-16T10:41:44.988Z
+Stopped at: Completed 04-08-PLAN.md
 Resume file: None
