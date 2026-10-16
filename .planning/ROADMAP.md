@@ -254,7 +254,7 @@ Plans:
   3. A scripted stress night with hundreds of units, enemies, and projectiles on screen holds 60 fps on GTX 970-class hardware, or within a documented equivalent frame-time budget on the dev machine.
   4. Nights from Phases 1–3 play the same after the switch to batched simulation and rendering. All existing headless loop and combat tests still pass.
 
-**Plans**: 4/11 plans executed
+**Plans**: 5/11 plans executed
 
 Plans:
 **Wave 1**
@@ -270,7 +270,7 @@ Plans:
 - [x] 04-04: Wall tracer — WallRunDef, WallSystem of segments, WallSolids, Pathing facade, KIND_WALL hits, free dawn restore, solidity for everyone, WallViews
 
 **Wave 5** *(blocked on 04-04)*
-- [ ] 04-05: Four wall runs on the prototype map (three road runs and a ring, D-06), WallValidation, run label, plot tests 10 to 14, a look per tier, collapse and rubble
+- [x] 04-05: Four wall runs on the prototype map (three road runs and a ring, D-06), WallValidation, run label, plot tests 10 to 14, a look per tier, collapse and rubble
 
 **Wave 6** *(blocked on 04-05)*
 - [ ] 04-06: Integer Dial flow field — everyone goes around walls through gaps and holes, sealed enemies break in, blocked targets dropped, goal-field cache
@@ -441,7 +441,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 1. Foundation & Day Loop | 18/18 | Complete    | 2026-10-03 |
 | 2. Night Defense & Playtest Gate | 22/22 | Complete    | 2026-10-08 |
 | 3. King Combat & Troops | 19/19 | Complete    | 2026-10-15 |
-| 4. Crowd-Scale Battles & Walls | 4/11 | In Progress|  |
+| 4. Crowd-Scale Battles & Walls | 5/11 | In Progress|  |
 | 5. Castle Center & Economy Depth | 0/TBD | Not started | - |
 | 6. Enemy Roster & Tower Specializations | 0/TBD | Not started | - |
 | 7. Army Variety & Heroes | 0/TBD | Not started | - |

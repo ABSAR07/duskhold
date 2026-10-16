@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
 status: executing
-stopped_at: Completed 04-04-PLAN.md
-last_updated: "2026-10-16T06:04:41.958Z"
+stopped_at: Completed 04-05-PLAN.md
+last_updated: "2026-10-16T07:04:35.227Z"
 last_activity: 2026-10-16
 last_activity_desc: Phase 04 execution started
-state_head: 3a5706eff107d64c8e16c18cf609d8eee5ad3278
+state_head: 7c9419bbbb134734601a459c66e523e3d7c9be6b
 progress:
   total_phases: 13
   completed_phases: 3
   total_plans: 70
-  completed_plans: 62
+  completed_plans: 64
   percent: 23
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 04 (Crowd-Scale Battles & Walls) — EXECUTING
-Plan: 5 of 11
+Plan: 6 of 11
 Status: Ready to execute
 Last activity: 2026-10-16 — Phase 04 execution started
 
@@ -121,6 +121,7 @@ Progress: [██░░░░░░░░] 23%
 | Phase 04 P02 | 60 min | 3 tasks | 13 files |
 | Phase 04 P03 | 36 min | 2 tasks | 21 files |
 | Phase 04 P04 | 55 min | 2 tasks | 34 files |
+| Phase 04 P05 | 44 min | 2 tasks | 25 files |
 
 ## Accumulated Context
 
@@ -265,6 +266,9 @@ Recent decisions affecting current work:
 - [Phase 04]: 04-04: WallSystem is a BuildingSystem sibling that learns of a purchase through building_built; segments keep integer-centimetre geometry, a 4 m bucket grid and global ascending indices; a broken segment stays at 0 through a tier purchase until restore_all at dawn (D-05)
 - [Phase 04]: 04-04: a marching enemy takes its cached castle-line blocker only within aggro_range (a leash-range gate flapped target and clear every tick), and a held target is line-tested again on the enemy's own rescan tick; with no intact segment none of the wall code runs, so smoke, army and full_idle stay byte-identical
 - [Phase 04]: 04-04: one solid rule for everyone through Pathing.push_out (enemies after the push-apart, squads after separate, King after move_and_slide, the bot after each step); it returns its input bit for bit when no segment stands
+- [Phase 04]: 04-05: WallValidation counts a run segments itself because WallRunDef.expand returns nothing past 200 pieces; an unusable run adds 0 to the 1000 per-map cap so one bad run reports once
+- [Phase 04]: 04-05: Castle Kit wall tiers draw with the model own materials (batch material override null), since the shared crowd shader would drop the colormap texture; piece_count counts standing or sinking segments and rubble_count settled broken ones
+- [Phase 04]: 04-05: wall plot kind is data (wall_run), the marker is timber tan, and the label puts the run in the effect line while BuildingTierDef.effect_line keeps its fallback
 
 ### Pending Todos
 
@@ -301,6 +305,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-16T06:04:41.195Z
-Stopped at: Completed 04-04-PLAN.md
+Last session: 2026-10-16T07:04:33.149Z
+Stopped at: Completed 04-05-PLAN.md
 Resume file: None
