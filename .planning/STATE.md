@@ -3,7 +3,7 @@ gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
 status: executing
-stopped_at: "Halted 04-09-PLAN.md: PLAT-01 budget missed, owner decision needed"
+stopped_at: "04-09 halted (PLAT-01 missed); owner decided 2026-10-16 to continue 04-10 and 04-11 on the missed budget"
 last_updated: "2026-10-16T11:52:00.346Z"
 last_activity: 2026-10-16
 last_activity_desc: Phase 04 execution started
@@ -284,6 +284,7 @@ Recent decisions affecting current work:
 - [Phase 04]: 04-08: the debug overlay is laid out in two columns (whole sections, get_text joins both) so the Walls, Field and Crowd sections fit a 720p window — The single column ran off the bottom after Segments broken; layout only, no row or test contract moved
 - [Phase 04]: 04-08: the CI Gate stress step first runs on plan 04-11's push; the test job's 20 minute timeout has about 9 minutes of margin over a 10 minute local suite plus about 40 s of gate runs — Untested on a slower runner; watch it at the first push
 - [Phase 04]: [04-09] PLAT-01 not met: stress night median p95 37.04 ms (p50 20.92) against 8.0 ms with the D-10 crowd in view; the simulation step (18 to 25 ms, 22 ms headless) dominates, render CPU 0.7 ms and GPU 4.5 ms; walls add 8 to 10 ms at crowd scale; lever (a) packed storage bounded at about 1 ms and not pulled; plan halted, owner decides between a GDExtension, a documented higher budget or a targeted optimisation plan
+- [Phase 04]: OWNER DECISION 2026-10-16 after the 04-09 halt: continue 04-10 and 04-11 now on the current code with PLAT-01 recorded as not met (shipped nights top out at about 40 enemies at a 3.2 ms step; the 8 ms p95 bar fails from about 60 enemies, 60 fps on the dev machine from about 130); the perf route (GDExtension, a documented higher budget or a GDScript optimisation plan) is decided after /gsd-verify-work 4 from a profiling-driven gap plan; the budget and D-12 stay as written
 - [Phase 04]: [04-09] Wall-break rebuild measured at 11.74 ms mean and 13.22 ms max on 5494 cells; break-frame estimate 34.14 ms is above 16.7 ms, so count-based time slicing is an open owner point for 04-PLAYTEST-GATE (04-11); stress towers shoot 5 m/s (8 m/s gave 186 arrows in view, below the 200 bar)
 
 ### Pending Todos
@@ -303,7 +304,7 @@ None yet.
 - [Phase 6/8]: Night readability under hundreds of units needs automated screenshot review throughout the content phases
 - [Phase 11]: Boss-night difficulty cliffs; tune with seeded simulated playthroughs plus owner playtest
 - [Phase 13]: SmartScreen/AV behavior of unsigned export only known after clean-machine test
-- [Phase 4] PLAT-01 frame budget missed (04-09): median p95 37.04 ms against 8.0 ms; plans 04-10 and 04-11 depend on 04-09; see 04-FRAME-REPORT.md for the profile and the three options
+- [Phase 4] PLAT-01 frame budget missed (04-09): median p95 37.04 ms against 8.0 ms; see 04-FRAME-REPORT.md for the profile and the three options. Owner decision 2026-10-16: 04-10 and 04-11 run on the missed budget; the perf route is a gap plan after /gsd-verify-work 4
 
 ### Quick Tasks Completed
 
@@ -323,5 +324,5 @@ Items acknowledged and deferred at milestone close, most recent first:
 ## Session Continuity
 
 Last session: 2026-10-16T11:51:59.555Z
-Stopped at: Halted 04-09-PLAN.md: PLAT-01 budget missed, owner decision needed
+Stopped at: 04-09 halted (PLAT-01 missed); owner decided 2026-10-16 to continue 04-10 and 04-11 on the missed budget
 Resume file: .planning/phases/04-crowd-scale-battles-walls/04-FRAME-REPORT.md
