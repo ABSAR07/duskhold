@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
 status: executing
-stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-10-16T04:13:42.572Z"
+stopped_at: Completed 04-03-PLAN.md
+last_updated: "2026-10-16T05:01:28.135Z"
 last_activity: 2026-10-16
 last_activity_desc: Phase 04 execution started
-state_head: c934f9d3bc61f3b7d739f412cf0b968176bf6048
+state_head: 22fd473721464895188674243b0ab5464a682267
 progress:
   total_phases: 13
   completed_phases: 3
   total_plans: 70
-  completed_plans: 61
+  completed_plans: 62
   percent: 23
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 04 (Crowd-Scale Battles & Walls) — EXECUTING
-Plan: 3 of 11
+Plan: 4 of 11
 Status: Ready to execute
 Last activity: 2026-10-16 — Phase 04 execution started
 
@@ -119,6 +119,7 @@ Progress: [██░░░░░░░░] 23%
 | Phase 03 P18 | 13 min | 2 tasks | 2 files |
 | Phase 04 P01 | 54 min | 2 tasks | 14 files |
 | Phase 04 P02 | 60 min | 3 tasks | 13 files |
+| Phase 04 P03 | 36 min | 2 tasks | 21 files |
 
 ## Accumulated Context
 
@@ -258,6 +259,8 @@ Recent decisions affecting current work:
 - [Phase 04]: [04-02] MeshBaker skips the skinned bake on the headless display server (the call logs an engine error GUT counts as a failure); units fall back to the capsule there
 - [Phase 04]: [04-02] crowd_instance.gdshader converts the instance tint from sRGB to linear so arrows keep their authored colours; enemies pass white and are unchanged
 - [Phase 04]: [04-02] RESEARCH A2 settled: CI run 38848480353 (lint, test, export, screenshots green) renders the instance shaders and baked meshes on Mesa; unit batches use no material override and no instance colours
+- [Phase 04]: 04-03: StructureIndex (12 m cells), EnemyIndex (8 m cells) and Separation.displacements_bucketed are exact-preserving: reference-copy equivalence tests plus unchanged smoke, army and full_idle digests; step bench 25.6 ms to 8.4-9.2 ms for 300 marching grunts
+- [Phase 04]: 04-03: EnemySystem keeps record storage and exposes read_view() (CrowdReadView) only; UnitViews keeps id reads because UnitSystem is at the 20-method cap
 
 ### Pending Todos
 
@@ -294,6 +297,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-16T04:13:41.811Z
-Stopped at: Completed 04-02-PLAN.md
+Last session: 2026-10-16T05:01:27.398Z
+Stopped at: Completed 04-03-PLAN.md
 Resume file: None
