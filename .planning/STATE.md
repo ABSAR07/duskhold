@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
 status: executing
-stopped_at: Completed 04-06-PLAN.md
-last_updated: "2026-10-16T08:17:56.348Z"
+stopped_at: Completed 04-07-PLAN.md
+last_updated: "2026-10-16T09:18:09.804Z"
 last_activity: 2026-10-16
 last_activity_desc: Phase 04 execution started
-state_head: ee91c85a772fe3dc0811981f02a9b5f1d80c40f7
+state_head: 11d7110aee45a1a6096f9731b4448a734773823f
 progress:
   total_phases: 13
   completed_phases: 3
   total_plans: 70
-  completed_plans: 65
+  completed_plans: 66
   percent: 23
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 04 (Crowd-Scale Battles & Walls) — EXECUTING
-Plan: 7 of 11
+Plan: 8 of 11
 Status: Ready to execute
 Last activity: 2026-10-16 — Phase 04 execution started
 
@@ -123,6 +123,7 @@ Progress: [██░░░░░░░░] 23%
 | Phase 04 P04 | 55 min | 2 tasks | 34 files |
 | Phase 04 P05 | 44 min | 2 tasks | 25 files |
 | Phase 04 P06 | 56 min | 2 tasks | 35 files |
+| Phase 04 P07 | 50 min | 2 tasks | 18 files |
 
 ## Accumulated Context
 
@@ -273,6 +274,10 @@ Recent decisions affecting current work:
 - [Phase 04]: 04-06: NavGrid also blocks the first cell of every grid move that properly cuts a segment centre line (joints extended 0.02 m); the plan's centre-distance band alone leaks at 2 m cells on the gap fixture, where the wall sits 1.0 m from two columns of centres
 - [Phase 04]: 04-06: Pathing.is_sealed is true when walls stand and no castle field exists (over-cap map or not refreshed) as well as for an unreached cell; a blocked cell reads its cheapest open neighbour so an enemy against a wall is never judged sealed
 - [Phase 04]: 04-06: line-of-sight targets are decided as recommended: melee needs a clear line, ranged also within attack range and then shoots over the wall; squads, the bot king and enemies keep the exact Phase 3 expressions when no segment stands, so smoke, army and full_idle did not move
+- [Phase 04]: 04-07: a blocked marcher takes a wall segment from min(wall_notice_range, leash_range) of its face, not aggro_range — the plan says an enemy within the notice range attacks; a take beyond the leash would be invalid the next tick
+- [Phase 04]: 04-07: an enemy never retakes a wall segment it gave up for the detour while a way round exists — the crowd near a segment thins as others walk through, so ttd dithers past the 15 tick hysteresis band; one grunt flipped four times
+- [Phase 04]: 04-07: detour and sealed are read from a probe stepped off the blocking wall (Pathing._probe_of) — FlowField.cost_at on a blocked cell reads the open neighbour, which for a sealed ring is across the wall
+- [Phase 04]: 04-07: a due wall segment with no crowd near is published as never (MAX_TICKS) — a stale small time to destruction must not make a lone enemy break a strong wall
 
 ### Pending Todos
 
@@ -309,6 +314,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-16T08:17:55.555Z
-Stopped at: Completed 04-06-PLAN.md
+Last session: 2026-10-16T09:18:09.034Z
+Stopped at: Completed 04-07-PLAN.md
 Resume file: None
