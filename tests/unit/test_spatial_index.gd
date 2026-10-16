@@ -12,6 +12,11 @@ const QUERY_COUNT: int = 300
 const UNIT_COUNT: int = 25
 const SPREAD: float = 40.0
 const ENEMY_AT := Vector2(100.0, 100.0)
+const ENEMY_COUNT: int = 300
+const ENEMY_REACHES: Array[float] = [2.0, 7.0, 10.5, 22.0]
+const ENEMY_QUERIES_PER_REACH: int = 50
+## Far outside the random spread, so only the two enemies placed around it are ever near it.
+const TIE_POINT := Vector2(200.0, 200.0)
 
 var _events: SimEvents
 var _map: MapConfig
@@ -178,3 +183,134 @@ func test_the_castle_is_found_when_it_is_the_only_thing_in_range() -> void:
 	assert_eq(
 		_index.nearest(near_castle, 6.0), Vector3i(StructureIndex.KIND_CASTLE, 0, 1), "the castle"
 	)
+
+
+# --- EnemyIndex behind TargetQuery.nearest_enemy ---
+
+
+## The shipped TargetQuery.nearest_enemy, kept verbatim as the reference.
+func _reference_nearest_enemy(enemies: EnemySystem, pos: Vector2, reach: float) -> int:
+	var best_id: int = -1
+	var best_d2: float = INF
+	var limit: float = reach * reach
+	for id: int in enemies.ids():
+		if not enemies.is_alive(id):
+			continue
+		var d2: float = pos.distance_squared_to(enemies.position_of(id))
+		if d2 <= limit and d2 < best_d2:
+			best_d2 = d2
+			best_id = id
+	return best_id
+
+
+## ENEMY_COUNT grunts at seeded positions, then two placed exactly equidistant from TIE_POINT (far
+## outside the random spread) so the lower id must win there.
+func _enemy_field(rng: RandomNumberGenerator) -> EnemySystem:
+	var enemies: EnemySystem = EnemySystem.new(_events)
+	var grunt: EnemyDef = load(GRUNT_PATH)
+	for _enemy: int in range(ENEMY_COUNT):
+		var pos: Vector2 = Vector2(
+			rng.randf_range(-SPREAD, SPREAD), rng.randf_range(-SPREAD, SPREAD)
+		)
+		enemies.spawn(grunt, pos)
+	enemies.spawn(grunt, TIE_POINT + Vector2(3.0, 0.0))
+	enemies.spawn(grunt, TIE_POINT + Vector2(-3.0, 0.0))
+	return enemies
+
+
+## Counts queries whose answer differs from the reference at each reach; returns [mismatches, hits].
+func _compare_enemy_queries(enemies: EnemySystem, rng: RandomNumberGenerator) -> Array[int]:
+	var mismatches: int = 0
+	var hits: int = 0
+	for reach: float in ENEMY_REACHES:
+		for _query: int in range(ENEMY_QUERIES_PER_REACH):
+			var pos: Vector2 = Vector2(
+				rng.randf_range(-SPREAD, SPREAD), rng.randf_range(-SPREAD, SPREAD)
+			)
+			var expected: int = _reference_nearest_enemy(enemies, pos, reach)
+			if TargetQuery.nearest_enemy(enemies, pos, reach) != expected:
+				mismatches += 1
+			if expected >= 0:
+				hits += 1
+	return [mismatches, hits]
+
+
+func test_nearest_enemy_matches_the_shipped_scan_at_reaches_2_7_10_5_and_22() -> void:
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = WORLD_SEED + 10
+	var enemies: EnemySystem = _enemy_field(rng)
+	var result: Array[int] = _compare_enemy_queries(enemies, rng)
+	assert_eq(result[0], 0, "no mismatch against the reference scan over 200 queries")
+	assert_gt(result[1], 100, "the queries really found enemies")
+
+
+func test_two_equidistant_enemies_go_to_the_lower_id() -> void:
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = WORLD_SEED + 11
+	var enemies: EnemySystem = _enemy_field(rng)
+	var ids: Array[int] = enemies.ids()
+	var lower: int = ids[ids.size() - 2]
+	assert_eq(TargetQuery.nearest_enemy(enemies, TIE_POINT, 3.0), lower, "the lower id, at reach")
+	assert_eq(TargetQuery.nearest_enemy(enemies, TIE_POINT, 10.5), lower, "and with room to spare")
+	assert_eq(TargetQuery.nearest_enemy(enemies, TIE_POINT, 2.99), -1, "just outside both")
+
+
+func test_a_dead_enemy_that_is_not_removed_yet_is_never_returned() -> void:
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = WORLD_SEED + 12
+	var enemies: EnemySystem = _enemy_field(rng)
+	var ids: Array[int] = enemies.ids()
+	var lower: int = ids[ids.size() - 2]
+	var upper: int = ids[ids.size() - 1]
+	assert_eq(TargetQuery.nearest_enemy(enemies, TIE_POINT, 5.0), lower, "alive: the lower id")
+	enemies.damage(lower, 100000, &"tower")
+	assert_eq(TargetQuery.nearest_enemy(enemies, TIE_POINT, 5.0), upper, "the dead one is skipped")
+	enemies.damage(upper, 100000, &"tower")
+	assert_eq(TargetQuery.nearest_enemy(enemies, TIE_POINT, 5.0), -1, "both dead, none left")
+	var result: Array[int] = _compare_enemy_queries(enemies, rng)
+	assert_eq(result[0], 0, "still the reference's answers")
+
+
+func test_the_answers_follow_remove_dead_a_spawn_and_a_step_that_moves_enemies() -> void:
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = WORLD_SEED + 13
+	var enemies: EnemySystem = _enemy_field(rng)
+	var first: Array[int] = _compare_enemy_queries(enemies, rng)
+	assert_eq(first[0], 0, "fresh field")
+	for id: int in enemies.ids():
+		if id % 3 == 0:
+			enemies.damage(id, 100000, &"tower")
+	enemies.remove_dead()
+	var after_removal: Array[int] = _compare_enemy_queries(enemies, rng)
+	assert_eq(after_removal[0], 0, "after remove_dead")
+	enemies.spawn(load(GRUNT_PATH), TIE_POINT)
+	assert_eq(
+		TargetQuery.nearest_enemy(enemies, TIE_POINT, 0.5),
+		enemies.ids()[enemies.count() - 1],
+		"a new enemy is found at once"
+	)
+	var castle: CastleState = CastleState.new(MapConfig.new(), _events)
+	var hits: PendingHits = PendingHits.new()
+	for tick: int in range(1, 31):
+		enemies.step(tick, castle, null, hits)
+	var after_steps: Array[int] = _compare_enemy_queries(enemies, rng)
+	assert_eq(after_steps[0], 0, "after 30 steps moved the field")
+	enemies.clear()
+	assert_eq(TargetQuery.nearest_enemy(enemies, Vector2.ZERO, 50.0), -1, "an empty field")
+
+
+func test_living_within_lists_every_enemy_in_reach_in_ascending_order() -> void:
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = WORLD_SEED + 14
+	var enemies: EnemySystem = _enemy_field(rng)
+	for reach: float in ENEMY_REACHES:
+		for _query: int in range(10):
+			var pos: Vector2 = Vector2(
+				rng.randf_range(-SPREAD, SPREAD), rng.randf_range(-SPREAD, SPREAD)
+			)
+			var listed: PackedInt64Array = enemies.living_within(pos, reach)
+			for index: int in range(1, listed.size()):
+				assert_gt(listed[index], listed[index - 1], "ascending ids")
+			for id: int in enemies.ids():
+				if pos.distance_to(enemies.position_of(id)) <= reach:
+					assert_true(id in listed, "enemy %d in reach %s is a candidate" % [id, reach])

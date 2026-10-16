@@ -46,3 +46,11 @@ static func displacements(
 			displacement[first] -= direction * push
 			displacement[second] += direction * push
 	return displacement
+
+
+static func displacements_bucketed(
+	positions: PackedVector2Array, _radii: PackedFloat64Array, _ids: PackedInt64Array, _cell: float
+) -> PackedVector2Array:
+	var displacement: PackedVector2Array = PackedVector2Array()
+	displacement.resize(positions.size())
+	return displacement

@@ -149,6 +149,14 @@ func step(
 	_separate()
 
 
+func living_within(_pos: Vector2, _reach: float) -> PackedInt64Array:
+	return PackedInt64Array()
+
+
+func read_view() -> CrowdReadView:
+	return CrowdReadView.new()
+
+
 ## Removes dead enemies in ascending id order and emits enemy_died for each.
 func remove_dead() -> void:
 	var dead: Array[int] = []
