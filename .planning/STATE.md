@@ -3,11 +3,11 @@ gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
 status: executing
-stopped_at: Completed 04-03-PLAN.md
-last_updated: "2026-10-16T05:01:28.135Z"
+stopped_at: Completed 04-04-PLAN.md
+last_updated: "2026-10-16T06:04:41.958Z"
 last_activity: 2026-10-16
 last_activity_desc: Phase 04 execution started
-state_head: 22fd473721464895188674243b0ab5464a682267
+state_head: 3a5706eff107d64c8e16c18cf609d8eee5ad3278
 progress:
   total_phases: 13
   completed_phases: 3
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 04 (Crowd-Scale Battles & Walls) — EXECUTING
-Plan: 4 of 11
+Plan: 5 of 11
 Status: Ready to execute
 Last activity: 2026-10-16 — Phase 04 execution started
 
@@ -120,6 +120,7 @@ Progress: [██░░░░░░░░] 23%
 | Phase 04 P01 | 54 min | 2 tasks | 14 files |
 | Phase 04 P02 | 60 min | 3 tasks | 13 files |
 | Phase 04 P03 | 36 min | 2 tasks | 21 files |
+| Phase 04 P04 | 55 min | 2 tasks | 34 files |
 
 ## Accumulated Context
 
@@ -261,6 +262,9 @@ Recent decisions affecting current work:
 - [Phase 04]: [04-02] RESEARCH A2 settled: CI run 38848480353 (lint, test, export, screenshots green) renders the instance shaders and baked meshes on Mesa; unit batches use no material override and no instance colours
 - [Phase 04]: 04-03: StructureIndex (12 m cells), EnemyIndex (8 m cells) and Separation.displacements_bucketed are exact-preserving: reference-copy equivalence tests plus unchanged smoke, army and full_idle digests; step bench 25.6 ms to 8.4-9.2 ms for 300 marching grunts
 - [Phase 04]: 04-03: EnemySystem keeps record storage and exposes read_view() (CrowdReadView) only; UnitViews keeps id reads because UnitSystem is at the 20-method cap
+- [Phase 04]: 04-04: WallSystem is a BuildingSystem sibling that learns of a purchase through building_built; segments keep integer-centimetre geometry, a 4 m bucket grid and global ascending indices; a broken segment stays at 0 through a tier purchase until restore_all at dawn (D-05)
+- [Phase 04]: 04-04: a marching enemy takes its cached castle-line blocker only within aggro_range (a leash-range gate flapped target and clear every tick), and a held target is line-tested again on the enemy's own rescan tick; with no intact segment none of the wall code runs, so smoke, army and full_idle stay byte-identical
+- [Phase 04]: 04-04: one solid rule for everyone through Pathing.push_out (enemies after the push-apart, squads after separate, King after move_and_slide, the bot after each step); it returns its input bit for bit when no segment stands
 
 ### Pending Todos
 
@@ -297,6 +301,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-16T05:01:27.398Z
-Stopped at: Completed 04-03-PLAN.md
+Last session: 2026-10-16T06:04:41.195Z
+Stopped at: Completed 04-04-PLAN.md
 Resume file: None
