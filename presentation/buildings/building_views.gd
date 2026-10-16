@@ -14,8 +14,8 @@ const HOUSE_MARKER_COLOR := Color(0.82, 0.7, 0.48)
 const TOWER_MARKER_COLOR := Color(0.36, 0.44, 0.62)
 ## Plots of military buildings (Barracks, Archery Range): a muted red between the other two.
 const MILITARY_MARKER_COLOR := Color(0.62, 0.3, 0.28)
-## Wall plots (BLDG-10): a stone grey, so the king can tell a wall plot from the others.
-const WALL_MARKER_COLOR := Color(0.55, 0.55, 0.58)
+## Wall plots (BLDG-10): a timber tan, so the king can tell a wall plot from the other kinds.
+const WALL_MARKER_COLOR := Color(0.7, 0.55, 0.35)
 const HOUSE_COLOR := Color(0.78, 0.66, 0.45)
 const TOWER_COLOR := Color(0.42, 0.5, 0.68)
 const KEEP_COLOR := Color(0.55, 0.55, 0.58)

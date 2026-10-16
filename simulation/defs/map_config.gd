@@ -173,6 +173,7 @@ func validate() -> PackedStringArray:
 			errors.append("spot '%s' uses unknown building id '%s'" % [spot.id, spot.building_id])
 	errors.append_array(_validate_night_data())
 	errors.append_array(_validate_squads())
+	errors.append_array(WallValidation.errors(self))
 	return errors
 
 

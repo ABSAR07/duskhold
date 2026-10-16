@@ -26,8 +26,11 @@ static func describe(ctx: RunContext, spot_id: StringName, coins_paid: int) -> D
 		return content
 	var tier: int = ctx.buildings.current_tier(spot_id)
 	var next_tier: BuildingTierDef = building_def.tier_def(tier + 1)
+	var run: WallRunDef = ctx.buildings.get_spot(spot_id).wall_run
 	if next_tier == null:
 		content["title"] = building_def.tier_label(tier)
+		if run != null:
+			content["effect"] = _wall_effect(run, building_def.tier_def(tier))
 		content["max_tier"] = true
 		content["affordable"] = true
 		content["status_line"] = MAX_TIER_TEXT
@@ -35,6 +38,14 @@ static func describe(ctx: RunContext, spot_id: StringName, coins_paid: int) -> D
 	content["title"] = building_def.tier_label(tier + 1)
 	content["cost"] = next_tier.cost
 	content["paid"] = clampi(coins_paid, 0, next_tier.cost)
-	content["effect"] = next_tier.effect_line()
+	content["effect"] = next_tier.effect_line() if run == null else _wall_effect(run, next_tier)
 	content["affordable"] = ctx.economy.can_afford(next_tier.cost) or coins_paid > 0
 	return content
+
+
+## "12 segments, 30 health each": what a wall plot's run is at the given tier. The segment count
+## belongs to the plot's run and the health to the tier, so this lives here, not in effect_line().
+static func _wall_effect(run: WallRunDef, tier: BuildingTierDef) -> String:
+	if tier == null:
+		return ""
+	return "%d segments, %d health each" % [run.segment_count(), tier.max_health]

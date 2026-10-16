@@ -11,6 +11,7 @@ const TOWER_SPOT: StringName = &"tower_1"
 const POOR_SPOT: StringName = &"spot_a"
 const BARRACKS_SPOT: StringName = &"barracks_1"
 const ARCHERY_SPOT: StringName = &"archery_1"
+const WALL_SPOT: StringName = &"wall_west"
 const MAX_TIER_TEXT := "Max tier"
 
 
@@ -135,3 +136,34 @@ func test_the_archery_range_reads_the_same_way_and_a_house_is_untouched() -> voi
 	assert_eq(_describe(ctx, ARCHERY_SPOT).get("effect"), "Squad of 4", "four archers")
 	var house: BuildingDef = ctx.buildings.get_building_def_for_spot(HOUSE_SPOT)
 	assert_eq(_describe(ctx, HOUSE_SPOT).get("effect"), house.tier_def(1).effect_line(), "House")
+
+
+func test_an_empty_wall_plot_names_the_tier_and_the_run() -> void:
+	var ctx: RunContext = _context(PROTOTYPE_MAP, RICH_GOLD)
+	var wall: BuildingDef = ctx.buildings.get_building_def_for_spot(WALL_SPOT)
+	var content: Dictionary = _describe(ctx, WALL_SPOT)
+	assert_eq(content.get("title"), "Wall I", "the title names the barricade tier")
+	assert_eq(content.get("cost"), wall.tier_def(1).cost, "at the tier I price")
+	assert_eq(content.get("effect"), "12 segments, 30 health each", "the run and its health")
+
+
+func test_a_built_wall_offers_the_next_tier_with_its_health() -> void:
+	var ctx: RunContext = _context(PROTOTYPE_MAP, RICH_GOLD)
+	_build(ctx, WALL_SPOT, 1)
+	var content: Dictionary = _describe(ctx, WALL_SPOT)
+	assert_eq(content.get("title"), "Wall II", "tier II is offered")
+	assert_eq(content.get("effect"), "12 segments, 60 health each", "with twice the health")
+
+
+func test_a_wall_at_max_tier_names_its_ninety_health() -> void:
+	var ctx: RunContext = _context(PROTOTYPE_MAP, RICH_GOLD)
+	_build(ctx, WALL_SPOT, 3)
+	var content: Dictionary = _describe(ctx, WALL_SPOT)
+	assert_eq(content.get("title"), "Wall III", "the current tier")
+	assert_eq(content.get("max_tier"), true, "nothing left to buy")
+	assert_eq(content.get("effect"), "12 segments, 90 health each", "and 90 health")
+
+
+func test_the_ring_plot_counts_sixteen_segments() -> void:
+	var ctx: RunContext = _context(PROTOTYPE_MAP, RICH_GOLD)
+	assert_eq(_describe(ctx, &"wall_ring").get("effect"), "16 segments, 30 health each", "ring")

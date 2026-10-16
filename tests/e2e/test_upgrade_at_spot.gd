@@ -85,13 +85,22 @@ func test_markers_are_colour_coded_by_building_type() -> void:
 	for spot_id: StringName in ctx.buildings.spot_ids():
 		var color: Color = _marker_color(map_root, spot_id)
 		var building: BuildingDef = ctx.buildings.get_building_def_for_spot(spot_id)
-		var kind: StringName = &"military" if building.unit_id != &"" else building.id
+		# D-06 (plan 04-05): a wall plot is told by its run, not by its building's id.
+		var is_wall: bool = ctx.buildings.get_spot(spot_id).wall_run != null
+		var kind: StringName = &"wall" if is_wall else building.id
+		if building.unit_id != &"":
+			kind = &"military"
 		if colors.has(kind):
 			assert_eq(color, colors[kind], "%s matches the other %s plots" % [spot_id, kind])
 		colors[kind] = color
 	assert_true(colors.has(&"house") and colors.has(&"tower"), "both Phase 1 kinds are present")
 	assert_true(colors.has(&"military"), "the military plots are present")
-	assert_eq(colors.size(), 3, "three kinds of plot")
+	assert_true(colors.has(&"wall"), "the wall plots are present")
+	assert_eq(colors.size(), 4, "four kinds of plot")
+	assert_ne(colors[&"wall"], colors[&"house"], "wall plots differ from House plots")
+	assert_ne(colors[&"wall"], colors[&"tower"], "from tower plots")
+	assert_ne(colors[&"wall"], colors[&"military"], "and from military plots")
+	assert_eq(colors[&"wall"], BuildingViews.WALL_MARKER_COLOR, "and wear the wall colour")
 	assert_ne(colors[&"house"], colors[&"tower"], "House and tower plots read differently")
 	assert_ne(colors[&"military"], colors[&"house"], "military plots differ from House plots")
 	assert_ne(colors[&"military"], colors[&"tower"], "and from tower plots")

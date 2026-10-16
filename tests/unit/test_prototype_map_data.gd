@@ -83,6 +83,9 @@ func test_the_first_eight_spots_are_unchanged_and_military_plots_come_after() ->
 	assert_eq(_spot_count_for(map, &"tower"), TOWER_SPOT_COUNT, "3 tower plots")
 	assert_gt(map.spots.size(), original.size(), "military plots were appended")
 	for index: int in range(original.size(), map.spots.size()):
+		# D-06 (plan 04-05): the wall plots follow the military ones and field no unit.
+		if map.spots[index].wall_run != null:
+			continue
 		var building: BuildingDef = _building(map, map.spots[index].building_id)
 		assert_not_null(building, "%s has a building def" % map.spots[index].id)
 		assert_ne(building.unit_id, &"", "%s fields a unit" % map.spots[index].id)

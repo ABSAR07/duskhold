@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="MapConfig" load_steps=68 format=3]
+[gd_resource type="Resource" script_class="MapConfig" load_steps=78 format=3]
 
 [ext_resource type="Script" path="res://simulation/defs/map_config.gd" id="1_map"]
 [ext_resource type="Script" path="res://simulation/defs/build_spot_def.gd" id="2_spot"]
@@ -16,6 +16,8 @@
 [ext_resource type="Resource" path="res://data/buildings/barracks.tres" id="14_barracks"]
 [ext_resource type="Resource" path="res://data/units/archer.tres" id="15_archer"]
 [ext_resource type="Resource" path="res://data/buildings/archery_range.tres" id="16_archery"]
+[ext_resource type="Script" path="res://simulation/walls/wall_run_def.gd" id="17_wallrun"]
+[ext_resource type="Resource" path="res://data/buildings/wall.tres" id="18_wall"]
 
 [sub_resource type="Resource" id="Resource_house_1"]
 script = ExtResource("2_spot")
@@ -76,6 +78,62 @@ script = ExtResource("2_spot")
 id = &"archery_1"
 position = Vector3(16, 0, -2)
 building_id = &"archery_range"
+
+[sub_resource type="Resource" id="Resource_run_wall_west"]
+script = ExtResource("17_wallrun")
+points = PackedVector2Array(-54, 38.79, -66.3, 4.96)
+segment_length = 3.0
+gaps = PackedVector2Array(16, 20)
+half_thickness = 0.4
+
+[sub_resource type="Resource" id="Resource_wall_west"]
+script = ExtResource("2_spot")
+id = &"wall_west"
+position = Vector3(-58.27, 0, 21.19)
+building_id = &"wall"
+wall_run = SubResource("Resource_run_wall_west")
+
+[sub_resource type="Resource" id="Resource_run_wall_east"]
+script = ExtResource("17_wallrun")
+points = PackedVector2Array(54, 38.79, 66.3, 4.96)
+segment_length = 3.0
+gaps = PackedVector2Array(16, 20)
+half_thickness = 0.4
+
+[sub_resource type="Resource" id="Resource_wall_east"]
+script = ExtResource("2_spot")
+id = &"wall_east"
+position = Vector3(58.27, 0, 21.19)
+building_id = &"wall"
+wall_run = SubResource("Resource_run_wall_east")
+
+[sub_resource type="Resource" id="Resource_run_wall_north"]
+script = ExtResource("17_wallrun")
+points = PackedVector2Array(-18, -60.5, 18, -60.5)
+segment_length = 3.0
+gaps = PackedVector2Array(16, 20)
+half_thickness = 0.4
+
+[sub_resource type="Resource" id="Resource_wall_north"]
+script = ExtResource("2_spot")
+id = &"wall_north"
+position = Vector3(0, 0, -58.5)
+building_id = &"wall"
+wall_run = SubResource("Resource_run_wall_north")
+
+[sub_resource type="Resource" id="Resource_run_wall_ring"]
+script = ExtResource("17_wallrun")
+points = PackedVector2Array(0, 9, -3.44, 8.31, -6.36, 6.36, -8.31, 3.44, -9, 0, -8.31, -3.44, -6.36, -6.36, -3.44, -8.31, 0, -9, 3.44, -8.31, 6.36, -6.36, 8.31, -3.44, 9, 0, 8.31, 3.44, 6.36, 6.36, 3.44, 8.31, 0, 9)
+segment_length = 3.0
+gaps = PackedVector2Array(8.93, 12.93, 26.08, 30.08, 43.23, 47.23)
+half_thickness = 0.4
+
+[sub_resource type="Resource" id="Resource_wall_ring"]
+script = ExtResource("2_spot")
+id = &"wall_ring"
+position = Vector3(0, 0, -6.5)
+building_id = &"wall"
+wall_run = SubResource("Resource_run_wall_ring")
 
 [sub_resource type="Resource" id="Resource_spawn_west"]
 script = ExtResource("6_spawn")
@@ -371,8 +429,8 @@ starting_gold = 4
 base_dawn_income = 1
 king_spawn = Vector3(0, 0, 7)
 castle_position = Vector3(0, 0, 0)
-buildings = Array[ExtResource("3_bdef")]([ExtResource("4_house"), ExtResource("5_tower"), ExtResource("14_barracks"), ExtResource("16_archery")])
-spots = Array[ExtResource("2_spot")]([SubResource("Resource_house_1"), SubResource("Resource_house_2"), SubResource("Resource_house_3"), SubResource("Resource_house_4"), SubResource("Resource_house_5"), SubResource("Resource_tower_1"), SubResource("Resource_tower_2"), SubResource("Resource_tower_3"), SubResource("Resource_barracks_1"), SubResource("Resource_archery_1")])
+buildings = Array[ExtResource("3_bdef")]([ExtResource("4_house"), ExtResource("5_tower"), ExtResource("14_barracks"), ExtResource("16_archery"), ExtResource("18_wall")])
+spots = Array[ExtResource("2_spot")]([SubResource("Resource_house_1"), SubResource("Resource_house_2"), SubResource("Resource_house_3"), SubResource("Resource_house_4"), SubResource("Resource_house_5"), SubResource("Resource_tower_1"), SubResource("Resource_tower_2"), SubResource("Resource_tower_3"), SubResource("Resource_barracks_1"), SubResource("Resource_archery_1"), SubResource("Resource_wall_west"), SubResource("Resource_wall_east"), SubResource("Resource_wall_north"), SubResource("Resource_wall_ring")])
 enemies = Array[ExtResource("9_enemy")]([ExtResource("10_grunt"), ExtResource("11_ranged")])
 units = Array[ExtResource("12_unit")]([ExtResource("13_footman"), ExtResource("15_archer")])
 spawn_points = Array[ExtResource("6_spawn")]([SubResource("Resource_spawn_west"), SubResource("Resource_spawn_east"), SubResource("Resource_spawn_north")])
