@@ -60,6 +60,11 @@ static func arc_height(t: float, distance: float) -> float:
 	return 4.0 * t * (1.0 - t) * peak
 
 
+## RED stub: replaced by the real arrow pose in the GREEN commit.
+static func arrow_transform(_origin: Vector3, _target: Vector3, _t: float) -> Transform3D:
+	return Transform3D.IDENTITY
+
+
 func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 	if _ctx != null:
 		return
@@ -74,6 +79,21 @@ func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 ## Arrows in the air. Test hook, read-only.
 func live_count() -> int:
 	return _flights.size()
+
+
+## RED stub: arrows drawn by the latest frame.
+func arrow_count() -> int:
+	return 0
+
+
+## RED stub: the colour of arrow `index`.
+func arrow_color_at(_index: int) -> Color:
+	return Color.WHITE
+
+
+## RED stub: where arrow `index` left from.
+func arrow_launch_at(_index: int) -> Vector3:
+	return Vector3.ZERO
 
 
 ## Slashes showing. Test hook, read-only.

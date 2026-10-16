@@ -1,8 +1,10 @@
 extends GutTest
-## KING-03 and D-13 on the real scene: every tower and skirmisher shot shows a projectile that
-## flies for exactly the simulation's flight time and the king's passive strike shows a slash. The
-## fixture map has a House and a Tower; its grunts walk past the tower. Events the simulation does
-## not produce on its own are emitted by the test.
+## KING-03, D-13 and PLAT-01 on the real scene: every tower and skirmisher shot flies as one
+## instance of the arrow batch for exactly the simulation's flight time, tinted by who fired it,
+## and the king's passive strike shows a slash. The fixture map has a House and a Tower; its grunts
+## walk past the tower. Events the simulation does not produce on its own are emitted by the test.
+## Arrows are read from the vfx's CPU mirror because the headless renderer reads a MultiMesh back as
+## zeros (RESEARCH F6).
 
 const FIXTURE := "res://tests/fixtures/fixture_map_one_night.tres"
 const TOWER_SPOT: StringName = &"tower_1"
@@ -14,7 +16,8 @@ const FIRST_SHOT_TIMEOUT_S: float = 12.0
 ## Real-time slack on top of a projectile's flight, and the longest a slash may last.
 const FLIGHT_SLACK_S: float = 0.2
 const SLASH_LIFETIME_S: float = 0.3
-const FLOOD_SHOTS: int = 200
+## More shots than the ring holds, all in one burst.
+const FLOOD_SHOTS: int = ProjectileVfx.MAX_PROJECTILES + 88
 const FLOOD_FLIGHT_TICKS: int = 30
 const PUPPET_AT := Vector2(5.0, 5.0)
 const COLOR_EPSILON: float = 0.001
@@ -52,7 +55,13 @@ func _start_night(map_root: MapRoot) -> void:
 	assert_eq(result, CommandProcessor.OK, "the night starts")
 
 
-func test_a_tower_shot_shows_a_projectile_that_lives_exactly_its_flight() -> void:
+func _assert_color(actual: Color, expected: Color, label: String) -> void:
+	assert_almost_eq(actual.r, expected.r, COLOR_EPSILON, "%s r" % label)
+	assert_almost_eq(actual.g, expected.g, COLOR_EPSILON, "%s g" % label)
+	assert_almost_eq(actual.b, expected.b, COLOR_EPSILON, "%s b" % label)
+
+
+func test_a_tower_shot_shows_an_arrow_that_lives_exactly_its_flight() -> void:
 	var map_root: MapRoot = await _spawn_map(_fixture_copy(), KING_AWAY)
 	var ctx: RunContext = map_root.get_context()
 	var vfx: ProjectileVfx = _vfx(map_root)
@@ -71,12 +80,16 @@ func test_a_tower_shot_shows_a_projectile_that_lives_exactly_its_flight() -> voi
 	var fired: Callable = func() -> bool: return shot["flight"] >= 0
 	assert_true(await E2eSupport.wait_until(self, fired, FIRST_SHOT_TIMEOUT_S), "the tower shot")
 	assert_gt(shot["flight"], 0, "an arrow takes time to fly")
-	assert_gte(shot["live_at_fire"], 1, "the projectile exists the moment the shot is fired")
+	assert_gte(shot["live_at_fire"], 1, "the arrow exists the moment the shot is fired")
 	await wait_process_frames(1)
 	assert_gte(vfx.live_count(), 1, "and is still in the air a frame later")
+	assert_gte(vfx.arrow_count(), 1, "and drawn")
+	_assert_color(vfx.arrow_color_at(0), ProjectileVfx.TOWER_COLOR, "a tower arrow is gold")
 	var gone: Callable = func() -> bool: return vfx.live_count() == 0
 	var window_s: float = ProjectileVfx.flight_seconds(shot["flight"]) + FLIGHT_SLACK_S
 	assert_true(await E2eSupport.wait_until(self, gone, window_s), "freed within flight + 0.2 s")
+	await wait_process_frames(2)
+	assert_eq(vfx.arrow_count(), 0, "and then nothing is drawn")
 
 
 func test_a_skirmisher_shot_flies_as_a_violet_arrow() -> void:
@@ -90,14 +103,9 @@ func test_a_skirmisher_shot_flies_as_a_violet_arrow() -> void:
 	var id: int = ctx.night.get_enemies().spawn(def, PUPPET_AT)
 	ctx.events.attack_fired.emit(&"enemy", id, &"building", 0, FLOOD_FLIGHT_TICKS)
 	assert_eq(vfx.live_count(), 1, "one projectile for one shot")
-	var arrows: Array[Node] = vfx.find_children("*", "MeshInstance3D", true, false)
-	assert_eq(arrows.size(), 1, "one arrow mesh")
-	if arrows.is_empty():
-		return
-	var material: StandardMaterial3D = (arrows[0] as MeshInstance3D).mesh.material
-	assert_almost_eq(material.albedo_color.r, ProjectileVfx.SKIRMISHER_COLOR.r, COLOR_EPSILON, "r")
-	assert_almost_eq(material.albedo_color.g, ProjectileVfx.SKIRMISHER_COLOR.g, COLOR_EPSILON, "g")
-	assert_almost_eq(material.albedo_color.b, ProjectileVfx.SKIRMISHER_COLOR.b, COLOR_EPSILON, "b")
+	await wait_process_frames(1)
+	assert_eq(vfx.arrow_count(), 1, "one arrow drawn")
+	_assert_color(vfx.arrow_color_at(0), ProjectileVfx.SKIRMISHER_COLOR, "a skirmisher arrow")
 
 
 func test_a_castle_shot_flies_as_a_gold_arrow_from_the_keep() -> void:
@@ -110,27 +118,20 @@ func test_a_castle_shot_flies_as_a_gold_arrow_from_the_keep() -> void:
 	var id: int = ctx.night.get_enemies().spawn(ctx.map.find_enemy(&"grunt"), PUPPET_AT)
 	ctx.events.attack_fired.emit(&"castle", 0, &"enemy", id, FLOOD_FLIGHT_TICKS)
 	assert_eq(vfx.live_count(), 1, "one projectile for one castle shot")
-	var arrows: Array[Node] = vfx.find_children("*", "MeshInstance3D", true, false)
-	assert_eq(arrows.size(), 1, "one arrow mesh")
-	if arrows.is_empty():
-		return
-	var arrow: MeshInstance3D = arrows[0] as MeshInstance3D
-	var material: StandardMaterial3D = arrow.mesh.material
-	assert_almost_eq(material.albedo_color.r, ProjectileVfx.TOWER_COLOR.r, COLOR_EPSILON, "r")
-	assert_almost_eq(material.albedo_color.g, ProjectileVfx.TOWER_COLOR.g, COLOR_EPSILON, "g")
-	assert_almost_eq(material.albedo_color.b, ProjectileVfx.TOWER_COLOR.b, COLOR_EPSILON, "b")
+	await wait_process_frames(1)
+	assert_eq(vfx.arrow_count(), 1, "one arrow drawn")
+	_assert_color(vfx.arrow_color_at(0), ProjectileVfx.TOWER_COLOR, "a castle arrow is gold")
 	var castle: Vector2 = ctx.castle.get_position()
-	assert_almost_eq(arrow.global_position.x, castle.x, COLOR_EPSILON, "starts over the castle x")
-	assert_almost_eq(arrow.global_position.z, castle.y, COLOR_EPSILON, "starts over the castle z")
-	assert_almost_eq(
-		arrow.global_position.y, KEEP_TOP, COLOR_EPSILON, "starts at the top of the keep"
-	)
+	var launch: Vector3 = vfx.arrow_launch_at(0)
+	assert_almost_eq(launch.x, castle.x, COLOR_EPSILON, "starts over the castle x")
+	assert_almost_eq(launch.z, castle.y, COLOR_EPSILON, "starts over the castle z")
+	assert_almost_eq(launch.y, KEEP_TOP, COLOR_EPSILON, "starts at the top of the keep")
 	var gone: Callable = func() -> bool: return vfx.live_count() == 0
 	var window_s: float = ProjectileVfx.flight_seconds(FLOOD_FLIGHT_TICKS) + FLIGHT_SLACK_S
 	assert_true(await E2eSupport.wait_until(self, gone, window_s), "freed after its flight")
 
 
-func test_a_flood_of_shots_never_passes_the_cap_and_all_of_them_free_themselves() -> void:
+func test_a_flood_of_shots_never_passes_the_cap_and_all_of_them_drain() -> void:
 	var map_root: MapRoot = await _spawn_map(_fixture_copy(), KING_AWAY)
 	var vfx: ProjectileVfx = _vfx(map_root)
 	assert_not_null(vfx, "the scene has a ProjectileVfx")
@@ -141,9 +142,15 @@ func test_a_flood_of_shots_never_passes_the_cap_and_all_of_them_free_themselves(
 		events.attack_fired.emit(&"building", 0, &"enemy", 1, FLOOD_FLIGHT_TICKS)
 		assert_lte(vfx.live_count(), ProjectileVfx.MAX_PROJECTILES, "never above the cap")
 	assert_eq(vfx.live_count(), ProjectileVfx.MAX_PROJECTILES, "the cap is reached and held")
+	await wait_process_frames(1)
+	assert_eq(vfx.arrow_count(), ProjectileVfx.MAX_PROJECTILES, "512 arrows drawn, no more")
 	var gone: Callable = func() -> bool: return vfx.live_count() == 0
 	var window_s: float = ProjectileVfx.flight_seconds(FLOOD_FLIGHT_TICKS) + FLIGHT_SLACK_S
-	assert_true(await E2eSupport.wait_until(self, gone, window_s), "every projectile frees itself")
+	assert_true(await E2eSupport.wait_until(self, gone, window_s), "every arrow lands and frees")
+	await wait_process_frames(2)
+	assert_eq(vfx.arrow_count(), 0, "and the batch is empty again")
+	events.attack_fired.emit(&"building", 0, &"enemy", 1, FLOOD_FLIGHT_TICKS)
+	assert_eq(vfx.live_count(), 1, "a shot after the drain flies again")
 
 
 func test_the_kings_passive_attack_shows_a_slash_that_frees_itself() -> void:
