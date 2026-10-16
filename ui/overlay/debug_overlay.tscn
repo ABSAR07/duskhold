@@ -22,8 +22,21 @@ offset_bottom = 52.0
 grow_horizontal = 0
 mouse_filter = 2
 
-[node name="OverlayText" type="Label" parent="Panel"]
+[node name="Columns" type="HBoxContainer" parent="Panel"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 16
+
+[node name="OverlayText" type="Label" parent="Panel/Columns"]
 unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_fonts/font = SubResource("SystemFont_mono")
+theme_override_font_sizes/font_size = 16
+
+[node name="OverlayTextRight" type="Label" parent="Panel/Columns"]
+unique_name_in_owner = true
+visible = false
 layout_mode = 2
 mouse_filter = 2
 theme_override_fonts/font = SubResource("SystemFont_mono")

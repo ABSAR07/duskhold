@@ -24,6 +24,7 @@ var _last_frame_usec: int = 0
 var _pending: Array[Dictionary] = []
 
 @onready var _text: Label = %OverlayText
+@onready var _text_right: Label = %OverlayTextRight
 
 
 ## Builds the model once. A repeat call is ignored (as in Hud.bind_run): a second model would
@@ -52,11 +53,12 @@ func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
 			continue
 		_model.register_section(entry["title"], entry["provider"], lifetime_owner)
 	_pending.clear()
-	# The night and squad sections come after the defaults and every section registered before the
-	# bind, so earlier registrations keep their place. `map_root` is null for a bare overlay (no
+	# The night, squad and crowd sections come after the defaults and every section registered before
+	# the bind, so earlier registrations keep their place. `map_root` is null for a bare overlay (no
 	# gizmo then).
 	NightOverlaySections.register(self, ctx, map_root)
 	SquadOverlaySections.register(self, ctx, map_root)
+	CrowdOverlaySections.register(self, ctx, map_root)
 	# Toggled on before this bind, _refresh() found no model and left the label empty; fill it now
 	# rather than showing nothing until the next refresh tick.
 	if visible and _text != null:
@@ -101,9 +103,14 @@ func is_overlay_visible() -> bool:
 	return visible
 
 
-## The overlay's current text, or "" before it has entered the tree (the label is @onready).
+## The overlay's current text, both columns in reading order, or "" before it has entered the tree
+## (the labels are @onready).
 func get_text() -> String:
-	return _text.text if _text != null else ""
+	if _text == null:
+		return ""
+	if _text_right == null or _text_right.text.is_empty():
+		return _text.text
+	return _text.text + "\n" + _text_right.text
 
 
 func _ready() -> void:
@@ -138,9 +145,24 @@ func _refresh() -> void:
 	_since_refresh = 0.0
 	if _model == null:
 		return
-	var lines: PackedStringArray = []
+	var blocks: Array[PackedStringArray] = []
+	var total: int = 0
 	for section: Dictionary in _model.collect(Engine.get_frames_per_second()):
-		lines.append(section["title"])
+		var block: PackedStringArray = PackedStringArray([section["title"]])
 		for row: Array in section["rows"]:
-			lines.append("  %s: %s" % [row[0], row[1]])
-	_text.text = "\n".join(lines)
+			block.append("  %s: %s" % [row[0], row[1]])
+		blocks.append(block)
+		total += block.size()
+	# Whole sections fill the left column until it holds half the lines, the rest go right, so the
+	# many sections of a crowd night still fit a 720 px window.
+	var half: int = ceili(float(total) / 2.0)
+	var left: PackedStringArray = PackedStringArray()
+	var right: PackedStringArray = PackedStringArray()
+	for block: PackedStringArray in blocks:
+		if left.size() < half:
+			left.append_array(block)
+		else:
+			right.append_array(block)
+	_text.text = "\n".join(left)
+	_text_right.text = "\n".join(right)
+	_text_right.visible = not right.is_empty()

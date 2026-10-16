@@ -13,8 +13,10 @@ const BUILDING_COLOR := Color(0.35, 0.75, 1.0, 1.0)
 const UNIT_COLOR := Color(0.45, 1.0, 0.55, 1.0)
 ## An enemy that heads for a wall segment standing in its way (D-07).
 const WALL_COLOR := Color(1.0, 0.6, 0.2, 1.0)
-## RED stub.
+## An enemy that has made no progress toward the castle for stuck_seconds (D-09): a vertical post.
 const STUCK_COLOR := Color(1.0, 0.2, 0.9, 1.0)
+## How tall the post over a stuck enemy stands, in metres.
+const STUCK_HEIGHT: float = 2.2
 ## Lines float a little above the ground so they are not lost in it.
 const LINE_HEIGHT: float = 0.4
 
@@ -23,6 +25,7 @@ var _overlay: DebugOverlay
 var _mesh: ImmediateMesh = ImmediateMesh.new()
 var _material: StandardMaterial3D = StandardMaterial3D.new()
 var _lines: int = 0
+var _stuck_markers: int = 0
 
 
 func _init() -> void:
@@ -51,9 +54,9 @@ func _process(_delta: float) -> void:
 	refresh()
 
 
-## RED stub.
+## Stuck-enemy posts drawn at the last refresh; 0 while hidden.
 func stuck_marker_count() -> int:
-	return 0
+	return _stuck_markers
 
 
 ## Lines drawn at the last refresh; 0 while hidden.
@@ -66,6 +69,7 @@ func line_count() -> int:
 func refresh() -> void:
 	_mesh.clear_surfaces()
 	_lines = 0
+	_stuck_markers = 0
 	var show_lines: bool = (
 		_ctx != null
 		and _overlay != null
@@ -121,7 +125,24 @@ func _segments() -> Array[Dictionary]:
 				}
 			)
 		)
+	segments.append_array(_stuck_posts(enemies))
 	return segments
+
+
+## A vertical post over every living enemy the stuck tracker flags, in id order. Reads the tracker
+## only; it never asks for a field or changes a flag.
+func _stuck_posts(enemies: EnemySystem) -> Array[Dictionary]:
+	var posts: Array[Dictionary] = []
+	var tracker: StuckTracker = _ctx.night.get_pathing().stuck()
+	for id: int in enemies.ids():
+		if not enemies.is_alive(id) or not tracker.is_stuck(id):
+			continue
+		var foot: Vector3 = _lifted(enemies.position_of(id))
+		posts.append(
+			{"from": foot, "to": foot + Vector3(0.0, STUCK_HEIGHT, 0.0), "color": STUCK_COLOR}
+		)
+	_stuck_markers = posts.size()
+	return posts
 
 
 func _target_position(target: Dictionary, from: Vector2 = Vector2.ZERO) -> Vector2:

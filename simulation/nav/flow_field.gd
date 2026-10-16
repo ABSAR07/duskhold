@@ -31,6 +31,7 @@ var _dir_y: PackedFloat32Array = PackedFloat32Array()
 var _stamp: PackedInt32Array = PackedInt32Array()
 var _generation: int = 0
 var _built_version: int = -1
+var _reached: int = -1
 var _goal: Vector2 = Vector2.ZERO
 var _offsets: PackedInt32Array = PackedInt32Array()
 var _steps: PackedInt32Array = PackedInt32Array([10, 10, 10, 10, 14, 14, 14, 14])
@@ -49,6 +50,7 @@ func build(grid: NavGrid, goal: Vector2, goal_radius: float, margin: float) -> v
 	_grid = grid
 	_goal = goal
 	_built_version = grid.version()
+	_reached = -1
 	var width: int = grid.width()
 	var count: int = width * grid.height()
 	_cost.resize(count)
@@ -129,9 +131,15 @@ func direction_at(pos: Vector2) -> Vector2:
 	return blended / sqrt(squared)
 
 
-## RED stub.
+## How many open cells the last build reached (cost below INF_COST), the goal cells included.
+## Blocked cells and the border are never reached. Read-only: counted once per build, on first ask.
 func reached_count() -> int:
-	return 0
+	if _reached < 0:
+		_reached = 0
+		for cost: int in _cost:
+			if cost < INF_COST:
+				_reached += 1
+	return _reached
 
 
 ## The cost array, for tests that compare two builds.

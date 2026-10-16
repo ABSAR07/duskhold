@@ -83,9 +83,10 @@ const CMD_BOX_SELECT := &"cmd_box_select"
 const CMD_MOVE_PING := &"cmd_move_ping"
 const CMD_PATROL := &"cmd_patrol"
 const CMD_SLAM := &"cmd_slam"
-## The two Phase 4 shots (plan 04-05); their scenes live in ShotCrowdScenarios.
+## The three Phase 4 shots (plans 04-05 and 04-08); their scenes live in ShotCrowdScenarios.
 const WALLS_DAY := &"walls_day"
 const WALLS_NIGHT_BREACH := &"walls_night_breach"
+const OVERLAY_FIELD_GATE := &"overlay_field_gate"
 const ARMY_SHOTS: Array[StringName] = [
 	HUD_DAY_SQUADS,
 	HUD_NIGHT_SQUAD_DOWN,
@@ -141,7 +142,8 @@ const ALL_SHOTS: Array[StringName] = [
 	CMD_PATROL,
 	CMD_SLAM,
 	WALLS_DAY,
-	WALLS_NIGHT_BREACH
+	WALLS_NIGHT_BREACH,
+	OVERLAY_FIELD_GATE
 ]
 
 
