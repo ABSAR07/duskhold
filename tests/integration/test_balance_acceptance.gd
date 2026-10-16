@@ -33,6 +33,18 @@ extends GutTest
 ##     TOWERS_FIRST_MIN_NIGHTS_SURVIVED 6, a finding for the owner: no tower nerf that moved the
 ##     balanced bot to 7 or 8 wins (and the squads to the bar) left the pure tower opening a win.
 
+##
+## Plan 04-10 (D-14, D-15, Phase 4) added the wall runs. The Phase 3 pins above now live on the two
+## no-walls twins, balanced_no_walls and army_balanced_no_walls, whose orders are the Phase 3
+## orders: measured on the Phase 4 code they give the Phase 3 results seed for seed
+## (balanced_no_walls 8 of 10, seeds 3 and 9 lost, first loss night 3; army_balanced_no_walls 8 of
+## 10, seeds 1 and 9 lost, squad_value_ratio 0.915). `balanced` and `army_balanced` now buy the
+## four wall runs. Their first order (each road run right after its tower) won 4 and 2 of 10, so
+## the D-15 ladder moved the wall entries later (04-BALANCE-REPORT.md has the search log); the
+## shipped orders win 8 of 10 each and lose exactly the twins seeds (3 and 9; 1 and 9), with a
+## squad_value_ratio of 0.888 for the army bot. No night count, wall cost or other data moved.
+## greedy economy, no_build and towers_first are unchanged.
+
 const SEEDS: Array[int] = [1, 2, 3]
 ## The balanced bot is measured on ten seeds (owner decision 2026-10-07: it loses 2 or 3 of 10).
 const BALANCED_SEEDS: Array[int] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
@@ -58,6 +70,11 @@ const SQUAD_VALUE_BAR: float = 0.8  # provisional, owner-set (confirmed 2026-10-
 ## night 8, seed 9 on night 3.
 const BALANCED_LOST_SEEDS: Array[int] = [3, 9]
 const BALANCED_FIRST_LOSS_NIGHT: int = 3
+## Plan 04-10: the balanced bot with the wall runs loses the same two seeds, and the army bot with
+## them the same two as without (the army twin's lost seeds are pinned beside its win count).
+const BALANCED_WALLS_LOST_SEEDS: Array[int] = [3, 9]
+const ARMY_BALANCED_LOST_SEEDS: Array[int] = [1, 9]
+const ARMY_BALANCED_WALLS_LOST_SEEDS: Array[int] = [1, 9]
 const GRUNT_PATH := "res://data/enemies/grunt.tres"
 const GRUNT_MAX_HEALTH: int = 6
 ## Greedy economy must lose on a night from 3 to 5 (D-10: around the middle nights; the last was
@@ -75,6 +92,7 @@ const TOWERS_FIRST_MIN_NIGHTS_SURVIVED: int = 6
 var _report: Dictionary = {}
 var _balanced_report: Dictionary = {}
 var _army_report: Dictionary = {}
+var _twin_report: Dictionary = {}
 
 
 func before_all() -> void:
@@ -82,6 +100,8 @@ func before_all() -> void:
 	_report = BalanceReport.run(strategies, SEEDS)
 	_balanced_report = BalanceReport.run([&"balanced"] as Array[StringName], BALANCED_SEEDS)
 	_army_report = BalanceReport.run([&"army_balanced"] as Array[StringName], ARMY_BALANCED_SEEDS)
+	var twins: Array[StringName] = [&"balanced_no_walls", &"army_balanced_no_walls"]
+	_twin_report = BalanceReport.run(twins, BALANCED_SEEDS)
 
 
 func _runs_of(strategy: StringName) -> Array:
@@ -91,55 +111,82 @@ func _runs_of(strategy: StringName) -> Array:
 		source = _balanced_report
 	elif strategy == &"army_balanced":
 		source = _army_report
+	elif strategy == &"balanced_no_walls" or strategy == &"army_balanced_no_walls":
+		source = _twin_report
 	for entry: Dictionary in source.get("runs", []):
 		if entry["strategy"] == str(strategy):
 			matching.append(entry)
 	return matching
 
 
-func _lost_balanced_runs() -> Array:
+func _lost_runs(strategy: StringName) -> Array:
 	var lost: Array = []
-	for entry: Dictionary in _runs_of(&"balanced"):
+	for entry: Dictionary in _runs_of(strategy):
 		if entry["outcome"] == BalanceReport.OUTCOME_LOST:
 			lost.append(entry)
 	return lost
 
 
+func _lost_seeds(strategy: StringName) -> Array[int]:
+	var seeds: Array[int] = []
+	for entry: Dictionary in _lost_runs(strategy):
+		seeds.append(int(entry["seed"]))
+	seeds.sort()
+	return seeds
+
+
 func test_the_matrix_ran_every_strategy_on_every_seed() -> void:
 	assert_eq(_runs_of(&"balanced").size(), BALANCED_SEEDS.size(), "balanced ran all ten seeds")
+	for twin: StringName in [&"balanced_no_walls", &"army_balanced_no_walls"]:
+		assert_eq(_runs_of(twin).size(), BALANCED_SEEDS.size(), "%s ran all ten seeds" % twin)
 	for strategy: StringName in [&"greedy_economy", &"no_build", &"towers_first"]:
 		assert_eq(_runs_of(strategy).size(), SEEDS.size(), "%s ran every seed" % strategy)
 
 
-func test_balanced_wins_every_seed_it_is_not_pinned_to_lose() -> void:
+func test_balanced_no_walls_wins_every_seed_it_is_not_pinned_to_lose() -> void:
 	var wins: int = 0
-	for entry: Dictionary in _runs_of(&"balanced"):
+	for entry: Dictionary in _runs_of(&"balanced_no_walls"):
 		if not BALANCED_LOST_SEEDS.has(int(entry["seed"])):
 			assert_eq(
 				entry["outcome"],
 				BalanceReport.OUTCOME_WON,
-				"balanced seed %d is won" % entry["seed"]
+				"balanced_no_walls seed %d is won" % entry["seed"]
 			)
 			wins += 1
 	assert_eq(
 		wins,
 		BALANCED_SEEDS.size() - BALANCED_LOST_SEEDS.size(),
-		"the balanced bot wins 8 of 10 (9 before Round 2, 8 before D-20 regeneration)"
+		"the Phase 3 balanced order still wins 8 of 10 (9 before Round 2)"
 	)
 
 
-func test_balanced_loses_only_seeds_three_and_nine_and_never_before_night_three() -> void:
-	var lost_seeds: Array[int] = []
-	for entry: Dictionary in _lost_balanced_runs():
-		lost_seeds.append(int(entry["seed"]))
+func test_balanced_no_walls_loses_only_seeds_three_and_nine_and_never_before_night_three() -> void:
+	for entry: Dictionary in _lost_runs(&"balanced_no_walls"):
 		var loss_night: int = int(entry["nights_survived"]) + 1
 		assert_gte(
 			loss_night,
 			BALANCED_FIRST_LOSS_NIGHT,
+			"balanced_no_walls seed %d is lost on night 3 or later" % entry["seed"]
+		)
+	assert_eq(
+		_lost_seeds(&"balanced_no_walls"),
+		BALANCED_LOST_SEEDS,
+		"the Phase 3 losses are exactly seeds 3 and 9"
+	)
+
+
+func test_balanced_with_walls_loses_the_same_two_seeds() -> void:
+	assert_eq(
+		_lost_seeds(&"balanced"),
+		BALANCED_WALLS_LOST_SEEDS,
+		"D-14 same outcomes: walls change no seed of the balanced bot"
+	)
+	for entry: Dictionary in _lost_runs(&"balanced"):
+		assert_gte(
+			int(entry["nights_survived"]) + 1,
+			BALANCED_FIRST_LOSS_NIGHT,
 			"balanced seed %d is lost on night 3 or later" % entry["seed"]
 		)
-	lost_seeds.sort()
-	assert_eq(lost_seeds, BALANCED_LOST_SEEDS, "the balanced losses are exactly seeds 3 and 9")
 
 
 func test_the_army_bot_ran_every_seed() -> void:
@@ -147,6 +194,7 @@ func test_the_army_bot_ran_every_seed() -> void:
 
 
 func test_the_army_building_bot_wins_seven_or_eight_of_ten_seeds() -> void:
+	## D-15 / Phase 2 bar with the wall runs bought: 7 or 8 of seeds 1 to 10.
 	var wins: int = 0
 	var lost_seeds: Array[int] = []
 	for entry: Dictionary in _runs_of(&"army_balanced"):
@@ -160,6 +208,37 @@ func test_the_army_building_bot_wins_seven_or_eight_of_ten_seeds() -> void:
 		ARMY_BALANCED_MAX_WINS,
 		"army_balanced wins 7 or 8 of 10 (lost seeds %s)" % [lost_seeds]
 	)
+	assert_eq(
+		lost_seeds, ARMY_BALANCED_WALLS_LOST_SEEDS, "and loses seeds 1 and 9 as without walls"
+	)
+
+
+func test_the_army_no_walls_twin_keeps_the_phase_three_result() -> void:
+	var wins: int = 0
+	for entry: Dictionary in _runs_of(&"army_balanced_no_walls"):
+		wins += 1 if entry["outcome"] == BalanceReport.OUTCOME_WON else 0
+	assert_between(wins, ARMY_BALANCED_MIN_WINS, ARMY_BALANCED_MAX_WINS, "7 or 8 of 10")
+	assert_eq(wins, 8, "exactly the Phase 3 eight")
+	assert_eq(_lost_seeds(&"army_balanced_no_walls"), ARMY_BALANCED_LOST_SEEDS, "seeds 1 and 9")
+
+
+func test_the_bots_with_walls_pay_for_walls_in_some_seeds() -> void:
+	## The wall entries are in the orders but sit late (the economy leaves little room), so some
+	## seeds never reach them. A wall counts as economy in the gold ledger, so a bot that bought one
+	## spends more on the economy role than its twin over the ten seeds.
+	for pair: Array in [
+		[&"balanced", &"balanced_no_walls"], [&"army_balanced", &"army_balanced_no_walls"]
+	]:
+		var with_walls: Array = _runs_of(pair[0])
+		var without: Array = _runs_of(pair[1])
+		var extra: int = 0
+		for index: int in range(with_walls.size()):
+			assert_eq(with_walls[index]["seed"], without[index]["seed"], "same seed order")
+			extra += (
+				int(with_walls[index]["economy_gold_spent"])
+				- int(without[index]["economy_gold_spent"])
+			)
+		assert_gt(extra, 0, "%s paid for at least one wall tier over ten seeds" % pair[0])
 
 
 func test_greedy_economy_never_wins_and_loses_on_the_middle_nights() -> void:
@@ -219,12 +298,18 @@ func test_the_balanced_bot_wins_seven_or_eight_of_ten_seeds() -> void:
 		wins,
 		BALANCED_MIN_WINS,
 		BALANCED_MAX_WINS,
-		"G-03-11: the balanced bot wins 7 or 8 of 10 (lost seeds %s)" % [lost_seeds]
+		(
+			"G-03-11 / D-15: the balanced bot with walls wins 7 or 8 of 10 (lost seeds %s)"
+			% [lost_seeds]
+		)
 	)
 
 
 func test_squads_are_worth_their_gold_against_towers() -> void:
-	var summary: Dictionary = BalanceReport.summary(_army_report, &"army_balanced")
+	## D-26 stays pinned where Phase 3 measured it, on the army twin without walls. The ratio with
+	## the wall runs bought (0.888) is reported in 04-BALANCE-REPORT.md; a value under the bar there
+	## would be a finding for the owner, not a retune (plan 04-10).
+	var summary: Dictionary = BalanceReport.summary(_twin_report, &"army_balanced_no_walls")
 	var ratio: float = float(summary["squad_value_ratio"])
 	assert_gte(
 		ratio,

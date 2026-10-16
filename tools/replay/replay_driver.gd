@@ -19,9 +19,10 @@ const OUTCOME_LOST := &"lost"
 ## Result: {outcome, ticks, digest, line_count, nights_started, lines, stats, per_night}. `stats`
 ## holds the RunStats values {nights_survived, gold_earned, buildings_lost, king_knockouts, outcome}
 ## and per_night has one Dictionary per started night: {night, enemies, kills_king, kills_towers,
-## kills_castle, kills_units, buildings_lost, units_lost, knockouts, castle_hp_end, duration_s,
-## gold_at_dawn, end}. `kills_units` counts enemies a squad unit killed and `units_lost` the squad
-## units that died. `end` is
+## kills_castle, kills_units, buildings_lost, units_lost, walls_broken, knockouts, castle_hp_end,
+## duration_s, gold_at_dawn, end}. `kills_units` counts enemies a squad unit killed and
+## `units_lost` the squad units that died; `walls_broken` counts the wall segments that fell in the
+## night (one per wall_segment_broken event). `end` is
 ## "dawn", "won" or "lost" for a night that finished and "" for one the tick bound cut short;
 ## `gold_at_dawn` is the gold after the dawn payout, or the gold when the night ended without one.
 ## `spent` is the gold the run put into buildings by role, {military, towers, economy}: a build and
@@ -99,6 +100,7 @@ class Tally:
 		events.enemy_died.connect(_on_enemy_died)
 		events.unit_died.connect(_on_unit_died)
 		events.building_destroyed.connect(_on_building_destroyed)
+		events.wall_segment_broken.connect(_on_wall_segment_broken)
 		events.king_downed.connect(_on_king_downed)
 		events.building_built.connect(_on_building_built)
 		events.dawn_payout.connect(_on_dawn_payout)
@@ -121,6 +123,7 @@ class Tally:
 			"kills_units": 0,
 			"buildings_lost": 0,
 			"units_lost": 0,
+			"walls_broken": 0,
 			"knockouts": 0,
 			"castle_hp_end": 0,
 			"duration_s": 0.0,
@@ -163,6 +166,9 @@ class Tally:
 
 	func _on_building_destroyed(_spot_id: StringName, _building_id: StringName, _tier: int) -> void:
 		_bump("buildings_lost")
+
+	func _on_wall_segment_broken(_spot_id: StringName, _segment: int) -> void:
+		_bump("walls_broken")
 
 	func _on_king_downed(_respawn_ticks: int, _knockout_number: int) -> void:
 		_bump("knockouts")

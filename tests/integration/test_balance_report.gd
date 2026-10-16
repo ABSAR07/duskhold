@@ -33,6 +33,7 @@ const NIGHT_KEYS: Array[String] = [
 	"kills_units",
 	"buildings_lost",
 	"units_lost",
+	"walls_broken",
 	"knockouts",
 	"castle_hp_end",
 	"duration_s",
@@ -270,10 +271,10 @@ func test_the_markdown_night_table_lists_the_unit_columns_with_a_value_per_row()
 	for line: String in text.split("\n"):
 		if line.begins_with("| Night |"):
 			headers += 1
-			assert_eq(line.count("|"), 14, "the Night cell and twelve column headers")
+			assert_eq(line.count("|"), 15, "the Night cell and thirteen column headers")
 		elif line.begins_with("| ") and line.substr(2, 1).is_valid_int():
 			rows += 1
-			assert_eq(line.count("|"), 14, "a night row has a value for every column")
+			assert_eq(line.count("|"), 15, "a night row has a value for every column")
 	assert_eq(headers, 2, "one night table per strategy")
 	assert_gt(rows, 0, "the tables have night rows")
 

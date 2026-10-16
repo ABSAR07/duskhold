@@ -7,6 +7,11 @@ const TUNING_PATH := "res://data/tuning/loop_tuning.tres"
 const HOUSE: StringName = &"house"
 const TOWER: StringName = &"tower"
 const EPSILON: float = 0.0001
+## The four bots built on the balanced order: with the wall runs and the Phase 3 twins without.
+const BALANCED_FAMILY: Array[StringName] = [
+	&"balanced", &"army_balanced", &"balanced_no_walls", &"army_balanced_no_walls"
+]
+const WALL_PLOTS: Array[StringName] = [&"wall_west", &"wall_east", &"wall_north", &"wall_ring"]
 
 
 func _context(run_seed: int = 1) -> RunContext:
@@ -21,14 +26,16 @@ func _building_of(map: MapConfig, spot_id: StringName) -> StringName:
 	return &""
 
 
-func test_the_six_named_strategies_are_listed() -> void:
+func test_the_eight_named_strategies_are_listed() -> void:
 	var expected: Array[StringName] = [
 		&"no_build",
 		&"greedy_economy",
 		&"houses_first",
 		&"towers_first",
 		&"balanced",
-		&"army_balanced"
+		&"army_balanced",
+		&"balanced_no_walls",
+		&"army_balanced_no_walls",
 	]
 	assert_eq(PlaytestStrategies.NAMES, expected, "the names the CLI may select")
 
@@ -90,10 +97,10 @@ func test_the_tower_and_house_orders_differ_in_what_they_build_first() -> void:
 	assert_eq(houses_before_tower, 3, "houses_first builds three Houses, then towers")
 
 
-func test_only_the_balanced_pair_prefers_telegraphed_towers() -> void:
+func test_only_the_balanced_family_prefers_telegraphed_towers() -> void:
 	for strategy: StringName in PlaytestStrategies.NAMES:
 		var bot: PlaytestBot = PlaytestStrategies.make(strategy)
-		var expected: bool = strategy == &"balanced" or strategy == &"army_balanced"
+		var expected: bool = BALANCED_FAMILY.has(strategy)
 		assert_eq(bot.prefer_telegraphed_towers, expected, "%s" % strategy)
 
 
@@ -160,15 +167,24 @@ func _index_of(order: Array[StringName], spot_id: StringName) -> int:
 	return order.find(spot_id)
 
 
+func _without_walls(order: Array[StringName]) -> Array[StringName]:
+	var kept: Array[StringName] = []
+	for spot_id: StringName in order:
+		if not WALL_PLOTS.has(spot_id):
+			kept.append(spot_id)
+	return kept
+
+
 func test_army_balanced_builds_the_barracks_early_and_the_range_soon_after() -> void:
 	var bot: PlaytestBot = PlaytestStrategies.make(&"army_balanced")
 	assert_not_null(bot, "the strategy exists")
 	if bot == null:
 		return
-	var barracks: int = _index_of(bot.build_order, &"barracks_1")
-	var archery: int = _index_of(bot.build_order, &"archery_1")
-	assert_between(barracks, 0, 2, "barracks_1 is within the first three entries")
-	assert_between(archery, 0, 5, "archery_1 is within the first six entries")
+	var bought: Array[StringName] = _without_walls(bot.build_order)
+	var barracks: int = _index_of(bought, &"barracks_1")
+	var archery: int = _index_of(bought, &"archery_1")
+	assert_between(barracks, 0, 2, "barracks_1 is within the first three non-wall entries")
+	assert_between(archery, 0, 5, "archery_1 is within the first six non-wall entries")
 	assert_gt(bot.build_order.count(&"barracks_1"), 1, "and the Barracks is upgraded")
 	assert_gt(bot.build_order.count(&"archery_1"), 1, "and so is the Archery Range")
 	var map: MapConfig = E2eSupport.shipped_prototype_map()
@@ -195,14 +211,47 @@ func test_army_balanced_follows_with_the_footmen_and_holds_the_archers_each_nigh
 	assert_eq(bot.scripted_orders.size(), 0, "nothing is ordered on a fixed tick")
 
 
-func test_the_five_phase_two_strategies_give_no_orders_and_never_slam() -> void:
+func test_the_strategies_without_squads_give_no_orders_and_never_slam() -> void:
 	for strategy: StringName in PlaytestStrategies.NAMES:
-		if strategy == &"army_balanced":
+		if strategy == &"army_balanced" or strategy == &"army_balanced_no_walls":
 			continue
 		var bot: PlaytestBot = PlaytestStrategies.make(strategy)
 		assert_eq(bot.night_orders.size(), 0, "%s gives no night orders" % strategy)
 		assert_eq(bot.scripted_orders.size(), 0, "%s gives no scripted orders" % strategy)
 		assert_eq(bot.slam_min_enemies, 0, "%s never slams" % strategy)
+
+
+func test_the_no_walls_twins_keep_the_phase_three_orders_and_buy_no_wall() -> void:
+	var balanced: PlaytestBot = PlaytestStrategies.make(&"balanced_no_walls")
+	var army: PlaytestBot = PlaytestStrategies.make(&"army_balanced_no_walls")
+	assert_eq(balanced.build_order.size(), 16, "the Phase 3 balanced order has 16 entries")
+	assert_eq(army.build_order.size(), 22, "the Phase 3 army order has 22 entries")
+	for bot: PlaytestBot in [balanced, army]:
+		assert_eq(_without_walls(bot.build_order), bot.build_order, "no wall plot in the order")
+	assert_eq(army.night_orders.size(), 2, "the army twin gives its two night orders")
+	assert_eq(army.slam_min_enemies, 3, "and slams the same way")
+	assert_eq(balanced.king_mode, PlaytestBot.KING_DEFEND_NEAREST_THREAT, "the king defends")
+
+
+func test_balanced_and_army_balanced_buy_the_four_wall_runs_later_than_their_towers() -> void:
+	## D-15 / plan 04-10: the road runs are bought and upgraded once each, the ring once after the
+	## last first-tier House, every upgrade after the last tower upgrade; nothing else differs.
+	for name: StringName in [&"balanced", &"army_balanced"]:
+		var order: Array[StringName] = PlaytestStrategies.make(name).build_order
+		var twin: PlaytestBot = PlaytestStrategies.make(StringName("%s_no_walls" % name))
+		assert_eq(_without_walls(order), twin.build_order, "%s: only walls differ" % name)
+		var last_tower: int = maxi(
+			order.rfind(&"tower_1"), maxi(order.rfind(&"tower_2"), order.rfind(&"tower_3"))
+		)
+		for wall: StringName in [&"wall_west", &"wall_east", &"wall_north"]:
+			assert_eq(order.count(wall), 2, "%s: %s is bought and upgraded" % [name, wall])
+			var first: int = order.find(wall)
+			assert_gt(
+				first, order.find(&"tower_1"), "%s: %s follows the first tower" % [name, wall]
+			)
+			assert_gt(order.rfind(wall), last_tower, "%s: %s upgrades last" % [name, wall])
+		assert_eq(order.count(&"wall_ring"), 1, "%s: the ring is bought once" % name)
+		assert_gt(order.find(&"wall_ring"), order.find(&"house_5"), "%s: after house_5" % name)
 
 
 func test_a_strategy_run_is_reproducible() -> void:

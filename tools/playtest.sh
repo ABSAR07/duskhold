@@ -4,7 +4,8 @@
 # Usage: bash tools/playtest.sh [--strategies=<a,b,...>] [--seeds=<1..50>] [--out=build/<dir>]
 #   e.g. bash tools/playtest.sh                                   (all strategies, seeds 1..10)
 #        bash tools/playtest.sh --strategies=no_build --seeds=2
-# Strategies: no_build, greedy_economy, houses_first, towers_first, balanced, army_balanced.
+# Strategies: no_build, greedy_economy, houses_first, towers_first, balanced, army_balanced (the
+# last two buy the four wall runs), balanced_no_walls, army_balanced_no_walls (the Phase 3 orders).
 # Environment: PLAYTEST_TIMEOUT_S (default 1800) bounds the Godot run.
 # Exit status: 0 pass; 1 a run timed out, no PLAYTEST_OK sentinel or a script error in the output;
 # 3 Godot is not installed; 64 usage error; 124 the timeout fired.
