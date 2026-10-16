@@ -5,14 +5,13 @@ extends Node3D
 ## every enemy sits at the interpolation of its previous and current simulation positions by the
 ## clock's alpha, so the 30 Hz simulation looks smooth at any frame rate. The types differ in
 ## colour and silhouette (the skirmisher is violet, taller and narrower than the grunt), a hit
-## flashes the body through the instance's custom data, and a death leaves a small puff. Purely
-## visual: it reads the simulation and the event bus and never writes either (D-13).
+## flashes the body through the instance's custom data, a hurt enemy shows a billboard bar from a
+## bar batch and a death leaves a small puff from a puff batch. Purely visual: it reads the
+## simulation and the event bus and never writes either (D-13).
 
 ## Cap on enemies drawn in total across the archetype batches (it was 256 puppets). A spawn past
 ## it is not drawn; the simulation still has the enemy and keeps stepping it.
 const MAX_VIEWS: int = 512
-## Visual cap on death puffs standing at once; each frees itself after PUFF_SECONDS.
-const MAX_PUFFS: int = 64
 const PUPPET_HEIGHT: float = 1.6
 const RANGED_ID: StringName = &"ranged"
 const GRUNT_ID: StringName = &"grunt"
@@ -28,8 +27,8 @@ const FLASH_ENERGY: float = 3.0
 const FLASH_SECONDS: float = 0.15
 const BAR_WIDTH: float = 0.9
 const BAR_CLEARANCE: float = 0.5
+## How long a death puff stands, in real seconds; DeathPuffBatch.MAX_PUFFS caps how many at once.
 const PUFF_SECONDS: float = 0.6
-const PUFF_PARTICLES: int = 12
 const PUFF_HEIGHT: float = 0.8
 ## A low-poly capsule: 8 sides and 2 rings are 144 triangles (RESEARCH F2).
 const CAPSULE_SIDES: int = 8
@@ -48,12 +47,17 @@ var _lifts: PackedFloat32Array = PackedFloat32Array()
 var _kind_of: Dictionary = {}
 ## Enemy id -> real milliseconds of its last hit, for the flash.
 var _hit_ms: Dictionary = {}
+## Enemy id -> its max health, set on enemy_spawned for the bars.
+var _max_hp_of: Dictionary = {}
+## Enemy id -> its hit points as of its last hit; an enemy never hit has no entry.
+var _hp_of: Dictionary = {}
 var _frame_ms: int = 0
 ## The enemies drawn this frame, ascending by id: the CPU mirror the test hooks read.
 var _drawn_ids: PackedInt32Array = PackedInt32Array()
 var _drawn_origins: PackedVector3Array = PackedVector3Array()
 var _drawn: int = 0
-var _puff_mesh: SphereMesh
+var _bars: HealthBarBatch
+var _puffs: DeathPuffBatch
 
 
 func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
@@ -102,23 +106,25 @@ func archetype_color_of(def_id: StringName) -> Color:
 	return FALLBACK_COLOR
 
 
-## RED stub: hurt-only bars drawn this frame.
+## Hurt-only bars drawn this frame.
 func bar_count() -> int:
-	return 0
+	return _bars.count() if _bars != null else 0
 
 
-## RED stub: the fill ratio of a drawn enemy's bar, -1.0 when it has none.
-func bar_ratio_of(_enemy_id: int) -> float:
-	return -1.0
+## The fill ratio (hp / max health) of a drawn, hurt enemy's bar; -1.0 when it has none.
+func bar_ratio_of(enemy_id: int) -> float:
+	if not has_view(enemy_id) or not _hp_of.has(enemy_id):
+		return -1.0
+	var hp: int = _hp_of[enemy_id]
+	var max_hp: int = _max_hp_of.get(enemy_id, 0)
+	if not HealthBar3D.should_show(hp, max_hp):
+		return -1.0
+	return float(hp) / float(max_hp)
 
 
-## Death puffs still showing. Test hook, read-only.
+## Death puffs still standing. Test hook, read-only.
 func puff_count() -> int:
-	var count: int = 0
-	for child: Node in get_children():
-		if child.has_meta(&"puff") and not child.is_queued_for_deletion():
-			count += 1
-	return count
+	return _puffs.active_count() if _puffs != null else 0
 
 
 func _process(_delta: float) -> void:
@@ -130,6 +136,7 @@ func _process(_delta: float) -> void:
 	var enemies: EnemySystem = _ctx.night.get_enemies()
 	for batch: CrowdBatch in _batches:
 		batch.begin()
+	_bars.begin()
 	_drawn = 0
 	for enemy_id: int in enemies.ids():
 		if _drawn >= MAX_VIEWS:
@@ -147,26 +154,46 @@ func _process(_delta: float) -> void:
 		_drawn_ids[_drawn] = enemy_id
 		_drawn_origins[_drawn] = Vector3(ground.x, 0.0, ground.y)
 		_drawn += 1
+		if _hp_of.has(enemy_id):
+			var bar_origin: Vector3 = Vector3(
+				ground.x, _lifts[kind] * 2.0 + BAR_CLEARANCE, ground.y
+			)
+			_bars.add_if_hurt(bar_origin, _hp_of[enemy_id], _max_hp_of.get(enemy_id, 0))
 	for batch: CrowdBatch in _batches:
 		batch.commit()
+	_bars.commit()
+	_puffs.refresh(float(Time.get_ticks_msec()) / 1000.0)
 	if enemies.count() == 0 and not _kind_of.is_empty():
 		_kind_of.clear()
 		_hit_ms.clear()
+		_hp_of.clear()
+		_max_hp_of.clear()
 
 
 func _on_enemy_spawned(enemy_id: int, def_id: StringName, _pos: Vector2) -> void:
 	_kind_of[enemy_id] = _kind_for(def_id)
+	var def: EnemyDef = _ctx.map.find_enemy(def_id)
+	_max_hp_of[enemy_id] = def.max_health if def != null else 0
 
 
-func _on_enemy_damaged(enemy_id: int, _amount: int, _hp: int) -> void:
+## A hit flashes the body and keeps the hit points for the bar.
+func _on_enemy_damaged(enemy_id: int, _amount: int, hp: int) -> void:
 	if _kind_of.has(enemy_id):
 		_hit_ms[enemy_id] = Time.get_ticks_msec()
+		_hp_of[enemy_id] = hp
 
 
+## The enemy leaves its batch (its state is dropped) and a puff stands where it was last drawn, or
+## at the event position when it never was.
 func _on_enemy_died(enemy_id: int, def_id: StringName, pos: Vector2, _killer: StringName) -> void:
+	var slot: int = _find(enemy_id)
+	var ground: Vector3 = _drawn_origins[slot] if slot >= 0 else Vector3(pos.x, 0.0, pos.y)
 	_kind_of.erase(enemy_id)
 	_hit_ms.erase(enemy_id)
-	_spawn_puff(pos, archetype_color_of(def_id))
+	_hp_of.erase(enemy_id)
+	_max_hp_of.erase(enemy_id)
+	var now_s: float = float(Time.get_ticks_msec()) / 1000.0
+	_puffs.spawn(Vector3(ground.x, PUFF_HEIGHT, ground.z), now_s, archetype_color_of(def_id))
 
 
 ## The flash amount from the last hit, measured against the clock sampled at the start of the
@@ -237,6 +264,7 @@ func _build_batches(map: MapConfig) -> void:
 		add_child(batch)
 		_batches.append(batch)
 		_lifts.append(height * 0.5)
+	_build_overlays(bounds)
 
 
 func _make_batch(radius: float, height: float, color: Color) -> CrowdBatch:
@@ -251,41 +279,21 @@ func _make_batch(radius: float, height: float, color: Color) -> CrowdBatch:
 	material.set_shader_parameter(&"calm_energy", EMISSION_ENERGY)
 	material.set_shader_parameter(&"flash_energy", FLASH_ENERGY)
 	var batch: CrowdBatch = CrowdBatch.new()
-	batch.setup(mesh, material, MAX_VIEWS, false)
+	# Instance colours stay on although every enemy passes white: the Compatibility renderer reads
+	# a missing vertex colour as black, which would paint every body black through the tint.
+	batch.setup(mesh, material, MAX_VIEWS, true)
 	return batch
 
 
-## A burst of small spheres where the enemy fell; frees itself after PUFF_SECONDS.
-func _spawn_puff(pos: Vector2, color: Color) -> void:
-	if puff_count() >= MAX_PUFFS:
-		return
-	var puff: CPUParticles3D = CPUParticles3D.new()
-	puff.name = "DeathPuff"
-	puff.set_meta(&"puff", true)
-	puff.one_shot = true
-	puff.explosiveness = 1.0
-	puff.amount = PUFF_PARTICLES
-	puff.lifetime = PUFF_SECONDS * 0.75
-	puff.direction = Vector3.UP
-	puff.spread = 70.0
-	puff.initial_velocity_min = 1.2
-	puff.initial_velocity_max = 2.4
-	puff.gravity = Vector3(0.0, -4.0, 0.0)
-	puff.mesh = _puff_mesh_for(color)
-	add_child(puff)
-	puff.position = Vector3(pos.x, PUFF_HEIGHT, pos.y)
-	puff.emitting = true
-	get_tree().create_timer(PUFF_SECONDS).timeout.connect(puff.queue_free)
-
-
-func _puff_mesh_for(color: Color) -> SphereMesh:
-	if _puff_mesh == null:
-		_puff_mesh = SphereMesh.new()
-		_puff_mesh.radius = 0.1
-		_puff_mesh.height = 0.2
-	var mesh: SphereMesh = _puff_mesh.duplicate() as SphereMesh
-	var material: StandardMaterial3D = StandardMaterial3D.new()
-	material.albedo_color = color
-	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mesh.material = material
-	return mesh
+## The shared bar batch and the puff ring, built once beside the archetype batches.
+func _build_overlays(bounds: AABB) -> void:
+	_bars = HealthBarBatch.new()
+	_bars.setup_bars(BAR_WIDTH, MAX_VIEWS)
+	_bars.name = "Bars"
+	_bars.set_bounds(bounds)
+	add_child(_bars)
+	_puffs = DeathPuffBatch.new()
+	_puffs.setup_puffs()
+	_puffs.name = "Puffs"
+	_puffs.set_bounds(bounds)
+	add_child(_puffs)

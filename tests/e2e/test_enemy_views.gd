@@ -112,6 +112,9 @@ func test_each_archetype_has_its_own_colour_and_silhouette() -> void:
 	assert_lt(skirmisher_mesh.radius, grunt_mesh.radius, "and narrower")
 	assert_eq(grunt_mesh.radial_segments, EnemyViews.CAPSULE_SIDES, "low-poly sides")
 	assert_eq(grunt_mesh.rings, EnemyViews.CAPSULE_RINGS, "low-poly rings")
+	assert_true(
+		grunts.multimesh.use_colors, "instance colours stay on for the Compatibility renderer"
+	)
 	var grunt_material: ShaderMaterial = grunts.material_override as ShaderMaterial
 	var skirmisher_material: ShaderMaterial = skirmishers.material_override as ShaderMaterial
 	var grunt_color: Color = grunt_material.get_shader_parameter(&"albedo")
@@ -216,6 +219,7 @@ func test_a_killed_enemy_leaves_the_batch() -> void:
 	await wait_process_frames(2)
 	assert_eq(views.view_count(), 2, "both drawn")
 	enemies.damage(doomed, def.max_health, &"king")
+	enemies.remove_dead()
 	await wait_process_frames(2)
 	assert_false(views.has_view(doomed), "the dead enemy is no longer drawn")
 	assert_true(views.has_view(survivor), "the other one is")
@@ -260,6 +264,7 @@ func test_the_bar_goes_with_a_killed_enemy() -> void:
 	await wait_process_frames(2)
 	assert_eq(views.bar_count(), 1, "the hurt enemy has a bar")
 	enemies.damage(id, def.max_health, &"king")
+	enemies.remove_dead()
 	await wait_process_frames(2)
 	assert_eq(views.bar_count(), 0, "a dead enemy shows no bar")
 	assert_eq(views.bar_ratio_of(id), -1.0, "and has no ratio")
@@ -275,6 +280,7 @@ func test_a_dying_enemy_leaves_a_puff_that_fades_within_its_lifetime() -> void:
 	await wait_process_frames(2)
 	assert_eq(views.puff_count(), 0, "no puff yet")
 	enemies.damage(id, def.max_health, &"king")
+	enemies.remove_dead()
 	assert_eq(views.puff_count(), 1, "a puff marks the spot")
 	await wait_process_frames(2)
 	assert_eq(views.puff_count(), 1, "and it is still there a frame later")

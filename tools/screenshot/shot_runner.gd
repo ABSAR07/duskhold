@@ -161,6 +161,9 @@ func _capture(shot_name: StringName, out_dir: String) -> void:
 		printerr("scenario %s failed" % shot_name)
 		get_tree().quit(EXIT_FAILED)
 		return
+	# The batched views (enemies, bars, puffs) upload their instances in _process, so a scenario that
+	# stepped the simulation by hand needs one processed frame before the draw this captures.
+	await get_tree().process_frame
 	await RenderingServer.frame_post_draw
 	var image: Image = get_viewport().get_texture().get_image()
 	var offenders: Array[String] = _centre_offenders(shot_name, map_root)
