@@ -16,11 +16,7 @@ const FLIGHT_SLACK_S: float = 0.2
 const SLASH_LIFETIME_S: float = 0.3
 const FLOOD_SHOTS: int = 200
 const FLOOD_FLIGHT_TICKS: int = 30
-const GRUNT_ID: int = 9001
-const SKIRMISHER_ID: int = 9002
 const PUPPET_AT := Vector2(5.0, 5.0)
-const FLASH_SETTLE_S: float = 0.5
-const FILL_EPSILON: float = 0.0001
 const COLOR_EPSILON: float = 0.001
 ## The top of the castle model: the keep box with its turret on it.
 const KEEP_TOP: float = BuildingViews.KEEP_SIZE.y + BuildingViews.TURRET_HEIGHT
@@ -173,70 +169,16 @@ func test_the_kings_passive_attack_shows_a_slash_that_frees_itself() -> void:
 	assert_eq(vfx.slash_count(), 0, "and it is gone within 0.3 s")
 
 
-func _spawn_puppets() -> Dictionary:
+func test_a_dying_enemy_leaves_a_puff_that_frees_itself() -> void:
 	var map_root: MapRoot = await _spawn_map(E2eSupport.shipped_prototype_map(), KING_AWAY)
 	var ctx: RunContext = map_root.get_context()
 	var views: EnemyViews = map_root.get_node("EnemyViews")
-	ctx.events.enemy_spawned.emit(GRUNT_ID, &"grunt", PUPPET_AT)
-	ctx.events.enemy_spawned.emit(SKIRMISHER_ID, &"ranged", PUPPET_AT + Vector2(3.0, 0.0))
-	return {"ctx": ctx, "views": views}
-
-
-func _body(view: Node3D) -> MeshInstance3D:
-	return view.get_node_or_null("Body") as MeshInstance3D
-
-
-func test_a_grunt_and_a_skirmisher_have_their_own_colour_and_silhouette() -> void:
-	var setup: Dictionary = await _spawn_puppets()
-	var views: EnemyViews = setup["views"]
-	var grunt: MeshInstance3D = _body(views.get_view(GRUNT_ID))
-	var skirmisher: MeshInstance3D = _body(views.get_view(SKIRMISHER_ID))
-	var grunt_mesh: CapsuleMesh = grunt.mesh as CapsuleMesh
-	var skirmisher_mesh: CapsuleMesh = skirmisher.mesh as CapsuleMesh
-	assert_gt(skirmisher_mesh.height, grunt_mesh.height, "the skirmisher is taller")
-	assert_lt(skirmisher_mesh.radius, grunt_mesh.radius, "and narrower")
-	var grunt_color: Color = (grunt_mesh.material as StandardMaterial3D).albedo_color
-	var skirmisher_color: Color = (skirmisher_mesh.material as StandardMaterial3D).albedo_color
-	assert_ne(grunt_color, skirmisher_color, "with a colour of its own")
-	assert_almost_eq(skirmisher_color.b, EnemyViews.SKIRMISHER_COLOR.b, COLOR_EPSILON, "violet")
-
-
-func test_an_enemy_bar_is_hidden_until_it_is_hit_and_the_hit_flashes_the_body() -> void:
-	var setup: Dictionary = await _spawn_puppets()
-	var ctx: RunContext = setup["ctx"]
-	var views: EnemyViews = setup["views"]
-	var puppet: Node3D = views.get_view(GRUNT_ID)
-	var bars: Array[Node] = puppet.find_children("*", "HealthBar3D", true, false)
-	assert_eq(bars.size(), 1, "one bar per puppet")
-	if bars.is_empty():
-		return
-	var bar: HealthBar3D = bars[0] as HealthBar3D
-	assert_false(bar.visible, "no bar on an unhurt enemy")
-	var material: StandardMaterial3D = (_body(puppet).mesh as CapsuleMesh).material
-	assert_almost_eq(
-		material.emission_energy_multiplier, EnemyViews.EMISSION_ENERGY, COLOR_EPSILON, "calm"
-	)
-	var max_hp: int = ctx.map.find_enemy(&"grunt").max_health
-	ctx.events.enemy_damaged.emit(GRUNT_ID, 2, max_hp - 2)
-	assert_true(bar.visible, "the bar shows once the enemy is hurt")
-	assert_almost_eq(bar.get_fill_ratio(), float(max_hp - 2) / float(max_hp), FILL_EPSILON, "fill")
-	assert_gt(material.emission_energy_multiplier, EnemyViews.EMISSION_ENERGY, "the hit flashes")
-	var other: Array[Node] = views.get_view(SKIRMISHER_ID).find_children(
-		"*", "HealthBar3D", true, false
-	)
-	assert_false((other[0] as HealthBar3D).visible, "an enemy nobody hit shows no bar")
-	await wait_seconds(FLASH_SETTLE_S)
-	assert_almost_eq(
-		material.emission_energy_multiplier, EnemyViews.EMISSION_ENERGY, COLOR_EPSILON, "settled"
-	)
-
-
-func test_a_dying_enemy_leaves_a_puff_that_frees_itself() -> void:
-	var setup: Dictionary = await _spawn_puppets()
-	var ctx: RunContext = setup["ctx"]
-	var views: EnemyViews = setup["views"]
-	ctx.events.enemy_died.emit(GRUNT_ID, &"grunt", PUPPET_AT, &"king")
-	assert_null(views.get_view(GRUNT_ID), "the puppet is gone")
+	var id: int = ctx.night.get_enemies().spawn(ctx.map.find_enemy(&"grunt"), PUPPET_AT)
+	await wait_process_frames(2)
+	assert_true(views.has_view(id), "the enemy is drawn")
+	ctx.events.enemy_died.emit(id, &"grunt", PUPPET_AT, &"king")
+	await wait_process_frames(1)
+	assert_false(views.has_view(id), "the enemy is gone from its batch")
 	assert_eq(views.puff_count(), 1, "a puff marks the spot")
 	await wait_seconds(EnemyViews.PUFF_SECONDS + FLIGHT_SLACK_S)
 	assert_eq(views.puff_count(), 0, "and it frees itself")

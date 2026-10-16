@@ -146,9 +146,8 @@ func _puppet_positions(map_root: MapRoot) -> Array[Vector3]:
 	var views: EnemyViews = map_root.get_node("EnemyViews") as EnemyViews
 	var found: Array[Vector3] = []
 	for enemy_id: int in range(1, PUPPET_IDS):
-		var view: Node3D = views.get_view(enemy_id)
-		if view != null:
-			found.append(view.position)
+		if views.has_view(enemy_id):
+			found.append(views.puppet_position(enemy_id))
 	return found
 
 
