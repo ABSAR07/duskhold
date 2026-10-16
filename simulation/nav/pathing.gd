@@ -19,6 +19,8 @@ var _grid: NavGrid
 var _castle_field: FlowField
 ## The break-or-detour decision of plan 04-07 (D-07, D-08), fed by EnemySystem once per step.
 var _decision: WallDecision
+## The read-only stuck-enemy flags of plan 04-07 (D-09), updated by NightSim after the enemy phase.
+var _stuck: StuckTracker
 ## The squads' goal-field cache, created on the first routed walk.
 var _squad_cache: GoalFieldCache
 ## The wall version the grid and the castle field were last built for.
@@ -32,6 +34,7 @@ func _init(map: MapConfig, walls: WallSystem) -> void:
 	_tuning = NavGrid.tuning_of(map)
 	_grid = NavGrid.new(map, _tuning)
 	_decision = WallDecision.new(walls, _tuning)
+	_stuck = StuckTracker.new(_tuning, _tuning.cell_size)
 
 
 ## True while at least one wall segment stands anywhere.
@@ -101,6 +104,16 @@ func decision() -> WallDecision:
 	return _decision
 
 
+## Which enemies have made no progress toward the castle (D-09); read-only.
+func stuck() -> StuckTracker:
+	return _stuck
+
+
+## The straight distance from `pos` to the castle's centre in whole centimetres.
+func castle_distance_cm(pos: Vector2) -> int:
+	return roundi(pos.distance_to(Vector2(_map.castle_position.x, _map.castle_position.z)) * 100.0)
+
+
 ## Ticks an enemy at `pos` needs to walk the castle field's route to the castle at
 ## `speed_cm_per_s`, rounded up; SimClock.MAX_TICKS when there is no route (sealed, or no field).
 @warning_ignore("integer_division")
@@ -118,8 +131,7 @@ func detour_ticks(pos: Vector2, speed_cm_per_s: int) -> int:
 ## Ticks an enemy at `pos` needs to walk the straight line to the castle's centre at
 ## `speed_cm_per_s`, rounded up.
 func straight_ticks(pos: Vector2, speed_cm_per_s: int) -> int:
-	var castle: Vector2 = Vector2(_map.castle_position.x, _map.castle_position.z)
-	return WallDecision.walk_ticks(roundi(pos.distance_to(castle) * 100.0), speed_cm_per_s)
+	return WallDecision.walk_ticks(castle_distance_cm(pos), speed_cm_per_s)
 
 
 ## The step of an enemy at `pos` marching on the castle round the walls, `max_distance` long: the
