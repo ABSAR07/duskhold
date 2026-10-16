@@ -4,10 +4,10 @@ current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
 status: executing
 stopped_at: Phase 4 context gathered
-last_updated: "2026-10-16T02:05:09.615Z"
+last_updated: "2026-10-16T02:11:51.677Z"
 last_activity: 2026-10-16
-last_activity_desc: Gamepad dropped as a requirement (owner decision 2026-10-16); pad support marked unsupported
-state_head: 1824b44a60a2823113268c89364c6cab469c3af2
+last_activity_desc: Phase 04 execution started
+state_head: 6afacb782d4f0e084c9dfc58ec3efe846e1782f1
 progress:
   total_phases: 13
   completed_phases: 3
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-15)
 
 **Core value:** The day/night build-then-defend loop must feel as tight and satisfying as Thronefall's, with meaningful gold trade-offs by day and readable, tense defense by night. It must be fun on a single map with zero meta-progression.
-**Current focus:** Phase 4 — Crowd-Scale Battles & Walls
+**Current focus:** Phase 04 — Crowd-Scale Battles & Walls
 
 ## Current Position
 
-Phase: 04 (Crowd-Scale Battles & Walls) — READY TO EXECUTE
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-10-16 - Completed quick task 261016-1o5: Record gamepad no longer required (pad support kept but unsupported, HUD prompts stay on the keyboard)
+Phase: 04 (Crowd-Scale Battles & Walls) — EXECUTING
+Plan: 1 of 11
+Status: Executing Phase 04
+Last activity: 2026-10-16 — Phase 04 execution started
 
 Progress: [██░░░░░░░░] 23%
 
