@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
 status: executing
-stopped_at: Completed 04-08-PLAN.md
-last_updated: "2026-10-16T10:41:46.207Z"
+stopped_at: "Halted 04-09-PLAN.md: PLAT-01 budget missed, owner decision needed"
+last_updated: "2026-10-16T11:52:00.346Z"
 last_activity: 2026-10-16
 last_activity_desc: Phase 04 execution started
-state_head: a8c409bd0f12ac76435e9c2100e4872d86261557
+state_head: 459b71384400089114ecce8587b354d1a1a121b1
 progress:
   total_phases: 13
   completed_phases: 3
   total_plans: 70
-  completed_plans: 67
+  completed_plans: 68
   percent: 23
 ---
 
@@ -125,6 +125,7 @@ Progress: [██░░░░░░░░] 23%
 | Phase 04 P06 | 56 min | 2 tasks | 35 files |
 | Phase 04 P07 | 50 min | 2 tasks | 18 files |
 | Phase 04 P08 | 66 min | 2 tasks | 31 files |
+| Phase 04 P09 | 54 min | 2 tasks | 23 files |
 
 ## Accumulated Context
 
@@ -282,6 +283,8 @@ Recent decisions affecting current work:
 - [Phase 04]: 04-08: the gate stress passes on the first run with no pathing change (300 of 300 cross, 0 stuck at the end, median 14.9 s, max 21.9 s); the pass rule counts every living enemy flagged stuck at the final tick, and its finish line and sink radius come from the stress map data — D-09 locks 'still stuck at its end'; crossed enemies stay alive until the sink removes them, so a stall after the gate must fail the gate on its own
 - [Phase 04]: 04-08: the debug overlay is laid out in two columns (whole sections, get_text joins both) so the Walls, Field and Crowd sections fit a 720p window — The single column ran off the bottom after Segments broken; layout only, no row or test contract moved
 - [Phase 04]: 04-08: the CI Gate stress step first runs on plan 04-11's push; the test job's 20 minute timeout has about 9 minutes of margin over a 10 minute local suite plus about 40 s of gate runs — Untested on a slower runner; watch it at the first push
+- [Phase 04]: [04-09] PLAT-01 not met: stress night median p95 37.04 ms (p50 20.92) against 8.0 ms with the D-10 crowd in view; the simulation step (18 to 25 ms, 22 ms headless) dominates, render CPU 0.7 ms and GPU 4.5 ms; walls add 8 to 10 ms at crowd scale; lever (a) packed storage bounded at about 1 ms and not pulled; plan halted, owner decides between a GDExtension, a documented higher budget or a targeted optimisation plan
+- [Phase 04]: [04-09] Wall-break rebuild measured at 11.74 ms mean and 13.22 ms max on 5494 cells; break-frame estimate 34.14 ms is above 16.7 ms, so count-based time slicing is an open owner point for 04-PLAYTEST-GATE (04-11); stress towers shoot 5 m/s (8 m/s gave 186 arrows in view, below the 200 bar)
 
 ### Pending Todos
 
@@ -300,6 +303,7 @@ None yet.
 - [Phase 6/8]: Night readability under hundreds of units needs automated screenshot review throughout the content phases
 - [Phase 11]: Boss-night difficulty cliffs; tune with seeded simulated playthroughs plus owner playtest
 - [Phase 13]: SmartScreen/AV behavior of unsigned export only known after clean-machine test
+- [Phase 4] PLAT-01 frame budget missed (04-09): median p95 37.04 ms against 8.0 ms; plans 04-10 and 04-11 depend on 04-09; see 04-FRAME-REPORT.md for the profile and the three options
 
 ### Quick Tasks Completed
 
@@ -318,6 +322,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-16T10:41:44.988Z
-Stopped at: Completed 04-08-PLAN.md
-Resume file: None
+Last session: 2026-10-16T11:51:59.555Z
+Stopped at: Halted 04-09-PLAN.md: PLAT-01 budget missed, owner decision needed
+Resume file: .planning/phases/04-crowd-scale-battles-walls/04-FRAME-REPORT.md
