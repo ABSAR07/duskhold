@@ -11,6 +11,9 @@ const DRAW_TIMEOUT_S: float = 1.0
 const NIGHT_TIMEOUT_S: float = 90.0
 ## An enemy inside this square on both axes is inside the ring (its walls stand at 12 m).
 const INSIDE_LIMIT: float = 11.5
+const HALF_THICKNESS: float = 0.4
+## The distance tolerance for the king's clearance.
+const EPSILON: float = 0.001
 
 
 func _spawn_wall_map() -> MapRoot:
@@ -68,3 +71,22 @@ func test_a_bought_ring_is_drawn_broken_into_rubble_and_walked_through() -> void
 	assert_gte(broken.size(), 1, "the grunts broke a segment")
 	assert_true(checked_rubble, "the rubble was checked")
 	assert_true(saw_inside, "an enemy walked through the hole into the ring")
+
+
+func test_the_king_dropped_on_a_segment_is_pushed_out_of_it() -> void:
+	var map_root: MapRoot = await _spawn_wall_map()
+	var ctx: RunContext = map_root.get_context()
+	var views: WallViews = map_root.get_node("WallViews")
+	assert_eq(ctx.commands.submit(BuildIntent.new(RING)), CommandProcessor.OK, "ring bought")
+	var drawn: Callable = func() -> bool: return views.piece_count() == SEGMENTS
+	assert_true(await E2eSupport.wait_until(self, drawn, DRAW_TIMEOUT_S), "32 pieces within 1 s")
+	var king: King = map_root.get_king()
+	var reach: float = HALF_THICKNESS + king.def.body_radius
+	E2eSupport.teleport_king(map_root, Vector3(-12.0, 0.0, 0.3))
+	await wait_physics_frames(2)
+	var here: Vector2 = Vector2(king.global_position.x, king.global_position.z)
+	var least: float = INF
+	for segment: int in range(SEGMENTS):
+		var nearest: Vector2 = WallSolids.closest_point(ctx.walls, segment, here)
+		least = minf(least, here.distance_to(nearest))
+	assert_gte(least, reach - EPSILON, "outside half thickness plus body radius after two frames")
