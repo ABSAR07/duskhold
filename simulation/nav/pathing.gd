@@ -101,6 +101,28 @@ func march_step(pos: Vector2, max_distance: float) -> Vector2:
 	)
 
 
+## RED-phase stubs: routed walking lands in the GREEN commit.
+func walk_step(
+	pos: Vector2,
+	goal: Vector2,
+	max_distance: float,
+	_radius: float,
+	_goal_radius: float,
+	_tick: int,
+	_cache: GoalFieldCache = null,
+	_known_blocked: int = -1
+) -> Vector2:
+	return EnemySystem.desired_step(pos, goal, max_distance)
+
+
+func new_goal_cache() -> GoalFieldCache:
+	return GoalFieldCache.new(_grid, _tuning)
+
+
+func goal_key(_goal: Vector2) -> int:
+	return 0
+
+
 ## `pos` moved out of every intact segment, for a circle of `radius` metres; unchanged when no
 ## segment stands.
 func push_out(pos: Vector2, radius: float) -> Vector2:

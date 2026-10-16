@@ -21,3 +21,10 @@ static func nearest_enemy(enemies: EnemySystem, pos: Vector2, reach: float) -> i
 			best_d2 = d2
 			best_id = id
 	return best_id
+
+
+## RED-phase stub: the line-of-sight filter lands in the GREEN commit.
+static func nearest_enemy_clear(
+	enemies: EnemySystem, pos: Vector2, reach: float, _pathing: Pathing, _radius: float
+) -> int:
+	return nearest_enemy(enemies, pos, reach)
