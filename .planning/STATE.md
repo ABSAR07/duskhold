@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
 status: executing
-stopped_at: "04-09 halted (PLAT-01 missed); owner decided 2026-10-16 to continue 04-10 and 04-11 on the missed budget"
-last_updated: "2026-10-16T11:52:00.346Z"
+stopped_at: Completed 04-10-PLAN.md
+last_updated: "2026-10-16T19:20:59.721Z"
 last_activity: 2026-10-16
 last_activity_desc: Phase 04 execution started
-state_head: 459b71384400089114ecce8587b354d1a1a121b1
+state_head: 6505bfa781b566f3a6cdcd2013bdda10300ad8d7
 progress:
   total_phases: 13
   completed_phases: 3
   total_plans: 70
-  completed_plans: 68
+  completed_plans: 69
   percent: 23
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 04 (Crowd-Scale Battles & Walls) — EXECUTING
-Plan: 9 of 11
+Plan: 10 of 11
 Status: Ready to execute
 Last activity: 2026-10-16 — Phase 04 execution started
 
@@ -126,6 +126,7 @@ Progress: [██░░░░░░░░] 23%
 | Phase 04 P07 | 50 min | 2 tasks | 18 files |
 | Phase 04 P08 | 66 min | 2 tasks | 31 files |
 | Phase 04 P09 | 54 min | 2 tasks | 23 files |
+| Phase 04 P10 | 128 min | 2 tasks | 18 files |
 
 ## Accumulated Context
 
@@ -286,6 +287,9 @@ Recent decisions affecting current work:
 - [Phase 04]: [04-09] PLAT-01 not met: stress night median p95 37.04 ms (p50 20.92) against 8.0 ms with the D-10 crowd in view; the simulation step (18 to 25 ms, 22 ms headless) dominates, render CPU 0.7 ms and GPU 4.5 ms; walls add 8 to 10 ms at crowd scale; lever (a) packed storage bounded at about 1 ms and not pulled; plan halted, owner decides between a GDExtension, a documented higher budget or a targeted optimisation plan
 - [Phase 04]: OWNER DECISION 2026-10-16 after the 04-09 halt: continue 04-10 and 04-11 now on the current code with PLAT-01 recorded as not met (shipped nights top out at about 40 enemies at a 3.2 ms step; the 8 ms p95 bar fails from about 60 enemies, 60 fps on the dev machine from about 130); the perf route (GDExtension, a documented higher budget or a GDScript optimisation plan) is decided after /gsd-verify-work 4 from a profiling-driven gap plan; the budget and D-12 stay as written
 - [Phase 04]: [04-09] Wall-break rebuild measured at 11.74 ms mean and 13.22 ms max on 5494 cells; break-frame estimate 34.14 ms is above 16.7 ms, so count-based time slicing is an open owner point for 04-PLAYTEST-GATE (04-11); stress towers shoot 5 m/s (8 m/s gave 186 arrows in view, below the 200 bar)
+- [Phase 04]: [04-10] Success criterion 4 holds exactly: the Phase 3 orders on the Phase 4 code give a byte-identical balance report.json (60 runs, md5 001778e7...) to a clean export of the Phase 3 tree; smoke and army goldens never moved
+- [Phase 04]: [04-10] The plan's first wall order (each road run right after its tower) broke the Phase 2 bar (balanced 4 of 10, army_balanced 2 of 10); D-15's ladder moved the bots' wall entries later and both win 8 of 10 losing the Phase 3 seeds; no night count, wall cost or other data moved. Bots earn 22 and 15 gold a run, so walls are bought only in the last days and never broken; free walls still cost the army bot four seeds (open point for the gate)
+- [Phase 04]: [04-10] Walls golden tests/golden/walls.json (seed 1, bfb05fc7..., 1961 ticks) on a frozen fixture, checked in CI beside smoke and army; full_idle stays unpinned, its digest moved f417c7f5... (6941 ticks) to 4385f569... (6911 ticks) in the D-14 regeneration commit 94fff12, recorded only in 04-BALANCE-REPORT.md
 
 ### Pending Todos
 
@@ -323,6 +327,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-16T11:51:59.555Z
-Stopped at: 04-09 halted (PLAT-01 missed); owner decided 2026-10-16 to continue 04-10 and 04-11 on the missed budget
-Resume file: .planning/phases/04-crowd-scale-battles-walls/04-FRAME-REPORT.md
+Last session: 2026-10-16T19:20:58.893Z
+Stopped at: Completed 04-10-PLAN.md
+Resume file: None
