@@ -83,6 +83,9 @@ const CMD_BOX_SELECT := &"cmd_box_select"
 const CMD_MOVE_PING := &"cmd_move_ping"
 const CMD_PATROL := &"cmd_patrol"
 const CMD_SLAM := &"cmd_slam"
+## The two Phase 4 shots (plan 04-05); their scenes live in ShotCrowdScenarios.
+const WALLS_DAY := &"walls_day"
+const WALLS_NIGHT_BREACH := &"walls_night_breach"
 const ARMY_SHOTS: Array[StringName] = [
 	HUD_DAY_SQUADS,
 	HUD_NIGHT_SQUAD_DOWN,
@@ -136,7 +139,9 @@ const ALL_SHOTS: Array[StringName] = [
 	CMD_BOX_SELECT,
 	CMD_MOVE_PING,
 	CMD_PATROL,
-	CMD_SLAM
+	CMD_SLAM,
+	WALLS_DAY,
+	WALLS_NIGHT_BREACH
 ]
 
 
@@ -152,6 +157,8 @@ static func needs_timed_night(shot_name: StringName) -> bool:
 ## results_victory keeps only the first night so the run is won after it; results_defeat gets a
 ## castle that falls to the first blow; every other shot keeps the shipped nights.
 static func map_for(shot_name: StringName) -> MapConfig:
+	if ShotCrowdScenarios.handles(shot_name):
+		return ShotCrowdScenarios.map_for(shot_name)
 	var shipped: MapConfig = load(MAP_DATA_PATH)
 	var config: MapConfig = shipped.duplicate_deep(Resource.DEEP_DUPLICATE_ALL)
 	config.starting_gold = SHOT_STARTING_GOLD
@@ -182,6 +189,8 @@ static func king_def_for(shot_name: StringName) -> KingDef:
 static func run(shot_name: StringName, runner: Node, map_root: MapRoot) -> bool:
 	if ShotArmyScenarios.handles(shot_name):
 		return await ShotArmyScenarios.run(shot_name, runner, map_root)
+	if ShotCrowdScenarios.handles(shot_name):
+		return await ShotCrowdScenarios.run(shot_name, runner, map_root)
 	match shot_name:
 		DAY_OVERVIEW:
 			return await _day_overview(runner, map_root)

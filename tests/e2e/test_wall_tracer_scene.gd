@@ -8,6 +8,8 @@ const RING: StringName = &"wall_ring"
 const TOWER: StringName = &"tower_1"
 const SEGMENTS: int = 32
 const DRAW_TIMEOUT_S: float = 1.0
+## The collapse of a broken piece takes 0.4 s of presentation time; this is a generous bound.
+const COLLAPSE_TIMEOUT_S: float = 3.0
 const NIGHT_TIMEOUT_S: float = 90.0
 ## An enemy inside this square on both axes is inside the ring (its walls stand at 12 m).
 const INSIDE_LIMIT: float = 11.5
@@ -63,7 +65,9 @@ func test_a_bought_ring_is_drawn_broken_into_rubble_and_walked_through() -> void
 		saw_inside = saw_inside or _any_enemy_inside(ctx.night.get_enemies())
 		if not broken.is_empty() and not checked_rubble:
 			checked_rubble = true
-			await wait_process_frames(2)
+			# Plan 04-05 (D-05): the broken piece sinks for 0.4 s before the rubble is drawn.
+			var settled: Callable = func() -> bool: return views.rubble_count() >= 1
+			await E2eSupport.wait_until(self, settled, COLLAPSE_TIMEOUT_S)
 			assert_gte(views.rubble_count(), 1, "the broken segment is rubble")
 			assert_eq(views.piece_count() + views.rubble_count(), SEGMENTS, "no piece is lost")
 			assert_false(views.is_piece_drawn(broken[0]), "the broken segment is not a piece")
