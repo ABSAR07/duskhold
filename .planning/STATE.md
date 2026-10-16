@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
 status: executing
-stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-10-16T03:09:47.625Z"
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-10-16T04:13:42.572Z"
 last_activity: 2026-10-16
 last_activity_desc: Phase 04 execution started
-state_head: 588a45a53c3324cf94416378decaf32e0b9ffa59
+state_head: c934f9d3bc61f3b7d739f412cf0b968176bf6048
 progress:
   total_phases: 13
   completed_phases: 3
   total_plans: 70
-  completed_plans: 60
+  completed_plans: 61
   percent: 23
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 04 (Crowd-Scale Battles & Walls) — EXECUTING
-Plan: 2 of 11
+Plan: 3 of 11
 Status: Ready to execute
 Last activity: 2026-10-16 — Phase 04 execution started
 
@@ -118,6 +118,7 @@ Progress: [██░░░░░░░░] 23%
 | Phase 03 P17 | 61 min | 2 tasks | 5 files |
 | Phase 03 P18 | 13 min | 2 tasks | 2 files |
 | Phase 04 P01 | 54 min | 2 tasks | 14 files |
+| Phase 04 P02 | 60 min | 3 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -254,6 +255,9 @@ Recent decisions affecting current work:
 - [Phase 04]: [04-01] Enemy batches keep instance colours on and pass white: the Compatibility renderer reads a missing vertex colour as black, so a colourless batch drew every body black through the tint; any later batch that reads COLOR must keep colours on — Forward+ hid the bug; found by the Compatibility screenshot run
 - [Phase 04]: [04-01] ShotRunner waits one processed frame before the capture: batched views upload in _process, so a scenario that stepped the simulation by hand left the captured frame without enemies — Puppet nodes appeared at spawn; batches commit per frame
 - [Phase 04]: [04-01] View hooks (has_view, puppet_position, flash_of, bar_ratio_of, puff_count) read CPU state, never the MultiMesh; DeathPuffBatch.spawn takes an optional colour and the puff cap is 128 (was 64); MAX_VIEWS is 512 enemies drawn in total — Headless renderer reads MultiMeshes back as zeros (RESEARCH F6)
+- [Phase 04]: [04-02] MeshBaker skips the skinned bake on the headless display server (the call logs an engine error GUT counts as a failure); units fall back to the capsule there
+- [Phase 04]: [04-02] crowd_instance.gdshader converts the instance tint from sRGB to linear so arrows keep their authored colours; enemies pass white and are unchanged
+- [Phase 04]: [04-02] RESEARCH A2 settled: CI run 38848480353 (lint, test, export, screenshots green) renders the instance shaders and baked meshes on Mesa; unit batches use no material override and no instance colours
 
 ### Pending Todos
 
@@ -290,6 +294,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-16T03:09:46.917Z
-Stopped at: Completed 04-01-PLAN.md
+Last session: 2026-10-16T04:13:41.811Z
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None
