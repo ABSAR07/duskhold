@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
 status: executing
-stopped_at: Completed 04-05-PLAN.md
-last_updated: "2026-10-16T07:04:35.227Z"
+stopped_at: Completed 04-06-PLAN.md
+last_updated: "2026-10-16T08:17:56.348Z"
 last_activity: 2026-10-16
 last_activity_desc: Phase 04 execution started
-state_head: 7c9419bbbb134734601a459c66e523e3d7c9be6b
+state_head: ee91c85a772fe3dc0811981f02a9b5f1d80c40f7
 progress:
   total_phases: 13
   completed_phases: 3
   total_plans: 70
-  completed_plans: 64
+  completed_plans: 65
   percent: 23
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 04 (Crowd-Scale Battles & Walls) — EXECUTING
-Plan: 6 of 11
+Plan: 7 of 11
 Status: Ready to execute
 Last activity: 2026-10-16 — Phase 04 execution started
 
@@ -122,6 +122,7 @@ Progress: [██░░░░░░░░] 23%
 | Phase 04 P03 | 36 min | 2 tasks | 21 files |
 | Phase 04 P04 | 55 min | 2 tasks | 34 files |
 | Phase 04 P05 | 44 min | 2 tasks | 25 files |
+| Phase 04 P06 | 56 min | 2 tasks | 35 files |
 
 ## Accumulated Context
 
@@ -269,6 +270,9 @@ Recent decisions affecting current work:
 - [Phase 04]: 04-05: WallValidation counts a run segments itself because WallRunDef.expand returns nothing past 200 pieces; an unusable run adds 0 to the 1000 per-map cap so one bad run reports once
 - [Phase 04]: 04-05: Castle Kit wall tiers draw with the model own materials (batch material override null), since the shared crowd shader would drop the colormap texture; piece_count counts standing or sinking segments and rubble_count settled broken ones
 - [Phase 04]: 04-05: wall plot kind is data (wall_run), the marker is timber tan, and the label puts the run in the effect line while BuildingTierDef.effect_line keeps its fallback
+- [Phase 04]: 04-06: NavGrid also blocks the first cell of every grid move that properly cuts a segment centre line (joints extended 0.02 m); the plan's centre-distance band alone leaks at 2 m cells on the gap fixture, where the wall sits 1.0 m from two columns of centres
+- [Phase 04]: 04-06: Pathing.is_sealed is true when walls stand and no castle field exists (over-cap map or not refreshed) as well as for an unreached cell; a blocked cell reads its cheapest open neighbour so an enemy against a wall is never judged sealed
+- [Phase 04]: 04-06: line-of-sight targets are decided as recommended: melee needs a clear line, ranged also within attack range and then shoots over the wall; squads, the bot king and enemies keep the exact Phase 3 expressions when no segment stands, so smoke, army and full_idle did not move
 
 ### Pending Todos
 
@@ -305,6 +309,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-16T07:04:33.149Z
-Stopped at: Completed 04-05-PLAN.md
+Last session: 2026-10-16T08:17:55.555Z
+Stopped at: Completed 04-06-PLAN.md
 Resume file: None
