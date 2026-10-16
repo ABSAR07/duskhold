@@ -3,10 +3,10 @@ extends RefCounted
 ## Orchestrates one night in a fixed order (DR-8): spawn, the nav grid and castle field rebuilt when
 ## the walls changed (once per step), king, squads (creation order, units in id
 ## order), towers (spot order), castle, enemies (id order, then pushed out of the intact wall
-## segments), resolve due hits (a wall segment that reaches 0 breaks here), remove the dead
-## enemies, remove the dead units. Outside the night `step_day` steps the army alone. Pure
-## RefCounted code on integer ticks (DR-1, DR-3); the only randomness is the night's seeded spawn
-## stream, drawn at spawn time in spawn order (DR-4).
+## segments; the read-only stuck flags are refreshed), resolve due hits (a wall segment that
+## reaches 0 breaks here), remove the dead enemies, remove the dead units. Outside the night
+## `step_day` steps the army alone. Pure RefCounted code on integer ticks (DR-1, DR-3); the only
+## randomness is the night's seeded spawn stream, drawn at spawn time in spawn order (DR-4).
 
 var _map: MapConfig
 var _events: SimEvents
@@ -70,6 +70,7 @@ func begin_night(night_number: int) -> void:
 	_spawn_rng = SimRng.make(_run_seed, night_number, SimRng.STREAM_SPAWN)
 	_hits.clear()
 	_enemies.clear()
+	_pathing.stuck().clear()
 	_king.begin_night()
 	_squads.begin_night()
 	_towers.begin_night()
@@ -93,6 +94,7 @@ func step(tick: int) -> void:
 	_towers.step(night_tick, _enemies, _hits)
 	_castle_attack.step(night_tick, _enemies, _hits)
 	_enemies.step(night_tick, _castle, _king, _hits, _buildings, _squads.get_units(), _pathing)
+	_pathing.stuck().update(night_tick, _enemies, _pathing)
 	_resolve_hits(night_tick)
 	_enemies.remove_dead()
 	_squads.remove_dead()
