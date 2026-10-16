@@ -69,12 +69,14 @@ jobs:
         run: python tools/bootstrap.py --godot --yes --platform linux
       - name: Headless import and GUT
         run: bash tools/test.sh
-      # DEV-05: the seeded smoke and army runs must reproduce their checked-in golden digests and
-      # themselves twice in one process; a full run on the shipped data must reproduce itself.
+      # DEV-05: the seeded smoke, army and walls runs must reproduce their checked-in golden
+      # digests and themselves twice in one process; a full run on the shipped data must
+      # reproduce itself.
       - name: Seeded replay determinism
         run: |
           bash tools/replay.sh --scenario=smoke --twice --expect-file=tests/golden/smoke.json
           bash tools/replay.sh --scenario=army --twice --expect-file=tests/golden/army.json
+          bash tools/replay.sh --scenario=walls --twice --expect-file=tests/golden/walls.json
           bash tools/replay.sh --scenario=full_idle --twice
       # ENMY-04: 300 enemies at one gate of the tools-only stress map must all cross with none left
       # stuck, and two runs in one process must agree on the event digest.

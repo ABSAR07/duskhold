@@ -36,6 +36,7 @@ func test_every_shipped_scenario_name_is_accepted() -> void:
 	assert_true(_ok(["--scenario=smoke"]), "smoke")
 	assert_true(_ok(["--scenario=full_idle"]), "full_idle")
 	assert_true(_ok(["--scenario=army"]), "army")
+	assert_true(_ok(["--scenario=walls"]), "walls")
 
 
 func test_army_is_accepted_with_its_defaults() -> void:
@@ -51,6 +52,22 @@ func test_army_is_accepted_with_its_defaults() -> void:
 	assert_false(_ok(["--scenario=army_extra"]), "a near miss is still unknown")
 	assert_false(
 		_ok(["--scenario=army", "--map=res://data/maps/prototype_map.tres"]), "no path flag"
+	)
+
+
+func test_walls_is_accepted_with_its_defaults_and_its_golden() -> void:
+	var parsed: Dictionary = _parse(["--scenario=walls"])
+	assert_eq(parsed.get("error"), "", "no error")
+	assert_eq(parsed.get("scenario"), &"walls", "the scenario")
+	assert_eq(parsed.get("seed"), 1, "its default seed")
+	assert_eq(parsed.get("twice"), false, "one run unless asked")
+	assert_true(
+		_ok(["--scenario=walls", "--twice", "--expect-file=tests/golden/walls.json"]),
+		"and its golden file passes the path allowlist"
+	)
+	assert_false(_ok(["--scenario=walls_extra"]), "a near miss is still unknown")
+	assert_false(
+		_ok(["--scenario=walls", "--map=res://data/maps/prototype_map.tres"]), "no path flag"
 	)
 
 

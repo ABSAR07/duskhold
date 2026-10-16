@@ -1,0 +1,163 @@
+[gd_resource type="Resource" script_class="MapConfig" load_steps=22 format=3]
+
+[ext_resource type="Script" path="res://simulation/defs/map_config.gd" id="1_map"]
+[ext_resource type="Script" path="res://simulation/defs/build_spot_def.gd" id="2_spot"]
+[ext_resource type="Script" path="res://simulation/defs/building_def.gd" id="3_bdef"]
+[ext_resource type="Script" path="res://simulation/defs/building_tier_def.gd" id="4_tier"]
+[ext_resource type="Script" path="res://simulation/defs/spawn_point_def.gd" id="5_spawn"]
+[ext_resource type="Script" path="res://simulation/defs/spawn_group_def.gd" id="6_group"]
+[ext_resource type="Script" path="res://simulation/defs/night_def.gd" id="7_night"]
+[ext_resource type="Script" path="res://simulation/defs/enemy_def.gd" id="8_enemy"]
+[ext_resource type="Script" path="res://simulation/walls/wall_run_def.gd" id="9_run"]
+[ext_resource type="Script" path="res://simulation/defs/nav_tuning.gd" id="10_nav"]
+
+[sub_resource type="Resource" id="Resource_grunt"]
+script = ExtResource("8_enemy")
+id = &"grunt"
+display_name = "Grunt"
+max_health = 6
+move_speed = 3.2
+radius = 0.5
+attack_range = 1.2
+attack_damage = 2
+attack_interval = 1.0
+aggro_range = 6.0
+leash_range = 10.0
+retarget_interval_seconds = 0.5
+projectile_speed = 0.0
+
+[sub_resource type="Resource" id="Resource_wall_tier1"]
+script = ExtResource("4_tier")
+cost = 2
+max_health = 30
+
+[sub_resource type="Resource" id="Resource_wall_tier2"]
+script = ExtResource("4_tier")
+cost = 4
+max_health = 60
+
+[sub_resource type="Resource" id="Resource_wall_tier3"]
+script = ExtResource("4_tier")
+cost = 6
+max_health = 90
+
+[sub_resource type="Resource" id="Resource_tower_tier1"]
+script = ExtResource("4_tier")
+cost = 4
+attack_range = 9.0
+attack_damage = 3
+max_health = 50
+attack_interval = 0.9
+projectile_speed = 18.0
+
+[sub_resource type="Resource" id="Resource_tower_tier2"]
+script = ExtResource("4_tier")
+cost = 6
+attack_range = 10.5
+attack_damage = 6
+max_health = 70
+attack_interval = 0.7
+projectile_speed = 20.0
+
+[sub_resource type="Resource" id="Resource_wall"]
+script = ExtResource("3_bdef")
+id = &"wall"
+display_name = "Wall"
+body_radius = 0.5
+tiers = Array[ExtResource("4_tier")]([SubResource("Resource_wall_tier1"), SubResource("Resource_wall_tier2"), SubResource("Resource_wall_tier3")])
+
+[sub_resource type="Resource" id="Resource_tower"]
+script = ExtResource("3_bdef")
+id = &"tower"
+display_name = "Tower"
+body_radius = 1.0
+tiers = Array[ExtResource("4_tier")]([SubResource("Resource_tower_tier1"), SubResource("Resource_tower_tier2")])
+
+[sub_resource type="Resource" id="Resource_run_west"]
+script = ExtResource("9_run")
+points = PackedVector2Array(-20, -30, -20, 30)
+segment_length = 3.0
+gaps = PackedVector2Array(52, 56)
+half_thickness = 0.4
+
+[sub_resource type="Resource" id="Resource_spot_tower_1"]
+script = ExtResource("2_spot")
+id = &"tower_1"
+position = Vector3(-10, 0, 2)
+building_id = &"tower"
+
+[sub_resource type="Resource" id="Resource_spot_wall_west"]
+script = ExtResource("2_spot")
+id = &"wall_west"
+position = Vector3(-17.5, 0, 0)
+building_id = &"wall"
+wall_run = SubResource("Resource_run_west")
+
+[sub_resource type="Resource" id="Resource_spawn_west"]
+script = ExtResource("5_spawn")
+id = &"west"
+display_name = "West"
+position = Vector3(-32, 0, 0)
+scatter_radius = 2.0
+
+[sub_resource type="Resource" id="Resource_group_n1_crowd"]
+script = ExtResource("6_group")
+spawn_point_id = &"west"
+enemy_id = &"grunt"
+count = 12
+start_delay_seconds = 0.5
+interval_seconds = 0.2
+
+[sub_resource type="Resource" id="Resource_group_n2_stragglers"]
+script = ExtResource("6_group")
+spawn_point_id = &"west"
+enemy_id = &"grunt"
+count = 8
+start_delay_seconds = 0.5
+interval_seconds = 3.0
+
+[sub_resource type="Resource" id="Resource_night_1"]
+script = ExtResource("7_night")
+groups = Array[ExtResource("6_group")]([SubResource("Resource_group_n1_crowd")])
+
+[sub_resource type="Resource" id="Resource_night_2"]
+script = ExtResource("7_night")
+groups = Array[ExtResource("6_group")]([SubResource("Resource_group_n2_stragglers")])
+
+[sub_resource type="Resource" id="Resource_nav"]
+script = ExtResource("10_nav")
+cell_size = 2.0
+bounds_margin = 10.0
+goal_margin = 0.8
+field_cache_size = 8
+goal_quantum = 4.0
+field_builds_per_tick = 1
+field_refresh_seconds = 0.5
+wall_decision_seconds = 0.5
+wall_notice_range = 12.0
+wall_neighbour_span = 2
+wall_hysteresis_seconds = 0.5
+stuck_seconds = 3.0
+stuck_progress_m = 0.5
+
+[resource]
+script = ExtResource("1_map")
+id = &"fixture_replay_walls"
+display_name = "Fixture Replay Walls"
+is_sandbox = true
+starting_gold = 20
+king_spawn = Vector3(0, 0, 7)
+castle_position = Vector3(0, 0, 0)
+buildings = Array[ExtResource("3_bdef")]([SubResource("Resource_wall"), SubResource("Resource_tower")])
+spots = Array[ExtResource("2_spot")]([SubResource("Resource_spot_tower_1"), SubResource("Resource_spot_wall_west")])
+enemies = Array[ExtResource("8_enemy")]([SubResource("Resource_grunt")])
+spawn_points = Array[ExtResource("5_spawn")]([SubResource("Resource_spawn_west")])
+nights = Array[ExtResource("7_night")]([SubResource("Resource_night_1"), SubResource("Resource_night_2")])
+castle_max_health = 70
+castle_radius = 3.5
+castle_attack_damage = 2
+castle_attack_range = 22.0
+castle_attack_interval = 1.5
+castle_projectile_speed = 27.0
+ground_half_extent = 90.0
+nav_tuning = SubResource("Resource_nav")
