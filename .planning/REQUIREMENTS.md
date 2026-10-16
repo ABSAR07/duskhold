@@ -38,7 +38,7 @@ Requirements for the initial release (5-map campaign). Each maps to exactly one 
 - [x] **BLDG-07**: Buildings have health, take damage from enemies, and are visibly destroyed at zero health
 - [ ] **BLDG-08**: Player can upgrade the castle center through its tiers for more health, picking one of four run-wide abilities or passives at each tier
 - [ ] **BLDG-09**: The castle center's tier gates which higher building tiers can be purchased
-- [ ] **BLDG-10**: Player can build walls and barricades that block enemy movement and upgrade linearly in health
+- [x] **BLDG-10**: Player can build walls and barricades that block enemy movement and upgrade linearly in health
 - [ ] **BLDG-11**: Player can build towers that attack enemies, upgrading through a tier-2 choice of four specializations and a tier-3 choice of four further specializations, each with a distinct attack behavior
 - [ ] **BLDG-12**: Player can build a Blacksmith and a Royal Forge and start timed research (spanning multiple days) that grants global buffs to the king, units, and buildings
 - [ ] **BLDG-13**: Research progress pauses while its building is destroyed, and higher research-building tiers add research slots
@@ -71,7 +71,7 @@ Requirements for the initial release (5-map campaign). Each maps to exactly one 
 - [ ] **ENMY-01**: The shared enemy roster covers melee, ranged, fast, tank, flying, siege, anti-king, and exploder roles
 - [ ] **ENMY-02**: Siege enemies target buildings first, and anti-king enemies target the king first
 - [ ] **ENMY-03**: Flying enemies ignore walls and can only be hit by attackers that can reach air targets
-- [ ] **ENMY-04**: Enemies path toward their targets around or through defenses without jamming indefinitely at walls or chokepoints
+- [x] **ENMY-04**: Enemies path toward their targets around or through defenses without jamming indefinitely at walls or chokepoints
 - [ ] **ENMY-05**: Each night of each map uses a hand-authored wave composition per spawn point that escalates in count, variety, and spawn directions
 - [ ] **ENMY-06**: Each map after the first introduces at least one enemy type unique to that map
 - [ ] **ENMY-07**: Maps 3, 4, and 5 each end with a boss night featuring a unique boss enemy
@@ -202,7 +202,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BLDG-07 | Phase 2 | Complete |
 | BLDG-08 | Phase 5 | Pending |
 | BLDG-09 | Phase 5 | Pending |
-| BLDG-10 | Phase 4 | Pending |
+| BLDG-10 | Phase 4 | Complete |
 | BLDG-11 | Phase 6 | Pending |
 | BLDG-12 | Phase 12 | Pending |
 | BLDG-13 | Phase 12 | Pending |
@@ -226,7 +226,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ENMY-01 | Phase 6 | Pending |
 | ENMY-02 | Phase 6 | Pending |
 | ENMY-03 | Phase 6 | Pending |
-| ENMY-04 | Phase 4 | Pending |
+| ENMY-04 | Phase 4 | Complete |
 | ENMY-05 | Phase 9 | Pending |
 | ENMY-06 | Phase 11 | Pending |
 | ENMY-07 | Phase 11 | Pending |

@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
 status: executing
-stopped_at: Completed 04-10-PLAN.md
-last_updated: "2026-10-16T19:20:59.721Z"
+stopped_at: Completed 04-11-PLAN.md
+last_updated: "2026-10-16T20:18:29.326Z"
 last_activity: 2026-10-16
 last_activity_desc: Phase 04 execution started
-state_head: 6505bfa781b566f3a6cdcd2013bdda10300ad8d7
+state_head: ff6df66d742a6e9d8f258830cc0a33fc97e5fdfc
 progress:
   total_phases: 13
   completed_phases: 3
   total_plans: 70
-  completed_plans: 69
+  completed_plans: 70
   percent: 23
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 04 (Crowd-Scale Battles & Walls) — EXECUTING
-Plan: 10 of 11
+Plan: 11 of 11
 Status: Ready to execute
 Last activity: 2026-10-16 — Phase 04 execution started
 
@@ -127,6 +127,7 @@ Progress: [██░░░░░░░░] 23%
 | Phase 04 P08 | 66 min | 2 tasks | 31 files |
 | Phase 04 P09 | 54 min | 2 tasks | 23 files |
 | Phase 04 P10 | 128 min | 2 tasks | 18 files |
+| Phase 04 P11 | 40 min | 3 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -290,6 +291,7 @@ Recent decisions affecting current work:
 - [Phase 04]: [04-10] Success criterion 4 holds exactly: the Phase 3 orders on the Phase 4 code give a byte-identical balance report.json (60 runs, md5 001778e7...) to a clean export of the Phase 3 tree; smoke and army goldens never moved
 - [Phase 04]: [04-10] The plan's first wall order (each road run right after its tower) broke the Phase 2 bar (balanced 4 of 10, army_balanced 2 of 10); D-15's ladder moved the bots' wall entries later and both win 8 of 10 losing the Phase 3 seeds; no night count, wall cost or other data moved. Bots earn 22 and 15 gold a run, so walls are bought only in the last days and never broken; free walls still cost the army bot four seeds (open point for the gate)
 - [Phase 04]: [04-10] Walls golden tests/golden/walls.json (seed 1, bfb05fc7..., 1961 ticks) on a frozen fixture, checked in CI beside smoke and army; full_idle stays unpinned, its digest moved f417c7f5... (6941 ticks) to 4385f569... (6911 ticks) in the D-14 regeneration commit 94fff12, recorded only in 04-BALANCE-REPORT.md
+- [Phase 04]: 04-11: PLAT-01 stays open (not met: p95 37.04 ms vs 8.0 ms); the gate packet carries it with 25 assumptions and the owner's route options; BLDG-10 and ENMY-04 complete
 
 ### Pending Todos
 
@@ -327,6 +329,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-16T19:20:58.893Z
-Stopped at: Completed 04-10-PLAN.md
+Last session: 2026-10-16T20:18:28.280Z
+Stopped at: Completed 04-11-PLAN.md
 Resume file: None
