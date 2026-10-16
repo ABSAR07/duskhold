@@ -15,6 +15,8 @@ var _next_id: int = 1
 var _died_total: int = 0
 ## The friendly units of the step in progress; null when the caller has none (Phase 2 behaviour).
 var _units: UnitSystem
+## The nearest-structure grid, rebuilt once per step: structures do not move in the enemy phase.
+var _structures: StructureIndex = StructureIndex.new()
 
 
 func _init(events: SimEvents) -> void:
@@ -41,6 +43,7 @@ func spawn(def: EnemyDef, pos: Vector2) -> int:
 	record.position = pos
 	record.previous = pos
 	record.health = def.max_health
+	record.rescan_ticks = maxi(SimClock.ticks(def.retarget_interval_seconds), 1)
 	_next_id += 1
 	_records[record.id] = record
 	_order.append(record.id)
@@ -136,6 +139,7 @@ func step(
 		record.previous = record.position
 	if castle.is_destroyed():
 		return
+	_structures.rebuild(units, buildings, castle)
 	for id: int in _order:
 		var record: Record = _records[id]
 		if record.health <= 0:
@@ -181,8 +185,7 @@ func _choose_target(
 	record: Record, tick: int, castle: CastleState, king: KingState, buildings: BuildingSystem
 ) -> void:
 	var valid: bool = record.target_kind != &"" and _target_valid(record, castle, king, buildings)
-	var rescan_ticks: int = maxi(SimClock.ticks(record.def.retarget_interval_seconds), 1)
-	if valid and not is_rescan_tick(tick, record.id, rescan_ticks):
+	if valid and not is_rescan_tick(tick, record.id, record.rescan_ticks):
 		return
 	if valid and record.target_kind == PendingHits.KIND_KING:
 		return
@@ -197,39 +200,25 @@ func _choose_target(
 		return
 	record.target_kind = &""
 	record.target_id = 0
-	_pick_nearest_structure(record, castle, buildings)
+	_pick_nearest_structure(record)
 
 
 ## Sets the target to the nearest living unit, standing building or the castle by edge distance
-## (centre distance minus radius), if one is within aggro_range. A strictly smaller edge distance is
-## needed to replace an earlier candidate, so units are tried first (in id order), then buildings in
-## spot order and the castle last.
-func _pick_nearest_structure(
-	record: Record, castle: CastleState, buildings: BuildingSystem
-) -> void:
-	var best_edge: float = INF
-	if _units != null:
-		for unit_id: int in _units.ids():
-			if not _units.is_alive(unit_id):
-				continue
-			var unit_edge: float = _unit_edge(record.position, unit_id)
-			if unit_edge <= record.def.aggro_range and unit_edge < best_edge:
-				best_edge = unit_edge
-				record.target_kind = PendingHits.KIND_UNIT
-				record.target_id = unit_id
-	if buildings != null:
-		for spot_id: StringName in buildings.standing_spot_ids():
-			var edge: float = _building_edge(record.position, buildings, spot_id)
-			if edge <= record.def.aggro_range and edge < best_edge:
-				best_edge = edge
-				record.target_kind = PendingHits.KIND_BUILDING
-				record.target_id = buildings.spot_index(spot_id)
-	var castle_edge: float = (
-		record.position.distance_to(castle.get_position()) - castle.get_radius()
-	)
-	if castle_edge <= record.def.aggro_range and castle_edge < best_edge:
+## (centre distance minus radius), if one is within aggro_range. The answer comes from the
+## StructureIndex, which tests the candidates in the shipped order: a strictly smaller edge distance
+## is needed to replace an earlier candidate, so units are tried first (in id order), then
+## buildings in spot order and the castle last.
+func _pick_nearest_structure(record: Record) -> void:
+	var found: Vector3i = _structures.nearest(record.position, record.def.aggro_range)
+	if found.z == 0:
+		return
+	if found.x == StructureIndex.KIND_UNIT:
+		record.target_kind = PendingHits.KIND_UNIT
+	elif found.x == StructureIndex.KIND_BUILDING:
+		record.target_kind = PendingHits.KIND_BUILDING
+	else:
 		record.target_kind = PendingHits.KIND_CASTLE
-		record.target_id = 0
+	record.target_id = found.y
 
 
 ## Distance from `pos` to the edge of the building on the spot; negative inside its footprint.
@@ -378,3 +367,5 @@ class Record:
 	var target_id: int = 0
 	## First tick on which its next strike may land.
 	var cooldown_ready_tick: int = 0
+	## Ticks between its target rescans, fixed at spawn from its def's retarget interval.
+	var rescan_ticks: int = 1
