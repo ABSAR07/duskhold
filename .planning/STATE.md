@@ -3,7 +3,7 @@ gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
 status: executing
-stopped_at: Completed 04-11-PLAN.md
+stopped_at: "Phase 04 verified gaps_found (PLAT-01 budget); 13 owner items pending in 04-UAT.md; next /gsd-verify-work 4, then /gsd-plan-phase 4 --gaps"
 last_updated: "2026-10-16T20:18:29.326Z"
 last_activity: 2026-10-16
 last_activity_desc: Phase 04 execution started
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 
 Phase: 04 (Crowd-Scale Battles & Walls) — EXECUTING
 Plan: 11 of 11
-Status: Ready to execute
+Status: Execution complete (11/11 plans); verification gaps_found; awaiting the owner gate (/gsd-verify-work 4) and the PLAT-01 gap plan
 Last activity: 2026-10-16 — Phase 04 execution started
 
 Progress: [██░░░░░░░░] 23%
@@ -311,6 +311,7 @@ None yet.
 - [Phase 11]: Boss-night difficulty cliffs; tune with seeded simulated playthroughs plus owner playtest
 - [Phase 13]: SmartScreen/AV behavior of unsigned export only known after clean-machine test
 - [Phase 4] PLAT-01 frame budget missed (04-09): median p95 37.04 ms against 8.0 ms; see 04-FRAME-REPORT.md for the profile and the three options. Owner decision 2026-10-16: 04-10 and 04-11 run on the missed budget; the perf route is a gap plan after /gsd-verify-work 4
+- [Phase 4] Code review 04-REVIEW.md (2026-10-16): 0 critical, 7 warning, 6 info, all 13 open in 04-REVIEW-DISPOSITION.md (WR-01 3 m gap routability, WR-02 tangency epsilon, WR-03 off-grid is_sealed, WR-04 wall tier health validation, WR-05 stress.sh arithmetic, WR-06 wall-bot balance proof, WR-07 wall-clock bound in test_wall_tracer_scene; IN-01 hot-path allocation wins); fix through /gsd-code-review 4 --fix
 
 ### Quick Tasks Completed
 
@@ -329,6 +330,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-16T20:18:28.280Z
-Stopped at: Completed 04-11-PLAN.md
-Resume file: None
+Last session: 2026-10-16T21:08:24Z
+Stopped at: Phase 04 verified gaps_found (PLAT-01 budget); 13 owner items pending in 04-UAT.md; next /gsd-verify-work 4, then /gsd-plan-phase 4 --gaps
+Resume file: .planning/phases/04-crowd-scale-battles-walls/04-PLAYTEST-GATE.md
