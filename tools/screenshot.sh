@@ -4,9 +4,10 @@
 #   Shots: day_overview spot_label build_in_progress night_banner dawn_payout overlay_on
 #          king_behind_keep spawn_telegraph night_combat building_destroyed dawn_rebuilt
 #          king_down_countdown results_victory results_defeat overlay_paths
-#          the eighteen Phase 3 shots hud_* and cmd_* and the three Phase 4 shots walls_day,
-#          walls_night_breach and overlay_field_gate, all listed in ALL_SHOTS below.
-#   With no arguments, all thirty-six are captured. The night shots fast-forward the simulation
+#          the eighteen Phase 3 shots hud_* and cmd_* and the four Phase 4 shots walls_day,
+#          walls_night_breach, overlay_field_gate and crowd_stress_night, all listed in ALL_SHOTS
+#          below.
+#   With no arguments, all thirty-seven are captured. The night shots fast-forward the simulation
 #   with a named bot (tools/replay/playtest_strategies.gd) before the real-time capture. Every hud_
 #   and cmd_ shot also fails when a visible HUD control sits in the clear centre (ShotRunner).
 #   The window is 1280x720, 1920x1080 for a name ending _1080p and 1600x1000 for one ending _16x10.
@@ -32,7 +33,7 @@ ALL_SHOTS=(day_overview spot_label build_in_progress night_banner dawn_payout ov
   hud_day_squads hud_night_squad_down hud_drag_box hud_pad_cursor hud_king_down hud_ability_ready
   hud_long_toast hud_day_squads_1080p hud_night_squad_down_16x10 hud_day_counter_long hud_king_120
   hud_keycap_backspace cmd_queue_ten hud_rubble_squad cmd_box_select cmd_move_ping cmd_patrol
-  cmd_slam walls_day walls_night_breach overlay_field_gate)
+  cmd_slam walls_day walls_night_breach overlay_field_gate crowd_stress_night)
 RUN_TIMEOUT_S=120
 OUT_DIR="${DUSKHOLD_ROOT}/screenshots"
 OUT_DIR_NATIVE="${DUSKHOLD_ROOT_NATIVE}/screenshots"

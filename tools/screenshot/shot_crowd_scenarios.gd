@@ -16,7 +16,10 @@ const RING: StringName = &"wall_ring"
 const DAY_RUNS: Array[StringName] = [WEST, EAST, NORTH, RING]
 const DAY_TIERS: Array[int] = [1, 2, 3, 2]
 const CROWD_SHOTS: Array[StringName] = [
-	ShotScenarios.WALLS_DAY, ShotScenarios.WALLS_NIGHT_BREACH, ShotScenarios.OVERLAY_FIELD_GATE
+	ShotScenarios.WALLS_DAY,
+	ShotScenarios.WALLS_NIGHT_BREACH,
+	ShotScenarios.OVERLAY_FIELD_GATE,
+	ShotScenarios.CROWD_STRESS_NIGHT
 ]
 const DRAW_TIMEOUT_S: float = 3.0
 ## The label fades in over this long once the king stands at the plot.
@@ -33,6 +36,16 @@ const BREACH_TIMEOUT_TICKS: int = 900
 const FIELD_GATE_STAND := Vector3(7.0, 0.0, 24.0)
 const FIELD_GATE_NIGHT_TICKS: int = 240
 const FIELD_GATE_DRAW_TIMEOUT_S: float = 4.0
+## crowd_stress_night (plan 04-09): the king stands between the gate and the tower rows with a
+## health pool that outlasts the surge, the camera zooms out for this long, the night runs this
+## many ticks (12 s) and the batches get this long to draw. At least this many enemies must be
+## drawn.
+const STRESS_NIGHT_KING := Vector3(0.0, 0.0, 24.0)
+const STRESS_NIGHT_KING_HEALTH: int = 100000
+const STRESS_NIGHT_ZOOM_OUT_S: float = 1.2
+const STRESS_NIGHT_TICKS: int = 360
+const STRESS_NIGHT_DRAW_TIMEOUT_S: float = 4.0
+const STRESS_NIGHT_MIN_DRAWN: int = 250
 
 
 ## True for the Phase 4 shots.
@@ -45,7 +58,10 @@ static func handles(shot_name: StringName) -> bool:
 ## tools-only stress map.
 static func map_for(shot_name: StringName) -> MapConfig:
 	var path: String = ShotScenarios.MAP_DATA_PATH
-	if shot_name == ShotScenarios.OVERLAY_FIELD_GATE:
+	if (
+		shot_name == ShotScenarios.OVERLAY_FIELD_GATE
+		or shot_name == ShotScenarios.CROWD_STRESS_NIGHT
+	):
 		path = GateStress.STRESS_MAP
 	var shipped: MapConfig = load(path)
 	var config: MapConfig = shipped.duplicate_deep(Resource.DEEP_DUPLICATE_ALL)
@@ -61,6 +77,8 @@ static func run(shot_name: StringName, runner: Node, map_root: MapRoot) -> bool:
 			return await _walls_night_breach(runner, map_root)
 		ShotScenarios.OVERLAY_FIELD_GATE:
 			return await _overlay_field_gate(runner, map_root)
+		ShotScenarios.CROWD_STRESS_NIGHT:
+			return await _crowd_stress_night(runner, map_root)
 	printerr("unknown crowd shot %s" % shot_name)
 	return false
 
@@ -166,6 +184,51 @@ static func _overlay_field_gate(runner: Node, map_root: MapRoot) -> bool:
 	if not shown:
 		printerr("no field arrows were drawn (%s)" % _state(ctx))
 	return shown
+
+
+## The stress map with everything built (the gate wall, the 20 stress towers, the two barracks),
+## night 1 run for 12 s, the camera zoomed out on the king between the gate and the tower rows:
+## hundreds of enemies, the squads and the tower arrows on screen at once. Readability work is
+## Phase 8's; this is the picture of the largest battle the frame report measures.
+static func _crowd_stress_night(runner: Node, map_root: MapRoot) -> bool:
+	var ctx: RunContext = map_root.get_context()
+	for spot_id: StringName in ctx.buildings.spot_ids():
+		if not ShotScenarios._submit_ok(ctx, BuildIntent.new(spot_id)):
+			return false
+	map_root.get_king().global_position = STRESS_NIGHT_KING
+	Input.action_press(&"zoom_out")
+	await ShotScenarios._wait(runner, STRESS_NIGHT_ZOOM_OUT_S)
+	Input.action_release(&"zoom_out")
+	await ShotScenarios._wait(runner, ShotScenarios.CAMERA_SETTLE_S)
+	if not ShotScenarios._submit_ok(ctx, StartNightIntent.new()):
+		return false
+	var bot: PlaytestBot = PlaytestBot.new()
+	bot.start_nights = false
+	bot.king_mode = PlaytestBot.KING_HOLD_POINT
+	bot.hold_point = Vector2(STRESS_NIGHT_KING.x, STRESS_NIGHT_KING.z)
+	var until: int = ctx.tick_count + STRESS_NIGHT_TICKS
+	var later: Callable = func() -> bool: return ctx.tick_count >= until
+	ShotScenarios._fast_forward(map_root, bot, later)
+	var enemy_views: EnemyViews = map_root.get_node("EnemyViews") as EnemyViews
+	var arrows: ProjectileVfx = map_root.get_node("ProjectileVfx") as ProjectileVfx
+	var drawn: Callable = func() -> bool:
+		return enemy_views.view_count() >= STRESS_NIGHT_MIN_DRAWN and arrows.arrow_count() > 0
+	var shown: bool = await ShotScenarios._wait_until(runner, drawn, STRESS_NIGHT_DRAW_TIMEOUT_S)
+	if not shown:
+		printerr(
+			(
+				"the crowd was not drawn (%d enemies, %d arrows; %s)"
+				% [enemy_views.view_count(), arrows.arrow_count(), _state(ctx)]
+			)
+		)
+	return shown
+
+
+## The king of crowd_stress_night outlasts the surge so the picture shows the battle, not the
+## knocked-out countdown. The shipped king file is never touched: the def is a copy.
+static func tune_king(shot_name: StringName, def: KingDef) -> void:
+	if shot_name == ShotScenarios.CROWD_STRESS_NIGHT:
+		def.max_health = STRESS_NIGHT_KING_HEALTH
 
 
 ## Puts the king beside the plot, where its label shows, and waits for the camera to catch up.

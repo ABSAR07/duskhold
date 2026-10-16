@@ -4,7 +4,7 @@ extends GutTest
 
 const SCRIPT_PATH := "res://tools/screenshot.sh"
 const LIST_OPEN := "ALL_SHOTS=("
-const EXPECTED_SHOT_COUNT: int = 36
+const EXPECTED_SHOT_COUNT: int = 37
 const PHASE_1_SHOT_COUNT: int = 15
 
 
@@ -32,15 +32,15 @@ func _bash_shots() -> Array[StringName]:
 
 func test_the_wrapper_lists_the_scenarios_in_the_same_order() -> void:
 	var bash_shots: Array[StringName] = _bash_shots()
-	assert_eq(bash_shots.size(), EXPECTED_SHOT_COUNT, "the wrapper lists thirty-six shots")
+	assert_eq(bash_shots.size(), EXPECTED_SHOT_COUNT, "the wrapper lists thirty-seven shots")
 	assert_eq(bash_shots, ShotScenarios.ALL_SHOTS, "bash and GDScript lists are identical")
 
 
-func test_there_are_thirty_six_distinct_shots() -> void:
+func test_there_are_thirty_seven_distinct_shots() -> void:
 	var seen: Dictionary = {}
 	for shot: StringName in ShotScenarios.ALL_SHOTS:
 		seen[shot] = true
-	assert_eq(ShotScenarios.ALL_SHOTS.size(), EXPECTED_SHOT_COUNT, "thirty-six shots")
+	assert_eq(ShotScenarios.ALL_SHOTS.size(), EXPECTED_SHOT_COUNT, "thirty-seven shots")
 	assert_eq(seen.size(), EXPECTED_SHOT_COUNT, "no name is listed twice")
 
 
@@ -106,7 +106,7 @@ func test_the_shots_come_in_three_blocks_phase_1_then_phase_3_then_phase_4() -> 
 		phase_4.append(ShotScenarios.ALL_SHOTS[index])
 	assert_eq(ShotScenarios.ARMY_SHOTS.size(), 18, "eighteen Phase 3 shots")
 	assert_eq(phase_3, ShotScenarios.ARMY_SHOTS, "they follow the first fifteen in order")
-	assert_eq(ShotCrowdScenarios.CROWD_SHOTS.size(), 3, "three Phase 4 shots")
+	assert_eq(ShotCrowdScenarios.CROWD_SHOTS.size(), 4, "four Phase 4 shots")
 	assert_eq(phase_4, ShotCrowdScenarios.CROWD_SHOTS, "they close the list in order")
 	for shot: StringName in ShotScenarios.ARMY_SHOTS:
 		assert_true(ShotArmyScenarios.handles(shot), "%s has a Phase 3 scene" % shot)
@@ -165,9 +165,11 @@ func test_the_king_copies_of_the_hurt_shots_hold_their_health() -> void:
 	assert_gt(shipped.regen_fraction_per_second, 0.0, "and still regenerates")
 
 
-func test_the_field_gate_shot_closes_the_list_and_runs_on_the_stress_map() -> void:
+func test_the_field_gate_shot_runs_on_the_stress_map() -> void:
 	var shot: StringName = &"overlay_field_gate"
-	assert_eq(ShotScenarios.ALL_SHOTS[ShotScenarios.ALL_SHOTS.size() - 1], shot, "it is last")
+	assert_eq(
+		ShotScenarios.ALL_SHOTS[ShotScenarios.ALL_SHOTS.size() - 2], shot, "it is second last"
+	)
 	var crowd: Array[StringName] = ShotCrowdScenarios.CROWD_SHOTS
 	assert_eq(crowd.find(shot), 2, "the third Phase 4 shot")
 	assert_true(ShotCrowdScenarios.handles(shot), "the crowd scenes handle it")
@@ -178,3 +180,26 @@ func test_the_field_gate_shot_closes_the_list_and_runs_on_the_stress_map() -> vo
 	var shipped: MapConfig = load(GateStress.STRESS_MAP)
 	assert_ne(map, shipped, "a deep copy, never the shared resource")
 	assert_ne(map.spots[0].wall_run, shipped.spots[0].wall_run, "its wall run is copied too")
+
+
+func test_the_crowd_stress_night_shot_closes_the_list_and_runs_on_the_stress_map() -> void:
+	var shot: StringName = &"crowd_stress_night"
+	assert_eq(ShotScenarios.ALL_SHOTS[ShotScenarios.ALL_SHOTS.size() - 1], shot, "it is last")
+	var crowd: Array[StringName] = ShotCrowdScenarios.CROWD_SHOTS
+	assert_eq(crowd.find(shot), 3, "the fourth Phase 4 shot")
+	assert_true(ShotCrowdScenarios.handles(shot), "the crowd scenes handle it")
+	assert_true(_bash_shots().has(shot), "and the wrapper lists it")
+	var map: MapConfig = ShotScenarios.map_for(shot)
+	assert_eq(map.id, &"stress", "it runs on the stress map")
+	assert_eq(map.starting_gold, ShotScenarios.SHOT_STARTING_GOLD, "with the shot gold")
+	assert_ne(map, load(GateStress.STRESS_MAP), "a deep copy, never the shared resource")
+	assert_lte(map.spots.size(), ShotScenarios.SHOT_STARTING_GOLD, "one coin per plot is paid")
+
+
+func test_the_crowd_stress_night_king_outlasts_the_surge_and_the_shipped_king_is_untouched(
+) -> void:
+	var shipped: KingDef = load(ShotScenarios.KING_DATA_PATH)
+	var shot_king: KingDef = ShotScenarios.king_def_for(&"crowd_stress_night")
+	assert_eq(shot_king.max_health, ShotCrowdScenarios.STRESS_NIGHT_KING_HEALTH, "a long pool")
+	assert_eq(shipped.max_health, 50, "the shipped king keeps 50")
+	assert_eq(ShotScenarios.king_def_for(&"overlay_field_gate").max_health, 50, "other shots too")

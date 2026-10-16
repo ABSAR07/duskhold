@@ -83,10 +83,12 @@ const CMD_BOX_SELECT := &"cmd_box_select"
 const CMD_MOVE_PING := &"cmd_move_ping"
 const CMD_PATROL := &"cmd_patrol"
 const CMD_SLAM := &"cmd_slam"
-## The three Phase 4 shots (plans 04-05 and 04-08); their scenes live in ShotCrowdScenarios.
+## The four Phase 4 shots (plans 04-05, 04-08 and 04-09); their scenes live in
+## ShotCrowdScenarios.
 const WALLS_DAY := &"walls_day"
 const WALLS_NIGHT_BREACH := &"walls_night_breach"
 const OVERLAY_FIELD_GATE := &"overlay_field_gate"
+const CROWD_STRESS_NIGHT := &"crowd_stress_night"
 const ARMY_SHOTS: Array[StringName] = [
 	HUD_DAY_SQUADS,
 	HUD_NIGHT_SQUAD_DOWN,
@@ -143,7 +145,8 @@ const ALL_SHOTS: Array[StringName] = [
 	CMD_SLAM,
 	WALLS_DAY,
 	WALLS_NIGHT_BREACH,
-	OVERLAY_FIELD_GATE
+	OVERLAY_FIELD_GATE,
+	CROWD_STRESS_NIGHT
 ]
 
 
@@ -184,6 +187,7 @@ static func king_def_for(shot_name: StringName) -> KingDef:
 	if shot_name == KING_DOWN_COUNTDOWN:
 		def.regen_fraction_per_second = 0.0
 	ShotArmyScenarios.tune_king(shot_name, def)
+	ShotCrowdScenarios.tune_king(shot_name, def)
 	return def
 
 
