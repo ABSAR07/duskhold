@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
 status: executing
-stopped_at: Phase 4 context gathered
-last_updated: "2026-10-16T02:11:51.677Z"
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-10-16T03:09:47.625Z"
 last_activity: 2026-10-16
 last_activity_desc: Phase 04 execution started
-state_head: 6afacb782d4f0e084c9dfc58ec3efe846e1782f1
+state_head: 588a45a53c3324cf94416378decaf32e0b9ffa59
 progress:
   total_phases: 13
   completed_phases: 3
   total_plans: 70
-  completed_plans: 59
+  completed_plans: 60
   percent: 23
 ---
 
@@ -28,8 +28,8 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 04 (Crowd-Scale Battles & Walls) — EXECUTING
-Plan: 1 of 11
-Status: Executing Phase 04
+Plan: 2 of 11
+Status: Ready to execute
 Last activity: 2026-10-16 — Phase 04 execution started
 
 Progress: [██░░░░░░░░] 23%
@@ -117,6 +117,7 @@ Progress: [██░░░░░░░░] 23%
 | Phase 03 P19 | 33 min | 2 tasks | 8 files |
 | Phase 03 P17 | 61 min | 2 tasks | 5 files |
 | Phase 03 P18 | 13 min | 2 tasks | 2 files |
+| Phase 04 P01 | 54 min | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -250,6 +251,9 @@ Recent decisions affecting current work:
 - [Phase 03]: Phase 3 closed 2026-10-15: UAT 25 of 25 pass (7 superseded rows, 2 pad rows passed on a DualShock 4); the owner passed the Phase 3 gate (test 24) without the full two-or-three-run playtest ("it seems fine, might come back and change stuff later"), so the 15 assumptions in 03-PLAYTEST-GATE.md stand as accepted by default; D-29 accepts the two long toasts and amends the UI-SPEC bound; review-fix pass 1 fixed 13 findings (CR-01, WR-02 to WR-04, IN-01 to IN-09), the fourth review left IN-10 and IN-11 (info) open; suite 1427 tests, goldens unchanged
 - [Phase 03]: Re-verification after review-fix pass 2 (2026-10-15): the ledger step reads every `### <ID>:` heading in REVIEW.md as a finding, so a review's fix-verification sections must not use that shape (the fifth review's two were reworded to `### Fix <ID> verified:`); the verifier returned `passed` directly because 03-UAT.md is complete, keeping the ten human items with their UAT test numbers and results
 - [Quick 261016-1o5]: Gamepad dropped as a requirement (owner decision 2026-10-16). The shipped pad code (pad bindings in project.godot, PadChords, PadCursorController, the glyph tiles and the hud_pad_cursor shot) stays in the build unsupported, kept as shipped and not extended; DeviceModel never reports the pad, so every HUD prompt stays on keyboard glyphs while a pad drives the game; no later phase adds pad parity, pad prompts or pad tests. Recorded in PROJECT.md (Constraints, Validated, Active, Context, Key Decisions), REQUIREMENTS.md (amendment note, INPT-02, INPT-03, BLDG-05), ROADMAP.md (controls note, Phase 5 and Phase 13 criteria) and CLAUDE.md
+- [Phase 04]: [04-01] Enemy batches keep instance colours on and pass white: the Compatibility renderer reads a missing vertex colour as black, so a colourless batch drew every body black through the tint; any later batch that reads COLOR must keep colours on — Forward+ hid the bug; found by the Compatibility screenshot run
+- [Phase 04]: [04-01] ShotRunner waits one processed frame before the capture: batched views upload in _process, so a scenario that stepped the simulation by hand left the captured frame without enemies — Puppet nodes appeared at spawn; batches commit per frame
+- [Phase 04]: [04-01] View hooks (has_view, puppet_position, flash_of, bar_ratio_of, puff_count) read CPU state, never the MultiMesh; DeathPuffBatch.spawn takes an optional colour and the puff cap is 128 (was 64); MAX_VIEWS is 512 enemies drawn in total — Headless renderer reads MultiMeshes back as zeros (RESEARCH F6)
 
 ### Pending Todos
 
@@ -286,6 +290,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-15T23:05:43.392Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-crowd-scale-battles-walls/04-CONTEXT.md
+Last session: 2026-10-16T03:09:46.917Z
+Stopped at: Completed 04-01-PLAN.md
+Resume file: None

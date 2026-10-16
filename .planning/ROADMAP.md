@@ -254,11 +254,11 @@ Plans:
   3. A scripted stress night with hundreds of units, enemies, and projectiles on screen holds 60 fps on GTX 970-class hardware, or within a documented equivalent frame-time budget on the dev machine.
   4. Nights from Phases 1–3 play the same after the switch to batched simulation and rendering. All existing headless loop and combat tests still pass.
 
-**Plans**: 0/11 plans complete
+**Plans**: 1/11 plans executed
 
 Plans:
 **Wave 1**
-- [ ] 04-01: Tracer — enemies drawn as one MultiMesh batch per type with hit flash, hurt-only bars and death puffs; smoke, army and full_idle byte-identical (D-13)
+- [x] 04-01: Tracer — enemies drawn as one MultiMesh batch per type with hit flash, hurt-only bars and death puffs; smoke, army and full_idle byte-identical (D-13)
 
 **Wave 2** *(blocked on 04-01)*
 - [ ] 04-02: Units and arrows from batches (baked Kenney meshes, 512-slot arrow ring), selection on the new hooks, 33 screenshots re-checked, green CI
@@ -441,7 +441,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 1. Foundation & Day Loop | 18/18 | Complete    | 2026-10-03 |
 | 2. Night Defense & Playtest Gate | 22/22 | Complete    | 2026-10-08 |
 | 3. King Combat & Troops | 19/19 | Complete    | 2026-10-15 |
-| 4. Crowd-Scale Battles & Walls | 0/TBD | Not started | - |
+| 4. Crowd-Scale Battles & Walls | 1/11 | In Progress|  |
 | 5. Castle Center & Economy Depth | 0/TBD | Not started | - |
 | 6. Enemy Roster & Tower Specializations | 0/TBD | Not started | - |
 | 7. Army Variety & Heroes | 0/TBD | Not started | - |
