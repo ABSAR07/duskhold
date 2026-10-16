@@ -6,6 +6,9 @@ extends RefCounted
 ## id order (DR-6). The mutating calls other than `damage` and `remove_dead` belong to SquadSystem,
 ## the only system that moves and targets units.
 
+## Added to twice the largest radius for the push-apart grid's cell edge (see EnemySystem).
+const SEPARATION_CELL_SLACK: float = 0.001
+
 var _events: SimEvents
 var _records: Dictionary = {}
 var _order: Array[int] = []
@@ -161,9 +164,9 @@ func set_cooldown_ready(id: int, tick: int) -> void:
 		record.cooldown_ready_tick = tick
 
 
-## Pushes overlapping units apart (DR-6, DR-8). The pass itself is Separation.displacements, shared
-## with EnemySystem; the displacements are applied together, so the result does not depend on
-## iteration side effects.
+## Pushes overlapping units apart (DR-6, DR-8). The pass itself is Separation.displacements_bucketed
+## (equal to Separation.displacements), shared with EnemySystem; the displacements are applied
+## together, so the result does not depend on iteration side effects.
 func separate() -> void:
 	var alive: Array[Record] = []
 	for id: int in _order:
@@ -175,11 +178,14 @@ func separate() -> void:
 	var positions: PackedVector2Array = PackedVector2Array()
 	var radii: PackedFloat64Array = PackedFloat64Array()
 	var ids: PackedInt64Array = PackedInt64Array()
+	var largest: float = 0.0
 	for record: Record in alive:
 		positions.append(record.position)
 		radii.append(record.def.radius)
 		ids.append(record.id)
-	var pushes: PackedVector2Array = Separation.displacements(positions, radii, ids)
+		largest = maxf(largest, record.def.radius)
+	var cell: float = 2.0 * largest + SEPARATION_CELL_SLACK
+	var pushes: PackedVector2Array = Separation.displacements_bucketed(positions, radii, ids, cell)
 	for index: int in range(alive.size()):
 		alive[index].position += pushes[index]
 

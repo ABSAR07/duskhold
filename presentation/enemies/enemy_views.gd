@@ -138,15 +138,15 @@ func _process(_delta: float) -> void:
 		batch.begin()
 	_bars.begin()
 	_drawn = 0
-	for enemy_id: int in enemies.ids():
+	var view: CrowdReadView = enemies.read_view()
+	for slot: int in range(view.ids.size()):
 		if _drawn >= MAX_VIEWS:
 			break
+		var enemy_id: int = view.ids[slot]
 		var kind: int = _kind_of.get(enemy_id, -1)
 		if kind < 0:
 			continue
-		var ground: Vector2 = enemies.previous_position_of(enemy_id).lerp(
-			enemies.position_of(enemy_id), blend
-		)
+		var ground: Vector2 = view.previous[slot].lerp(view.current[slot], blend)
 		var origin: Vector3 = Vector3(ground.x, _lifts[kind], ground.y)
 		var flash: Color = Color(_flash_amount(enemy_id), 0.0, 0.0, 0.0)
 		if not _batches[kind].add(origin, flash):

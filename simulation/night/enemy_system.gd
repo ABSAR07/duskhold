@@ -7,6 +7,9 @@ extends RefCounted
 ## An enemy counts as arrived when it is within this many metres of its stop distance, so float32
 ## positions that land a hair short still strike.
 const ARRIVE_EPSILON: float = 0.001
+## Added to twice the largest radius for the push-apart grid's cell edge, so a pair exactly at
+## touching distance never straddles two cells more than the pass looks.
+const SEPARATION_CELL_SLACK: float = 0.001
 
 var _events: SimEvents
 var _records: Dictionary = {}
@@ -17,6 +20,13 @@ var _died_total: int = 0
 var _units: UnitSystem
 ## The nearest-structure grid, rebuilt once per step: structures do not move in the enemy phase.
 var _structures: StructureIndex = StructureIndex.new()
+## The grid of living enemies behind TargetQuery.nearest_enemy, rebuilt on the first query after
+## the field changed.
+var _grid: EnemyIndex = EnemyIndex.new()
+var _grid_dirty: bool = true
+## Counts the changes that can alter the read view; the view carries the count it was built at.
+var _changes: int = 0
+var _view: CrowdReadView = CrowdReadView.new()
 
 
 func _init(events: SimEvents) -> void:
@@ -47,6 +57,7 @@ func spawn(def: EnemyDef, pos: Vector2) -> int:
 	_next_id += 1
 	_records[record.id] = record
 	_order.append(record.id)
+	_mark_changed()
 	_events.enemy_spawned.emit(record.id, def.id, pos)
 	return record.id
 
@@ -134,6 +145,7 @@ func step(
 	units: UnitSystem = null
 ) -> void:
 	_units = units
+	_mark_changed()
 	for id: int in _order:
 		var record: Record = _records[id]
 		record.previous = record.position
@@ -147,18 +159,49 @@ func step(
 		_choose_target(record, tick, castle, king, buildings)
 		_advance_and_strike(record, tick, castle, king, hits, buildings)
 	_separate()
+	_mark_changed()
 
 
-func living_within(_pos: Vector2, _reach: float) -> PackedInt64Array:
-	return PackedInt64Array()
+## Ids of the enemies whose grid cell lies within `reach` of `pos`'s cell, ascending: a superset of
+## the living enemies within `reach` metres, for the caller to narrow with its own exact test. Dead
+## enemies that have not been removed yet may be listed. Read-only; rebuilds the grid first when
+## the field changed since the last query.
+func living_within(pos: Vector2, reach: float) -> PackedInt64Array:
+	if _grid_dirty:
+		var ids: PackedInt64Array = PackedInt64Array()
+		var positions: PackedVector2Array = PackedVector2Array()
+		for id: int in _order:
+			var record: Record = _records[id]
+			if record.health > 0:
+				ids.append(id)
+				positions.append(record.position)
+		_grid.rebuild(ids, positions)
+		_grid_dirty = false
+	return _grid.within(pos, reach)
 
 
+## The enemy field as packed arrays (ids ascending, with previous and current positions), refilled
+## only when something changed since the last read. The same object every time, so a caller reads
+## it and never keeps it across a step. Emits no signal.
 func read_view() -> CrowdReadView:
-	return CrowdReadView.new()
+	if _view.version == _changes:
+		return _view
+	var count: int = _order.size()
+	_view.ids.resize(count)
+	_view.previous.resize(count)
+	_view.current.resize(count)
+	for slot: int in range(count):
+		var record: Record = _records[_order[slot]]
+		_view.ids[slot] = record.id
+		_view.previous[slot] = record.previous
+		_view.current[slot] = record.position
+	_view.version = _changes
+	return _view
 
 
 ## Removes dead enemies in ascending id order and emits enemy_died for each.
 func remove_dead() -> void:
+	_mark_changed()
 	var dead: Array[int] = []
 	for id: int in _order:
 		var record: Record = _records[id]
@@ -169,6 +212,7 @@ func remove_dead() -> void:
 		_records.erase(id)
 		_order.erase(id)
 		_died_total += 1
+		_mark_changed()
 		_events.enemy_died.emit(id, record.def.id, record.position, record.killer_kind)
 
 
@@ -177,6 +221,7 @@ func clear() -> void:
 	_records.clear()
 	_order.clear()
 	_died_total = 0
+	_mark_changed()
 
 
 ## D-11 target choice (Pitfall 5: commit to a target). It runs when the enemy has no target, when
@@ -284,6 +329,12 @@ func _building_target_valid(record: Record, buildings: BuildingSystem) -> bool:
 	return _building_edge(record.position, buildings, spot_id) <= record.def.leash_range
 
 
+## The field changed: the grid and the read view are stale until the next query or read.
+func _mark_changed() -> void:
+	_changes += 1
+	_grid_dirty = true
+
+
 func _king_up(king: KingState) -> bool:
 	return king != null and not king.is_down()
 
@@ -339,8 +390,8 @@ func _advance_and_strike(
 
 
 ## Pushes overlapping enemies apart (Pitfall 6, DR-6, DR-8). The pass itself is
-## Separation.displacements, shared with UnitSystem; the displacements are applied together, so the
-## result does not depend on iteration side effects.
+## Separation.displacements_bucketed (equal to Separation.displacements), shared with UnitSystem;
+## the displacements are applied together, so the result does not depend on iteration side effects.
 func _separate() -> void:
 	var alive: Array[Record] = []
 	for id: int in _order:
@@ -352,11 +403,14 @@ func _separate() -> void:
 	var positions: PackedVector2Array = PackedVector2Array()
 	var radii: PackedFloat64Array = PackedFloat64Array()
 	var ids: PackedInt64Array = PackedInt64Array()
+	var largest: float = 0.0
 	for record: Record in alive:
 		positions.append(record.position)
 		radii.append(record.def.radius)
 		ids.append(record.id)
-	var pushes: PackedVector2Array = Separation.displacements(positions, radii, ids)
+		largest = maxf(largest, record.def.radius)
+	var cell: float = 2.0 * largest + SEPARATION_CELL_SLACK
+	var pushes: PackedVector2Array = Separation.displacements_bucketed(positions, radii, ids, cell)
 	for index: int in range(alive.size()):
 		alive[index].position += pushes[index]
 
