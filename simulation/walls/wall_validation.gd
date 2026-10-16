@@ -13,15 +13,31 @@ const MAX_SEGMENTS_PER_MAP: int = 1000
 const MIN_SEGMENT_LENGTH: float = 0.5
 const MAX_SEGMENT_LENGTH: float = 20.0
 const MAX_HALF_THICKNESS: float = 2.0
+## Ranges the pathing tunables may take (T-04-13, T-04-15): a cell of 0.5 to 8 m, a cache of 1 to 32
+## goal fields, 1 to 4 builds per tick and a refresh of 0.1 to 10 s.
+const MIN_CELL_SIZE: float = 0.5
+const MAX_CELL_SIZE: float = 8.0
+const MAX_BOUNDS_MARGIN: float = 100.0
+const MAX_GOAL_MARGIN: float = 10.0
+const MIN_GOAL_QUANTUM: float = 0.5
+const MAX_GOAL_QUANTUM: float = 64.0
+const MIN_CACHE_SIZE: int = 1
+const MAX_CACHE_SIZE: int = 32
+const MIN_BUILDS_PER_TICK: int = 1
+const MAX_BUILDS_PER_TICK: int = 4
+const MIN_REFRESH_SECONDS: float = 0.1
+const MAX_REFRESH_SECONDS: float = 10.0
 
 
 ## Every wall error of `map`, in plot order; empty when its wall plots are well formed.
 static func errors(map: MapConfig) -> PackedStringArray:
 	var out: PackedStringArray = PackedStringArray()
 	var total_segments: float = 0.0
+	var has_walls: bool = false
 	for spot: BuildSpotDef in map.spots:
 		if spot == null or spot.wall_run == null:
 			continue
+		has_walls = true
 		out.append_array(_building_errors(map, spot))
 		var run_errors: PackedStringArray = PackedStringArray()
 		var pieces: float = _run_errors(spot.id, spot.wall_run, run_errors)
@@ -34,7 +50,62 @@ static func errors(map: MapConfig) -> PackedStringArray:
 				% [int(total_segments), MAX_SEGMENTS_PER_MAP]
 			)
 		)
+	if has_walls:
+		out.append_array(_nav_errors(map))
 	return out
+
+
+## What a wall map needs of its pathing: sane tunables and a nav grid inside NavGrid.MAX_NAV_CELLS.
+## A map with no wall plot never builds a grid, so it is not asked for one.
+static func _nav_errors(map: MapConfig) -> PackedStringArray:
+	var out: PackedStringArray = PackedStringArray()
+	var tuning: NavTuning = NavGrid.tuning_of(map)
+	_float_error(out, "cell_size", tuning.cell_size, MIN_CELL_SIZE, MAX_CELL_SIZE)
+	_float_error(out, "bounds_margin", tuning.bounds_margin, 0.0, MAX_BOUNDS_MARGIN)
+	_float_error(out, "goal_margin", tuning.goal_margin, 0.0, MAX_GOAL_MARGIN)
+	_float_error(out, "goal_quantum", tuning.goal_quantum, MIN_GOAL_QUANTUM, MAX_GOAL_QUANTUM)
+	_float_error(
+		out,
+		"field_refresh_seconds",
+		tuning.field_refresh_seconds,
+		MIN_REFRESH_SECONDS,
+		MAX_REFRESH_SECONDS
+	)
+	_int_error(out, "field_cache_size", tuning.field_cache_size, MIN_CACHE_SIZE, MAX_CACHE_SIZE)
+	_int_error(
+		out,
+		"field_builds_per_tick",
+		tuning.field_builds_per_tick,
+		MIN_BUILDS_PER_TICK,
+		MAX_BUILDS_PER_TICK
+	)
+	var sizeable: bool = (
+		is_finite(tuning.cell_size)
+		and tuning.cell_size > 0.0
+		and is_finite(tuning.bounds_margin)
+		and tuning.bounds_margin >= 0.0
+	)
+	if sizeable:
+		var cells: int = NavGrid.cell_count_for(map, tuning)
+		if cells > NavGrid.MAX_NAV_CELLS:
+			out.append("nav grid of %d cells exceeds %d" % [cells, NavGrid.MAX_NAV_CELLS])
+	return out
+
+
+static func _float_error(
+	out: PackedStringArray, field: String, value: float, low: float, high: float
+) -> void:
+	if not is_finite(value):
+		out.append("nav tuning %s is not finite" % field)
+	elif value < low or value > high:
+		out.append("nav tuning %s is %s, expected %s to %s" % [field, value, low, high])
+
+
+static func _int_error(
+	out: PackedStringArray, field: String, value: int, low: int, high: int
+) -> void:
+	if value < low or value > high:
+		out.append("nav tuning %s is %d, expected %d to %d" % [field, value, low, high])
 
 
 ## The wall building must be a plain ladder of health: no income, no attack, no squad.

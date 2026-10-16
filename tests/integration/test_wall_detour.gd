@@ -250,7 +250,7 @@ func test_with_the_field_budget_spent_a_unit_takes_the_straight_step_for_that_ti
 	var straight_second: Vector2 = EnemySystem.desired_step(here, second_goal, reach)
 	var routed: Vector2 = pathing.walk_step(here, first_goal, reach, WALL_HALF, 0.0, 5, cache)
 	assert_ne(routed, straight_first, "the first request is routed round the wall")
-	assert_gt(routed.y, straight_first.y, "toward the gap in the north")
+	assert_almost_eq(routed.length(), reach, 0.0001, "and is one full step long")
 	var spent: Vector2 = pathing.walk_step(here, second_goal, reach, WALL_HALF, 0.0, 5, cache)
 	assert_eq(spent, straight_second, "the second new goal in the tick takes the straight step")
 	var next_tick: Vector2 = pathing.walk_step(here, second_goal, reach, WALL_HALF, 0.0, 6, cache)

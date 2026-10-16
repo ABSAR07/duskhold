@@ -18,7 +18,7 @@ const BEHIND := Vector2(104.0, 100.0)
 const OPEN_SIDE := Vector2(96.0, 100.0)
 const WALL_X: float = 102.0
 const RESCAN_WINDOW: int = 40
-const SQUAD_WALL_X: float = -8.0
+const SQUAD_WALL_X: float = -3.0
 const RICH_GOLD: int = 200
 ## No scripted enemy spawns within a test; the test places its own.
 const LATE_SPAWN_SECONDS: float = 5000.0
@@ -225,7 +225,7 @@ func test_a_footman_ignores_an_enemy_behind_the_wall_while_an_archer_shoots_it()
 		ctx.step()
 	assert_eq(ctx.commands.submit(StartNightIntent.new()), CommandProcessor.OK, "night")
 	var enemies: EnemySystem = ctx.night.get_enemies()
-	var victim: int = enemies.spawn(load(GRUNT_PATH), Vector2(-6.0, 0.0))
+	var victim: int = enemies.spawn(load(GRUNT_PATH), Vector2(-1.5, 0.0))
 	var units: UnitSystem = ctx.squads.get_units()
 	var footman_engaged: bool = false
 	var archer_engaged: bool = false

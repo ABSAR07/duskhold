@@ -14,6 +14,8 @@ var _walls: WallSystem
 var _tuning: NavTuning
 var _grid: NavGrid
 var _castle_field: FlowField
+## The squads' goal-field cache, created on the first routed walk.
+var _squad_cache: GoalFieldCache
 ## The wall version the grid and the castle field were last built for.
 var _built_version: int = -1
 var _field_version: int = 0
@@ -101,26 +103,47 @@ func march_step(pos: Vector2, max_distance: float) -> Vector2:
 	)
 
 
-## RED-phase stubs: routed walking lands in the GREEN commit.
+## The step of a unit or the bot king at `pos` walking to `goal`, `max_distance` long, for a circle
+## of `radius` metres and a target of `goal_radius`. While a wall stands and the straight line is
+## blocked the step follows the flow field toward the goal, taken from `cache` (the facade's own
+## cache when null) at `tick`; with no wall, a clear line, no field this tick (its build budget is
+## spent, T-04-15) or no direction, it is exactly EnemySystem.desired_step. `known_blocked` lets a
+## caller that cached the line test say so: -1 tests now, 0 the line is clear, 1 it is blocked.
 func walk_step(
 	pos: Vector2,
 	goal: Vector2,
 	max_distance: float,
-	_radius: float,
-	_goal_radius: float,
-	_tick: int,
-	_cache: GoalFieldCache = null,
-	_known_blocked: int = -1
+	radius: float,
+	goal_radius: float,
+	tick: int,
+	cache: GoalFieldCache = null,
+	known_blocked: int = -1
 ) -> Vector2:
+	if not has_intact_walls() or not _grid.is_ready():
+		return EnemySystem.desired_step(pos, goal, max_distance)
+	var blocked: int = known_blocked
+	if blocked < 0:
+		blocked = 1 if first_blocking(pos, goal, radius) >= 0 else 0
+	if blocked == 0:
+		return EnemySystem.desired_step(pos, goal, max_distance)
+	var used: GoalFieldCache = cache if cache != null else _own_cache()
+	var field: FlowField = used.field_for(goal, goal_radius, tick)
+	if field != null:
+		var direction: Vector2 = field.direction_at(pos)
+		if direction != Vector2.ZERO:
+			return direction * maxf(max_distance, 0.0)
 	return EnemySystem.desired_step(pos, goal, max_distance)
 
 
+## A goal-field cache of a caller's own over the shared grid, so the caller never spends the budget
+## of the squads' cache (the bot king keeps one).
 func new_goal_cache() -> GoalFieldCache:
 	return GoalFieldCache.new(_grid, _tuning)
 
 
-func goal_key(_goal: Vector2) -> int:
-	return 0
+## The key of the goal-quantum square holding `goal`; goals with one key share a cached field.
+func goal_key(goal: Vector2) -> int:
+	return GoalFieldCache.key_of(goal, _tuning.goal_quantum)
 
 
 ## `pos` moved out of every intact segment, for a circle of `radius` metres; unchanged when no
@@ -144,3 +167,9 @@ func closest_point(segment: int, pos: Vector2) -> Vector2:
 	if _walls == null:
 		return Vector2.ZERO
 	return WallSolids.closest_point(_walls, segment, pos)
+
+
+func _own_cache() -> GoalFieldCache:
+	if _squad_cache == null:
+		_squad_cache = new_goal_cache()
+	return _squad_cache

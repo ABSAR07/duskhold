@@ -28,6 +28,12 @@ var _events: SimEvents
 var _units: UnitSystem
 var _squads: Dictionary = {}
 var _order: Array[StringName] = []
+## The pathing facade of the step in progress; null when the caller has none (Phase 3 behaviour).
+var _pathing: Pathing
+## Unit id -> [goal key, 1 when the straight line to that goal was blocked else 0]: the last line
+## test of each walking unit, repeated only when its goal moves to another goal-quantum square or
+## on the unit's own rescan tick (UnitSystem is at the method cap, so the cache lives here).
+var _sight: Dictionary = {}
 
 
 func _init(map: MapConfig, buildings: BuildingSystem, events: SimEvents) -> void:
@@ -179,6 +185,7 @@ func begin_night() -> void:
 	for unit_id: int in _units.ids():
 		_units.set_target(unit_id, -1)
 		_units.set_cooldown_ready(unit_id, 0)
+	_sight.clear()
 
 
 ## One step of the whole army. `tick` is the night tick at night and the run tick otherwise;
@@ -193,6 +200,7 @@ func step(
 	pathing: Pathing = null
 ) -> void:
 	_units.begin_step()
+	_pathing = pathing
 	_sync(night)
 	if night:
 		_trickle()
@@ -211,8 +219,7 @@ func step(
 
 
 ## D-04: after the push-apart every living unit, in ascending id, is moved out of the intact wall
-## segments. Units still walk straight; they are held in front of a wall until plan 04-06 routes
-## them through its gaps.
+## segments. Units walk through the gaps by Pathing.walk_step; the push-out is what keeps them out.
 func _push_units_out_of_walls(pathing: Pathing) -> void:
 	for unit_id: int in _units.ids():
 		if _units.is_alive(unit_id):
@@ -286,6 +293,8 @@ func remove_dead() -> void:
 		for unit_id: int in squad.unit_ids:
 			if _units.def_of(unit_id) != null:
 				kept.append(unit_id)
+			else:
+				_sight.erase(unit_id)
 		squad.unit_ids = kept
 
 
@@ -550,7 +559,7 @@ func _step_unit(
 		target = -1
 	_units.set_target(unit_id, target)
 	if target < 0:
-		_walk_to_slot(squad, unit_id)
+		_walk_to_slot(squad, unit_id, tick)
 		return
 	var goal: Vector2 = enemies.position_of(target)
 	var stop_distance: float = def.attack_range
@@ -560,7 +569,7 @@ func _step_unit(
 	var remaining: float = here.distance_to(goal) - stop_distance
 	if remaining > 0.0:
 		var reach: float = minf(def.move_speed * SimClock.STEP, remaining)
-		here += EnemySystem.desired_step(here, goal, reach)
+		here += _walk_toward(unit_id, def, here, goal, reach, enemies.def_of(target).radius, tick)
 		_units.set_position_of(unit_id, here)
 		remaining = here.distance_to(goal) - stop_distance
 	if remaining > ARRIVE_EPSILON or tick < _units.cooldown_ready_of(unit_id):
@@ -599,11 +608,13 @@ func _choose_target(
 	var rescan_ticks: int = maxi(SimClock.ticks(def.retarget_interval_seconds), 1)
 	if not EnemySystem.is_rescan_tick(tick, unit_id, rescan_ticks):
 		return -1
-	return TargetQuery.nearest_enemy(enemies, origin, def.guard_range)
+	if def.projectile_speed > 0.0:
+		return TargetQuery.nearest_enemy(enemies, origin, def.guard_range)
+	return TargetQuery.nearest_enemy_clear(enemies, origin, def.guard_range, _pathing, def.radius)
 
 
 ## With nothing to fight a unit walks back to its formation slot around the anchor.
-func _walk_to_slot(squad: Squad, unit_id: int) -> void:
+func _walk_to_slot(squad: Squad, unit_id: int, tick: int) -> void:
 	var def: UnitDef = squad.unit_def
 	var slot_position: Vector2 = (
 		squad.anchor
@@ -613,4 +624,35 @@ func _walk_to_slot(squad: Squad, unit_id: int) -> void:
 		return
 	var here: Vector2 = _units.position_of(unit_id)
 	var reach: float = def.move_speed * SimClock.STEP
-	_units.set_position_of(unit_id, here + EnemySystem.desired_step(here, slot_position, reach))
+	var step: Vector2 = _walk_toward(unit_id, squad.unit_def, here, slot_position, reach, 0.0, tick)
+	_units.set_position_of(unit_id, here + step)
+
+
+## The step of one unit toward `goal`: the exact straight step of EnemySystem.desired_step with no
+## pathing or no wall standing, else Pathing.walk_step with the unit's cached line test (see
+## _sight): a blocked line follows the goal field round the wall.
+func _walk_toward(
+	unit_id: int,
+	def: UnitDef,
+	here: Vector2,
+	goal: Vector2,
+	reach: float,
+	goal_radius: float,
+	tick: int
+) -> Vector2:
+	if _pathing == null or not _pathing.has_intact_walls():
+		return EnemySystem.desired_step(here, goal, reach)
+	var key: int = _pathing.goal_key(goal)
+	var known: int = -1
+	var cached: Variant = _sight.get(unit_id)
+	var rescan_ticks: int = maxi(SimClock.ticks(def.retarget_interval_seconds), 1)
+	if (
+		cached != null
+		and (cached as Array)[0] == key
+		and not EnemySystem.is_rescan_tick(tick, unit_id, rescan_ticks)
+	):
+		known = (cached as Array)[1]
+	else:
+		known = 1 if _pathing.first_blocking(here, goal, def.radius) >= 0 else 0
+		_sight[unit_id] = [key, known]
+	return _pathing.walk_step(here, goal, reach, def.radius, goal_radius, tick, null, known)

@@ -65,6 +65,23 @@ func rebuild(units: UnitSystem, buildings: BuildingSystem, castle: CastleState) 
 ## Vector3i(kind, id, 1); NONE when there is none. A unit or building id is the one the enemy's
 ## target carries (unit id, spot index); the castle's id is 0.
 func nearest(pos: Vector2, aggro_range: float) -> Vector3i:
+	return _scan(pos, aggro_range, null, 0.0, -1.0)
+
+
+## nearest() for an enemy behind walls (ENMY-04, RESEARCH Open Question 3): a candidate counts only
+## while the straight line from `pos` to its centre is clear of every intact segment for a walker
+## of `radius` metres, or while the enemy is ranged (`ranged_reach` is its attack range, a negative
+## number for a melee enemy) and the candidate's edge is within it. The same candidates in the same
+## order with the same tests, so only a candidate that would improve the best pays for a line test.
+func nearest_visible(
+	pos: Vector2, aggro_range: float, pathing: Pathing, radius: float, ranged_reach: float
+) -> Vector3i:
+	return _scan(pos, aggro_range, pathing, radius, ranged_reach)
+
+
+func _scan(
+	pos: Vector2, aggro_range: float, pathing: Pathing, radius: float, ranged_reach: float
+) -> Vector3i:
 	var reach_cells: int = ceili((aggro_range + _largest_radius + REACH_MARGIN) / CELL)
 	var cell_x: int = floori(pos.x / CELL)
 	var cell_y: int = floori(pos.y / CELL)
@@ -80,9 +97,19 @@ func nearest(pos: Vector2, aggro_range: float) -> Vector3i:
 	for index: int in candidates:
 		var edge: float = pos.distance_to(_centres[index]) - _radii[index]
 		if edge <= aggro_range and edge < best_edge:
+			if pathing != null and not _seen(pos, index, edge, pathing, radius, ranged_reach):
+				continue
 			best_edge = edge
 			found = Vector3i(_kinds[index], _ids[index], 1)
 	return found
+
+
+func _seen(
+	pos: Vector2, index: int, edge: float, pathing: Pathing, radius: float, ranged_reach: float
+) -> bool:
+	if pathing.first_blocking(pos, _centres[index], radius) < 0:
+		return true
+	return ranged_reach >= 0.0 and edge <= ranged_reach
 
 
 func _insert(centre: Vector2, radius: float, kind: int, id: int) -> void:

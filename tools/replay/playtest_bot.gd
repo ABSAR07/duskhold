@@ -39,6 +39,9 @@ var night_orders: Array[Dictionary] = []
 var slam_min_enemies: int = 0
 
 var _cursor: int = 0
+## The goal fields the king walks round walls on, a cache of the bot's own so it never spends the
+## squads' build budget (ENMY-04).
+var _king_goals: GoalFieldCache
 var _ordered_for_night: int = -1
 var _night_orders_given_for: int = -1
 
@@ -195,7 +198,17 @@ func _move_king(ctx: RunContext) -> void:
 			):
 				return
 	var pathing: Pathing = ctx.night.get_pathing()
-	ctx.king.report_position(pathing.push_out(here.move_toward(goal, pace), def.body_radius))
+	var stepped: Vector2 = here.move_toward(goal, pace)
+	if pathing.has_intact_walls() and pathing.first_blocking(here, goal, def.body_radius) >= 0:
+		if _king_goals == null:
+			_king_goals = pathing.new_goal_cache()
+		stepped = (
+			here
+			+ pathing.walk_step(
+				here, goal, pace, def.body_radius, 0.0, ctx.tick_count, _king_goals, 1
+			)
+		)
+	ctx.king.report_position(pathing.push_out(stepped, def.body_radius))
 
 
 ## The id of the living enemy nearest the castle (the lowest id wins a tie); -1 while none is up.

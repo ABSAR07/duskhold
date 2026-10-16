@@ -258,13 +258,17 @@ func _choose_base_target(
 	record: Record, tick: int, castle: CastleState, king: KingState, buildings: BuildingSystem
 ) -> bool:
 	var valid: bool = record.target_kind != &"" and _target_valid(record, castle, king, buildings)
-	if valid and not is_rescan_tick(tick, record.id, record.rescan_ticks):
+	var rescan: bool = is_rescan_tick(tick, record.id, record.rescan_ticks)
+	if valid and rescan and not _target_in_sight(record, castle, king, buildings):
+		valid = false
+	if valid and not rescan:
 		return false
 	if valid and record.target_kind == PendingHits.KIND_KING:
 		return false
 	if (
 		_king_up(king)
 		and record.position.distance_to(king.get_position()) <= record.def.aggro_range
+		and _can_see(record, king.get_position(), king.get_def().body_radius)
 	):
 		record.target_kind = PendingHits.KIND_KING
 		record.target_id = 0
@@ -307,6 +311,8 @@ func _target_walls_in_the_way(
 	if not chosen and not rescan:
 		return
 	var goal: Vector2 = _goal_of(record, castle, king, buildings)
+	if _shoots_over(record, goal, _goal_radius_of(record, castle, king, buildings)):
+		return
 	_take_wall(
 		record,
 		_pathing.first_blocking(record.position, goal, record.def.radius),
@@ -344,6 +350,51 @@ func _goal_of(
 	return castle.get_position()
 
 
+## The radius of the record's target: the king's body, the unit or building, else the castle.
+func _goal_radius_of(
+	record: Record, castle: CastleState, king: KingState, buildings: BuildingSystem
+) -> float:
+	if record.target_kind == PendingHits.KIND_KING:
+		return king.get_def().body_radius
+	if record.target_kind == PendingHits.KIND_BUILDING:
+		return buildings.radius_of(buildings.spot_at_index(record.target_id))
+	if record.target_kind == PendingHits.KIND_UNIT:
+		return _units.def_of(record.target_id).radius
+	return castle.get_radius()
+
+
+## True while the enemy may keep or choose a target at `centre` (RESEARCH Open Question 3, decided
+## in plan 04-06): no wall stands, the def passes over walls, the straight line is clear of every
+## intact segment, or the enemy is ranged and the target's edge is within its attack range.
+func _can_see(record: Record, centre: Vector2, target_radius: float) -> bool:
+	if not _walls_are_solid() or record.def.ignores_walls:
+		return true
+	if _pathing.first_blocking(record.position, centre, record.def.radius) < 0:
+		return true
+	return _shoots_over(record, centre, target_radius)
+
+
+## True for a ranged enemy (projectile_speed above 0) whose target's edge is within its attack
+## range: its shots arc over a wall in between.
+func _shoots_over(record: Record, centre: Vector2, target_radius: float) -> bool:
+	if record.def.projectile_speed <= 0.0:
+		return false
+	return record.position.distance_to(centre) - target_radius <= record.def.attack_range
+
+
+## True while the held target is in sight. A wall target always is.
+func _target_in_sight(
+	record: Record, castle: CastleState, king: KingState, buildings: BuildingSystem
+) -> bool:
+	if record.target_kind == PendingHits.KIND_WALL:
+		return true
+	return _can_see(
+		record,
+		_goal_of(record, castle, king, buildings),
+		_goal_radius_of(record, castle, king, buildings)
+	)
+
+
 ## True when a pathing facade was given and a wall segment stands somewhere.
 func _walls_are_solid() -> bool:
 	return _pathing != null and _pathing.has_intact_walls()
@@ -364,7 +415,16 @@ func _push_out_of_walls() -> void:
 ## is needed to replace an earlier candidate, so units are tried first (in id order), then
 ## buildings in spot order and the castle last.
 func _pick_nearest_structure(record: Record) -> void:
-	var found: Vector3i = _structures.nearest(record.position, record.def.aggro_range)
+	var found: Vector3i
+	if _walls_are_solid() and not record.def.ignores_walls:
+		var ranged_reach: float = -1.0
+		if record.def.projectile_speed > 0.0:
+			ranged_reach = record.def.attack_range
+		found = _structures.nearest_visible(
+			record.position, record.def.aggro_range, _pathing, record.def.radius, ranged_reach
+		)
+	else:
+		found = _structures.nearest(record.position, record.def.aggro_range)
 	if found.z == 0:
 		return
 	if found.x == StructureIndex.KIND_UNIT:

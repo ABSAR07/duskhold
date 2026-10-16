@@ -1,7 +1,8 @@
 extends GutTest
-## D-04: an intact segment is solid to everyone on the ground. A squad ordered across a wall is held
-## in front of it, the bot king is held in front of it, and an enemy whose def passes over walls
-## (Phase 6 flyers) walks straight across and never attacks one.
+## D-04: an intact segment is solid to everyone on the ground. A squad ordered across a wall never
+## stands inside it and crosses its line only round an end of the run (plan 04-06 routes squads
+## round walls), the bot king is held in front of a sealed ring, and an enemy whose def passes over
+## walls (Phase 6 flyers) walks straight across and never attacks one.
 
 const SQUADS_FIXTURE := "res://tests/fixtures/fixture_map_squads.tres"
 const WALLS_FIXTURE := "res://tests/fixtures/fixture_map_walls.tres"
@@ -13,6 +14,8 @@ const LINE: StringName = &"wall_line"
 const RING: StringName = &"wall_ring"
 const WALL_X: float = -3.0
 const HALF: float = 0.4
+## Half the length of the straight run, along z: a unit that crosses its line went round an end.
+const RUN_HALF_LENGTH: float = 14.0
 const RICH_GOLD: int = 100
 const SETTLE_STEPS: int = 60
 const MARCH_STEPS: int = 300
@@ -57,7 +60,7 @@ func _clearance(walls: WallSystem, pos: Vector2) -> float:
 	return least
 
 
-func test_a_squad_ordered_across_a_wall_is_held_in_front_of_it() -> void:
+func test_a_squad_ordered_across_a_wall_never_goes_through_it() -> void:
 	var ctx: RunContext = _squad_context()
 	assert_eq(ctx.commands.submit(BuildIntent.new(BARRACKS)), CommandProcessor.OK, "barracks")
 	assert_eq(ctx.commands.submit(BuildIntent.new(LINE)), CommandProcessor.OK, "wall")
@@ -71,13 +74,19 @@ func test_a_squad_ordered_across_a_wall_is_held_in_front_of_it() -> void:
 	)
 	assert_eq(ctx.commands.submit(order), CommandProcessor.OK, "move order accepted")
 	var closest_to_wall: float = INF
+	var rounded_end: Dictionary = {}
 	for _step: int in range(MARCH_STEPS):
 		ctx.step()
 		for id: int in units.ids():
 			var at: Vector2 = units.position_of(id)
 			var reach: float = HALF + units.def_of(id).radius
 			assert_gte(_clearance(ctx.walls, at), reach - EPSILON, "no unit inside the wall")
-			assert_lt(at.x, WALL_X, "and none across its line")
+			if absf(at.y) >= RUN_HALF_LENGTH:
+				rounded_end[id] = true
+			if at.x >= WALL_X:
+				assert_true(
+					rounded_end.has(id), "unit %d crossed the line without going round" % id
+				)
 			closest_to_wall = minf(closest_to_wall, absf(at.x - WALL_X))
 	assert_lt(closest_to_wall, HALF + 0.45 + 0.3, "the squad did walk up to the wall")
 
