@@ -194,7 +194,8 @@ func _move_king(ctx: RunContext) -> void:
 				<= ctx.king.get_weapon().attack_range * STOP_SHARE_OF_ATTACK_RANGE
 			):
 				return
-	ctx.king.report_position(here.move_toward(goal, pace))
+	var pathing: Pathing = ctx.night.get_pathing()
+	ctx.king.report_position(pathing.push_out(here.move_toward(goal, pace), def.body_radius))
 
 
 ## The id of the living enemy nearest the castle (the lowest id wins a tie); -1 while none is up.

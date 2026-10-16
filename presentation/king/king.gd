@@ -82,7 +82,20 @@ func _physics_process(delta: float) -> void:
 	velocity.y = 0.0
 	move_and_slide()
 	global_position.y = 0.0
+	_stand_outside_walls()
 	_face_movement(delta)
+
+
+## D-04: an intact wall segment is solid to the king. The simulation's pure push-out moves him out
+## of any segment he overlaps, the same rule the bots follow; MapRoot then reports the pushed
+## position to the simulation. With no intact segment his position is left exactly as it was.
+func _stand_outside_walls() -> void:
+	if _ctx == null:
+		return
+	var here: Vector2 = Vector2(global_position.x, global_position.z)
+	var pushed: Vector2 = _ctx.night.get_pathing().push_out(here, def.body_radius)
+	if pushed != here:
+		global_position = Vector3(pushed.x, 0.0, pushed.y)
 
 
 ## Turns only the Model pivot toward the horizontal velocity; the body root never rotates.

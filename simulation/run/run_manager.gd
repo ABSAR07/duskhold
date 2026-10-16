@@ -169,9 +169,10 @@ func _end_night() -> void:
 
 
 ## The night is over. What fell is rebuilt for free (LOOP-04), everything that stands and the castle
-## are repaired, the king is whole again, every squad is whole again (UNIT-07, after the rebuild so
-## a squad whose building fell has its building back), and only then are the survivors paid
-## (LOOP-05).
+## are repaired, every hurt wall segment is healed and every broken one rebuilt (D-05, announced
+## once as walls_restored), the king is whole again, every squad is whole again (UNIT-07, after the
+## rebuild so a squad whose building fell has its building back), and only then are the survivors
+## paid (LOOP-05).
 func _enter_dawn() -> void:
 	_change_phase(RunPhase.DAWN)
 	if _night != null:
@@ -180,6 +181,8 @@ func _enter_dawn() -> void:
 	_buildings.repair_standing()
 	if _castle != null:
 		_castle.repair()
+	if _night != null:
+		_night.restore_walls()
 	if _king != null:
 		_king.restore_for_dawn()
 	if _squads != null:

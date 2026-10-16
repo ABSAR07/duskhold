@@ -189,7 +189,8 @@ func step(
 	enemies: EnemySystem,
 	hits: PendingHits,
 	night: bool,
-	king_position: Vector2 = Vector2.ZERO
+	king_position: Vector2 = Vector2.ZERO,
+	pathing: Pathing = null
 ) -> void:
 	_units.begin_step()
 	_sync(night)
@@ -205,6 +206,20 @@ func step(
 				_step_unit(squad, unit_id, tick, enemies, hits, night)
 		_advance_orders(squad, king_position)
 	_units.separate()
+	if pathing != null and pathing.has_intact_walls():
+		_push_units_out_of_walls(pathing)
+
+
+## D-04: after the push-apart every living unit, in ascending id, is moved out of the intact wall
+## segments. Units still walk straight; they are held in front of a wall until plan 04-06 routes
+## them through its gaps.
+func _push_units_out_of_walls(pathing: Pathing) -> void:
+	for unit_id: int in _units.ids():
+		if _units.is_alive(unit_id):
+			var pushed: Vector2 = pathing.push_out(
+				_units.position_of(unit_id), _units.def_of(unit_id).radius
+			)
+			_units.set_position_of(unit_id, pushed)
 
 
 ## Gives whole squads a verb (D-09). The squads named in `squad_ids` act in creation order and
