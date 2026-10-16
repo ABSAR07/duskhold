@@ -13,6 +13,8 @@ const BUILDING_COLOR := Color(0.35, 0.75, 1.0, 1.0)
 const UNIT_COLOR := Color(0.45, 1.0, 0.55, 1.0)
 ## An enemy that heads for a wall segment standing in its way (D-07).
 const WALL_COLOR := Color(1.0, 0.6, 0.2, 1.0)
+## RED stub.
+const STUCK_COLOR := Color(1.0, 0.2, 0.9, 1.0)
 ## Lines float a little above the ground so they are not lost in it.
 const LINE_HEIGHT: float = 0.4
 
@@ -47,6 +49,11 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	refresh()
+
+
+## RED stub.
+func stuck_marker_count() -> int:
+	return 0
 
 
 ## Lines drawn at the last refresh; 0 while hidden.

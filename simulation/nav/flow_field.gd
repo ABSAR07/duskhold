@@ -129,6 +129,11 @@ func direction_at(pos: Vector2) -> Vector2:
 	return blended / sqrt(squared)
 
 
+## RED stub.
+func reached_count() -> int:
+	return 0
+
+
 ## The cost array, for tests that compare two builds.
 func costs() -> PackedInt32Array:
 	return _cost
