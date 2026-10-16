@@ -254,7 +254,41 @@ Plans:
   3. A scripted stress night with hundreds of units, enemies, and projectiles on screen holds 60 fps on GTX 970-class hardware, or within a documented equivalent frame-time budget on the dev machine.
   4. Nights from Phases 1–3 play the same after the switch to batched simulation and rendering. All existing headless loop and combat tests still pass.
 
-**Plans**: TBD
+**Plans**: 0/11 plans complete
+
+Plans:
+**Wave 1**
+- [ ] 04-01: Tracer — enemies drawn as one MultiMesh batch per type with hit flash, hurt-only bars and death puffs; smoke, army and full_idle byte-identical (D-13)
+
+**Wave 2** *(blocked on 04-01)*
+- [ ] 04-02: Units and arrows from batches (baked Kenney meshes, 512-slot arrow ring), selection on the new hooks, 33 screenshots re-checked, green CI
+
+**Wave 3** *(blocked on 04-02)*
+- [ ] 04-03: Exact-preserving crowd step — structure and enemy grids, bucketed Separation, packed read view; goldens byte-identical, step bench recorded
+
+**Wave 4** *(blocked on 04-03)*
+- [ ] 04-04: Wall tracer — WallRunDef, WallSystem of segments, WallSolids, Pathing facade, KIND_WALL hits, free dawn restore, solidity for everyone, WallViews
+
+**Wave 5** *(blocked on 04-04)*
+- [ ] 04-05: Four wall runs on the prototype map (three road runs and a ring, D-06), WallValidation, run label, plot tests 10 to 14, a look per tier, collapse and rubble
+
+**Wave 6** *(blocked on 04-05)*
+- [ ] 04-06: Integer Dial flow field — everyone goes around walls through gaps and holes, sealed enemies break in, blocked targets dropped, goal-field cache
+
+**Wave 7** *(blocked on 04-06)*
+- [ ] 04-07: Break-or-go-around rule per segment on a 0.5 s cadence with hysteresis (D-07, D-08); read-only stuck tracker (D-09)
+
+**Wave 8** *(blocked on 04-07)*
+- [ ] 04-08: Tools-only stress map, headless 300-enemy gate test in GUT and CI, field / path / stuck display in the debug overlay
+
+**Wave 9** *(blocked on 04-08)*
+- [ ] 04-09: Real-window stress night (300 enemies, 50 units, 200 arrows), three runs, median p95 at or under 8 ms, rebuild-hitch probe, committed 04-FRAME-REPORT.md
+
+**Wave 10** *(blocked on 04-09)*
+- [ ] 04-10: Walls golden in CI, wall-buying bots with no-walls twins, balance with and without walls, the one regeneration commit and 04-BALANCE-REPORT.md (D-14, D-15)
+
+**Wave 11** *(blocked on 04-09 and 04-10)*
+- [ ] 04-11: Gate — full local pass (suite, four goldens, gate stress, 37 screenshots), green CI, launch-checked export, 04-PLAYTEST-GATE.md and the owner feel check
 
 ### Phase 5: Castle Center & Economy Depth
 

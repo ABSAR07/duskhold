@@ -660,18 +660,25 @@ static func should_break(ttd: int, straight_ticks: int, detour_ticks: int) -> bo
 | A8 | Wall cost and health numbers (barricade cheap, tiers about 3 to 7 gold) match Thronefall's scale | Pattern 4 | Rebalanced in the bot measurement (D-15) |
 | A9 | `physics/common/physics_interpolation` should stay false | F6 | None found; verified default false |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **D-14 literally or with a straight-line fallback?**
    - What we know: the `smoke` and `army` goldens use frozen fixtures (`tests/fixtures/fixture_map_replay_*.tres`) with no wall plots; `full_idle` has no golden. A pathing step that returns the old straight-line expression when no intact wall exists changes none of their digests, and none of the `test_balance_acceptance.gd` pins (lost seeds `[3, 9]`, first loss night 3, and so on).
    - What's unclear: whether the owner wants D-14's "regenerate once" to mean "the digests must all change" or "outcomes are reported before and after".
    - Recommendation: keep the fallback; add a fourth golden `walls` (fixture map with a wall plot, bot buys it, enemies break and go around), record the before/after report as D-14 asks, and document in the report that smoke and army are unchanged by design. If the planner prefers the literal reading, drive every step through the field and regenerate smoke, army and the balance pins in one commit.
+   - **RESOLVED (plan 04-10):** the fallback is kept. Wherever no intact segment exists the step runs the exact Phase 3 expressions, so the smoke and army goldens stay byte-identical (plans 04-04 and 04-06 pin this). Plan 04-10 adds the fourth golden `walls`, makes the one deliberate regeneration commit (balance pins, bot orders, full_idle's recorded digest, any data change) and writes the before/after outcome report in 04-BALANCE-REPORT.md. The owner confirms the "same outcomes, not digests" reading of D-14 at the Phase 4 gate (04-11 / `/gsd-verify-work`).
 2. **What does "held under about 8 ms" gate?** Recommend p95 of the 20 s run at 1080p 1.0x speed is at most 8 ms, worst-1% mean and max are reported not gated. With the sim step at 4 to 6 ms landing on every second frame plus about 3 ms of render, the margin is thin (A6).
+   - **RESOLVED (plan 04-09):** the gate is the median run's p95 (three 20 s runs after a 10 s warm-up, median by p95) at or under 8.0 ms at 1080p, 1.0x speed and vsync off; p99, the worst-1 percent mean and the maximum are reported, not gated; committed in 04-FRAME-REPORT.md with the GTX 970 scaling assumption (A1).
 3. **LOS-gated targets (Pattern 8).** Confirm that enemies drop king/unit/building targets they cannot see past a wall and return to the castle field.
+   - **RESOLVED (plan 04-06):** taken as recommended. While any segment is intact, a melee enemy chooses or keeps a king, unit, building or castle target only with a clear line (a ranged enemy also while the target is within its attack_range); a blocked target is dropped and the enemy marches the castle field. Melee units need a clear line to take an enemy, archers do not. The owner judges it at the UAT.
 4. **Where the king holds a wall plot.** The plot position is the interaction point; recommend just inside the gate so the ride ends at a spot the king can reach without crossing the run.
+   - **RESOLVED (plan 04-05):** each road run's plot sits on its road 2 m inside the gap (castle side); the ring's plot sits inside the ring near its north gap at (0, 0, -6.5), clear of the king spawn at (0, 0, 7).
 5. **Arrow target tracking.** Current arrows retarget the moving victim every frame (`last_target`); a ring of packed arrows can keep that (0.15 ms per 200), so keep it unless profiling objects.
+   - **RESOLVED (plan 04-02):** kept. Arrows drawn from the packed batch refresh `last_target` from the living victim every frame.
 6. **Is packed (struct-of-arrays) storage inside `EnemySystem` in scope?** Pattern 3 of ARCHITECTURE allows it behind the id API. Recommend adding packed read accessors first (an additive, golden-safe change) and converting storage only if the post-Plan-2 profile misses the budget.
+   - **RESOLVED (plan 04-03):** packed read accessors only (`EnemySystem.read_view()`); EnemySystem keeps its Dictionary-of-records storage. Converting the storage to struct-of-arrays is lever (a) in plan 04-09, used only if the frame-time budget is missed, with the three replays byte-identical.
 7. **Stress arrows:** a tools-only `stress_tower` def (real hits) or synthetic events (Pitfall 11).
+   - **RESOLVED (plan 04-09):** real hits. Tools-only slow-arrow stress towers (projectile_speed 8, attack_interval 0.15 s, attack_range 30) put their arrows through PendingHits; no synthetic events.
 
 ## Environment Availability
 
