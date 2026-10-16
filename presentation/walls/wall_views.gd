@@ -56,6 +56,21 @@ func is_piece_drawn(segment: int) -> bool:
 	return segment >= 0 and segment < _standing.size() and _standing[segment] == 1
 
 
+## RED stub (plan 04-05 task 2): the look of a plot, still unset.
+func tier_look_of(_spot_id: StringName) -> StringName:
+	return &""
+
+
+## RED stub: hurt-only bars, still none.
+func bar_count() -> int:
+	return 0
+
+
+## RED stub: tower-base pillars, still none.
+func pillar_count() -> int:
+	return 0
+
+
 func _process(_delta: float) -> void:
 	if _ctx != null and _ctx.walls.version() != _drawn_version:
 		_redraw()

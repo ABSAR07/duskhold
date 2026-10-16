@@ -4,7 +4,8 @@ extends GutTest
 
 const SCRIPT_PATH := "res://tools/screenshot.sh"
 const LIST_OPEN := "ALL_SHOTS=("
-const EXPECTED_SHOT_COUNT: int = 33
+const EXPECTED_SHOT_COUNT: int = 35
+const PHASE_1_SHOT_COUNT: int = 15
 
 
 ## The names inside the `ALL_SHOTS=( ... )` array of the wrapper, in order. The array may span
@@ -31,15 +32,15 @@ func _bash_shots() -> Array[StringName]:
 
 func test_the_wrapper_lists_the_scenarios_in_the_same_order() -> void:
 	var bash_shots: Array[StringName] = _bash_shots()
-	assert_eq(bash_shots.size(), EXPECTED_SHOT_COUNT, "the wrapper lists thirty-three shots")
+	assert_eq(bash_shots.size(), EXPECTED_SHOT_COUNT, "the wrapper lists thirty-five shots")
 	assert_eq(bash_shots, ShotScenarios.ALL_SHOTS, "bash and GDScript lists are identical")
 
 
-func test_there_are_thirty_three_distinct_shots() -> void:
+func test_there_are_thirty_five_distinct_shots() -> void:
 	var seen: Dictionary = {}
 	for shot: StringName in ShotScenarios.ALL_SHOTS:
 		seen[shot] = true
-	assert_eq(ShotScenarios.ALL_SHOTS.size(), EXPECTED_SHOT_COUNT, "thirty-three shots")
+	assert_eq(ShotScenarios.ALL_SHOTS.size(), EXPECTED_SHOT_COUNT, "thirty-five shots")
 	assert_eq(seen.size(), EXPECTED_SHOT_COUNT, "no name is listed twice")
 
 
@@ -95,18 +96,46 @@ func test_each_shot_gets_the_map_its_scene_needs() -> void:
 		assert_eq(map.castle_max_health, shipped.castle_max_health, "%s: the shipped castle" % shot)
 
 
-func test_the_eighteen_phase_3_shots_are_listed_after_the_first_fifteen() -> void:
-	var tail: Array[StringName] = []
-	for index: int in range(
-		ShotScenarios.ALL_SHOTS.size() - ShotScenarios.ARMY_SHOTS.size(), EXPECTED_SHOT_COUNT
-	):
-		tail.append(ShotScenarios.ALL_SHOTS[index])
+func test_the_shots_come_in_three_blocks_phase_1_then_phase_3_then_phase_4() -> void:
+	var army_end: int = PHASE_1_SHOT_COUNT + ShotScenarios.ARMY_SHOTS.size()
+	var phase_3: Array[StringName] = []
+	for index: int in range(PHASE_1_SHOT_COUNT, army_end):
+		phase_3.append(ShotScenarios.ALL_SHOTS[index])
+	var phase_4: Array[StringName] = []
+	for index: int in range(army_end, EXPECTED_SHOT_COUNT):
+		phase_4.append(ShotScenarios.ALL_SHOTS[index])
 	assert_eq(ShotScenarios.ARMY_SHOTS.size(), 18, "eighteen Phase 3 shots")
-	assert_eq(tail, ShotScenarios.ARMY_SHOTS, "they close the list in order")
+	assert_eq(phase_3, ShotScenarios.ARMY_SHOTS, "they follow the first fifteen in order")
+	assert_eq(ShotCrowdScenarios.CROWD_SHOTS.size(), 2, "two Phase 4 shots")
+	assert_eq(phase_4, ShotCrowdScenarios.CROWD_SHOTS, "they close the list in order")
 	for shot: StringName in ShotScenarios.ARMY_SHOTS:
 		assert_true(ShotArmyScenarios.handles(shot), "%s has a Phase 3 scene" % shot)
 		var prefix_ok: bool = String(shot).begins_with("hud_") or String(shot).begins_with("cmd_")
 		assert_true(prefix_ok, "%s is checked against the clear centre" % shot)
+
+
+func test_the_two_wall_shots_are_listed_and_handled_by_the_crowd_scenes() -> void:
+	var wanted: Array[StringName] = [&"walls_day", &"walls_night_breach"]
+	assert_eq(ShotCrowdScenarios.CROWD_SHOTS, wanted, "walls_day then walls_night_breach")
+	for shot: StringName in wanted:
+		assert_true(ShotScenarios.ALL_SHOTS.has(shot), "%s is in ALL_SHOTS" % shot)
+		assert_true(ShotCrowdScenarios.handles(shot), "%s has a Phase 4 scene" % shot)
+		assert_false(ShotArmyScenarios.handles(shot), "and is not a Phase 3 shot")
+	assert_false(ShotCrowdScenarios.handles(ShotScenarios.DAY_OVERVIEW), "day_overview is not one")
+
+
+func test_the_wall_shots_get_deep_copies_that_never_touch_the_shipped_map() -> void:
+	var shipped: MapConfig = load(ShotScenarios.MAP_DATA_PATH)
+	var shipped_run: WallRunDef = shipped.spots[10].wall_run
+	for shot: StringName in ShotCrowdScenarios.CROWD_SHOTS:
+		var map: MapConfig = ShotScenarios.map_for(shot)
+		assert_not_null(map, "%s has a map" % shot)
+		assert_eq(map.starting_gold, ShotScenarios.SHOT_STARTING_GOLD, "gold for %s" % shot)
+		assert_ne(map, shipped, "a copy, not the shipped resource")
+		assert_ne(map.spots[10].wall_run, shipped_run, "the wall runs are copied too")
+		map.spots[10].wall_run.segment_length = 9.0
+		assert_eq(shipped_run.segment_length, 3.0, "so an edit never reaches the shipped map")
+		assert_eq(map.nights.size(), shipped.nights.size(), "%s keeps the shipped nights" % shot)
 
 
 func test_the_window_shape_comes_from_the_shot_name_suffix() -> void:
