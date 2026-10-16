@@ -359,7 +359,7 @@ func _unit_points(all_ids: Array[StringName]) -> Dictionary:
 	for squad_id: StringName in all_ids:
 		var points: PackedVector2Array = PackedVector2Array()
 		for unit_id: int in _ctx.squads.unit_ids_of(squad_id):
-			if _views.get_view(unit_id) == null:
+			if not _views.has_view(unit_id):
 				continue
 			var ground: Vector3 = _views.puppet_position(unit_id)
 			if camera.is_position_behind(ground):

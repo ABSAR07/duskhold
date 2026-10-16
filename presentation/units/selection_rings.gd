@@ -128,7 +128,7 @@ func _place_squad(squad_id: StringName, first: int, alpha: float) -> int:
 	for unit_id: int in _ctx.squads.unit_ids_of(squad_id):
 		if count >= MAX_RINGS:
 			break
-		if _views.get_view(unit_id) == null:
+		if not _views.has_view(unit_id):
 			continue
 		var ground: Vector3 = _views.puppet_position(unit_id)
 		_ring.multimesh.set_instance_transform(count, Transform3D(basis, _at(ground, RING_HEIGHT)))

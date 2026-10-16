@@ -28,7 +28,7 @@ func test_a_built_barracks_raises_four_puppets_and_the_squad_fights_the_night() 
 	assert_true(await E2eSupport.wait_until(self, raised, RAISE_TIMEOUT_S), "four puppets by day")
 	assert_eq(ctx.get_unit_count(), 4, "the simulation agrees")
 	var unit_id: int = ctx.squads.unit_ids_of(SPOT)[0]
-	assert_not_null(views.get_view(unit_id), "each unit has a puppet")
+	assert_true(views.has_view(unit_id), "each unit is drawn")
 
 	var seen_fight: Array[bool] = [false]
 	ctx.events.enemy_died.connect(
