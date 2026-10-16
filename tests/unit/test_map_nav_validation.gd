@@ -12,7 +12,13 @@ const NAV_FIELDS: Array[String] = [
 	"field_cache_size",
 	"goal_quantum",
 	"field_builds_per_tick",
-	"field_refresh_seconds"
+	"field_refresh_seconds",
+	"wall_decision_seconds",
+	"wall_notice_range",
+	"wall_neighbour_span",
+	"wall_hysteresis_seconds",
+	"stuck_seconds",
+	"stuck_progress_m"
 ]
 
 
@@ -98,6 +104,47 @@ func test_a_non_finite_or_negative_margin_or_quantum_is_reported() -> void:
 	map = _map()
 	map.nav_tuning.goal_quantum = 0.0
 	_assert_one_error(map, ["goal_quantum"], "a zero quantum")
+
+
+func test_a_notice_range_of_zero_or_past_fifty_metres_is_reported() -> void:
+	for bad: float in [0.0, -1.0, 51.0, NAN, INF]:
+		var map: MapConfig = _map()
+		map.nav_tuning.wall_notice_range = bad
+		_assert_one_error(map, ["wall_notice_range"], "a notice range of %s" % bad)
+
+
+func test_a_negative_or_oversized_neighbour_span_is_reported() -> void:
+	for bad: int in [-1, 11]:
+		var map: MapConfig = _map()
+		map.nav_tuning.wall_neighbour_span = bad
+		_assert_one_error(map, ["wall_neighbour_span"], "a span of %d" % bad)
+	var map: MapConfig = _map()
+	map.nav_tuning.wall_neighbour_span = 0
+	assert_eq(map.validate(), PackedStringArray(), "a span of 0 is allowed")
+
+
+func test_a_cadence_or_hysteresis_outside_one_tick_to_ten_seconds_is_reported() -> void:
+	for bad: float in [0.0, 0.01, 11.0, NAN, INF, -0.5]:
+		var map: MapConfig = _map()
+		map.nav_tuning.wall_decision_seconds = bad
+		_assert_one_error(map, ["wall_decision_seconds"], "a cadence of %s" % bad)
+		map = _map()
+		map.nav_tuning.wall_hysteresis_seconds = bad
+		_assert_one_error(map, ["wall_hysteresis_seconds"], "a hysteresis of %s" % bad)
+
+
+func test_stuck_seconds_outside_half_a_second_to_a_minute_are_reported() -> void:
+	for bad: float in [0.25, 61.0, NAN, INF, 0.0]:
+		var map: MapConfig = _map()
+		map.nav_tuning.stuck_seconds = bad
+		_assert_one_error(map, ["stuck_seconds"], "%s stuck seconds" % bad)
+
+
+func test_stuck_progress_of_zero_or_past_ten_metres_is_reported() -> void:
+	for bad: float in [0.0, -0.5, 11.0, NAN]:
+		var map: MapConfig = _map()
+		map.nav_tuning.stuck_progress_m = bad
+		_assert_one_error(map, ["stuck_progress_m"], "%s m of progress" % bad)
 
 
 func test_the_shipped_numbers_are_all_inside_their_ranges() -> void:

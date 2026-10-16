@@ -1,7 +1,8 @@
 extends GutTest
 ## Data contract for the pathing tunables (ENMY-04, plan 04-06): the shipped values are pinned, a
 ## fresh NavTuning reads like the shipped data, the prototype map references the resource and a map
-## that names none gets the defaults. Plan 04-07 adds fields beside these; this pins the seven here.
+## that names none gets the defaults. Plan 04-07 added the wall decision and stuck numbers beside
+## the seven of plan 04-06; both groups are pinned here.
 
 const TUNING := "res://data/tuning/nav_tuning.tres"
 const PROTOTYPE_MAP := "res://data/maps/prototype_map.tres"
@@ -24,6 +25,16 @@ func test_the_shipped_numbers() -> void:
 	assert_almost_eq(tuning.field_refresh_seconds, 0.5, EPSILON, "half a second refresh")
 
 
+func test_the_wall_decision_and_stuck_numbers() -> void:
+	var tuning: NavTuning = _tuning()
+	assert_almost_eq(tuning.wall_decision_seconds, 0.5, EPSILON, "a segment is judged every 0.5 s")
+	assert_almost_eq(tuning.wall_notice_range, 12.0, EPSILON, "12 m to notice a wall")
+	assert_eq(tuning.wall_neighbour_span, 2, "two segments either side count the crowd")
+	assert_almost_eq(tuning.wall_hysteresis_seconds, 0.5, EPSILON, "half a second of slack")
+	assert_almost_eq(tuning.stuck_seconds, 3.0, EPSILON, "three seconds without progress")
+	assert_almost_eq(tuning.stuck_progress_m, 0.5, EPSILON, "half a metre counts as progress")
+
+
 func test_a_fresh_tuning_reads_like_the_shipped_data() -> void:
 	var fresh: NavTuning = NavTuning.new()
 	var shipped: NavTuning = _tuning()
@@ -36,6 +47,14 @@ func test_a_fresh_tuning_reads_like_the_shipped_data() -> void:
 	assert_almost_eq(
 		fresh.field_refresh_seconds, shipped.field_refresh_seconds, EPSILON, "refresh seconds"
 	)
+	assert_almost_eq(fresh.wall_decision_seconds, shipped.wall_decision_seconds, EPSILON, "cadence")
+	assert_almost_eq(fresh.wall_notice_range, shipped.wall_notice_range, EPSILON, "notice range")
+	assert_eq(fresh.wall_neighbour_span, shipped.wall_neighbour_span, "neighbour span")
+	assert_almost_eq(
+		fresh.wall_hysteresis_seconds, shipped.wall_hysteresis_seconds, EPSILON, "hysteresis"
+	)
+	assert_almost_eq(fresh.stuck_seconds, shipped.stuck_seconds, EPSILON, "stuck seconds")
+	assert_almost_eq(fresh.stuck_progress_m, shipped.stuck_progress_m, EPSILON, "stuck progress")
 
 
 func test_the_prototype_map_references_the_resource() -> void:

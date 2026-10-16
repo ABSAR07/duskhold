@@ -27,6 +27,15 @@ const MIN_BUILDS_PER_TICK: int = 1
 const MAX_BUILDS_PER_TICK: int = 4
 const MIN_REFRESH_SECONDS: float = 0.1
 const MAX_REFRESH_SECONDS: float = 10.0
+## Ranges of the wall decision and stuck numbers (plan 04-07): seconds from one tick to 10, a
+## notice range above 0 to 50 m, 0 to 10 neighbours, stuck seconds 0.5 to 60 and progress above 0
+## to 10 m.
+const MAX_DECISION_SECONDS: float = 10.0
+const MAX_NOTICE_RANGE: float = 50.0
+const MAX_NEIGHBOUR_SPAN: int = 10
+const MIN_STUCK_SECONDS: float = 0.5
+const MAX_STUCK_SECONDS: float = 60.0
+const MAX_STUCK_PROGRESS: float = 10.0
 
 
 ## Every wall error of `map`, in plot order; empty when its wall plots are well formed.
@@ -79,6 +88,7 @@ static func _nav_errors(map: MapConfig) -> PackedStringArray:
 		MIN_BUILDS_PER_TICK,
 		MAX_BUILDS_PER_TICK
 	)
+	_decision_errors(out, tuning)
 	var sizeable: bool = (
 		is_finite(tuning.cell_size)
 		and tuning.cell_size > 0.0
@@ -90,6 +100,37 @@ static func _nav_errors(map: MapConfig) -> PackedStringArray:
 		if cells > NavGrid.MAX_NAV_CELLS:
 			out.append("nav grid of %d cells exceeds %d" % [cells, NavGrid.MAX_NAV_CELLS])
 	return out
+
+
+## The wall decision and stuck numbers of plan 04-07 (D-07 to D-09), each inside its range.
+static func _decision_errors(out: PackedStringArray, tuning: NavTuning) -> void:
+	_float_error(
+		out,
+		"wall_decision_seconds",
+		tuning.wall_decision_seconds,
+		SimClock.STEP,
+		MAX_DECISION_SECONDS
+	)
+	_float_error(
+		out,
+		"wall_hysteresis_seconds",
+		tuning.wall_hysteresis_seconds,
+		SimClock.STEP,
+		MAX_DECISION_SECONDS
+	)
+	_above_zero_error(out, "wall_notice_range", tuning.wall_notice_range, MAX_NOTICE_RANGE)
+	_int_error(out, "wall_neighbour_span", tuning.wall_neighbour_span, 0, MAX_NEIGHBOUR_SPAN)
+	_float_error(out, "stuck_seconds", tuning.stuck_seconds, MIN_STUCK_SECONDS, MAX_STUCK_SECONDS)
+	_above_zero_error(out, "stuck_progress_m", tuning.stuck_progress_m, MAX_STUCK_PROGRESS)
+
+
+static func _above_zero_error(
+	out: PackedStringArray, field: String, value: float, high: float
+) -> void:
+	if not is_finite(value):
+		out.append("nav tuning %s is not finite" % field)
+	elif value <= 0.0 or value > high:
+		out.append("nav tuning %s is %s, expected above 0 to %s" % [field, value, high])
 
 
 static func _float_error(

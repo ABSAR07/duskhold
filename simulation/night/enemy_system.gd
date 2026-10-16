@@ -56,6 +56,10 @@ func spawn(def: EnemyDef, pos: Vector2) -> int:
 	record.previous = pos
 	record.health = def.max_health
 	record.rescan_ticks = maxi(SimClock.ticks(def.retarget_interval_seconds), 1)
+	record.per_300 = WallDecision.damage_per_300(
+		def.attack_damage, SimClock.ticks(def.attack_interval)
+	)
+	record.speed_cm = roundi(def.move_speed * 100.0)
 	_next_id += 1
 	_records[record.id] = record
 	_order.append(record.id)
@@ -160,6 +164,8 @@ func step(
 	if castle.is_destroyed():
 		return
 	_structures.rebuild(units, buildings, castle)
+	if _walls_are_solid():
+		_publish_wall_times(tick)
 	for id: int in _order:
 		var record: Record = _records[id]
 		if record.health <= 0:
@@ -281,11 +287,14 @@ func _choose_base_target(
 	return record.target_kind != &""
 
 
-## D-07, the sealed case: an enemy whose straight line to its goal crosses an intact segment attacks
-## that segment until it breaks, then walks on through the hole. A target chosen on this call is
-## line-tested at once and a held target on the enemy's own rescan tick. An enemy with no target
-## tests its line to the castle only on its rescan tick, caches the answer on the record and takes
-## the segment once it is within aggro_range, so 300 marchers pay about 20 line tests a tick.
+## D-07 and D-08: an enemy whose straight line to its goal crosses an intact segment attacks that
+## segment when breaking it is faster than the detour (or there is none), until it breaks, then
+## walks on through the hole; otherwise it marches round on the castle field. A target chosen on
+## this call is line-tested at once and a held target on the enemy's own rescan tick. An enemy with
+## no target tests its line to the castle only on its rescan tick, caches the answer on the record
+## and decides once it is within the notice range, so 300 marchers pay about 20 line tests a tick.
+## An enemy already attacking a segment gives it up on a rescan tick only when the detour wins by
+## more than the hysteresis (WallDecision.keep_breaking).
 func _target_walls_in_the_way(
 	record: Record,
 	tick: int,
@@ -294,20 +303,17 @@ func _target_walls_in_the_way(
 	king: KingState,
 	buildings: BuildingSystem
 ) -> void:
-	if record.target_kind == PendingHits.KIND_WALL:
-		return
 	var rescan: bool = is_rescan_tick(tick, record.id, record.rescan_ticks)
+	if record.target_kind == PendingHits.KIND_WALL:
+		if not rescan or _keeps_breaking(record):
+			return
+		record.wall_given_up = record.target_id
+		record.target_kind = &""
+		record.target_id = 0
 	if record.target_kind == &"":
-		if rescan:
-			record.castle_blocker = _pathing.first_blocking(
-				record.position, castle.get_position(), record.def.radius
-			)
-			record.castle_blocked = (
-				record.castle_blocker >= 0 and not _pathing.is_sealed(record.position)
-			)
-		if record.castle_blocker >= 0 and _pathing.is_sealed(record.position):
-			_take_wall(record, record.castle_blocker, record.def.aggro_range)
+		_aim_at_walls(record, rescan, castle)
 		return
+	record.wall_seg = -1
 	if not chosen and not rescan:
 		return
 	var goal: Vector2 = _goal_of(record, castle, king, buildings)
@@ -320,6 +326,80 @@ func _target_walls_in_the_way(
 	)
 
 
+## The target-less marcher's side of the wall rule. On its rescan tick it refreshes the segment in
+## the way of its line to the castle, whether a way round exists (castle_blocked) and whether it is
+## aggroed onto that segment (wall_seg, within the notice range of its face). Aggroed, it takes the
+## segment on any tick when breaking it is faster than its detour, or when it is sealed.
+func _aim_at_walls(record: Record, rescan: bool, castle: CastleState) -> void:
+	if rescan:
+		record.castle_blocker = _pathing.first_blocking(
+			record.position, castle.get_position(), record.def.radius
+		)
+		record.castle_blocked = (
+			record.castle_blocker >= 0 and not _pathing.is_sealed(record.position)
+		)
+		record.wall_seg = -1
+		if (
+			record.castle_blocker >= 0
+			and (
+				_wall_edge(record.position, record.castle_blocker)
+				<= _pathing.decision().notice_range()
+			)
+		):
+			record.wall_seg = record.castle_blocker
+	if record.wall_seg < 0 or not _pathing.walls().is_intact(record.wall_seg):
+		return
+	if not _breaking_is_faster(record, record.wall_seg):
+		return
+	_take_wall(
+		record, record.wall_seg, minf(_pathing.decision().notice_range(), record.def.leash_range)
+	)
+
+
+## True when the time to destroy `segment` plus the straight walk to the castle is shorter than the
+## detour from where the enemy stands, or there is no detour (D-07). An enemy that gave a segment up
+## does not take it again while a way round exists: the crowd near it thins as the others walk
+## through, so the estimate dithers around the break-even and would flip it back and forth.
+func _breaking_is_faster(record: Record, segment: int) -> bool:
+	var ticks: Vector3i = _wall_ticks(record, segment)
+	if segment == record.wall_given_up and ticks.z < SimClock.MAX_TICKS:
+		return false
+	return WallDecision.should_break(ticks.x, ticks.y, ticks.z)
+
+
+## True while an enemy attacking a segment should go on with it (hysteresis).
+func _keeps_breaking(record: Record) -> bool:
+	var ticks: Vector3i = _wall_ticks(record, record.target_id)
+	return WallDecision.keep_breaking(
+		ticks.x, ticks.y, ticks.z, _pathing.decision().hysteresis_ticks()
+	)
+
+
+## The time to destruction of `segment`, the straight walk to the castle and the detour for this
+## enemy, in ticks, as (x, y, z).
+func _wall_ticks(record: Record, segment: int) -> Vector3i:
+	return Vector3i(
+		_pathing.decision().ttd_of(segment),
+		_pathing.straight_ticks(record.position, record.speed_cm),
+		_pathing.detour_ticks(record.position, record.speed_cm)
+	)
+
+
+## D-08: counts every living enemy aggroed onto a standing segment, in ascending id, and publishes
+## the time to destruction of the segments due on this tick.
+func _publish_wall_times(tick: int) -> void:
+	var decision: WallDecision = _pathing.decision()
+	decision.begin_tick(tick)
+	for id: int in _order:
+		var record: Record = _records[id]
+		if record.health > 0 and record.wall_seg >= 0:
+			if _pathing.walls().is_intact(record.wall_seg):
+				decision.add_attacker(record.wall_seg, record.per_300)
+			else:
+				record.wall_seg = -1
+	decision.end_tick()
+
+
 ## Makes `segment` the record's target when it still stands and its face is within `reach`.
 func _take_wall(record: Record, segment: int, reach: float) -> void:
 	if segment < 0 or not _pathing.walls().is_intact(segment):
@@ -328,6 +408,7 @@ func _take_wall(record: Record, segment: int, reach: float) -> void:
 		return
 	record.target_kind = PendingHits.KIND_WALL
 	record.target_id = segment
+	record.wall_seg = segment
 
 
 ## Distance from `pos` to the face of the segment; negative inside its solid.
@@ -619,3 +700,11 @@ class Record:
 	## True while that line is blocked and a way round exists (ENMY-04): a target-less enemy then
 	## follows the castle flow field instead of the straight line. Refreshed with castle_blocker.
 	var castle_blocked: bool = false
+	## Damage per 10 s (300 ticks) and speed in cm/s, cached at spawn for the wall decision.
+	var per_300: int = 0
+	var speed_cm: int = 0
+	## The standing segment it is aggroed onto (blocking its way within the notice range, or being
+	## attacked), or -1 (D-07, D-08).
+	var wall_seg: int = -1
+	## The segment it gave up for the detour (hysteresis), which it does not take again, or -1.
+	var wall_given_up: int = -1
