@@ -1,0 +1,112 @@
+[gd_resource type="Resource" script_class="MapConfig" load_steps=21 format=3]
+
+[ext_resource type="Script" path="res://simulation/defs/map_config.gd" id="1_map"]
+[ext_resource type="Script" path="res://simulation/defs/build_spot_def.gd" id="2_spot"]
+[ext_resource type="Script" path="res://simulation/defs/spawn_point_def.gd" id="3_spawn"]
+[ext_resource type="Script" path="res://simulation/defs/spawn_group_def.gd" id="4_group"]
+[ext_resource type="Script" path="res://simulation/defs/night_def.gd" id="5_night"]
+[ext_resource type="Script" path="res://simulation/walls/wall_run_def.gd" id="6_run"]
+[ext_resource type="Resource" path="res://tools/stress/data/stress_wall.tres" id="7_wall"]
+[ext_resource type="Resource" path="res://tools/stress/data/stress_grunt.tres" id="8_grunt"]
+[ext_resource type="Resource" path="res://data/tuning/nav_tuning.tres" id="9_nav"]
+[ext_resource type="Script" path="res://simulation/defs/building_def.gd" id="10_bdef"]
+[ext_resource type="Script" path="res://simulation/defs/enemy_def.gd" id="11_edef"]
+
+[sub_resource type="Resource" id="Resource_gate_run"]
+script = ExtResource("6_run")
+points = PackedVector2Array(-40, 30, 40, 30)
+segment_length = 3.0
+gaps = PackedVector2Array(38, 42)
+half_thickness = 0.4
+
+[sub_resource type="Resource" id="Resource_gate_wall"]
+script = ExtResource("2_spot")
+id = &"gate_wall"
+position = Vector3(0, 0, 27)
+building_id = &"stress_wall"
+wall_run = SubResource("Resource_gate_run")
+
+[sub_resource type="Resource" id="Resource_far_west"]
+script = ExtResource("3_spawn")
+id = &"far_west"
+display_name = "Far West"
+position = Vector3(-24, 0, 50)
+scatter_radius = 4.0
+
+[sub_resource type="Resource" id="Resource_mid_west"]
+script = ExtResource("3_spawn")
+id = &"mid_west"
+display_name = "Mid West"
+position = Vector3(-8, 0, 55)
+scatter_radius = 4.0
+
+[sub_resource type="Resource" id="Resource_mid_east"]
+script = ExtResource("3_spawn")
+id = &"mid_east"
+display_name = "Mid East"
+position = Vector3(8, 0, 55)
+scatter_radius = 4.0
+
+[sub_resource type="Resource" id="Resource_far_east"]
+script = ExtResource("3_spawn")
+id = &"far_east"
+display_name = "Far East"
+position = Vector3(24, 0, 50)
+scatter_radius = 4.0
+
+[sub_resource type="Resource" id="Resource_group_far_west"]
+script = ExtResource("4_group")
+spawn_point_id = &"far_west"
+enemy_id = &"stress_grunt"
+count = 75
+start_delay_seconds = 0.5
+interval_seconds = 0.1
+
+[sub_resource type="Resource" id="Resource_group_mid_west"]
+script = ExtResource("4_group")
+spawn_point_id = &"mid_west"
+enemy_id = &"stress_grunt"
+count = 75
+start_delay_seconds = 0.5
+interval_seconds = 0.1
+
+[sub_resource type="Resource" id="Resource_group_mid_east"]
+script = ExtResource("4_group")
+spawn_point_id = &"mid_east"
+enemy_id = &"stress_grunt"
+count = 75
+start_delay_seconds = 0.5
+interval_seconds = 0.1
+
+[sub_resource type="Resource" id="Resource_group_far_east"]
+script = ExtResource("4_group")
+spawn_point_id = &"far_east"
+enemy_id = &"stress_grunt"
+count = 75
+start_delay_seconds = 0.5
+interval_seconds = 0.1
+
+[sub_resource type="Resource" id="Resource_night_1"]
+script = ExtResource("5_night")
+groups = Array[ExtResource("4_group")]([SubResource("Resource_group_far_west"), SubResource("Resource_group_mid_west"), SubResource("Resource_group_mid_east"), SubResource("Resource_group_far_east")])
+
+[resource]
+script = ExtResource("1_map")
+id = &"stress"
+display_name = "Stress"
+is_sandbox = true
+starting_gold = 0
+king_spawn = Vector3(0, 0, 7)
+castle_position = Vector3(0, 0, 0)
+buildings = Array[ExtResource("10_bdef")]([ExtResource("7_wall")])
+spots = Array[ExtResource("2_spot")]([SubResource("Resource_gate_wall")])
+enemies = Array[ExtResource("11_edef")]([ExtResource("8_grunt")])
+spawn_points = Array[ExtResource("3_spawn")]([SubResource("Resource_far_west"), SubResource("Resource_mid_west"), SubResource("Resource_mid_east"), SubResource("Resource_far_east")])
+nights = Array[ExtResource("5_night")]([SubResource("Resource_night_1")])
+castle_max_health = 100000
+castle_radius = 3.5
+castle_attack_damage = 0
+castle_attack_range = 0.0
+castle_attack_interval = 0.0
+castle_projectile_speed = 0.0
+nav_tuning = ExtResource("9_nav")

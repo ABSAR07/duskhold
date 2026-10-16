@@ -1,8 +1,10 @@
 extends GutTest
 ## T-04-07: the step bench's argument allowlist. Counts arrive as untrusted strings and size a
 ## headless run, so each is checked before anything is built. Pure parsing, no process is spawned.
+## The gate stress CLI's allowlist (T-04-20) is pinned below the step bench's.
 
 const Bench := preload("res://tools/stress/step_bench.gd")
+const GateCli := preload("res://tools/stress/gate_stress_cli.gd")
 const NEWLINE: String = "\n"
 
 
@@ -59,3 +61,60 @@ func test_percentile_95_takes_the_nearest_rank() -> void:
 		sorted_ms.append(float(value))
 	assert_eq(Bench.percentile_95(sorted_ms), 19.0, "the 19th of 20")
 	assert_eq(Bench.percentile_95(PackedFloat64Array()), 0.0, "an empty list reads 0")
+
+
+func _gate(args: Array[String]) -> Dictionary:
+	return GateCli.parse_args(PackedStringArray(args))
+
+
+func _gate_ok(args: Array[String]) -> bool:
+	return String(_gate(args).get("error", "missing")).is_empty()
+
+
+func test_gate_stress_defaults_with_no_arguments() -> void:
+	var parsed: Dictionary = _gate([])
+	assert_eq(parsed.get("error"), "", "no error")
+	assert_eq(parsed.get("seed"), 1, "seed 1")
+	assert_false(parsed.get("twice"), "once")
+	assert_eq(parsed.get("max_seconds"), 60.0, "T_max 60 s")
+	assert_eq(parsed.get("out"), "res://build/stress", "output under build/stress")
+
+
+func test_gate_stress_accepts_its_four_flags() -> void:
+	var parsed: Dictionary = _gate(
+		["--twice", "--seed=7", "--max-seconds=60", "--out=build/stress"]
+	)
+	assert_eq(parsed.get("error"), "", "no error")
+	assert_true(parsed.get("twice"), "twice")
+	assert_eq(parsed.get("seed"), 7, "seed")
+	assert_eq(parsed.get("max_seconds"), 60.0, "seconds")
+	assert_eq(parsed.get("out"), "res://build/stress", "out")
+	assert_true(_gate_ok(["--max-seconds=10"]), "the lower bound itself passes")
+	assert_true(_gate_ok(["--max-seconds=300"]), "the upper bound itself passes")
+
+
+func test_gate_stress_refuses_a_time_limit_outside_ten_to_three_hundred() -> void:
+	for arg: String in [
+		"--max-seconds=5", "--max-seconds=301", "--max-seconds=-1", "--max-seconds=x"
+	]:
+		var error: String = String(_gate([arg]).get("error", ""))
+		assert_false(error.is_empty(), "%s is refused" % arg)
+		assert_false(error.contains(NEWLINE), "%s gives a one-line reason" % arg)
+
+
+func test_gate_stress_refuses_a_path_that_leaves_build() -> void:
+	for arg: String in [
+		"--out=../x", "--out=C:/x", "--out=/tmp/x", "--out=data", "--out=build/../x"
+	]:
+		var error: String = String(_gate([arg]).get("error", ""))
+		assert_false(error.is_empty(), "%s is refused" % arg)
+		assert_false(error.contains(NEWLINE), "%s gives a one-line reason" % arg)
+
+
+func test_gate_stress_takes_no_map_and_no_unknown_flag() -> void:
+	assert_false(_gate_ok(["--map=anything"]), "no map argument exists")
+	assert_false(_gate_ok(["--map=res://data/maps/prototype_map.tres"]), "nor a data path")
+	assert_false(_gate_ok(["--bogus"]), "unknown flag")
+	assert_false(_gate_ok(["300"]), "a bare word")
+	assert_false(_gate_ok(["--seed=abc"]), "a seed that is not an integer")
+	assert_false(_gate_ok(["--twice", "--bogus"]), "one bad flag fails the lot")
