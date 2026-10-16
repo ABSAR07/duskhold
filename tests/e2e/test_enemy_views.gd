@@ -13,6 +13,7 @@ const SLACK_S: float = 0.2
 const SPAWN_AT := Vector2(5.0, 5.0)
 const EXTRA_ENEMIES: int = 40
 const ARCHETYPE_BATCHES: int = 3
+const BAR_EPSILON: float = 0.0001
 
 
 func after_each() -> void:
@@ -90,11 +91,9 @@ func test_enemy_views_holds_only_its_batches_and_never_a_node_per_enemy() -> voi
 	assert_eq(views.view_count(), 30, "thirty enemies drawn")
 	var batches: int = 0
 	for child: Node in views.get_children():
-		if child.has_meta(&"puff"):
-			continue
 		assert_true(child is CrowdBatch, "%s is a batch" % child.name)
 		batches += 1
-	assert_eq(batches, ARCHETYPE_BATCHES, "one batch per archetype, no node per enemy")
+	assert_eq(batches, ARCHETYPE_BATCHES + 2, "three archetypes, the bars and the puffs")
 
 
 func test_each_archetype_has_its_own_colour_and_silhouette() -> void:
@@ -221,3 +220,74 @@ func test_a_killed_enemy_leaves_the_batch() -> void:
 	assert_false(views.has_view(doomed), "the dead enemy is no longer drawn")
 	assert_true(views.has_view(survivor), "the other one is")
 	assert_eq(views.view_count(), 1, "one instance left")
+
+
+func test_a_hurt_enemy_shows_a_bar_filled_to_its_health_and_a_full_one_shows_none() -> void:
+	var map_root: MapRoot = await _spawn_day_map()
+	var ctx: RunContext = map_root.get_context()
+	var views: EnemyViews = map_root.get_node("EnemyViews")
+	var enemies: EnemySystem = ctx.night.get_enemies()
+	var def: EnemyDef = ctx.map.find_enemy(&"grunt")
+	var hurt_id: int = enemies.spawn(def, SPAWN_AT)
+	var full_id: int = enemies.spawn(def, SPAWN_AT + Vector2(3.0, 0.0))
+	await wait_process_frames(2)
+	assert_eq(views.bar_count(), 0, "no bar on a field of unhurt enemies")
+	assert_eq(views.bar_ratio_of(hurt_id), -1.0, "an unhurt enemy has no bar")
+	ctx.events.enemy_damaged.emit(hurt_id, 2, def.max_health - 2)
+	await wait_process_frames(2)
+	var expected: float = float(def.max_health - 2) / float(def.max_health)
+	assert_almost_eq(views.bar_ratio_of(hurt_id), expected, BAR_EPSILON, "filled to hp / max")
+	assert_eq(views.bar_ratio_of(full_id), -1.0, "an enemy nobody hit shows no bar")
+	assert_eq(views.bar_count(), 1, "one bar for the one hurt enemy")
+	var bars: CrowdBatch = _batch(views, "Bars")
+	var ground: Vector3 = views.puppet_position(hurt_id)
+	var above: float = EnemyViews.PUPPET_HEIGHT + EnemyViews.BAR_CLEARANCE
+	assert_almost_eq(bars.origin_of(0).x, ground.x, BAR_EPSILON, "over the enemy, x")
+	assert_almost_eq(bars.origin_of(0).z, ground.z, BAR_EPSILON, "and z")
+	assert_almost_eq(bars.origin_of(0).y, above, BAR_EPSILON, "above its head")
+	assert_eq(bars.multimesh.visible_instance_count, 1, "and one bar is shown")
+
+
+func test_the_bar_goes_with_a_killed_enemy() -> void:
+	var map_root: MapRoot = await _spawn_day_map()
+	var ctx: RunContext = map_root.get_context()
+	var views: EnemyViews = map_root.get_node("EnemyViews")
+	var enemies: EnemySystem = ctx.night.get_enemies()
+	var def: EnemyDef = ctx.map.find_enemy(&"grunt")
+	var id: int = enemies.spawn(def, SPAWN_AT)
+	await wait_process_frames(2)
+	ctx.events.enemy_damaged.emit(id, 1, 1)
+	await wait_process_frames(2)
+	assert_eq(views.bar_count(), 1, "the hurt enemy has a bar")
+	enemies.damage(id, def.max_health, &"king")
+	await wait_process_frames(2)
+	assert_eq(views.bar_count(), 0, "a dead enemy shows no bar")
+	assert_eq(views.bar_ratio_of(id), -1.0, "and has no ratio")
+
+
+func test_a_dying_enemy_leaves_a_puff_that_fades_within_its_lifetime() -> void:
+	var map_root: MapRoot = await _spawn_day_map()
+	var ctx: RunContext = map_root.get_context()
+	var views: EnemyViews = map_root.get_node("EnemyViews")
+	var enemies: EnemySystem = ctx.night.get_enemies()
+	var def: EnemyDef = ctx.map.find_enemy(&"grunt")
+	var id: int = enemies.spawn(def, SPAWN_AT)
+	await wait_process_frames(2)
+	assert_eq(views.puff_count(), 0, "no puff yet")
+	enemies.damage(id, def.max_health, &"king")
+	assert_eq(views.puff_count(), 1, "a puff marks the spot")
+	await wait_process_frames(2)
+	assert_eq(views.puff_count(), 1, "and it is still there a frame later")
+	await wait_seconds(EnemyViews.PUFF_SECONDS + SLACK_S)
+	assert_eq(views.puff_count(), 0, "and it is gone within its lifetime")
+
+
+func test_a_flood_of_deaths_in_one_frame_holds_the_puffs_at_the_cap() -> void:
+	var map_root: MapRoot = await _spawn_day_map()
+	var ctx: RunContext = map_root.get_context()
+	var views: EnemyViews = map_root.get_node("EnemyViews")
+	for index: int in range(DeathPuffBatch.MAX_PUFFS + 30):
+		ctx.events.enemy_died.emit(7000 + index, &"grunt", SPAWN_AT, &"king")
+	assert_eq(views.puff_count(), DeathPuffBatch.MAX_PUFFS, "128 puffs and no more")
+	await wait_process_frames(2)
+	assert_eq(views.puff_count(), DeathPuffBatch.MAX_PUFFS, "still held a frame later")

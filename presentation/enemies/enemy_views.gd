@@ -102,6 +102,16 @@ func archetype_color_of(def_id: StringName) -> Color:
 	return FALLBACK_COLOR
 
 
+## RED stub: hurt-only bars drawn this frame.
+func bar_count() -> int:
+	return 0
+
+
+## RED stub: the fill ratio of a drawn enemy's bar, -1.0 when it has none.
+func bar_ratio_of(_enemy_id: int) -> float:
+	return -1.0
+
+
 ## Death puffs still showing. Test hook, read-only.
 func puff_count() -> int:
 	var count: int = 0

@@ -1,8 +1,8 @@
 extends GutTest
 ## KING-03 and D-13 on the real scene: every tower and skirmisher shot shows a projectile that
-## flies for exactly the simulation's flight time, the king's passive strike shows a slash, and
-## enemies show their wounds. The fixture map has a House and a Tower; its grunts walk past the
-## tower. Events the simulation does not produce on its own are emitted by the test.
+## flies for exactly the simulation's flight time and the king's passive strike shows a slash. The
+## fixture map has a House and a Tower; its grunts walk past the tower. Events the simulation does
+## not produce on its own are emitted by the test.
 
 const FIXTURE := "res://tests/fixtures/fixture_map_one_night.tres"
 const TOWER_SPOT: StringName = &"tower_1"
@@ -167,18 +167,3 @@ func test_the_kings_passive_attack_shows_a_slash_that_frees_itself() -> void:
 	assert_eq(vfx.live_count(), 0, "a slash is not a projectile")
 	await wait_seconds(SLASH_LIFETIME_S)
 	assert_eq(vfx.slash_count(), 0, "and it is gone within 0.3 s")
-
-
-func test_a_dying_enemy_leaves_a_puff_that_frees_itself() -> void:
-	var map_root: MapRoot = await _spawn_map(E2eSupport.shipped_prototype_map(), KING_AWAY)
-	var ctx: RunContext = map_root.get_context()
-	var views: EnemyViews = map_root.get_node("EnemyViews")
-	var id: int = ctx.night.get_enemies().spawn(ctx.map.find_enemy(&"grunt"), PUPPET_AT)
-	await wait_process_frames(2)
-	assert_true(views.has_view(id), "the enemy is drawn")
-	ctx.events.enemy_died.emit(id, &"grunt", PUPPET_AT, &"king")
-	await wait_process_frames(1)
-	assert_false(views.has_view(id), "the enemy is gone from its batch")
-	assert_eq(views.puff_count(), 1, "a puff marks the spot")
-	await wait_seconds(EnemyViews.PUFF_SECONDS + FLIGHT_SLACK_S)
-	assert_eq(views.puff_count(), 0, "and it frees itself")
