@@ -1,6 +1,7 @@
 class_name NightSim
 extends RefCounted
-## Orchestrates one night in a fixed order (DR-8): spawn, king, squads (creation order, units in id
+## Orchestrates one night in a fixed order (DR-8): spawn, the nav grid and castle field rebuilt when
+## the walls changed (once per step), king, squads (creation order, units in id
 ## order), towers (spot order), castle, enemies (id order, then pushed out of the intact wall
 ## segments), resolve due hits (a wall segment that reaches 0 breaks here), remove the dead
 ## enemies, remove the dead units. Outside the night `step_day` steps the army alone. Pure
@@ -86,6 +87,7 @@ func step(tick: int) -> void:
 		_awaiting_first_step = false
 	var night_tick: int = tick - _start_tick
 	_spawn_due(night_tick)
+	_pathing.refresh()
 	_king.step(night_tick, _enemies, _hits)
 	_squads.step(night_tick, _enemies, _hits, true, _king.get_position(), _pathing)
 	_towers.step(night_tick, _enemies, _hits)
@@ -101,6 +103,7 @@ func step(tick: int) -> void:
 ## slots, and a slam armed by day resolves with the same code as at night (it hits nothing, since no
 ## enemy lives outside the night). `tick` is the run tick.
 func step_day(tick: int) -> void:
+	_pathing.refresh()
 	_king.resolve_ability(tick, _enemies, _hits)
 	_squads.step(tick, _enemies, _hits, false, _king.get_position(), _pathing)
 	_resolve_hits(tick)

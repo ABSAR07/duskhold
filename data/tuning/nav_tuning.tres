@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="NavTuning" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://simulation/defs/nav_tuning.gd" id="1_nav"]
+
+[resource]
+script = ExtResource("1_nav")
+cell_size = 2.0
+bounds_margin = 10.0
+goal_margin = 0.8
+field_cache_size = 8
+goal_quantum = 4.0
+field_builds_per_tick = 1
+field_refresh_seconds = 0.5

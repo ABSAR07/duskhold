@@ -63,6 +63,9 @@ const CASTLE_PAYOUT_KEY: StringName = &"castle"
 ## Half the side of the square ground in metres. Squad command points outside it are refused
 ## (RESEARCH A8); the shipped ground is 180 m wide.
 @export var ground_half_extent: float = DEFAULT_GROUND_HALF_EXTENT
+## Pathing tunables (cell size, goal-field cache). Null means NavTuning.new() defaults; the
+## prototype map references data/tuning/nav_tuning.tres.
+@export var nav_tuning: NavTuning
 
 
 ## The enemy type with this id, or null.

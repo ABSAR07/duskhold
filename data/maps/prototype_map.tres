@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="MapConfig" load_steps=78 format=3]
+[gd_resource type="Resource" script_class="MapConfig" load_steps=79 format=3]
 
 [ext_resource type="Script" path="res://simulation/defs/map_config.gd" id="1_map"]
 [ext_resource type="Script" path="res://simulation/defs/build_spot_def.gd" id="2_spot"]
@@ -18,6 +18,7 @@
 [ext_resource type="Resource" path="res://data/buildings/archery_range.tres" id="16_archery"]
 [ext_resource type="Script" path="res://simulation/walls/wall_run_def.gd" id="17_wallrun"]
 [ext_resource type="Resource" path="res://data/buildings/wall.tres" id="18_wall"]
+[ext_resource type="Resource" path="res://data/tuning/nav_tuning.tres" id="19_nav"]
 
 [sub_resource type="Resource" id="Resource_house_1"]
 script = ExtResource("2_spot")
@@ -442,3 +443,4 @@ castle_attack_range = 22.0
 castle_attack_interval = 1.5
 castle_projectile_speed = 27.0
 ground_half_extent = 90.0
+nav_tuning = ExtResource("19_nav")

@@ -298,7 +298,11 @@ func _target_walls_in_the_way(
 			record.castle_blocker = _pathing.first_blocking(
 				record.position, castle.get_position(), record.def.radius
 			)
-		_take_wall(record, record.castle_blocker, record.def.aggro_range)
+			record.castle_blocked = (
+				record.castle_blocker >= 0 and not _pathing.is_sealed(record.position)
+			)
+		if record.castle_blocker >= 0 and _pathing.is_sealed(record.position):
+			_take_wall(record, record.castle_blocker, record.def.aggro_range)
 		return
 	if not chosen and not rescan:
 		return
@@ -483,7 +487,10 @@ func _advance_and_strike(
 	var remaining: float = record.position.distance_to(goal) - stop_distance
 	if remaining > 0.0:
 		var reach: float = minf(record.def.move_speed * SimClock.STEP, remaining)
-		record.position += desired_step(record.position, goal, reach)
+		if record.castle_blocked and not attacking and _walls_are_solid():
+			record.position += _pathing.march_step(record.position, reach)
+		else:
+			record.position += desired_step(record.position, goal, reach)
 		remaining = record.position.distance_to(goal) - stop_distance
 	if not attacking or remaining > ARRIVE_EPSILON or tick < record.cooldown_ready_tick:
 		return
@@ -549,3 +556,6 @@ class Record:
 	## The intact segment across its straight line to the castle as of its last rescan tick, or -1
 	## (D-07): a marching enemy pays a line test once per rescan period, not once per tick.
 	var castle_blocker: int = -1
+	## True while that line is blocked and a way round exists (ENMY-04): a target-less enemy then
+	## follows the castle flow field instead of the straight line. Refreshed with castle_blocker.
+	var castle_blocked: bool = false
