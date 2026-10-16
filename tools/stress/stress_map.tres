@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="MapConfig" load_steps=21 format=3]
+[gd_resource type="Resource" script_class="MapConfig" load_steps=47 format=3]
 
 [ext_resource type="Script" path="res://simulation/defs/map_config.gd" id="1_map"]
 [ext_resource type="Script" path="res://simulation/defs/build_spot_def.gd" id="2_spot"]
@@ -11,6 +11,10 @@
 [ext_resource type="Resource" path="res://data/tuning/nav_tuning.tres" id="9_nav"]
 [ext_resource type="Script" path="res://simulation/defs/building_def.gd" id="10_bdef"]
 [ext_resource type="Script" path="res://simulation/defs/enemy_def.gd" id="11_edef"]
+[ext_resource type="Resource" path="res://tools/stress/data/stress_tower.tres" id="12_tower"]
+[ext_resource type="Resource" path="res://tools/stress/data/stress_barracks.tres" id="13_barracks"]
+[ext_resource type="Script" path="res://simulation/defs/unit_def.gd" id="14_udef"]
+[ext_resource type="Resource" path="res://tools/stress/data/stress_footman.tres" id="15_footman"]
 
 [sub_resource type="Resource" id="Resource_gate_run"]
 script = ExtResource("6_run")
@@ -25,6 +29,138 @@ id = &"gate_wall"
 position = Vector3(0, 0, 27)
 building_id = &"stress_wall"
 wall_run = SubResource("Resource_gate_run")
+
+[sub_resource type="Resource" id="Resource_tower_1"]
+script = ExtResource("2_spot")
+id = &"stress_tower_1"
+position = Vector3(-27, 0, 12)
+building_id = &"stress_tower"
+
+[sub_resource type="Resource" id="Resource_tower_2"]
+script = ExtResource("2_spot")
+id = &"stress_tower_2"
+position = Vector3(-21, 0, 12)
+building_id = &"stress_tower"
+
+[sub_resource type="Resource" id="Resource_tower_3"]
+script = ExtResource("2_spot")
+id = &"stress_tower_3"
+position = Vector3(-15, 0, 12)
+building_id = &"stress_tower"
+
+[sub_resource type="Resource" id="Resource_tower_4"]
+script = ExtResource("2_spot")
+id = &"stress_tower_4"
+position = Vector3(-9, 0, 12)
+building_id = &"stress_tower"
+
+[sub_resource type="Resource" id="Resource_tower_5"]
+script = ExtResource("2_spot")
+id = &"stress_tower_5"
+position = Vector3(-3, 0, 12)
+building_id = &"stress_tower"
+
+[sub_resource type="Resource" id="Resource_tower_6"]
+script = ExtResource("2_spot")
+id = &"stress_tower_6"
+position = Vector3(3, 0, 12)
+building_id = &"stress_tower"
+
+[sub_resource type="Resource" id="Resource_tower_7"]
+script = ExtResource("2_spot")
+id = &"stress_tower_7"
+position = Vector3(9, 0, 12)
+building_id = &"stress_tower"
+
+[sub_resource type="Resource" id="Resource_tower_8"]
+script = ExtResource("2_spot")
+id = &"stress_tower_8"
+position = Vector3(15, 0, 12)
+building_id = &"stress_tower"
+
+[sub_resource type="Resource" id="Resource_tower_9"]
+script = ExtResource("2_spot")
+id = &"stress_tower_9"
+position = Vector3(21, 0, 12)
+building_id = &"stress_tower"
+
+[sub_resource type="Resource" id="Resource_tower_10"]
+script = ExtResource("2_spot")
+id = &"stress_tower_10"
+position = Vector3(27, 0, 12)
+building_id = &"stress_tower"
+
+[sub_resource type="Resource" id="Resource_tower_11"]
+script = ExtResource("2_spot")
+id = &"stress_tower_11"
+position = Vector3(-27, 0, 20)
+building_id = &"stress_tower"
+
+[sub_resource type="Resource" id="Resource_tower_12"]
+script = ExtResource("2_spot")
+id = &"stress_tower_12"
+position = Vector3(-21, 0, 20)
+building_id = &"stress_tower"
+
+[sub_resource type="Resource" id="Resource_tower_13"]
+script = ExtResource("2_spot")
+id = &"stress_tower_13"
+position = Vector3(-15, 0, 20)
+building_id = &"stress_tower"
+
+[sub_resource type="Resource" id="Resource_tower_14"]
+script = ExtResource("2_spot")
+id = &"stress_tower_14"
+position = Vector3(-9, 0, 20)
+building_id = &"stress_tower"
+
+[sub_resource type="Resource" id="Resource_tower_15"]
+script = ExtResource("2_spot")
+id = &"stress_tower_15"
+position = Vector3(-3, 0, 20)
+building_id = &"stress_tower"
+
+[sub_resource type="Resource" id="Resource_tower_16"]
+script = ExtResource("2_spot")
+id = &"stress_tower_16"
+position = Vector3(3, 0, 20)
+building_id = &"stress_tower"
+
+[sub_resource type="Resource" id="Resource_tower_17"]
+script = ExtResource("2_spot")
+id = &"stress_tower_17"
+position = Vector3(9, 0, 20)
+building_id = &"stress_tower"
+
+[sub_resource type="Resource" id="Resource_tower_18"]
+script = ExtResource("2_spot")
+id = &"stress_tower_18"
+position = Vector3(15, 0, 20)
+building_id = &"stress_tower"
+
+[sub_resource type="Resource" id="Resource_tower_19"]
+script = ExtResource("2_spot")
+id = &"stress_tower_19"
+position = Vector3(21, 0, 20)
+building_id = &"stress_tower"
+
+[sub_resource type="Resource" id="Resource_tower_20"]
+script = ExtResource("2_spot")
+id = &"stress_tower_20"
+position = Vector3(27, 0, 20)
+building_id = &"stress_tower"
+
+[sub_resource type="Resource" id="Resource_barracks_1"]
+script = ExtResource("2_spot")
+id = &"stress_barracks_1"
+position = Vector3(-12, 0, 6)
+building_id = &"stress_barracks"
+
+[sub_resource type="Resource" id="Resource_barracks_2"]
+script = ExtResource("2_spot")
+id = &"stress_barracks_2"
+position = Vector3(12, 0, 6)
+building_id = &"stress_barracks"
 
 [sub_resource type="Resource" id="Resource_far_west"]
 script = ExtResource("3_spawn")
@@ -98,9 +234,10 @@ is_sandbox = true
 starting_gold = 0
 king_spawn = Vector3(0, 0, 7)
 castle_position = Vector3(0, 0, 0)
-buildings = Array[ExtResource("10_bdef")]([ExtResource("7_wall")])
-spots = Array[ExtResource("2_spot")]([SubResource("Resource_gate_wall")])
+buildings = Array[ExtResource("10_bdef")]([ExtResource("7_wall"), ExtResource("12_tower"), ExtResource("13_barracks")])
+spots = Array[ExtResource("2_spot")]([SubResource("Resource_gate_wall"), SubResource("Resource_tower_1"), SubResource("Resource_tower_2"), SubResource("Resource_tower_3"), SubResource("Resource_tower_4"), SubResource("Resource_tower_5"), SubResource("Resource_tower_6"), SubResource("Resource_tower_7"), SubResource("Resource_tower_8"), SubResource("Resource_tower_9"), SubResource("Resource_tower_10"), SubResource("Resource_tower_11"), SubResource("Resource_tower_12"), SubResource("Resource_tower_13"), SubResource("Resource_tower_14"), SubResource("Resource_tower_15"), SubResource("Resource_tower_16"), SubResource("Resource_tower_17"), SubResource("Resource_tower_18"), SubResource("Resource_tower_19"), SubResource("Resource_tower_20"), SubResource("Resource_barracks_1"), SubResource("Resource_barracks_2")])
 enemies = Array[ExtResource("11_edef")]([ExtResource("8_grunt")])
+units = Array[ExtResource("14_udef")]([ExtResource("15_footman")])
 spawn_points = Array[ExtResource("3_spawn")]([SubResource("Resource_far_west"), SubResource("Resource_mid_west"), SubResource("Resource_mid_east"), SubResource("Resource_far_east")])
 nights = Array[ExtResource("5_night")]([SubResource("Resource_night_1")])
 castle_max_health = 100000

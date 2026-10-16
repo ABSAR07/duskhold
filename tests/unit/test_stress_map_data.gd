@@ -10,6 +10,11 @@ const GAP_HALF_CM: int = 200
 const WALL_Z_CM: int = 3000
 const NIGHT_SIZE: int = 300
 const HUGE_HEALTH: int = 100000
+const FOOTMAN := "res://data/units/footman.tres"
+const TOWER_PLOTS: int = 20
+const BARRACKS_PLOTS: int = 2
+const TOWER_ROWS: Array[float] = [12.0, 20.0]
+const BARRACKS_POSTS: Array[float] = [-12.0, 12.0]
 
 
 func _map() -> MapConfig:
@@ -29,7 +34,10 @@ func test_the_stress_map_validates_clean() -> void:
 
 func test_it_has_exactly_one_wall_plot_called_gate_wall() -> void:
 	var map: MapConfig = _map()
-	assert_eq(map.spots.size(), 1, "one plot")
+	var wall_plots: int = 0
+	for plot: BuildSpotDef in map.spots:
+		wall_plots += 1 if plot.wall_run != null else 0
+	assert_eq(wall_plots, 1, "one wall plot")
 	var spot: BuildSpotDef = _gate_spot(map)
 	assert_not_null(spot, "gate_wall exists")
 	assert_not_null(spot.wall_run, "and carries a wall run")
@@ -133,3 +141,93 @@ func test_a_map_without_the_gate_has_no_finish_line() -> void:
 	var map: MapConfig = load("res://tests/fixtures/fixture_map_walls_gap.tres") as MapConfig
 	assert_false(GateStress.has_gate(map), "no gate_wall plot")
 	assert_true(is_nan(GateStress.finish_z(map)), "so no finish line")
+
+
+func _plots_of(map: MapConfig, building_id: StringName) -> Array[BuildSpotDef]:
+	var found: Array[BuildSpotDef] = []
+	for spot: BuildSpotDef in map.spots:
+		if spot.building_id == building_id:
+			found.append(spot)
+	return found
+
+
+func _building(map: MapConfig, building_id: StringName) -> BuildingDef:
+	for def: BuildingDef in map.buildings:
+		if def.id == building_id:
+			return def
+	return null
+
+
+func test_there_are_twenty_stress_tower_plots_in_two_rows_on_the_castle_side() -> void:
+	var map: MapConfig = _map()
+	var towers: Array[BuildSpotDef] = _plots_of(map, &"stress_tower")
+	assert_eq(towers.size(), TOWER_PLOTS, "20 tower plots")
+	var per_row: Dictionary = {}
+	for spot: BuildSpotDef in towers:
+		assert_true(TOWER_ROWS.has(spot.position.z), "%s stands on a tower row" % spot.id)
+		assert_lt(spot.position.z, WALL_Z, "%s is on the castle side of the wall" % spot.id)
+		per_row[spot.position.z] = int(per_row.get(spot.position.z, 0)) + 1
+	assert_eq(per_row.size(), 2, "two rows")
+	for row: float in TOWER_ROWS:
+		assert_eq(per_row[row], TOWER_PLOTS / 2, "ten towers on the row at z %s" % row)
+
+
+func test_there_are_two_stress_barracks_plots_beside_the_castle() -> void:
+	var barracks: Array[BuildSpotDef] = _plots_of(_map(), &"stress_barracks")
+	assert_eq(barracks.size(), BARRACKS_PLOTS, "2 barracks plots")
+	var posts: Array[float] = []
+	for spot: BuildSpotDef in barracks:
+		posts.append(spot.position.x)
+		assert_eq(spot.position.z, 6.0, "%s stands at z 6" % spot.id)
+	posts.sort()
+	assert_eq(posts, BARRACKS_POSTS, "at x -12 and 12")
+
+
+func test_the_stress_tower_tier_shoots_slow_arrows_often() -> void:
+	var tower: BuildingDef = _building(_map(), &"stress_tower")
+	assert_not_null(tower, "the map defines the stress tower")
+	assert_eq(tower.tiers.size(), 1, "one tier")
+	var tier: BuildingTierDef = tower.tiers[0]
+	assert_eq(tier.projectile_speed, 5.0, "slow arrows keep about 200 or more in the air")
+	assert_eq(tier.attack_interval, 0.15, "every 0.15 s")
+	assert_eq(tier.attack_range, 30.0, "from 30 m")
+	assert_eq(tier.attack_damage, 1, "real hits of 1 through PendingHits")
+	assert_eq(tier.max_health, HUGE_HEALTH, "it outlives the surge")
+
+
+func test_each_stress_barracks_fields_twenty_five_stress_footmen() -> void:
+	var map: MapConfig = _map()
+	var barracks: BuildingDef = _building(map, &"stress_barracks")
+	assert_not_null(barracks, "the map defines the stress barracks")
+	assert_eq(barracks.unit_id, &"stress_footman", "it fields the stress footman")
+	assert_eq(barracks.tiers.size(), 1, "one tier")
+	assert_eq(barracks.tiers[0].squad_size, 25, "25 units per squad, 50 over the two plots")
+	assert_eq(barracks.tiers[0].max_health, HUGE_HEALTH, "it outlives the surge")
+	assert_not_null(map.find_unit(&"stress_footman"), "and the map defines that unit")
+
+
+func test_the_stress_footman_matches_the_shipped_footman_except_for_health() -> void:
+	var stress: UnitDef = _map().find_unit(&"stress_footman")
+	var footman: UnitDef = load(FOOTMAN) as UnitDef
+	for field: String in [
+		"move_speed",
+		"radius",
+		"attack_range",
+		"attack_damage",
+		"attack_interval",
+		"guard_range",
+		"leash_range",
+		"retarget_interval_seconds",
+		"projectile_speed",
+		"formation_spacing"
+	]:
+		assert_eq(stress.get(field), footman.get(field), "%s matches the footman" % field)
+	assert_eq(stress.max_health, HUGE_HEALTH, "so the squad stays at full size")
+
+
+func test_night_one_and_the_wall_are_the_same_with_the_added_plots() -> void:
+	var map: MapConfig = _map()
+	assert_eq(map.nights.size(), 1, "still one night")
+	assert_eq(map.spots[0].id, GateStress.GATE_SPOT, "the wall plot stays first")
+	assert_eq(map.buildings[0].id, &"stress_wall", "and its def stays first")
+	assert_eq(map.spots.size(), 1 + TOWER_PLOTS + BARRACKS_PLOTS, "wall, towers and barracks")

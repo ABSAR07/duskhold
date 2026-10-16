@@ -141,6 +141,12 @@ func arrow_launch_at(index: int) -> Vector3:
 	return _drawn_launches[index]
 
 
+## Where arrow `index` of the latest frame is drawn, from the batch mirror; the zero vector past the
+## last. Read-only hook of the stress night's on-screen count.
+func arrow_position_at(index: int) -> Vector3:
+	return _batch.origin_of(index) if _batch != null else Vector3.ZERO
+
+
 ## Slashes showing. Test hook, read-only.
 func slash_count() -> int:
 	var count: int = 0
