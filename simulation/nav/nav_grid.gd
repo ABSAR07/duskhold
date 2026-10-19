@@ -42,6 +42,9 @@ var _inflate: float = DEFAULT_INFLATE
 var _blocked: PackedByteArray = PackedByteArray()
 var _owner: PackedInt32Array = PackedInt32Array()
 var _version: int = 0
+## The C++ copy of the layout and the masks (native/src/native_field.cpp), refreshed at the end of
+## every rebuild(), so the native field reads see the mask the GDScript reads see.
+var _native: NativeGrid = NativeGrid.new()
 
 
 func _init(map: MapConfig, tuning: NavTuning = null) -> void:
@@ -55,6 +58,7 @@ func _init(map: MapConfig, tuning: NavTuning = null) -> void:
 	_width = int(layout[2])
 	_height = int(layout[3])
 	_armed = true
+	_native.set_layout(true, _origin, _cell, _width, _height)
 
 
 ## The pathing tunables of a map: its own, else the defaults.
@@ -117,6 +121,11 @@ func blocked_mask() -> PackedByteArray:
 	return _blocked
 
 
+## The C++ mirror of the layout and the masks, in step with the last rebuild().
+func native() -> NativeGrid:
+	return _native
+
+
 ## Index of the cell holding `pos`, border cells included; -1 outside the grid or when unarmed.
 func cell_of(pos: Vector2) -> int:
 	if not _armed:
@@ -173,6 +182,7 @@ func rebuild(walls: WallSystem) -> void:
 		if walls.is_intact(segment):
 			_mark_crossed(walls, segment, joints)
 	_version += 1
+	_native.set_masks(_blocked, _owner)
 
 
 ## The least and greatest cell index of a box of metres, clamped to the inner cells.

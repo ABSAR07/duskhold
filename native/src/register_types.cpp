@@ -6,6 +6,7 @@
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
 
+#include "native_field.h"
 #include "native_sim.h"
 #include "native_walls.h"
 
@@ -17,6 +18,8 @@ void initialize_duskhold_sim_module(ModuleInitializationLevel p_level) {
 	}
 	GDREGISTER_CLASS(NativeSim);
 	GDREGISTER_CLASS(NativeWalls);
+	GDREGISTER_CLASS(NativeGrid);
+	GDREGISTER_CLASS(NativeField);
 }
 
 void uninitialize_duskhold_sim_module(ModuleInitializationLevel p_level) {
