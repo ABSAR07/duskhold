@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
 status: executing
-stopped_at: Completed 04-13-PLAN.md
-last_updated: "2026-10-19T09:45:39.021Z"
+stopped_at: Completed 04-14-PLAN.md
+last_updated: "2026-10-19T11:16:09.123Z"
 last_activity: 2026-10-19
 last_activity_desc: Phase 04 execution started
-state_head: a01748993a39ba2a34d4cb614689355625503f2c
+state_head: f0335909e1e1770aa47e94c7dd2aaa5bffc89ae2
 progress:
   total_phases: 13
   completed_phases: 3
   total_plans: 82
-  completed_plans: 72
+  completed_plans: 73
   percent: 23
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 04 (Crowd-Scale Battles & Walls) — EXECUTING
-Plan: 13 of 23 complete (11 gap-closure plans pending; 04-12 closed G-04-7)
+Plan: 14 of 23 complete (11 gap-closure plans pending; 04-12 closed G-04-7)
 Status: Owner gate done 2026-10-19 (04-UAT.md: 9 pass, 3 issues, 1 blocked); gaps G-04-5/6/7 diagnosed; gap plans 04-12 to 04-23 verified; next /gsd-execute-phase 4 --gaps-only
 Last activity: 2026-10-19 — Plan 04-12 complete (melee enemies break through walls to their target, G-04-7)
 
@@ -130,6 +130,7 @@ Progress: [██░░░░░░░░] 23%
 | Phase 04 P11 | 40 min | 3 tasks | 1 files |
 | Phase 04 P12 | 52 min | 3 tasks | 14 files |
 | Phase 04 P13 | 45 min | 2 tasks | 4 files |
+| Phase 04 P14 | 89 min | 2 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -298,6 +299,7 @@ Recent decisions affecting current work:
 - [Phase 04]: 04-12 (G-04-7): a default melee enemy breaks the wall segment in front of a king, unit or building target; EnemyDef.drops_blocked_targets keeps the 04-06 drop rule for the Phase 6 roster; the castle is never a target behind a wall and the castle march keeps 04-07 — Owner rule change 2026-10-19 (UAT test 13); sub-rules: visible target first, radius-0 centre line (gap mouths stay walkable), castle excluded; all replay, gate and balance pins unmoved
 - [Phase 04]: 04-12: the held-for-target release reuses _target_valid and _goal_of by swapping the behind target into the record, so no existing helper changed for the 04-14 to 04-23 port — Keeps the enemy step small and local for the GDExtension port
 - [Phase 04]: 04-13: the F3 overlay panel sits below the night banner box (offset_top 104) with line_spacing 0, pinned by a y-only 1280x720 layout test; hud.tscn untouched (G-04-6)
+- [Phase 04]: 04-14: godot-cpp pinned to master commit 2bb1acf6f8ae1ce96ac7b9ba3a10b499c59c49ec (no 4.6/4.7 tag exists); build uses the API dumped from the 4.7.2 binary; GDScript may name native classes as types (rule i); first import of a minimal project with the extension exits 139 unless extension_list.cfg is pre-seeded or the import is repeated (plan 04-22 to handle)
 
 ### Pending Todos
 
@@ -336,6 +338,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-19T09:45:37.945Z
-Stopped at: Completed 04-13-PLAN.md
+Last session: 2026-10-19T11:16:07.555Z
+Stopped at: Completed 04-14-PLAN.md
 Resume file: None
