@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
 status: executing
-stopped_at: Completed 04-20-PLAN.md
-last_updated: "2026-10-19T19:43:15.639Z"
+stopped_at: "Halted 04-21-PLAN.md (stop rule: PLAT-01 NOT met, Task 2 not run)"
+last_updated: "2026-10-19T19:56:37.913Z"
 last_activity: 2026-10-19
 last_activity_desc: Phase 04 execution started
-state_head: b5a6f57b02c10538573996f281b09580a4df77af
+state_head: 9f896662ab673d289e7347bbc4bbef382948411a
 progress:
   total_phases: 13
   completed_phases: 3
   total_plans: 82
-  completed_plans: 81
+  completed_plans: 82
   percent: 23
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 04 (Crowd-Scale Battles & Walls) — EXECUTING
-Plan: 22 of 23 complete (11 gap-closure plans pending; 04-12 closed G-04-7)
+Plan: 04-21 HALTED by its stop rule (PLAT-01 NOT met: p95 10.95 ms vs 8.0 ms, Task 2 not run); every other plan has a SUMMARY; owner picks the route (view-layer plan recommended, squad port second)
 Status: Owner gate done 2026-10-19 (04-UAT.md: 9 pass, 3 issues, 1 blocked); gaps G-04-5/6/7 diagnosed; gap plans 04-12 to 04-23 verified; next /gsd-execute-phase 4 --gaps-only
 Last activity: 2026-10-19 — Plan 04-12 complete (melee enemies break through walls to their target, G-04-7)
 
@@ -139,6 +139,7 @@ Progress: [██░░░░░░░░] 23%
 | Phase 04 P23 | 47min | 2 tasks | 22 files |
 | Phase 04 P19 | 58 min | 2 tasks | 13 files |
 | Phase 04 P20 | 61 min | 3 tasks | 15 files |
+| Phase 04 P21 | 11 min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -323,6 +324,7 @@ Recent decisions affecting current work:
 - [Phase 04]: 04-19: the enemy store is an id-ordered vector of records with a binary-search lookup, and the facade takes NativeRoute from Pathing's private _route (Pathing is at its 20-method cap); remove_dead removes one enemy at a time so enemy_died listeners see the GDScript field
 - [Phase 04]: 04-20: the read view carries a living flag next to targeted (the tracker skipped dead-but-unremoved enemies through is_alive) and a lethal damage marks the view stale; StuckTracker's constructor takes the castle position (default Vector2.ZERO), Pathing gains no method
 - [Phase 04]: 04-20: nearest_living (EnemySystem 19 of 20) answers every nearest-enemy question natively; stuck tracker native and read-only; the CI run 39310876191 is green on every job for b5a6f57 with the goldens on Linux and Windows; stress step median 2.18 ms, probe PHASE squads 1.41 ms
+- [Phase 04]: 04-21: stress night on the native step is NOT met (p95 10.95 ms vs 8.0 ms, p50 6.25 ms); remaining gap is the view layers' per-frame loops (p95 4.55 ms with them off), not the 2.33 ms step; plan halted by its stop rule, nothing lowered; next candidate named first is the view-layer port, squad port second
 
 ### Pending Todos
 
@@ -361,6 +363,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-19T19:43:14.936Z
-Stopped at: Completed 04-20-PLAN.md
+Last session: 2026-10-19T19:56:37.172Z
+Stopped at: Halted 04-21-PLAN.md (stop rule: PLAT-01 NOT met, Task 2 not run)
 Resume file: None
