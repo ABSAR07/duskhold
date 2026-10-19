@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
 status: executing
-stopped_at: Completed 04-18-PLAN.md
-last_updated: "2026-10-19T16:43:01.894Z"
+stopped_at: Completed 04-23-PLAN.md
+last_updated: "2026-10-19T17:34:25.672Z"
 last_activity: 2026-10-19
 last_activity_desc: Phase 04 execution started
-state_head: 8551a087270946555dbda091d03dfae999cf49d3
+state_head: bf873e24c17d738af95b63fa61687984639e1f67
 progress:
   total_phases: 13
   completed_phases: 3
   total_plans: 82
-  completed_plans: 78
+  completed_plans: 79
   percent: 23
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 04 (Crowd-Scale Battles & Walls) — EXECUTING
-Plan: 19 of 23 complete (11 gap-closure plans pending; 04-12 closed G-04-7)
+Plan: 20 of 23 complete (11 gap-closure plans pending; 04-12 closed G-04-7)
 Status: Owner gate done 2026-10-19 (04-UAT.md: 9 pass, 3 issues, 1 blocked); gaps G-04-5/6/7 diagnosed; gap plans 04-12 to 04-23 verified; next /gsd-execute-phase 4 --gaps-only
 Last activity: 2026-10-19 — Plan 04-12 complete (melee enemies break through walls to their target, G-04-7)
 
@@ -136,6 +136,7 @@ Progress: [██░░░░░░░░] 23%
 | Phase 04 P16 | 26 min | 2 tasks | 2 files |
 | Phase 04 P17 | 54 min | 2 tasks | 9 files |
 | Phase 04 P18 | 61 min | 2 tasks | 10 files |
+| Phase 04 P23 | 47min | 2 tasks | 22 files |
 
 ## Accumulated Context
 
@@ -314,6 +315,9 @@ Recent decisions affecting current work:
 - [Phase 04]: 04-17: wall solid test native; candidate sets are the GDScript's own (bucket keys, inflated box, ascending de-duplicated list); WR-02 tangency and IN-02 bucket walk ported unchanged on purpose — push_out depends on which segments segments_near visits; fixing either moves a digest and needs an owner golden decision
 - [Phase 04]: 04-17: stress-shape step gain judged by interleaved A/B (median 33.78 to 28.68 ms, every pair positive); the separate before/after files drifted (26.86 to 29.75) — laptop drift of several ms over 50 minutes; same lesson as 04-15
 - [Phase 04]: [04-18] The lazy direction cache is reproduced exactly in NativeField (computed from the live grid mirror on a cell's first ask per generation, kept until set_costs, stored as float); FlowField.build's Dial stays GDScript; NativeRoute is private to Pathing so its 20 public methods hold; WR-03 lives in NativeRoute::is_sealed, ported unchanged
+- [Phase 04]: Plan 04-23: StructureIndex and the wall decision's per-tick state run in C++ behind their GDScript APIs; the five static rules stay GDScript with C++ twins proven equal on an exhaustive grid (NativeSim.probe_rules); 13 pins on the GDScript first (a4308cb), all digests unchanged
+- [Phase 04]: Plan 04-23: the trace tool (tools/stress/enemy_trace.gd) is the oracle for 04-19; hooks are a trailing optional on_tick Callable on ReplayDriver.run, ReplayScenarios.run and GateStress.run, bounds derived from ReplayScenarios.max_ticks and GateStress.DEFAULT_MAX_SECONDS; line format documented in the file header
+- [Phase 04]: Plan 04-23: a grid block larger than the grid itself tests every candidate in ascending order (exact superset, no hang on an infinite range); StructureIndex gains native() for 04-19
 
 ### Pending Todos
 
@@ -352,6 +356,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-19T16:43:01.180Z
-Stopped at: Completed 04-18-PLAN.md
+Last session: 2026-10-19T17:34:24.907Z
+Stopped at: Completed 04-23-PLAN.md
 Resume file: None
