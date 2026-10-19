@@ -2,7 +2,8 @@ extends GutTest
 ## ENMY-04, D-09: an enemy with no target whose progress toward the castle has not improved by
 ## stuck_progress_m for stuck_seconds is flagged; one that creeps forward in a queue is not; the
 ## tracker only reads (no event, no change to any enemy). The enemies here are a stand-in that
-## answers the four reads the tracker makes, so a test can hold or move them exactly.
+## answers the reads the tracker makes (the packed view since plan 04-20), so a test can hold or
+## move them exactly.
 
 const SQUADS_FIXTURE := "res://tests/fixtures/fixture_map_squads.tres"
 const GAP_FIXTURE := "res://tests/fixtures/fixture_map_walls_gap.tres"
@@ -51,6 +52,17 @@ class FakeEnemies:
 
 	func position_of(id: int) -> Vector2:
 		return spots.get(id, Vector2.ZERO)
+
+	## The packed view of the same dictionaries (the tracker reads the view since plan 04-20).
+	func read_view() -> CrowdReadView:
+		var view: CrowdReadView = CrowdReadView.new()
+		for id: int in ids():
+			view.ids.append(id)
+			view.previous.append(position_of(id))
+			view.current.append(position_of(id))
+			view.targeted.append(0 if target_of(id).is_empty() else 1)
+			view.living.append(1 if is_alive(id) else 0)
+		return view
 
 
 func before_each() -> void:

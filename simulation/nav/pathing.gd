@@ -38,10 +38,10 @@ func _init(map: MapConfig, walls: WallSystem) -> void:
 	_tuning = NavGrid.tuning_of(map)
 	_grid = NavGrid.new(map, _tuning)
 	_decision = WallDecision.new(walls, _tuning)
-	_stuck = StuckTracker.new(_tuning, _tuning.cell_size)
 	var castle: Vector2 = Vector2.ZERO
 	if map != null:
 		castle = Vector2(map.castle_position.x, map.castle_position.z)
+	_stuck = StuckTracker.new(_tuning, _tuning.cell_size, castle)
 	var wall_mirror: NativeWalls = walls.native() if walls != null else null
 	_route.set_world(_grid.native(), wall_mirror, castle, _tuning.cell_size)
 

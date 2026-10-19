@@ -142,6 +142,7 @@ func damage(id: int, amount: int, killer_kind: StringName) -> void:
 		return
 	if left == 0:
 		_killers[id] = killer_kind
+		_mark_changed()
 	_events.enemy_damaged.emit(id, amount, left)
 
 
@@ -224,6 +225,8 @@ func read_view() -> CrowdReadView:
 	_view.ids = _native.view_ids()
 	_view.previous = _native.view_previous()
 	_view.current = _native.view_current()
+	_view.targeted = _native.view_targeted()
+	_view.living = _native.view_living()
 	_view.version = _changes
 	return _view
 

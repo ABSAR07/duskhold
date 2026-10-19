@@ -63,6 +63,8 @@ void NativeEnemies::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("view_ids"), &NativeEnemies::view_ids);
 	ClassDB::bind_method(D_METHOD("view_previous"), &NativeEnemies::view_previous);
 	ClassDB::bind_method(D_METHOD("view_current"), &NativeEnemies::view_current);
+	ClassDB::bind_method(D_METHOD("view_targeted"), &NativeEnemies::view_targeted);
+	ClassDB::bind_method(D_METHOD("view_living"), &NativeEnemies::view_living);
 	ClassDB::bind_method(
 			D_METHOD("set_world", "walls", "route", "decision", "structures"),
 			&NativeEnemies::set_world);
@@ -343,6 +345,24 @@ PackedVector2Array NativeEnemies::view_current() const {
 	result.resize(static_cast<int64_t>(recs_.size()));
 	for (size_t slot = 0; slot < recs_.size(); slot++) {
 		result[static_cast<int64_t>(slot)] = recs_[slot].position;
+	}
+	return result;
+}
+
+PackedByteArray NativeEnemies::view_targeted() const {
+	PackedByteArray result;
+	result.resize(static_cast<int64_t>(recs_.size()));
+	for (size_t slot = 0; slot < recs_.size(); slot++) {
+		result[static_cast<int64_t>(slot)] = recs_[slot].target_kind != TARGET_NONE ? 1 : 0;
+	}
+	return result;
+}
+
+PackedByteArray NativeEnemies::view_living() const {
+	PackedByteArray result;
+	result.resize(static_cast<int64_t>(recs_.size()));
+	for (size_t slot = 0; slot < recs_.size(); slot++) {
+		result[static_cast<int64_t>(slot)] = recs_[slot].health > 0 ? 1 : 0;
 	}
 	return result;
 }

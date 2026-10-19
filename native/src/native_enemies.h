@@ -7,6 +7,7 @@
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/core/class_db.hpp>
+#include <godot_cpp/variant/packed_byte_array.hpp>
 #include <godot_cpp/variant/packed_float64_array.hpp>
 #include <godot_cpp/variant/packed_int64_array.hpp>
 #include <godot_cpp/variant/packed_vector2_array.hpp>
@@ -162,6 +163,10 @@ public:
 	PackedInt64Array view_ids() const;
 	PackedVector2Array view_previous() const;
 	PackedVector2Array view_current() const;
+	// One byte per enemy in the view's order: 1 where the enemy holds a target (the stuck tracker
+	// reads it), and 1 where its health is above 0 (dead enemies not yet removed read 0).
+	PackedByteArray view_targeted() const;
+	PackedByteArray view_living() const;
 
 	// --- the step ----------------------------------------------------------------------------
 	// The structures, walls, castle route and decision of the step in progress (null: none).
