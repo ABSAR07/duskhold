@@ -254,7 +254,7 @@ Plans:
   3. A scripted stress night with hundreds of units, enemies, and projectiles on screen holds 60 fps on GTX 970-class hardware, or within a documented equivalent frame-time budget on the dev machine.
   4. Nights from Phases 1–3 play the same after the switch to batched simulation and rendering. All existing headless loop and combat tests still pass.
 
-**Plans**: 11/11 plans executed
+**Plans**: 11/23 plans complete (04-12 to 04-23 close the 2026-10-19 UAT gaps G-04-5, G-04-6 and G-04-7 and the 04-VERIFICATION.md gap for success criterion 3)
 
 Plans:
 **Wave 1**
@@ -289,6 +289,42 @@ Plans:
 
 **Wave 11** *(blocked on 04-09 and 04-10)*
 - [x] 04-11: Gate — full local pass (suite, four goldens, gate stress, 37 screenshots), green CI, launch-checked export, 04-PLAYTEST-GATE.md and the owner feel check
+
+**Gap closure** *(UAT 2026-10-19: G-04-7 melee enemies break through to targets behind walls, G-04-6 the overlay hides the night banner, G-04-5 PLAT-01 by the owner's GDExtension route with the 8 ms budget kept; also the 04-VERIFICATION.md gap for criterion 3)*
+
+**Gap wave 1 (wave 12)** *(blocked on 04-11)*
+- [ ] 04-12: Melee enemies break the wall in front of a tower, unit or king behind it (visible targets first, centre-line test at gap mouths, the castle left to D-07); EnemyDef.drops_blocked_targets for the Phase 6 roster; goldens unchanged (G-04-7)
+- [ ] 04-13: The F3 overlay moves below the night banner box; a y-only 1280x720 layout test; the three overlay shots re-captured (G-04-6)
+
+**Gap wave 2 (wave 13)** *(blocked on 04-12)*
+- [ ] 04-14: Native toolchain and scaffold — pinned godot-cpp, CMake build with MSVC (no install), NativeSim loads, the C++ determinism guard, godot-cpp attribution (G-04-5)
+
+**Gap wave 3 (wave 14)** *(blocked on 04-14)*
+- [ ] 04-22: A missing or stale native library is a named error in every wrapper and at boot; the export carries the DLL and launches (G-04-5)
+
+**Gap wave 4 (wave 15)** *(blocked on 04-22)*
+- [ ] 04-15: Tracer — Separation in C++, pinned on the GDScript first, goldens byte-identical, a machine-checked gain on the stress shape; the math contract against the engine (G-04-5)
+
+**Gap wave 5 (wave 16)** *(blocked on 04-15)*
+- [ ] 04-16: The owner picks where the binaries come from (checkpoint), then CI builds or receives the library, replays the goldens on Linux and Windows and exports the DLL; one push watched green (G-04-5)
+
+**Gap wave 6 (wave 17)** *(blocked on 04-16)*
+- [ ] 04-17: The wall solid test in C++ (first_blocking, push_out, closest_point, segments_near) for every caller, pinned first (G-04-5)
+
+**Gap wave 7 (wave 18)** *(blocked on 04-17)*
+- [ ] 04-18: Flow-field reads and castle routing in C++ from a live grid mirror, pinned first (G-04-5)
+
+**Gap wave 8 (wave 19)** *(blocked on 04-18)*
+- [ ] 04-23: The structure index and the wall decision state in C++, pinned first; the per-tick enemy trace tool with bounds taken from each scenario (G-04-5)
+
+**Gap wave 9 (wave 20)** *(blocked on 04-23)*
+- [ ] 04-19: The enemy store and step in C++ behind EnemySystem's facade, identical tick by tick to committed reference trace digests on five scenarios (G-04-5)
+
+**Gap wave 10 (wave 21)** *(blocked on 04-19)*
+- [ ] 04-20: Native nearest-enemy queries and stuck tracker, then the whole port green on CI on Linux and Windows (G-04-5)
+
+**Gap wave 11 (wave 22)** *(blocked on 04-20)*
+- [ ] 04-21: The stress night re-measured against the unchanged 8.0 ms p95 into 04-FRAME-REPORT.md with the residual step attribution, a launch-checked export and the owner's re-check list (G-04-5, criterion 3)
 
 ### Phase 5: Castle Center & Economy Depth
 
