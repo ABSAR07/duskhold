@@ -107,16 +107,17 @@ static func max_ticks(name: StringName) -> int:
 
 
 ## Runs scenario `name` with `run_seed` and returns the ReplayDriver result; an empty Dictionary for
-## a name that is not on the allowlist.
-static func run(name: StringName, run_seed: int) -> Dictionary:
+## a name that is not on the allowlist. `on_tick`, when valid, is a read-only observer called with
+## the RunContext after every step (ReplayDriver.run).
+static func run(name: StringName, run_seed: int, on_tick: Callable = Callable()) -> Dictionary:
 	if name == &"smoke":
-		return _run_smoke(run_seed)
+		return _run_smoke(run_seed, on_tick)
 	if name == &"full_idle":
-		return _run_full_idle(run_seed)
+		return _run_full_idle(run_seed, on_tick)
 	if name == &"army":
-		return _run_army(run_seed)
+		return _run_army(run_seed, on_tick)
 	if name == &"walls":
-		return _run_walls(run_seed)
+		return _run_walls(run_seed, on_tick)
 	return {}
 
 
@@ -141,7 +142,7 @@ static func golden_digest(path: String) -> String:
 	return ""
 
 
-static func _run_smoke(run_seed: int) -> Dictionary:
+static func _run_smoke(run_seed: int, on_tick: Callable) -> Dictionary:
 	var bot: PlaytestBot = PlaytestBot.new()
 	bot.build_order = SMOKE_BUILD_ORDER.duplicate()
 	bot.king_mode = PlaytestBot.KING_HOLD_POINT
@@ -149,10 +150,10 @@ static func _run_smoke(run_seed: int) -> Dictionary:
 	var map: MapConfig = load(SMOKE_MAP)
 	var tuning: LoopTuning = load(SMOKE_TUNING)
 	var king: KingDef = load(SMOKE_KING)
-	return ReplayDriver.run(map, tuning, run_seed, bot, SMOKE_MAX_TICKS, 0, king)
+	return ReplayDriver.run(map, tuning, run_seed, bot, SMOKE_MAX_TICKS, 0, king, on_tick)
 
 
-static func _run_army(run_seed: int) -> Dictionary:
+static func _run_army(run_seed: int, on_tick: Callable) -> Dictionary:
 	var bot: PlaytestBot = PlaytestBot.new()
 	bot.build_order = ARMY_BUILD_ORDER.duplicate()
 	bot.king_mode = PlaytestBot.KING_DEFEND_NEAREST_THREAT
@@ -161,10 +162,10 @@ static func _run_army(run_seed: int) -> Dictionary:
 	var map: MapConfig = load(ARMY_MAP)
 	var tuning: LoopTuning = load(SMOKE_TUNING)
 	var king: KingDef = load(ARMY_KING)
-	return ReplayDriver.run(map, tuning, run_seed, bot, ARMY_MAX_TICKS, 0, king)
+	return ReplayDriver.run(map, tuning, run_seed, bot, ARMY_MAX_TICKS, 0, king, on_tick)
 
 
-static func _run_walls(run_seed: int) -> Dictionary:
+static func _run_walls(run_seed: int, on_tick: Callable) -> Dictionary:
 	var bot: PlaytestBot = PlaytestBot.new()
 	bot.build_order = WALLS_BUILD_ORDER.duplicate()
 	bot.king_mode = PlaytestBot.KING_HOLD_POINT
@@ -172,12 +173,12 @@ static func _run_walls(run_seed: int) -> Dictionary:
 	var map: MapConfig = load(WALLS_MAP)
 	var tuning: LoopTuning = load(SMOKE_TUNING)
 	var king: KingDef = load(SMOKE_KING)
-	return ReplayDriver.run(map, tuning, run_seed, bot, WALLS_MAX_TICKS, 0, king)
+	return ReplayDriver.run(map, tuning, run_seed, bot, WALLS_MAX_TICKS, 0, king, on_tick)
 
 
-static func _run_full_idle(run_seed: int) -> Dictionary:
+static func _run_full_idle(run_seed: int, on_tick: Callable) -> Dictionary:
 	var bot: PlaytestBot = PlaytestStrategies.make(&"balanced")
 	var map: MapConfig = load(FULL_MAP)
 	var tuning: LoopTuning = load(FULL_TUNING)
 	var king: KingDef = load(FULL_KING)
-	return ReplayDriver.run(map, tuning, run_seed, bot, FULL_MAX_TICKS, 0, king)
+	return ReplayDriver.run(map, tuning, run_seed, bot, FULL_MAX_TICKS, 0, king, on_tick)

@@ -28,6 +28,8 @@ const OUTCOME_LOST := &"lost"
 ## `spent` is the gold the run put into buildings by role, {military, towers, economy}: a build and
 ## each upgrade count once at the tier's own price, a refused build counts nothing.
 ## `stop_after_dawns` of 0 means run until the run ends or `max_ticks` runs out.
+## `on_tick`, when valid, is called with the RunContext right after every ctx.step() (plan 04-23,
+## the enemy trace tool): a read-only observer, so the digest does not depend on it.
 static func run(
 	map: MapConfig,
 	tuning: LoopTuning,
@@ -35,7 +37,8 @@ static func run(
 	bot: PlaytestBot,
 	max_ticks: int,
 	stop_after_dawns: int = 0,
-	king_def: KingDef = null
+	king_def: KingDef = null,
+	on_tick: Callable = Callable()
 ) -> Dictionary:
 	var ctx: RunContext = RunContext.new(map, tuning, run_seed, king_def)
 	var recorder: SimRecorder = SimRecorder.attach(ctx)
@@ -46,6 +49,8 @@ static func run(
 		if ctx.run_manager.get_phase() == RunManager.RunPhase.NIGHT:
 			tally.night_steps += 1
 		ctx.step()
+		if on_tick.is_valid():
+			on_tick.call(ctx)
 		if ctx.run_manager.is_run_over():
 			outcome = OUTCOME_WON if ctx.stats.outcome() == &"victory" else OUTCOME_LOST
 			break

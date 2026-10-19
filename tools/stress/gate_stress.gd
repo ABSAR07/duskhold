@@ -67,7 +67,11 @@ static func passes(enemies: int, crossed: int, stuck_at_end: int, hit_limit: boo
 ## {enemies, crossed, stuck_at_end, max_cross_s, median_cross_s, longest_flag_s, wall_hits, ticks,
 ## digest, passed, hit_limit, reason}. Crossing times are seconds from the start of the night.
 ## `reason` is "" for a run that happened and a short word when none could (no gate, no night).
-static func run(map: MapConfig, run_seed: int, max_seconds: float) -> Dictionary:
+## `on_tick`, when valid, is a read-only observer called with the RunContext right after every
+## step (plan 04-23, the enemy trace tool); the digest does not depend on it.
+static func run(
+	map: MapConfig, run_seed: int, max_seconds: float, on_tick: Callable = Callable()
+) -> Dictionary:
 	var result: Dictionary = _blank_result()
 	if not has_gate(map):
 		result["reason"] = "no_gate_wall"
@@ -80,7 +84,7 @@ static func run(map: MapConfig, run_seed: int, max_seconds: float) -> Dictionary
 	if ctx.commands.submit(StartNightIntent.new()) != CommandProcessor.OK:
 		result["reason"] = "night_did_not_start"
 		return result
-	var crossed_at: Dictionary = _march(ctx, map, SimClock.ticks(max_seconds), result)
+	var crossed_at: Dictionary = _march(ctx, map, SimClock.ticks(max_seconds), result, on_tick)
 	_report(ctx, recorder, crossed_at, result)
 	result["passed"] = passes(
 		result["enemies"], result["crossed"], result["stuck_at_end"], result["hit_limit"]
@@ -91,7 +95,7 @@ static func run(map: MapConfig, run_seed: int, max_seconds: float) -> Dictionary
 ## Steps the night until every enemy has crossed, the phase ends or the tick limit runs out.
 ## Returns {enemy id: night tick of its crossing}. Sets result["hit_limit"] and result["enemies"].
 static func _march(
-	ctx: RunContext, map: MapConfig, max_ticks: int, result: Dictionary
+	ctx: RunContext, map: MapConfig, max_ticks: int, result: Dictionary, on_tick: Callable
 ) -> Dictionary:
 	var line_z: float = finish_z(map)
 	var sink: float = sink_radius(map)
@@ -105,6 +109,8 @@ static func _march(
 	for _step: int in range(max_ticks):
 		ctx.king.report_position(KING_PARKING)
 		ctx.step()
+		if on_tick.is_valid():
+			on_tick.call(ctx)
 		var night_tick: int = ctx.tick_count - start_tick
 		for id: int in enemies.ids():
 			if not enemies.is_alive(id):
