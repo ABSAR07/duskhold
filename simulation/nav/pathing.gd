@@ -8,9 +8,11 @@ extends RefCounted
 ## if there were no walls, nothing is built, and a position comes back bit for bit as it went in
 ## (the replay goldens depend on it). Pure RefCounted code under simulation/: no clock, scene tree
 ## or engine navigation (DR-1 to DR-10).
-
-## Cells an enemy pressed into a wall's blocked band is stepped back, at most, to read its route.
-const PROBE_STEPS: int = 3
+##
+## The castle routing (is_sealed with its probe off a blocking wall, castle_cost_at,
+## castle_distance_cm, detour_ticks, straight_ticks and march_step) runs in C++ through one
+## NativeRoute (PLAT-01, plan 04-18, native/src/native_field.cpp), which refresh() keeps pointed at
+## the castle field; the methods below keep their signatures and delegate.
 
 var _map: MapConfig
 var _walls: WallSystem
@@ -26,6 +28,8 @@ var _squad_cache: GoalFieldCache
 ## The wall version the grid and the castle field were last built for.
 var _built_version: int = -1
 var _field_version: int = 0
+## The castle routing in C++: the grid and wall mirrors, the castle and, once it exists, the field.
+var _route: NativeRoute = NativeRoute.new()
 
 
 func _init(map: MapConfig, walls: WallSystem) -> void:
@@ -35,6 +39,11 @@ func _init(map: MapConfig, walls: WallSystem) -> void:
 	_grid = NavGrid.new(map, _tuning)
 	_decision = WallDecision.new(walls, _tuning)
 	_stuck = StuckTracker.new(_tuning, _tuning.cell_size)
+	var castle: Vector2 = Vector2.ZERO
+	if map != null:
+		castle = Vector2(map.castle_position.x, map.castle_position.z)
+	var wall_mirror: NativeWalls = walls.native() if walls != null else null
+	_route.set_world(_grid.native(), wall_mirror, castle, _tuning.cell_size)
 
 
 ## True while at least one wall segment stands anywhere.
@@ -60,6 +69,7 @@ func refresh() -> void:
 	_grid.rebuild(_walls)
 	if _castle_field == null:
 		_castle_field = FlowField.new()
+		_route.set_castle_field(_castle_field.native())
 	_castle_field.build(
 		_grid,
 		Vector2(_map.castle_position.x, _map.castle_position.z),
@@ -88,15 +98,13 @@ func castle_field() -> FlowField:
 ## missing (an unarmed grid, or not refreshed yet) or the cell of `pos` is walled off from it. A
 ## sealed enemy attacks the segment in its way instead of walking round.
 func is_sealed(pos: Vector2) -> bool:
-	if not has_intact_walls():
-		return false
-	return _castle_field == null or not _castle_field.is_reached(_probe_of(pos))
+	return _route.is_sealed(pos)
 
 
 ## The cost of the route from `pos` to the castle (10 per cell, 14 per diagonal); FlowField.INF_COST
 ## when there is none or no field exists.
 func castle_cost_at(pos: Vector2) -> int:
-	return _castle_field.cost_at(pos) if _castle_field != null else FlowField.INF_COST
+	return _route.castle_cost_at(pos)
 
 
 ## The per-segment time to destruction and the break-or-detour rule (D-07, D-08).
@@ -111,40 +119,26 @@ func stuck() -> StuckTracker:
 
 ## The straight distance from `pos` to the castle's centre in whole centimetres.
 func castle_distance_cm(pos: Vector2) -> int:
-	return roundi(pos.distance_to(Vector2(_map.castle_position.x, _map.castle_position.z)) * 100.0)
+	return _route.castle_distance_cm(pos)
 
 
 ## Ticks an enemy at `pos` needs to walk the castle field's route to the castle at
 ## `speed_cm_per_s`, rounded up; SimClock.MAX_TICKS when there is no route (sealed, or no field).
-@warning_ignore("integer_division")
 func detour_ticks(pos: Vector2, speed_cm_per_s: int) -> int:
-	var probe: Vector2 = _probe_of(pos)
-	var cost: int = castle_cost_at(probe)
-	if cost >= FlowField.INF_COST:
-		return SimClock.MAX_TICKS
-	var distance_cm: int = cost * roundi(_tuning.cell_size * 100.0) / FlowField.STEP_ORTHOGONAL
-	return WallDecision.walk_ticks(
-		distance_cm + roundi(pos.distance_to(probe) * 100.0), speed_cm_per_s
-	)
+	return _route.detour_ticks(pos, speed_cm_per_s)
 
 
 ## Ticks an enemy at `pos` needs to walk the straight line to the castle's centre at
 ## `speed_cm_per_s`, rounded up.
 func straight_ticks(pos: Vector2, speed_cm_per_s: int) -> int:
-	return WallDecision.walk_ticks(castle_distance_cm(pos), speed_cm_per_s)
+	return _route.straight_ticks(pos, speed_cm_per_s)
 
 
 ## The step of an enemy at `pos` marching on the castle round the walls, `max_distance` long: the
 ## field direction, or the exact straight step of EnemySystem.desired_step when there is no field
 ## or no direction there.
 func march_step(pos: Vector2, max_distance: float) -> Vector2:
-	if _castle_field != null:
-		var direction: Vector2 = _castle_field.direction_at(pos)
-		if direction != Vector2.ZERO:
-			return direction * maxf(max_distance, 0.0)
-	return EnemySystem.desired_step(
-		pos, Vector2(_map.castle_position.x, _map.castle_position.z), max_distance
-	)
+	return _route.march_step(pos, max_distance)
 
 
 ## The step of a unit or the bot king at `pos` walking to `goal`, `max_distance` long, for a circle
@@ -211,29 +205,6 @@ func closest_point(segment: int, pos: Vector2) -> Vector2:
 	if _walls == null:
 		return Vector2.ZERO
 	return WallSolids.closest_point(_walls, segment, pos)
-
-
-## Where to read the route of an enemy at `pos`. An enemy pressed into a wall stands in a blocked
-## cell, whose cost reads the cheapest open neighbour, and that neighbour may lie on the far side of
-## the wall: a sealed enemy would look as if a short walk led to the castle. So a position in a
-## blocked cell is stepped away from the segment that blocks it, a cell at a time, onto its own
-## side. An open position, and a grid that is not ready, read where they stand.
-func _probe_of(pos: Vector2) -> Vector2:
-	if _castle_field == null or not _grid.is_ready():
-		return pos
-	var probe: Vector2 = pos
-	for _attempt: int in range(PROBE_STEPS):
-		var cell: int = _grid.cell_of(probe)
-		if cell < 0 or not _grid.is_blocked(cell):
-			return probe
-		var segment: int = _grid.owner_of(cell)
-		if segment < 0:
-			return probe
-		var away: Vector2 = probe - closest_point(segment, probe)
-		if away.length_squared() <= 0.0:
-			return probe
-		probe += away.normalized() * _grid.cell_size()
-	return probe
 
 
 func _own_cache() -> GoalFieldCache:

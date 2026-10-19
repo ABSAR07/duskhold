@@ -20,6 +20,7 @@ void initialize_duskhold_sim_module(ModuleInitializationLevel p_level) {
 	GDREGISTER_CLASS(NativeWalls);
 	GDREGISTER_CLASS(NativeGrid);
 	GDREGISTER_CLASS(NativeField);
+	GDREGISTER_CLASS(NativeRoute);
 }
 
 void uninitialize_duskhold_sim_module(ModuleInitializationLevel p_level) {

@@ -27,6 +27,31 @@ constexpr float DIAGONAL_UNIT_F = static_cast<float>(DIAGONAL_UNIT);
 // then the four diagonals), as float32 exactly like the GDScript arrays.
 constexpr float UNIT_X[8] = { 1.0f, -1.0f, 0.0f, 0.0f, DIAGONAL_UNIT_F, -DIAGONAL_UNIT_F, DIAGONAL_UNIT_F, -DIAGONAL_UNIT_F };
 constexpr float UNIT_Y[8] = { 0.0f, 0.0f, 1.0f, -1.0f, DIAGONAL_UNIT_F, DIAGONAL_UNIT_F, -DIAGONAL_UNIT_F, -DIAGONAL_UNIT_F };
+// flow_field.gd STEP_ORTHOGONAL, the divisor of detour_ticks.
+constexpr int64_t STEP_ORTHOGONAL = 10;
+// pathing.gd PROBE_STEPS: cells an enemy pressed into a wall's blocked band is stepped back, at
+// most, to read its route.
+constexpr int PROBE_STEPS = 3;
+
+// GDScript int arithmetic wraps on overflow; the port does the same in unsigned arithmetic so a
+// pathological coordinate cannot be undefined behaviour.
+int64_t wrap_add(int64_t a, int64_t b) {
+	return static_cast<int64_t>(static_cast<uint64_t>(a) + static_cast<uint64_t>(b));
+}
+
+int64_t wrap_mul(int64_t a, int64_t b) {
+	return static_cast<int64_t>(static_cast<uint64_t>(a) * static_cast<uint64_t>(b));
+}
+
+// wall_decision.gd walk_ticks: ticks needed to walk `distance_cm` at `speed_cm_per_s`, rounded up;
+// MAX_TICKS when the speed is not positive, never more than MAX_TICKS.
+int64_t walk_ticks(int64_t distance_cm, int64_t speed_cm_per_s) {
+	if (speed_cm_per_s <= 0) {
+		return gd::SIM_MAX_TICKS;
+	}
+	const int64_t scaled = wrap_add(wrap_add(wrap_mul(gd::maxi(distance_cm, 0), 30), speed_cm_per_s), -1);
+	return gd::mini(scaled / speed_cm_per_s, gd::SIM_MAX_TICKS);
+}
 
 } // namespace
 
@@ -312,4 +337,123 @@ void NativeField::point_at_cheapest(int64_t cell) const {
 		dir_x_[index] = UNIT_X[best_step];
 		dir_y_[index] = UNIT_Y[best_step];
 	}
+}
+
+// --- NativeRoute ------------------------------------------------------------------------------
+
+void NativeRoute::_bind_methods() {
+	ClassDB::bind_method(
+			D_METHOD("set_world", "grid", "walls", "castle", "tuning_cell_size"),
+			&NativeRoute::set_world);
+	ClassDB::bind_method(D_METHOD("set_castle_field", "field"), &NativeRoute::set_castle_field);
+	ClassDB::bind_method(D_METHOD("is_sealed", "pos"), &NativeRoute::is_sealed);
+	ClassDB::bind_method(D_METHOD("castle_cost_at", "pos"), &NativeRoute::castle_cost_at);
+	ClassDB::bind_method(D_METHOD("castle_distance_cm", "pos"), &NativeRoute::castle_distance_cm);
+	ClassDB::bind_method(
+			D_METHOD("detour_ticks", "pos", "speed_cm_per_s"), &NativeRoute::detour_ticks);
+	ClassDB::bind_method(
+			D_METHOD("straight_ticks", "pos", "speed_cm_per_s"), &NativeRoute::straight_ticks);
+	ClassDB::bind_method(D_METHOD("march_step", "pos", "max_distance"), &NativeRoute::march_step);
+	ClassDB::bind_method(D_METHOD("probe_of", "pos"), &NativeRoute::probe_of);
+	ClassDB::bind_method(D_METHOD("has_intact_walls"), &NativeRoute::has_intact_walls);
+}
+
+void NativeRoute::set_world(
+		const Ref<NativeGrid> &grid,
+		const Ref<NativeWalls> &walls,
+		const Vector2 &castle,
+		double tuning_cell_size) {
+	grid_ = grid;
+	walls_ = walls;
+	castle_ = castle;
+	tuning_cell_size_ = tuning_cell_size;
+}
+
+void NativeRoute::set_castle_field(const Ref<NativeField> &field) {
+	field_ = field;
+}
+
+// pathing.gd has_intact_walls: walls exist and at least one segment stands.
+bool NativeRoute::has_intact_walls() const {
+	return walls_.is_valid() && walls_->intact_count() > 0;
+}
+
+// pathing.gd is_sealed: true while walls stand and no route is known from `pos` to the castle. The
+// open review item WR-03 (an enemy outside the grid reads unreached, so counts as sealed) is ported
+// unchanged on purpose: fixing it would move a digest.
+bool NativeRoute::is_sealed(const Vector2 &pos) const {
+	if (!has_intact_walls()) {
+		return false;
+	}
+	return !field_.is_valid() || !field_->is_reached(probe_of(pos));
+}
+
+// pathing.gd castle_cost_at.
+int64_t NativeRoute::castle_cost_at(const Vector2 &pos) const {
+	return field_.is_valid() ? field_->cost_at(pos) : NativeField::INF_COST;
+}
+
+// pathing.gd castle_distance_cm: the straight distance to the castle's centre in whole centimetres.
+int64_t NativeRoute::castle_distance_cm(const Vector2 &pos) const {
+	return gd::roundi(static_cast<double>(gd::distance_to(pos, castle_)) * 100.0);
+}
+
+// pathing.gd detour_ticks: ticks to walk the castle field's route, rounded up; MAX_TICKS when there
+// is none.
+int64_t NativeRoute::detour_ticks(const Vector2 &pos, int64_t speed_cm_per_s) const {
+	const Vector2 probe = probe_of(pos);
+	const int64_t cost = castle_cost_at(probe);
+	if (cost >= NativeField::INF_COST) {
+		return gd::SIM_MAX_TICKS;
+	}
+	const int64_t distance_cm = wrap_mul(cost, gd::roundi(tuning_cell_size_ * 100.0)) / STEP_ORTHOGONAL;
+	return walk_ticks(
+			wrap_add(distance_cm, gd::roundi(static_cast<double>(gd::distance_to(pos, probe)) * 100.0)),
+			speed_cm_per_s);
+}
+
+// pathing.gd straight_ticks.
+int64_t NativeRoute::straight_ticks(const Vector2 &pos, int64_t speed_cm_per_s) const {
+	return walk_ticks(castle_distance_cm(pos), speed_cm_per_s);
+}
+
+// pathing.gd march_step: the field direction, or the exact straight step of
+// EnemySystem.desired_step (pos.move_toward(goal, maxf(max_distance, 0.0)) - pos) when there is no
+// field or no direction there.
+Vector2 NativeRoute::march_step(const Vector2 &pos, double max_distance) const {
+	const real_t reach = static_cast<real_t>(gd::maxf(max_distance, 0.0));
+	if (field_.is_valid()) {
+		const Vector2 direction = field_->direction_at(pos);
+		if (!(direction.x == 0.0f && direction.y == 0.0f)) {
+			return direction * reach;
+		}
+	}
+	return gd::move_toward(pos, castle_, reach) - pos;
+}
+
+// pathing.gd _probe_of: where to read the route of an enemy at `pos`. A position in a blocked cell
+// is stepped away from the segment that blocks it, a cell at a time, onto its own side; an open
+// position, and a grid that is not ready, read where they stand.
+Vector2 NativeRoute::probe_of(const Vector2 &pos) const {
+	if (!field_.is_valid() || !grid_.is_valid() || !grid_->is_ready()) {
+		return pos;
+	}
+	Vector2 probe = pos;
+	for (int attempt = 0; attempt < PROBE_STEPS; attempt++) {
+		const int64_t cell = grid_->cell_of(probe);
+		if (cell < 0 || !grid_->is_blocked(cell)) {
+			return probe;
+		}
+		const int64_t segment = grid_->owner_of(cell);
+		if (segment < 0) {
+			return probe;
+		}
+		const Vector2 nearest = walls_.is_valid() ? walls_->closest_on_segment(segment, probe) : Vector2(0.0f, 0.0f);
+		const Vector2 away = probe - nearest;
+		if (static_cast<double>(gd::length_squared(away)) <= 0.0) {
+			return probe;
+		}
+		probe = probe + gd::normalized(away) * static_cast<real_t>(grid_->cell_size());
+	}
+	return probe;
 }

@@ -10,6 +10,8 @@
 #include <godot_cpp/variant/packed_int32_array.hpp>
 #include <godot_cpp/variant/vector2.hpp>
 
+#include "native_walls.h"
+
 namespace godot {
 
 // The flow-field reads in C++ (PLAT-01, plan 04-18): a mirror of the nav grid that NavGrid
@@ -114,6 +116,54 @@ private:
 	mutable std::vector<float> dir_y_;
 	mutable std::vector<int32_t> stamp_;
 	int64_t generation_ = 0;
+};
+
+// The castle routing of Pathing (simulation/nav/pathing.gd): is_sealed with its probe off a blocking
+// wall, castle_cost_at, castle_distance_cm, detour_ticks, straight_ticks and march_step, answered
+// from the grid mirror, the castle field and the wall mirror. Pathing keeps one of these updated in
+// refresh() and its routing methods delegate, so the 20 public methods of Pathing stay what they
+// were. A line-by-line port under the same rules; WR-03 (an enemy outside the grid counts as sealed)
+// lives in is_sealed and is ported unchanged on purpose, fixing it would move a digest.
+class NativeRoute : public RefCounted {
+	GDCLASS(NativeRoute, RefCounted)
+
+protected:
+	static void _bind_methods();
+
+public:
+	// pathing.gd _init: the grid mirror, the wall mirror (null when the facade has no walls), the
+	// castle's ground position and NavTuning.cell_size.
+	void set_world(
+			const Ref<NativeGrid> &grid,
+			const Ref<NativeWalls> &walls,
+			const Vector2 &castle,
+			double tuning_cell_size);
+	// pathing.gd refresh(): the castle field once it exists (null while it does not).
+	void set_castle_field(const Ref<NativeField> &field);
+
+	// Pathing.is_sealed.
+	bool is_sealed(const Vector2 &pos) const;
+	// Pathing.castle_cost_at.
+	int64_t castle_cost_at(const Vector2 &pos) const;
+	// Pathing.castle_distance_cm.
+	int64_t castle_distance_cm(const Vector2 &pos) const;
+	// Pathing.detour_ticks.
+	int64_t detour_ticks(const Vector2 &pos, int64_t speed_cm_per_s) const;
+	// Pathing.straight_ticks.
+	int64_t straight_ticks(const Vector2 &pos, int64_t speed_cm_per_s) const;
+	// Pathing.march_step.
+	Vector2 march_step(const Vector2 &pos, double max_distance) const;
+	// Pathing._probe_of.
+	Vector2 probe_of(const Vector2 &pos) const;
+	// Pathing.has_intact_walls.
+	bool has_intact_walls() const;
+
+private:
+	Ref<NativeGrid> grid_;
+	Ref<NativeWalls> walls_;
+	Ref<NativeField> field_;
+	Vector2 castle_ = Vector2(0.0f, 0.0f);
+	double tuning_cell_size_ = 2.0;
 };
 
 } // namespace godot

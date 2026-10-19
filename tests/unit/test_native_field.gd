@@ -170,3 +170,57 @@ func _assert_mirrored(grid: NavGrid, label: String) -> void:
 			if mirror.cell_of(grid.centre_of(cell)) != grid.cell_of(grid.centre_of(cell)):
 				mismatches += 1
 	assert_eq(mismatches, 0, "%s: every cell agrees" % label)
+
+
+func test_a_route_with_nothing_set_answers_no_route() -> void:
+	var route: NativeRoute = NativeRoute.new()
+	var pos: Vector2 = Vector2(3.0, 4.0)
+	assert_false(route.has_intact_walls(), "no walls")
+	assert_false(route.is_sealed(pos), "nothing is sealed without walls")
+	assert_eq(route.castle_cost_at(pos), FlowField.INF_COST, "no field, no cost")
+	assert_eq(route.detour_ticks(pos, 300), SimClock.MAX_TICKS, "and no detour")
+	assert_eq(route.probe_of(pos), pos, "a position reads where it stands")
+	assert_eq(route.castle_distance_cm(pos), 500, "the castle defaults to the origin")
+	assert_eq(route.straight_ticks(pos, 300), WallDecision.walk_ticks(500, 300), "straight ticks")
+	assert_eq(route.straight_ticks(pos, 0), SimClock.MAX_TICKS, "a zero speed never arrives")
+	assert_eq(route.march_step(pos, 1.0), EnemySystem.desired_step(pos, Vector2.ZERO, 1.0), "step")
+
+
+func test_the_ticks_agree_with_walk_ticks_for_every_speed() -> void:
+	var world: Dictionary = _gap_world()
+	var pathing: Pathing = Pathing.new(world["map"], world["walls"])
+	pathing.refresh()
+	var points: Array[Vector2] = [
+		Vector2(-25.0, 0.0), Vector2(-15.0, 3.0), Vector2(6.0, 0.0), Vector2(900.0, -700.0)
+	]
+	for pos: Vector2 in points:
+		for speed: int in [-5, 0, 1, 300, 320, 100000]:
+			assert_eq(
+				pathing.straight_ticks(pos, speed),
+				WallDecision.walk_ticks(pathing.castle_distance_cm(pos), speed),
+				"straight at %s speed %d" % [pos, speed]
+			)
+		assert_eq(pathing.detour_ticks(pos, 0), SimClock.MAX_TICKS, "a zero speed never arrives")
+	assert_lt(pathing.detour_ticks(Vector2(-25.0, 0.0), 300), SimClock.MAX_TICKS, "a route exists")
+	assert_eq(pathing.detour_ticks(Vector2(900.0, -700.0), 300), SimClock.MAX_TICKS, "outside")
+
+
+func test_march_without_a_field_is_the_straight_step() -> void:
+	var map: MapConfig = load(GAP_FIXTURE)
+	var events: SimEvents = SimEvents.new()
+	var walls: WallSystem = WallSystem.new(map, BuildingSystem.new(map, events), events)
+	var pathing: Pathing = Pathing.new(map, walls)
+	pathing.refresh()
+	assert_null(pathing.castle_field(), "no wall stands, no field")
+	for pos: Vector2 in [Vector2(-25.0, 0.0), Vector2(0.0, 0.0), Vector2(7.5, -3.25)]:
+		for reach: float in [-1.0, 0.0, 0.107, 1.0, 1000.0]:
+			assert_eq(pathing.march_step(pos, reach), EnemySystem.desired_step(pos, CASTLE, reach))
+	assert_false(pathing.is_sealed(Vector2(-25.0, 0.0)), "and nothing is sealed")
+
+
+func test_a_pathing_without_walls_or_map_still_answers() -> void:
+	var pathing: Pathing = Pathing.new(MapConfig.new(), null)
+	pathing.refresh()
+	assert_false(pathing.is_sealed(Vector2(1.0, 1.0)), "not sealed")
+	assert_eq(pathing.castle_cost_at(Vector2(1.0, 1.0)), FlowField.INF_COST, "no cost")
+	assert_eq(pathing.detour_ticks(Vector2(1.0, 1.0), 300), SimClock.MAX_TICKS, "no detour")
