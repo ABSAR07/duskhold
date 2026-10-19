@@ -233,7 +233,9 @@ else
           "-DDUSKHOLD_PIN=${PIN}" "-DDUSKHOLD_API_VERSION=${API_VERSION}" \
           "-DDUSKHOLD_PLATFORM=${PLATFORM}"
         ;;
-      build) cmake --build "${BUILD_DIR}" ;;
+      # Parallel jobs by hand: without Ninja the generator is Unix Makefiles, which builds one file at a
+      # time unless told otherwise, and the first build compiles every godot-cpp binding.
+      build) cmake --build "${BUILD_DIR}" --parallel "$(nproc 2>/dev/null || echo 2)" ;;
       dumpbin) return 0 ;;
     esac
   }

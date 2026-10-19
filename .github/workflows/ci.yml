@@ -5,7 +5,15 @@ name: CI
 # pull request, as the gsd/** phase branches already were; the repository is public, so the extra
 # runs cost no Actions minutes.
 # There are no path filters: a change that touches no GDScript still runs all jobs.
-# lint and test are independent; export runs only after both succeed.
+# The native simulation library (PLAT-01, plans 04-14 to 04-16) is never committed: two jobs build
+# it from the pinned sources with the same script a developer runs (tools/native_build.sh) and hand
+# it to the other jobs as artifacts of the same run. native-linux (GCC) builds the .so that the
+# test and screenshots jobs load. native-windows (MSVC) builds the .dll, then replays the four
+# goldens and the gate on it, so the DLL that export packs next to Duskhold.exe is the one that
+# was checked. The source stamp the script writes covers sources only, so each stamp is valid for
+# every job of the run.
+# lint and native-linux are independent; test needs native-linux; screenshots needs test and
+# native-linux; export needs lint, test, native-linux and native-windows.
 # The token is read-only and no secrets are used anywhere.
 # Every action is pinned to a full commit SHA (the trailing comment names the release); bump SHA
 # and comment together.
@@ -40,8 +48,115 @@ jobs:
       - name: gdformat --check and gdlint
         run: bash tools/lint.sh
 
+  native-linux:
+    name: native-linux
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          lfs: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      # The editor dumps the extension API the library is generated against.
+      - name: Cache pinned Godot editor
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .tools/godot
+          key: godot-editor-linux-${{ hashFiles('tools/godot_version.txt', 'tools/godot_sha512sums.txt') }}
+      - name: Install pinned Godot (checksum-verified)
+        run: python tools/bootstrap.py --godot --yes --platform linux
+      # The godot-cpp checkout only; the script verifies it sits at the pinned commit.
+      - name: Cache godot-cpp checkout
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .tools/godot-cpp
+          key: godot-cpp-linux-${{ hashFiles('tools/godot_cpp_pin.txt') }}
+      - name: Build the native library (GCC)
+        run: bash tools/native_build.sh --fetch
+      - name: Upload the Linux native library
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: native-linux
+          path: addons/duskhold_sim/bin/
+          retention-days: 7
+          if-no-files-found: error
+
+  native-windows:
+    name: native-windows
+    runs-on: windows-latest
+    # A cold godot-cpp build with MSVC took about 20 minutes on the development machine.
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          lfs: false
+      # The repository scripts expect Git's GNU tools (find, sort, cygpath) ahead of the Windows
+      # ones of the same name; this puts them first for every later step. Nothing is installed.
+      - name: Put Git's GNU tools first on PATH
+        run: echo 'C:\Program Files\Git\usr\bin' >> "$GITHUB_PATH"
+      - name: List LFS objects for the cache key
+        run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-assets-id
+      - name: Cache LFS objects
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .git/lfs
+          key: lfs-${{ hashFiles('.lfs-assets-id') }}
+      - name: Pull LFS objects
+        run: git lfs pull
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Cache pinned Godot editor
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .tools/godot
+          key: godot-editor-windows-${{ hashFiles('tools/godot_version.txt', 'tools/godot_sha512sums.txt') }}
+      - name: Install pinned Godot (checksum-verified)
+        run: python tools/bootstrap.py --godot --yes --platform windows
+      - name: Cache godot-cpp checkout
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .tools/godot-cpp
+          key: godot-cpp-windows-${{ hashFiles('tools/godot_cpp_pin.txt') }}
+      - name: Build the native library (MSVC)
+        run: bash tools/native_build.sh --fetch
+      - name: Upload the Windows native library
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: native-windows
+          path: addons/duskhold_sim/bin/
+          retention-days: 7
+          if-no-files-found: error
+      # The same four goldens and the gate as the Linux test job, on the Windows library: the
+      # native push-apart must give the same digests under MSVC and under GCC (G-04-5).
+      - name: Seeded replay determinism (Windows)
+        run: |
+          bash tools/replay.sh --scenario=smoke --twice --expect-file=tests/golden/smoke.json
+          bash tools/replay.sh --scenario=army --twice --expect-file=tests/golden/army.json
+          bash tools/replay.sh --scenario=walls --twice --expect-file=tests/golden/walls.json
+          bash tools/replay.sh --scenario=full_idle --twice
+      - name: Gate stress (Windows)
+        run: bash tools/gate_stress.sh --twice
+      # Named so the export job's native-* download pattern does not match it.
+      - name: Upload Windows replay logs
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: windows-replay-logs
+          path: |
+            build/replay/
+            build/stress/
+          retention-days: 7
+          if-no-files-found: warn
+
   test:
     name: test
+    needs: [native-linux]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -67,6 +182,11 @@ jobs:
           key: godot-editor-linux-${{ hashFiles('tools/godot_version.txt', 'tools/godot_sha512sums.txt') }}
       - name: Install pinned Godot (checksum-verified)
         run: python tools/bootstrap.py --godot --yes --platform linux
+      - name: Download the Linux native library
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: native-linux
+          path: addons/duskhold_sim/bin
       - name: Headless import and GUT
         run: bash tools/test.sh
       # DEV-05: the seeded smoke, army and walls runs must reproduce their checked-in golden
@@ -95,7 +215,7 @@ jobs:
 
   export:
     name: export
-    needs: [lint, test]
+    needs: [lint, test, native-linux, native-windows]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -121,6 +241,14 @@ jobs:
           key: godot-linux-with-templates-${{ hashFiles('tools/godot_version.txt', 'tools/godot_sha512sums.txt') }}
       - name: Install pinned Godot and export templates (checksum-verified)
         run: python tools/bootstrap.py --godot --templates --yes --platform linux
+      # Both libraries: the import pass of the Windows preset on Linux loads the .gdextension (the
+      # .so), and the export packs the .dll next to Duskhold.exe. The stamps ride along.
+      - name: Download the native libraries
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: native-*
+          merge-multiple: true
+          path: addons/duskhold_sim/bin
       - name: Export Windows build
         run: bash tools/export.sh
       - name: Upload Windows build
@@ -133,7 +261,7 @@ jobs:
 
   screenshots:
     name: screenshots
-    needs: [test]
+    needs: [test, native-linux]
     runs-on: ubuntu-latest
     # 33 scripted shots on Mesa software rendering (the 15 of Phases 1 and 2 and the 18 of Phase 3).
     timeout-minutes: 60
@@ -160,6 +288,11 @@ jobs:
           key: godot-editor-linux-${{ hashFiles('tools/godot_version.txt', 'tools/godot_sha512sums.txt') }}
       - name: Install pinned Godot (checksum-verified)
         run: python tools/bootstrap.py --godot --yes --platform linux
+      - name: Download the Linux native library
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: native-linux
+          path: addons/duskhold_sim/bin
       # Ubuntu's signed archive on the ephemeral runner; nothing here touches secrets.
       - name: Install a virtual display and Mesa software rendering
         run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri libglx-mesa0
