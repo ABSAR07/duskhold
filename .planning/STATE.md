@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
 status: executing
-stopped_at: "Phase 04 UAT complete (9 pass, 3 issues, 1 blocked) and diagnosed; gap plans 04-12 to 04-23 verified; next /gsd-execute-phase 4 --gaps-only (04-16 holds an owner checkpoint on the native binary route)"
-last_updated: "2026-10-16T20:18:29.326Z"
-last_activity: 2026-10-16
+stopped_at: Completed 04-12-PLAN.md
+last_updated: "2026-10-19T09:08:46.935Z"
+last_activity: 2026-10-19
 last_activity_desc: Phase 04 execution started
-state_head: ff6df66d742a6e9d8f258830cc0a33fc97e5fdfc
+state_head: 4f517e2975f8ffc9af61114db076b372a8566ae5
 progress:
   total_phases: 13
   completed_phases: 3
-  total_plans: 70
-  completed_plans: 70
+  total_plans: 82
+  completed_plans: 71
   percent: 23
 ---
 
@@ -28,9 +28,9 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 04 (Crowd-Scale Battles & Walls) — EXECUTING
-Plan: 11 of 23 (12 gap-closure plans pending)
+Plan: 12 of 23 complete (11 gap-closure plans pending; 04-12 closed G-04-7)
 Status: Owner gate done 2026-10-19 (04-UAT.md: 9 pass, 3 issues, 1 blocked); gaps G-04-5/6/7 diagnosed; gap plans 04-12 to 04-23 verified; next /gsd-execute-phase 4 --gaps-only
-Last activity: 2026-10-19 — Phase 04 UAT, diagnosis and gap planning complete
+Last activity: 2026-10-19 — Plan 04-12 complete (melee enemies break through walls to their target, G-04-7)
 
 Progress: [██░░░░░░░░] 23%
 
@@ -128,6 +128,7 @@ Progress: [██░░░░░░░░] 23%
 | Phase 04 P09 | 54 min | 2 tasks | 23 files |
 | Phase 04 P10 | 128 min | 2 tasks | 18 files |
 | Phase 04 P11 | 40 min | 3 tasks | 1 files |
+| Phase 04 P12 | 52 min | 3 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -293,6 +294,8 @@ Recent decisions affecting current work:
 - [Phase 04]: [04-10] Walls golden tests/golden/walls.json (seed 1, bfb05fc7..., 1961 ticks) on a frozen fixture, checked in CI beside smoke and army; full_idle stays unpinned, its digest moved f417c7f5... (6941 ticks) to 4385f569... (6911 ticks) in the D-14 regeneration commit 94fff12, recorded only in 04-BALANCE-REPORT.md
 - [Phase 04]: 04-11: PLAT-01 stays open (not met: p95 37.04 ms vs 8.0 ms); the gate packet carries it with 25 assumptions and the owner's route options; BLDG-10 and ENMY-04 complete
 - [Phase 04]: OWNER DECISIONS 2026-10-19 (/gsd-verify-work 4, 04-UAT.md): PLAT-01 route is a C++ GDExtension for the enemy and wall step with the 8.0 ms p95 budget kept (test 11); melee enemies break through a wall to reach a king, unit or building behind it, only later enemy types go castle-first (test 13, G-04-7); the wall-break rebuild hitch is accepted for now, revisit later (test 10); D-14 'same outcomes, not digests' confirmed (test 8); the give-up rule stays (test 9); wall prices 2/4/6, draw caps and looks signed off. Gap plans 04-12 to 04-23 (G-04-7, G-04-6, then the port 04-14 to 04-21 with 04-22/04-23 splits) verified 2026-10-19
+- [Phase 04]: 04-12 (G-04-7): a default melee enemy breaks the wall segment in front of a king, unit or building target; EnemyDef.drops_blocked_targets keeps the 04-06 drop rule for the Phase 6 roster; the castle is never a target behind a wall and the castle march keeps 04-07 — Owner rule change 2026-10-19 (UAT test 13); sub-rules: visible target first, radius-0 centre line (gap mouths stay walkable), castle excluded; all replay, gate and balance pins unmoved
+- [Phase 04]: 04-12: the held-for-target release reuses _target_valid and _goal_of by swapping the behind target into the record, so no existing helper changed for the 04-14 to 04-23 port — Keeps the enemy step small and local for the GDExtension port
 
 ### Pending Todos
 
@@ -331,6 +334,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-19T07:40:39Z
-Stopped at: Phase 04 UAT complete and diagnosed; gap plans 04-12 to 04-23 verified and committed; next /gsd-execute-phase 4 --gaps-only (04-16 owner checkpoint: native binary route)
-Resume file: .planning/phases/04-crowd-scale-battles-walls/04-UAT.md
+Last session: 2026-10-19T09:08:45.890Z
+Stopped at: Completed 04-12-PLAN.md
+Resume file: None
