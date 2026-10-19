@@ -1,8 +1,11 @@
 extends GutTest
-## ENMY-04, RESEARCH Open Question 3 (decided): while a wall stands, a melee enemy chooses or keeps
-## a king, unit, building or castle target only while its straight line is clear, a ranged enemy
-## also while the target is within its attack range; a melee unit takes an enemy only with a clear
-## line, an archer regardless (its arrows arc over). With no wall every choice is the Phase 3 one.
+## ENMY-04, RESEARCH Open Question 3 (decided in plan 04-06): while a wall stands, an enemy that
+## keeps the 04-06 rule (EnemyDef.drops_blocked_targets, a flagged copy of the grunt here) chooses
+## or keeps a king, unit, building or castle target only while its straight line is clear, a
+## ranged enemy also while the target is within its attack range; a melee unit takes an enemy only
+## with a clear line, an archer regardless (its arrows arc over). The default melee enemy instead
+## breaks through to such a target (owner decision of 2026-10-19, G-04-7; see
+## test_melee_breaks_to_target). With no wall every choice is the Phase 3 one.
 ## Hand-built worlds far from the castle; the long wall at x = 102 stands between x = 100 and 104.
 
 const GRUNT_PATH := "res://data/enemies/grunt.tres"
@@ -24,6 +27,7 @@ const RICH_GOLD: int = 200
 const LATE_SPAWN_SECONDS: float = 5000.0
 
 var _grunt: EnemyDef
+var _flagged: EnemyDef
 var _ranged: EnemyDef
 var _unit_def: UnitDef
 var _map: MapConfig
@@ -39,6 +43,8 @@ var _pathing: Pathing
 
 func before_each() -> void:
 	_grunt = load(GRUNT_PATH)
+	_flagged = _grunt.duplicate_deep(Resource.DEEP_DUPLICATE_ALL)
+	_flagged.drops_blocked_targets = true
 	_ranged = load(RANGED_PATH)
 	_unit_def = load(FOOTMAN_PATH)
 	_events = SimEvents.new()
@@ -79,10 +85,10 @@ func _target_kind(id: int) -> Variant:
 	return _enemies.target_of(id).get("kind")
 
 
-func test_a_melee_enemy_does_not_target_a_king_behind_the_wall_and_marches_on() -> void:
+func test_a_flagged_melee_enemy_does_not_target_a_king_behind_the_wall_and_marches_on() -> void:
 	_world(true)
 	_king.report_position(BEHIND)
-	var id: int = _enemies.spawn(_grunt, ENEMY_AT)
+	var id: int = _enemies.spawn(_flagged, ENEMY_AT)
 	_step(0)
 	assert_ne(_target_kind(id), PendingHits.KIND_KING, "the king is 4 m away but behind the wall")
 	assert_ne(_target_kind(id), PendingHits.KIND_WALL, "and it does not attack the wall either")
@@ -97,10 +103,10 @@ func test_the_same_king_on_the_open_side_is_targeted() -> void:
 	assert_eq(_target_kind(id), PendingHits.KIND_KING, "a clear line, a king in aggro range")
 
 
-func test_a_held_target_that_walks_behind_the_wall_is_dropped_on_a_rescan() -> void:
+func test_a_flagged_enemys_held_target_that_walks_behind_the_wall_is_dropped_on_a_rescan() -> void:
 	_world(true)
 	_king.report_position(OPEN_SIDE)
-	var id: int = _enemies.spawn(_grunt, ENEMY_AT)
+	var id: int = _enemies.spawn(_flagged, ENEMY_AT)
 	_step(0)
 	assert_eq(_target_kind(id), PendingHits.KIND_KING, "first he is in sight")
 	_king.report_position(Vector2(WALL_X + 2.0, 100.0 - 3.0))

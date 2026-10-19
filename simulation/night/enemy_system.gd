@@ -283,7 +283,10 @@ func _choose_base_target(
 	if (
 		_king_up(king)
 		and record.position.distance_to(king.get_position()) <= record.def.aggro_range
-		and _can_see(record, king.get_position(), king.get_def().body_radius)
+		and (
+			_breaks_to_targets(record)
+			or _can_see(record, king.get_position(), king.get_def().body_radius)
+		)
 	):
 		record.target_kind = PendingHits.KIND_KING
 		record.target_id = 0
@@ -527,12 +530,19 @@ func _shoots_over(record: Record, centre: Vector2, target_radius: float) -> bool
 	return record.position.distance_to(centre) - target_radius <= record.def.attack_range
 
 
-## True while the held target is in sight. A wall target always is.
+## True while the held target is in sight. A wall target always is, and so is a king, unit or
+## building target of a default melee enemy, which breaks through to it (G-04-7). Its castle target
+## needs a centre line (radius 0) clear of every intact segment: the castle is never a target
+## behind a wall.
 func _target_in_sight(
 	record: Record, castle: CastleState, king: KingState, buildings: BuildingSystem
 ) -> bool:
 	if record.target_kind == PendingHits.KIND_WALL:
 		return true
+	if _breaks_to_targets(record):
+		if record.target_kind != PendingHits.KIND_CASTLE:
+			return true
+		return _pathing.first_blocking(record.position, castle.get_position(), 0.0) < 0
 	return _can_see(
 		record,
 		_goal_of(record, castle, king, buildings),
