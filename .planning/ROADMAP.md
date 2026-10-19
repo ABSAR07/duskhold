@@ -254,7 +254,7 @@ Plans:
   3. A scripted stress night with hundreds of units, enemies, and projectiles on screen holds 60 fps on GTX 970-class hardware, or within a documented equivalent frame-time budget on the dev machine.
   4. Nights from Phases 1–3 play the same after the switch to batched simulation and rendering. All existing headless loop and combat tests still pass.
 
-**Plans**: 12/23 plans executed (04-12 to 04-23 close the 2026-10-19 UAT gaps G-04-5, G-04-6 and G-04-7 and the 04-VERIFICATION.md gap for success criterion 3)
+**Plans**: 13/23 plans executed (04-12 to 04-23 close the 2026-10-19 UAT gaps G-04-5, G-04-6 and G-04-7 and the 04-VERIFICATION.md gap for success criterion 3)
 
 Plans:
 **Wave 1**
@@ -294,7 +294,7 @@ Plans:
 
 **Gap wave 1 (wave 12)** *(blocked on 04-11)*
 - [x] 04-12: Melee enemies break the wall in front of a tower, unit or king behind it (visible targets first, centre-line test at gap mouths, the castle left to D-07); EnemyDef.drops_blocked_targets for the Phase 6 roster; goldens unchanged (G-04-7)
-- [ ] 04-13: The F3 overlay moves below the night banner box; a y-only 1280x720 layout test; the three overlay shots re-captured (G-04-6)
+- [x] 04-13: The F3 overlay moves below the night banner box; a y-only 1280x720 layout test; the three overlay shots re-captured (G-04-6)
 
 **Gap wave 2 (wave 13)** *(blocked on 04-12)*
 - [ ] 04-14: Native toolchain and scaffold — pinned godot-cpp, CMake build with MSVC (no install), NativeSim loads, the C++ determinism guard, godot-cpp attribution (G-04-5)
@@ -477,7 +477,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 1. Foundation & Day Loop | 18/18 | Complete    | 2026-10-03 |
 | 2. Night Defense & Playtest Gate | 22/22 | Complete    | 2026-10-08 |
 | 3. King Combat & Troops | 19/19 | Complete    | 2026-10-15 |
-| 4. Crowd-Scale Battles & Walls | 12/23 | In Progress|  |
+| 4. Crowd-Scale Battles & Walls | 13/23 | In Progress|  |
 | 5. Castle Center & Economy Depth | 0/TBD | Not started | - |
 | 6. Enemy Roster & Tower Specializations | 0/TBD | Not started | - |
 | 7. Army Variety & Heroes | 0/TBD | Not started | - |

@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
 status: executing
-stopped_at: Completed 04-12-PLAN.md
-last_updated: "2026-10-19T09:08:46.935Z"
+stopped_at: Completed 04-13-PLAN.md
+last_updated: "2026-10-19T09:45:39.021Z"
 last_activity: 2026-10-19
 last_activity_desc: Phase 04 execution started
-state_head: 4f517e2975f8ffc9af61114db076b372a8566ae5
+state_head: a01748993a39ba2a34d4cb614689355625503f2c
 progress:
   total_phases: 13
   completed_phases: 3
   total_plans: 82
-  completed_plans: 71
+  completed_plans: 72
   percent: 23
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 04 (Crowd-Scale Battles & Walls) — EXECUTING
-Plan: 12 of 23 complete (11 gap-closure plans pending; 04-12 closed G-04-7)
+Plan: 13 of 23 complete (11 gap-closure plans pending; 04-12 closed G-04-7)
 Status: Owner gate done 2026-10-19 (04-UAT.md: 9 pass, 3 issues, 1 blocked); gaps G-04-5/6/7 diagnosed; gap plans 04-12 to 04-23 verified; next /gsd-execute-phase 4 --gaps-only
 Last activity: 2026-10-19 — Plan 04-12 complete (melee enemies break through walls to their target, G-04-7)
 
@@ -129,6 +129,7 @@ Progress: [██░░░░░░░░] 23%
 | Phase 04 P10 | 128 min | 2 tasks | 18 files |
 | Phase 04 P11 | 40 min | 3 tasks | 1 files |
 | Phase 04 P12 | 52 min | 3 tasks | 14 files |
+| Phase 04 P13 | 45 min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -296,6 +297,7 @@ Recent decisions affecting current work:
 - [Phase 04]: OWNER DECISIONS 2026-10-19 (/gsd-verify-work 4, 04-UAT.md): PLAT-01 route is a C++ GDExtension for the enemy and wall step with the 8.0 ms p95 budget kept (test 11); melee enemies break through a wall to reach a king, unit or building behind it, only later enemy types go castle-first (test 13, G-04-7); the wall-break rebuild hitch is accepted for now, revisit later (test 10); D-14 'same outcomes, not digests' confirmed (test 8); the give-up rule stays (test 9); wall prices 2/4/6, draw caps and looks signed off. Gap plans 04-12 to 04-23 (G-04-7, G-04-6, then the port 04-14 to 04-21 with 04-22/04-23 splits) verified 2026-10-19
 - [Phase 04]: 04-12 (G-04-7): a default melee enemy breaks the wall segment in front of a king, unit or building target; EnemyDef.drops_blocked_targets keeps the 04-06 drop rule for the Phase 6 roster; the castle is never a target behind a wall and the castle march keeps 04-07 — Owner rule change 2026-10-19 (UAT test 13); sub-rules: visible target first, radius-0 centre line (gap mouths stay walkable), castle excluded; all replay, gate and balance pins unmoved
 - [Phase 04]: 04-12: the held-for-target release reuses _target_valid and _goal_of by swapping the behind target into the record, so no existing helper changed for the 04-14 to 04-23 port — Keeps the enemy step small and local for the GDExtension port
+- [Phase 04]: 04-13: the F3 overlay panel sits below the night banner box (offset_top 104) with line_spacing 0, pinned by a y-only 1280x720 layout test; hud.tscn untouched (G-04-6)
 
 ### Pending Todos
 
@@ -334,6 +336,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-19T09:08:45.890Z
-Stopped at: Completed 04-12-PLAN.md
+Last session: 2026-10-19T09:45:37.945Z
+Stopped at: Completed 04-13-PLAN.md
 Resume file: None
