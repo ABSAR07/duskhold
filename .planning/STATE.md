@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
 status: executing
-stopped_at: Completed 04-15-PLAN.md
-last_updated: "2026-10-19T13:36:14.805Z"
+stopped_at: Completed 04-16-PLAN.md
+last_updated: "2026-10-19T14:39:44.559Z"
 last_activity: 2026-10-19
 last_activity_desc: Phase 04 execution started
-state_head: 6352c5a075163ffab64795f5ea364be22d85c817
+state_head: 2c1b11efb169c8f880a48d59b5ca8433dda60a7f
 progress:
   total_phases: 13
   completed_phases: 3
   total_plans: 82
-  completed_plans: 75
+  completed_plans: 76
   percent: 23
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 04 (Crowd-Scale Battles & Walls) — EXECUTING
-Plan: 16 of 23 complete (11 gap-closure plans pending; 04-12 closed G-04-7)
+Plan: 17 of 23 complete (11 gap-closure plans pending; 04-12 closed G-04-7)
 Status: Owner gate done 2026-10-19 (04-UAT.md: 9 pass, 3 issues, 1 blocked); gaps G-04-5/6/7 diagnosed; gap plans 04-12 to 04-23 verified; next /gsd-execute-phase 4 --gaps-only
 Last activity: 2026-10-19 — Plan 04-12 complete (melee enemies break through walls to their target, G-04-7)
 
@@ -133,6 +133,7 @@ Progress: [██░░░░░░░░] 23%
 | Phase 04 P14 | 89 min | 2 tasks | 15 files |
 | Phase 04 P22 | 49 min | 2 tasks | 11 files |
 | Phase 04 P15 | 88 min | 2 tasks | 15 files |
+| Phase 04 P16 | 26 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -306,6 +307,8 @@ Recent decisions affecting current work:
 - [Phase 04]: 04-22: one shared native stamp function (duskhold_native_stamp) is used by native_build.sh and duskhold_require_native; seven wrappers exit 3 on a missing or stale library, export demands the windows DLL beside the exe and excludes native/*, MapRoot quits 1 without NativeSim; first-import hazard handled by pre-seeding .godot/extension_list.cfg
 - [Phase 04]: 04-15: the push-apart pass (Separation.displacements and displacements_bucketed) runs in C++ behind the unchanged GDScript API, byte-identical to 42 sha256 pins computed on the GDScript first; stress-shape step median 39.37 to 28.75 ms (interleaved A/B about 4 ms) and the native pass 15.2x faster at 300 circles, so the packed-array boundary pays; all replay and gate digests unchanged
 - [Phase 04]: 04-15: gd_math.h opens with the operation table; godot-cpp operators and out-of-line Vector2 methods are proven bit-equal to the engine by test_native_math_contract (20000 seeded inputs per op, _CPP twin ops) and the port calls the inline mirrors; Vector2 inputs of the contract stay finite and NaN free (engine warns on normalizing a non-finite vector, NaN payload with two NaN operands is compiler-chosen)
+- [Phase 04]: 04-16: owner's option A (decided 2026-10-19): CI builds the native library on Linux (GCC) and Windows (MSVC) from the pinned sources; nothing binary is committed; artifacts native-linux / native-windows pass between jobs of the same run; the first run (39267563785) was green with identical goldens and gate digests on both compilers
+- [Phase 04]: 04-16: Windows replay-failure logs upload as windows-replay-logs (never native-*) so the export job's native-* download cannot pick them up
 
 ### Pending Todos
 
@@ -344,6 +347,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-19T13:36:13.081Z
-Stopped at: Completed 04-15-PLAN.md
+Last session: 2026-10-19T14:39:43.692Z
+Stopped at: Completed 04-16-PLAN.md
 Resume file: None
