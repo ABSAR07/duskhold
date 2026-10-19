@@ -102,8 +102,7 @@ func _target_kind(id: int) -> Variant:
 
 ## What the segment held by enemy `id` stands in front of: its behind_kind, empty when none.
 func _behind(id: int) -> StringName:
-	var record: Variant = _enemies._records[id]
-	return record.behind_kind
+	return EnemySystem.KIND_NAMES[_enemies._native.behind_kind_of(id)]
 
 
 func _segment(from: Vector2, to: Vector2) -> int:

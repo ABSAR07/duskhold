@@ -1,6 +1,6 @@
 extends GutTest
-## The push-apart pass shared by UnitSystem.separate and EnemySystem._separate (review IN-03), one
-## routine in Separation. Determinism-sensitive: the displacements are summed pair by pair in
+## The push-apart pass shared by UnitSystem.separate and the enemy step (review IN-03), one routine
+## in Separation. Determinism-sensitive: the displacements are summed pair by pair in
 ## ascending id order from one snapshot, a zero difference uses a fixed axis chosen by the lower
 ## id's parity, and the replay goldens depend on every bit of it. The first group pins the pure
 ## routine; the second pins the end positions both systems reach on one overlapping cluster over
@@ -162,9 +162,10 @@ func test_enemy_system_separates_the_cluster_to_the_pinned_positions() -> void:
 	for index: int in range(CLUSTER.size()):
 		enemies.spawn(grunt if index % 3 != 0 else ranged, CLUSTER[index])
 	for _pass: int in range(PASSES):
-		# The private pass, called by name on purpose: the enemy system runs it inside its tick and
-		# has no public seam for it. A rename breaks this line at run time (review IN-11).
-		enemies.call("_separate")
+		# The native push-apart pass, called on the store on purpose: the enemy system runs it inside
+		# its tick and has no public seam for it. A rename breaks this line at run time (review
+		# IN-11). Walls are not solid here, so only the push-apart runs.
+		enemies._native.separate_pass(false)
 	var ids: Array[int] = enemies.ids()
 	for index: int in range(ids.size()):
 		assert_almost_eq(

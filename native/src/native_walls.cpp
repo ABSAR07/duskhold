@@ -179,6 +179,10 @@ int64_t NativeWalls::segment_count() const {
 	return static_cast<int64_t>(starts_.size());
 }
 
+double NativeWalls::half_thickness_of(int64_t segment) const {
+	return valid(segment) ? half_[static_cast<size_t>(segment)] : 0.0;
+}
+
 bool NativeWalls::valid(int64_t segment) const {
 	return segment >= 0 && segment < static_cast<int64_t>(starts_.size());
 }

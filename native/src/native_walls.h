@@ -71,6 +71,8 @@ public:
 	Vector2 pushed_position(const Vector2 &pos, double radius) const;
 	Vector2 closest_on_segment(int64_t segment, const Vector2 &pos) const;
 	int64_t segment_count() const;
+	// WallSystem.half_thickness_of: half the solid's width; 0.0 for an index out of range.
+	double half_thickness_of(int64_t segment) const;
 
 private:
 	bool valid(int64_t segment) const;

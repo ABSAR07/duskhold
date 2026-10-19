@@ -6,6 +6,7 @@
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
 
+#include "native_enemies.h"
 #include "native_field.h"
 #include "native_sim.h"
 #include "native_structures.h"
@@ -25,6 +26,7 @@ void initialize_duskhold_sim_module(ModuleInitializationLevel p_level) {
 	GDREGISTER_CLASS(NativeRoute);
 	GDREGISTER_CLASS(NativeStructures);
 	GDREGISTER_CLASS(NativeWallDecision);
+	GDREGISTER_CLASS(NativeEnemies);
 }
 
 void uninitialize_duskhold_sim_module(ModuleInitializationLevel p_level) {
