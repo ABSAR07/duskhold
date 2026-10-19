@@ -3,7 +3,7 @@ gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
 status: executing
-stopped_at: "Phase 04 verified gaps_found (PLAT-01 budget); 13 owner items pending in 04-UAT.md; next /gsd-verify-work 4, then /gsd-plan-phase 4 --gaps"
+stopped_at: "Phase 04 UAT complete (9 pass, 3 issues, 1 blocked) and diagnosed; gap plans 04-12 to 04-23 verified; next /gsd-execute-phase 4 --gaps-only (04-16 holds an owner checkpoint on the native binary route)"
 last_updated: "2026-10-16T20:18:29.326Z"
 last_activity: 2026-10-16
 last_activity_desc: Phase 04 execution started
@@ -28,9 +28,9 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 04 (Crowd-Scale Battles & Walls) — EXECUTING
-Plan: 11 of 11
-Status: Execution complete (11/11 plans); verification gaps_found; awaiting the owner gate (/gsd-verify-work 4) and the PLAT-01 gap plan
-Last activity: 2026-10-16 — Phase 04 execution started
+Plan: 11 of 23 (12 gap-closure plans pending)
+Status: Owner gate done 2026-10-19 (04-UAT.md: 9 pass, 3 issues, 1 blocked); gaps G-04-5/6/7 diagnosed; gap plans 04-12 to 04-23 verified; next /gsd-execute-phase 4 --gaps-only
+Last activity: 2026-10-19 — Phase 04 UAT, diagnosis and gap planning complete
 
 Progress: [██░░░░░░░░] 23%
 
@@ -292,6 +292,7 @@ Recent decisions affecting current work:
 - [Phase 04]: [04-10] The plan's first wall order (each road run right after its tower) broke the Phase 2 bar (balanced 4 of 10, army_balanced 2 of 10); D-15's ladder moved the bots' wall entries later and both win 8 of 10 losing the Phase 3 seeds; no night count, wall cost or other data moved. Bots earn 22 and 15 gold a run, so walls are bought only in the last days and never broken; free walls still cost the army bot four seeds (open point for the gate)
 - [Phase 04]: [04-10] Walls golden tests/golden/walls.json (seed 1, bfb05fc7..., 1961 ticks) on a frozen fixture, checked in CI beside smoke and army; full_idle stays unpinned, its digest moved f417c7f5... (6941 ticks) to 4385f569... (6911 ticks) in the D-14 regeneration commit 94fff12, recorded only in 04-BALANCE-REPORT.md
 - [Phase 04]: 04-11: PLAT-01 stays open (not met: p95 37.04 ms vs 8.0 ms); the gate packet carries it with 25 assumptions and the owner's route options; BLDG-10 and ENMY-04 complete
+- [Phase 04]: OWNER DECISIONS 2026-10-19 (/gsd-verify-work 4, 04-UAT.md): PLAT-01 route is a C++ GDExtension for the enemy and wall step with the 8.0 ms p95 budget kept (test 11); melee enemies break through a wall to reach a king, unit or building behind it, only later enemy types go castle-first (test 13, G-04-7); the wall-break rebuild hitch is accepted for now, revisit later (test 10); D-14 'same outcomes, not digests' confirmed (test 8); the give-up rule stays (test 9); wall prices 2/4/6, draw caps and looks signed off. Gap plans 04-12 to 04-23 (G-04-7, G-04-6, then the port 04-14 to 04-21 with 04-22/04-23 splits) verified 2026-10-19
 
 ### Pending Todos
 
@@ -310,7 +311,7 @@ None yet.
 - [Phase 6/8]: Night readability under hundreds of units needs automated screenshot review throughout the content phases
 - [Phase 11]: Boss-night difficulty cliffs; tune with seeded simulated playthroughs plus owner playtest
 - [Phase 13]: SmartScreen/AV behavior of unsigned export only known after clean-machine test
-- [Phase 4] PLAT-01 frame budget missed (04-09): median p95 37.04 ms against 8.0 ms; see 04-FRAME-REPORT.md for the profile and the three options. Owner decision 2026-10-16: 04-10 and 04-11 run on the missed budget; the perf route is a gap plan after /gsd-verify-work 4
+- [Phase 4] PLAT-01 frame budget missed (04-09): median p95 37.04 ms against 8.0 ms; see 04-FRAME-REPORT.md and .planning/debug/stress-night-step-over-budget.md. Owner route 2026-10-19: GDExtension (plans 04-14 to 04-21, 04-22, 04-23); 04-16 needs the owner's choice of where CI gets the native binaries
 - [Phase 4] Code review 04-REVIEW.md (2026-10-16): 0 critical, 7 warning, 6 info, all 13 open in 04-REVIEW-DISPOSITION.md (WR-01 3 m gap routability, WR-02 tangency epsilon, WR-03 off-grid is_sealed, WR-04 wall tier health validation, WR-05 stress.sh arithmetic, WR-06 wall-bot balance proof, WR-07 wall-clock bound in test_wall_tracer_scene; IN-01 hot-path allocation wins); fix through /gsd-code-review 4 --fix
 
 ### Quick Tasks Completed
@@ -330,6 +331,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-16T21:08:24Z
-Stopped at: Phase 04 verified gaps_found (PLAT-01 budget); 13 owner items pending in 04-UAT.md; next /gsd-verify-work 4, then /gsd-plan-phase 4 --gaps
-Resume file: .planning/phases/04-crowd-scale-battles-walls/04-PLAYTEST-GATE.md
+Last session: 2026-10-19T07:40:39Z
+Stopped at: Phase 04 UAT complete and diagnosed; gap plans 04-12 to 04-23 verified and committed; next /gsd-execute-phase 4 --gaps-only (04-16 owner checkpoint: native binary route)
+Resume file: .planning/phases/04-crowd-scale-battles-walls/04-UAT.md
