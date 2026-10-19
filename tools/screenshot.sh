@@ -44,6 +44,9 @@ if [ ! -x "${GODOT_BIN}" ] && [ ! -f "${GODOT_BIN}" ]; then
   exit 3
 fi
 
+# A missing or stale native library is a hard error (exit 3), never a silent fallback.
+duskhold_require_native || exit 3
+
 if [ "$#" -gt 0 ]; then
   SHOTS=("$@")
 else
@@ -65,6 +68,7 @@ mkdir -p "${OUT_DIR}" "${DUSKHOLD_ROOT}/build"
 
 # The one headless call: warm the .godot import cache so the class_name scripts resolve.
 # Its output is kept (like tools/export.sh) so a failed import can be diagnosed.
+duskhold_seed_extension_list
 "${GODOT_BIN}" --headless --path "${DUSKHOLD_ROOT_NATIVE}" --import >"${IMPORT_LOG}" 2>&1
 import_status=$?
 if [ "${import_status}" -ne 0 ]; then

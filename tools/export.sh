@@ -4,8 +4,10 @@
 # Writes build/windows/Duskhold.exe + Duskhold.pck and build/export.log. Works from Git Bash on
 # Windows and from bash on Linux CI (the Windows export needs no Wine: modify_resources=false).
 # The import pass logs to build/export-import.log; a failed import stops the script with that status.
-# Exit status is non-zero unless Godot succeeds, the exe (> 1 MB) and pck exist, and the log has
-# no missing-template or rcedit complaint.
+# Exit status is non-zero unless Godot succeeds, the exe (> 1 MB), the pck and
+# libduskhold_sim.windows.x86_64.dll (next to the exe) exist, and the log has no missing-template or
+# rcedit complaint. The Windows library is required whatever the host: exit 3 when it is missing or
+# stale (run bash tools/native_build.sh).
 set -u
 
 # shellcheck source=tools/_common.sh
@@ -17,16 +19,21 @@ if [ ! -x "${GODOT_BIN}" ] && [ ! -f "${GODOT_BIN}" ]; then
   exit 3
 fi
 
+# A missing or stale native library is a hard error (exit 3), never a silent fallback.
+duskhold_require_native windows || exit 3
+
 OUT_DIR="${DUSKHOLD_ROOT}/build/windows"
 EXE="${OUT_DIR}/Duskhold.exe"
 PCK="${OUT_DIR}/Duskhold.pck"
+DLL="${OUT_DIR}/libduskhold_sim.windows.x86_64.dll"
 LOG="${DUSKHOLD_ROOT}/build/export.log"
 IMPORT_LOG="${DUSKHOLD_ROOT}/build/export-import.log"
 
 mkdir -p "${OUT_DIR}"
-rm -f "${EXE}" "${PCK}"
+rm -f "${EXE}" "${PCK}" "${DLL}"
 
 # Import pass first so a fresh checkout (CI) has .godot/ imported resources before exporting.
+duskhold_seed_extension_list
 "${GODOT_BIN}" --headless --path "${DUSKHOLD_ROOT_NATIVE}" --import >"${IMPORT_LOG}" 2>&1
 import_status=$?
 if [ "${import_status}" -ne 0 ]; then
@@ -53,6 +60,11 @@ elif [ "$(wc -c < "${EXE}")" -le 1048576 ]; then
 fi
 if [ ! -f "${PCK}" ]; then
   echo "FAIL: ${PCK} was not produced" >&2
+  fail=1
+fi
+# The shipped build needs the native library beside the exe (the extension is loaded from there).
+if [ ! -f "${DLL}" ]; then
+  echo "FAIL: ${DLL} is not next to Duskhold.exe; run: bash tools/native_build.sh" >&2
   fail=1
 fi
 if grep -qE 'No export template found|rcedit' "${LOG}"; then

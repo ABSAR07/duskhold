@@ -22,6 +22,13 @@ var _selection: SelectionModel
 
 
 func _ready() -> void:
+	# The simulation core lives in the native library; without it there is no game (no fallback).
+	if not ClassDB.class_exists(&"NativeSim"):
+		push_error(
+			"NativeSim missing: the native library did not load; run bash tools/native_build.sh"
+		)
+		get_tree().quit(1)
+		return
 	_run_seed = fixed_run_seed
 	if _run_seed == 0:
 		# Presentation draws the run seed from its own generator; the simulation never sees it.
