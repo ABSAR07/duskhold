@@ -1,9 +1,9 @@
 ---
-status: partial
+status: diagnosed
 phase: 04-crowd-scale-battles-walls
 source: [04-01-SUMMARY.md, 04-02-SUMMARY.md, 04-03-SUMMARY.md, 04-04-SUMMARY.md, 04-05-SUMMARY.md, 04-06-SUMMARY.md, 04-07-SUMMARY.md, 04-08-SUMMARY.md, 04-09-SUMMARY.md, 04-10-SUMMARY.md, 04-11-SUMMARY.md, 04-VERIFICATION.md, 04-PLAYTEST-GATE.md]
 started: 2026-10-16T21:07:26Z
-updated: 2026-10-19T04:42:36Z
+updated: 2026-10-19T06:02:43Z
 ---
 
 ## Current Test
@@ -134,8 +134,25 @@ blocked: 1
   reason: "User reported: Claude, measured not felt: the stress night with 300 enemies, 50 units and 239 arrows in view runs at 43 fps median with a p95 frame time of 37.04 ms (04-FRAME-REPORT.md), so it is not smooth on the dev machine; the crowd itself reads as a crowd (screenshots/crowd_stress_night.png, one flat purple). Same root cause as the VERIFICATION.md gap for success criterion 3 (PLAT-01): one gap plan, not two."
   severity: major
   test: 5
-  artifacts: []  # Filled by diagnosis
-  missing: []    # Filled by diagnosis
+  root_cause: "No single hotspot: the simulation step is GDScript call and branch overhead spread over per-enemy per-tick work. Headless at the PLAT-01 load the step is 22 to 24 ms (bench shape 20 to 22): EnemySystem.step 16 to 17 ms (_choose_target 7.9, of which _target_walls_in_the_way re-runs the detour-versus-break arithmetic for every wall-aggroed enemy every tick and WallSolids.first_blocking costs 145 to 272 us per call because segments_near walks every 4 m bucket of the line's bounding square; _separate 4.1 superlinear; _advance_and_strike 2.3; _push_out_of_walls 1.7) plus 7 to 7.5 ms outside it (squads 3.0, towers 2.4 with TargetQuery.nearest_enemy at 425 us per query since EnemyIndex.within falls back to all 300 ids, stuck tracker 1.5 with a Dictionary allocation per enemy per tick). Both parts exceed on their own the 5 to 6 ms step an 8 ms p95 frame allows; packed storage (lever a) is bounded at 0.75 ms"
+  artifacts:
+    - path: "simulation/night/enemy_system.gd"
+      issue: "the whole enemy phase (:149-178, :253-258, :298-356, :380-385, :486-490, :602-678) is 16 to 17 ms of GDScript at 300 enemies; Dictionary-of-Record storage, 18 of 20 public methods, 710 of 1000 lines"
+    - path: "simulation/walls/wall_solids.gd"
+      issue: "first_blocking (:52-70) via WallSystem.segments_near (wall_system.gd:129-145) costs by the square of the line length"
+    - path: "simulation/night/target_query.gd"
+      issue: "nearest_enemy (:12-23) loops is_alive + position_of over all 300 ids at the stress reach; towers.step 4 to 6 ms on two ticks in five"
+    - path: "simulation/night/stuck_tracker.gd"
+      issue: "_observe (:94) allocates a Dictionary per enemy per tick through enemies.target_of"
+    - path: "simulation/night/night_sim.gd"
+      issue: "fixed phase order the native step must keep (enemies, squads, towers, hits, king, stuck, cleanup)"
+  missing:
+    - "Native (C++ GDExtension, godot-cpp pinned to a commit, precision=single) enemy store and step: boundary A of the diagnosis, the whole EnemySystem phase behind the existing 18-method facade plus native nearest-enemy / living_within queries and shared Separation / WallSolids helpers; SimEvents, PendingHits, NightSim order, squads' orders, towers' fire control and all GDScript API stay"
+    - "Bit-exact contract: Vector2 float32 and GDScript-scalar double with the same narrowing points and operation order, ascending-id iteration, no FMA (/fp:precise, no /arch:AVX2; -ffp-contract=off on GCC), goldens smoke 2599c7c2 / army f7a967ed / walls bfb05fc7 and full_idle 4385f569 byte-identical, GATE_OK 300/300, a test_sim_rules_guard equivalent for the C++ sources"
+    - "Toolchain: MSVC 19.51 (VS Build Tools 2026) with bundled CMake 4.2.3 and Ninja is the only local compiler (no gcc, clang or SCons); CI on ubuntu-latest needs a Linux .so for the test job and a Windows .dll at export time (cross-compile, a windows job artifact, or a committed binary under the LFS rules; prepush_check caps non-LFS blobs at 5 MB); layout res://addons/<name>/<name>.gdextension + bin/; .gitignore and export_presets exclude filters"
+    - "A tracer that measures the native gain first (for example a native Separation.displacements_bucketed) before porting the wall logic; judge by medians of several runs (step means vary 22.7 to 31.8 ms on this laptop)"
+    - "Land G-04-7's target-rule change before the port so the enemy step is ported once"
+  debug_session: .planning/debug/stress-night-step-over-budget.md
   note: "Same root cause as 04-VERIFICATION.md's gap for ROADMAP success criterion 3 (PLAT-01); plan it once. Owner route 2026-10-19 (test 11): GDExtension (C++) for the enemy and wall step, profiling first"
 - gap_id: G-04-6
   truth: "The field and paths are readable, the panel does not hide what matters, and the sections answer 'where are they going and who is stuck'; this is the 'paths are visible in the debug overlay' clause of criterion 2"
@@ -143,14 +160,43 @@ blocked: 1
   reason: "User reported: Claude, from screenshots/overlay_field_gate.png: the field arrows, the orange wall crosses, the queue at the gate and the Walls / Field / Crowd sections all read, but at 1280x720 the night banner '300 enemies left' runs under the overlay's right column and its last word is hidden."
   severity: cosmetic
   test: 6
-  artifacts: []  # Filled by diagnosis
-  missing: []    # Filled by diagnosis
+  root_cause: "The overlay panel (ui/overlay/debug_overlay.tscn :14-23) is anchored top-right at offset_top 12 with grow_horizontal 0 and no width cap; plan 04-08's second column (HBoxContainer separation 16, :25-28) widened it from about 185 to 225 px to 421 px, so its left edge at x 847 crosses the centred 36 px night banner (hud.tscn :131-145; 'Night 1 of 1 — 300 enemies left' has its right edge at x 909) by 62 px over 50 shared rows (panel y 12-609, banner y 45-95); the overlay CanvasLayer is layer 100 so it draws over the HUD. Because project.godot stretches canvas_items at a 1280x720 base with aspect expand, every 16:9 window has the same 62 px overlap; the shipped map overlaps by about 9 px with any two-digit count; FastForwardLabel (hud.tscn :164-181) has sat under the panel since Phase 1. No test or screenshot check pins the banner's horizontal extent or the panel rect"
+  artifacts:
+    - path: "ui/overlay/debug_overlay.tscn"
+      issue: "Panel offset_top 12, grows left without a width cap; two columns since 04-08"
+    - path: "ui/overlay/debug_overlay.gd"
+      issue: "column split rule (:156-168) decides the widths"
+    - path: "ui/hud/hud.tscn"
+      issue: "PhaseBannerBox y 40-100 centred; FastForwardLabel at (1020, 60) under the panel"
+    - path: "tests/e2e/test_hud_contract.gd"
+      issue: "pins banner font sizes and y positions but no horizontal extent; DebugOverlay exempt"
+  missing:
+    - "Move the panel below the banner box (offset_top about 104, offset_bottom 144) and buy the lost headroom with a smaller line spacing or font so a full stress-night row set still ends above y 720; the player-facing banner stays at y 40-100, 36 px (03-UI-SPEC D-21)"
+    - "A GUT e2e regression test in a 1280x720 SubViewport (test_hud_contract's _hud_in_base_viewport pattern): with 'Night 8 of 8 — 300 enemies left' and a full overlay, the panel top is at or below PhaseBannerBox's bottom, it does not intersect FastForwardLabel, and its bottom is at or above 720; assert on y only so the CI font substitution for Consolas does not matter"
+    - "Re-capture the three overlay screenshots (overlay_on, overlay_paths, overlay_field_gate); optionally wait one 0.25 s overlay refresh before capturing overlay_paths"
+  debug_session: .planning/debug/overlay-hides-night-banner-720p.md
 - gap_id: G-04-7
   truth: "Each assumption confirmed or changed; anything listed becomes a gap plan through /gsd-verify-work 4. Note review IN-03: UnitViews.MAX_VIEWS is 256, below the 50-per-squad times several squads the simulation can field; assumption 1 states the cap"
   status: failed
   reason: "User reported: Owner 2026-10-19: assumption 8 changes. A melee enemy whose target (a tower or other building, a unit, the king) is behind a wall must break through the wall to reach it, not drop the target and march on the castle; only some enemy types introduced in later phases go for the castle directly. Ranged enemies shooting over walls stays. All other 24 assumptions, the wall prices (2 / 4 / 6), the draw caps and the looks are signed off as they are; nothing else must land before Phase 5."
   severity: major
   test: 13
-  artifacts: []  # Filled by diagnosis
-  missing: []    # Filled by diagnosis
+  root_cause: "Not a defect: plan 04-06 built RESEARCH Open Question 3 as three line-of-sight gates in simulation/night/enemy_system.gd that only melee enemies fail (the king pull needs _can_see at :274-281; _pick_nearest_structure uses StructureIndex.nearest_visible at :498-517 whenever a wall stands; a held target failing _target_in_sight is dropped on its rescan at :266-269 and :450-476), after which the enemy falls through to _aim_at_walls (:333-356), the castle-line rule. Separately the 04-07 KIND_WALL bookkeeping (_take_wall :404-411, _keeps_breaking / _breaking_is_faster / _wall_ticks :363-385, wall_given_up :310 and :365) weighs breaking only against the castle detour and keeps no memory of a target behind the wall, so removing the gates alone would make a grunt take the wall, drop it at the next 15-tick rescan for the castle detour, and re-take it. Ranged enemies (def.projectile_speed > 0) shoot over walls through _shoots_over (:460-463) and that rule stays. A read-only probe replaying the goldens counted 0 melee triggers of the gates in the walls golden, full_idle, the fixtures and 9 of the 10 with-walls bot seeds; only balanced seed 2 (night 8, a grunt in the north gap mouth whose line to tower_3 and to the king grazes the gap-edge segment within 0.9 m) would change"
+  artifacts:
+    - path: "simulation/night/enemy_system.gd"
+      issue: "drop gates at :266-269, :274-281, :450-476, :498-517; castle-only wall bookkeeping at :298-326 and :363-411; Record fields (:682-710) keep no memory of a target behind a wall"
+    - path: "simulation/night/structure_index.gd"
+      issue: "nearest_visible (:76-79) and _seen (:107-112) filter structures by line of sight"
+    - path: "simulation/nav/wall_decision.gd"
+      issue: "cadence 15 / span 2 / hysteresis 15 / notice 12 from data/tuning/nav_tuning.tres :14-17; add_attacker (:103) counts the crowd per segment"
+    - path: "simulation/defs/enemy_def.gd"
+      issue: "no per-type flag for castle-first behaviour beside ignores_walls (:30)"
+    - path: "tests/unit/test_los_targets.gd"
+      issue: ":82-89, :100-113 (and :133-139) assert the old drop rule"
+  missing:
+    - "Default melee (projectile_speed 0, flag unset): choose targets as in Phase 3 (nearest(), the king pull without _can_see, no rescan drop); on choosing or rescanning, take pathing.first_blocking(pos, goal, radius) as a KIND_WALL target held for that target (a Record memory of kind + id and a held-for-target marker), released only when the segment breaks (resume the target if still valid), the target becomes invalid (dead, fallen, beyond leash) or the line no longer crosses the segment; skip _keeps_breaking and wall_given_up for held-for-target walls; _publish_wall_times counts them into the crowd automatically"
+    - "Keep ranged on today's gates; add an EnemyDef flag (castle_first / drops_blocked_targets, default false, no shipped .tres sets it, a contract test like test_stress_map_data.gd:103) that routes a type through the old 04-06 gates for the Phase 6 roster"
+    - "Decide two sub-rules in the plan: whether visible targets still win over nearer blocked ones, and how a grunt standing in a gap mouth avoids chewing the gap-edge segment (test the line with the centre, radius 0, and let push_out slide it round the end, or detour to the target through a goal field)"
+    - "Move test_los_targets to the new rule (old assertions onto a flagged def copy); keep smoke, army, walls and full_idle byte-identical (0 triggers measured; every wall branch is behind _walls_are_solid()); keep GATE_OK 300/300 with wall_hits 0 (the gate map has only the castle as a target); re-measure test_balance_acceptance (only balanced seed 2 can move); update the docs at enemy_system.gd :243-252 and :447-449, structure_index.gd :71-75, PLAYTEST-GATE assumption 8, RESEARCH OQ3/A5 and 04-07 flagged assumption 3"
+  debug_session: .planning/debug/melee-targets-behind-walls.md
   note: "Rule change to 04-06's target rule (RESEARCH Open Question 3, packet assumption 8): melee enemies break the blocking wall to reach a blocked target; the walls golden and test_wall_behaviour pin the old rule and will move (a D-14 regeneration with its report)"
