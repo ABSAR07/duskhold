@@ -79,6 +79,7 @@ void NativeWalls::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_health", "segment", "health"), &NativeWalls::set_health);
 	ClassDB::bind_method(D_METHOD("intact_count"), &NativeWalls::intact_count);
 	ClassDB::bind_method(D_METHOD("is_intact", "segment"), &NativeWalls::is_intact);
+	ClassDB::bind_method(D_METHOD("health_of", "segment"), &NativeWalls::health_of);
 	ClassDB::bind_method(D_METHOD("segments_near", "pos", "reach"), &NativeWalls::segments_near);
 	ClassDB::bind_method(
 			D_METHOD("first_blocking", "from", "to", "radius"), &NativeWalls::first_blocking);
@@ -184,6 +185,10 @@ bool NativeWalls::valid(int64_t segment) const {
 
 bool NativeWalls::is_intact(int64_t segment) const {
 	return valid(segment) && health_[static_cast<size_t>(segment)] > 0;
+}
+
+int64_t NativeWalls::health_of(int64_t segment) const {
+	return valid(segment) ? health_[static_cast<size_t>(segment)] : 0;
 }
 
 PackedInt32Array NativeWalls::segments_near(const Vector2 &pos, double reach) const {

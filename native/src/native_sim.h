@@ -45,6 +45,12 @@ namespace godot {
 //     OP_INT_POSMOD posmod(m, n)   OP_INT_MINI mini(m, n)   OP_INT_MAXI maxi(m, n)
 //     OP_INT_CLAMPI clampi(m, n, k)   OP_INT_TICKS SimClock.ticks(x)
 //     OP_INT_FLIGHT_TICKS SimClock.flight_ticks(x, y)
+//   probe_rules(op, a, b, c, d) -> PackedInt64Array, one result per element of `a`; b, c and d must
+//     have the size of `a` (plan 04-23: the native twins of the static integer rules of
+//     simulation/nav/wall_decision.gd, which stay GDScript for GDScript callers):
+//     OP_RULE_DAMAGE_PER_300 damage_per_300(a, b)     OP_RULE_TTD_TICKS ttd_ticks(a, b)
+//     OP_RULE_WALK_TICKS walk_ticks(a, b)             OP_RULE_SHOULD_BREAK should_break(a, b, c)
+//     OP_RULE_KEEP_BREAKING keep_breaking(a, b, c, d); a boolean answers 1 or 0
 class NativeSim : public RefCounted {
 	GDCLASS(NativeSim, RefCounted)
 
@@ -93,6 +99,12 @@ public:
 		OP_INT_CLAMPI = 6,
 		OP_INT_TICKS = 7,
 		OP_INT_FLIGHT_TICKS = 8,
+
+		OP_RULE_DAMAGE_PER_300 = 0,
+		OP_RULE_TTD_TICKS = 1,
+		OP_RULE_WALK_TICKS = 2,
+		OP_RULE_SHOULD_BREAK = 3,
+		OP_RULE_KEEP_BREAKING = 4,
 	};
 
 	static String version();
@@ -130,6 +142,12 @@ public:
 			const PackedInt64Array &m,
 			const PackedInt64Array &n,
 			const PackedInt64Array &k);
+	static PackedInt64Array probe_rules(
+			int64_t op,
+			const PackedInt64Array &a,
+			const PackedInt64Array &b,
+			const PackedInt64Array &c,
+			const PackedInt64Array &d);
 };
 
 } // namespace godot

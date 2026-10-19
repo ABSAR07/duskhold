@@ -4,6 +4,7 @@
 
 #include "gd_math.h"
 #include "native_separation.h"
+#include "native_wall_decision.h"
 
 #ifndef DUSKHOLD_GODOT_CPP_PIN
 #error "DUSKHOLD_GODOT_CPP_PIN must be defined by native/CMakeLists.txt"
@@ -40,6 +41,10 @@ void NativeSim::_bind_methods() {
 			"NativeSim",
 			D_METHOD("probe_int", "op", "x", "y", "m", "n", "k"),
 			&NativeSim::probe_int);
+	ClassDB::bind_static_method(
+			"NativeSim",
+			D_METHOD("probe_rules", "op", "a", "b", "c", "d"),
+			&NativeSim::probe_rules);
 
 	BIND_CONSTANT(OP_VEC_ADD);
 	BIND_CONSTANT(OP_VEC_SUB);
@@ -81,6 +86,12 @@ void NativeSim::_bind_methods() {
 	BIND_CONSTANT(OP_INT_CLAMPI);
 	BIND_CONSTANT(OP_INT_TICKS);
 	BIND_CONSTANT(OP_INT_FLIGHT_TICKS);
+
+	BIND_CONSTANT(OP_RULE_DAMAGE_PER_300);
+	BIND_CONSTANT(OP_RULE_TTD_TICKS);
+	BIND_CONSTANT(OP_RULE_WALK_TICKS);
+	BIND_CONSTANT(OP_RULE_SHOULD_BREAK);
+	BIND_CONSTANT(OP_RULE_KEEP_BREAKING);
 }
 
 String NativeSim::version() {
@@ -301,6 +312,47 @@ PackedInt64Array NativeSim::probe_int(
 				break;
 			case OP_INT_FLIGHT_TICKS:
 				out[i] = gd::sim_flight_ticks(px[i], py[i]);
+				break;
+			default:
+				return PackedInt64Array();
+		}
+	}
+	return result;
+}
+
+PackedInt64Array NativeSim::probe_rules(
+		int64_t op,
+		const PackedInt64Array &a,
+		const PackedInt64Array &b,
+		const PackedInt64Array &c,
+		const PackedInt64Array &d) {
+	PackedInt64Array result;
+	const int64_t count = a.size();
+	if (b.size() != count || c.size() != count || d.size() != count) {
+		return result;
+	}
+	result.resize(count);
+	int64_t *out = result.ptrw();
+	const int64_t *pa = a.ptr();
+	const int64_t *pb = b.ptr();
+	const int64_t *pc = c.ptr();
+	const int64_t *pd = d.ptr();
+	for (int64_t i = 0; i < count; i++) {
+		switch (op) {
+			case OP_RULE_DAMAGE_PER_300:
+				out[i] = NativeWallDecision::damage_per_300(pa[i], pb[i]);
+				break;
+			case OP_RULE_TTD_TICKS:
+				out[i] = NativeWallDecision::ttd_ticks(pa[i], pb[i]);
+				break;
+			case OP_RULE_WALK_TICKS:
+				out[i] = NativeWallDecision::walk_ticks(pa[i], pb[i]);
+				break;
+			case OP_RULE_SHOULD_BREAK:
+				out[i] = NativeWallDecision::should_break(pa[i], pb[i], pc[i]) ? 1 : 0;
+				break;
+			case OP_RULE_KEEP_BREAKING:
+				out[i] = NativeWallDecision::keep_breaking(pa[i], pb[i], pc[i], pd[i]) ? 1 : 0;
 				break;
 			default:
 				return PackedInt64Array();

@@ -52,6 +52,8 @@ public:
 	void set_health(int64_t segment, int64_t health);
 	int64_t intact_count() const;
 	bool is_intact(int64_t segment) const;
+	// WallSystem.health_of: the mirrored hit points; 0 for an index out of range.
+	int64_t health_of(int64_t segment) const;
 	// WallSystem.segments_near: the segments whose inflated box touches a cell the circle's square
 	// touches, ascending, standing or not.
 	PackedInt32Array segments_near(const Vector2 &pos, double reach) const;

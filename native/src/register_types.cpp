@@ -8,6 +8,8 @@
 
 #include "native_field.h"
 #include "native_sim.h"
+#include "native_structures.h"
+#include "native_wall_decision.h"
 #include "native_walls.h"
 
 using namespace godot;
@@ -21,6 +23,8 @@ void initialize_duskhold_sim_module(ModuleInitializationLevel p_level) {
 	GDREGISTER_CLASS(NativeGrid);
 	GDREGISTER_CLASS(NativeField);
 	GDREGISTER_CLASS(NativeRoute);
+	GDREGISTER_CLASS(NativeStructures);
+	GDREGISTER_CLASS(NativeWallDecision);
 }
 
 void uninitialize_duskhold_sim_module(ModuleInitializationLevel p_level) {
