@@ -17,6 +17,10 @@ const DATA_SEED: int = 4150415
 const BYTES_PER_VECTOR: int = 8
 const BYTES_PER_NUMBER: int = 8
 const ULP_STEPS: Array[int] = [-2, -1, 1, 2]
+const TICK_FRACTIONS: Array[float] = [
+	0.00005, 0.0001, 0.00011, 0.00015, 0.0002, 0.001, 0.5, -0.0001, 0.0, 0.99995
+]
+const SPEEDS: Array[float] = [0.5, 1.0, 2.0, 4.0, 8.0, 30.0]
 const SLACKS: Array[float] = [0.0, 0.0001, -0.0001, 0.00005]
 const EDGE_DOUBLES: Array[float] = [
 	0.0,
@@ -50,6 +54,9 @@ const EDGE_DOUBLES: Array[float] = [
 	-9223372036854775808.0,
 	9223372036854775808.0,
 ]
+## Vector2 inputs stay finite (and NaN free) in float32: the engine warns when asked to normalize a
+## non-finite vector, and the payload a NaN keeps when two NaN operands meet is a compiler choice.
+const MAX_COMPONENT: float = 3.0e38
 const NON_FINITE_EVERY: Array[int] = [997, 1009, 1013]
 const INT_MIN: int = -9223372036854775807 - 1
 const INT_MAX: int = 9223372036854775807
@@ -137,6 +144,7 @@ func before_all() -> void:
 	_pairs = _make_doubles(2 * COUNT, 4)
 	_x = _with_non_finite(_make_doubles(COUNT, 5))
 	_y = _with_non_finite(_make_doubles(COUNT, 6))
+	_add_tick_boundaries()
 	_m = _make_ints(7)
 	_n = _make_ints(8)
 	_k = _make_ints(9)
@@ -183,7 +191,9 @@ func _pick_double(rng: RandomNumberGenerator, index: int, single: bool) -> float
 		4:
 			value = EDGE_DOUBLES[rng.randi() % EDGE_DOUBLES.size()]
 		5:
-			var whole: float = float(rng.randi_range(-5, 5))
+			var whole: float = (
+				float(rng.randi_range(1, 5)) * (1.0 if rng.randi() % 2 == 0 else -1.0)
+			)
 			var steps: int = ULP_STEPS[rng.randi() % ULP_STEPS.size()]
 			value = _step_single(whole, steps) if single else _step_double(whole, steps)
 		6:
@@ -207,6 +217,21 @@ func _make_doubles(count: int, stream: int) -> PackedFloat64Array:
 	return pool
 
 
+## Every 7th pair becomes a duration or a distance and speed whose tick count sits on the rounding
+## slack of SimClock.ticks (the fraction of a step lies within a hair of 0.0001): a power of two as
+## the speed keeps distance / speed exact, so a slack of 0.00005 or 0.0002 would round differently.
+func _add_tick_boundaries() -> void:
+	var rng: RandomNumberGenerator = _rng_for(10)
+	for index: int in range(COUNT):
+		if index % 7 != 2:
+			continue
+		var whole: float = float(rng.randi_range(0, 3000))
+		var fraction: float = TICK_FRACTIONS[rng.randi() % TICK_FRACTIONS.size()]
+		var speed: float = SPEEDS[rng.randi() % SPEEDS.size()]
+		_y[index] = speed
+		_x[index] = (whole + fraction) * SimClock.STEP * speed
+
+
 ## Infinities and NaN at fixed places, among the scalars only (they stay out of the Vector2 inputs).
 func _with_non_finite(pool: PackedFloat64Array) -> PackedFloat64Array:
 	for index: int in range(pool.size()):
@@ -225,8 +250,12 @@ func _make_vectors(stream: int, offset: int) -> PackedVector2Array:
 	var pool: PackedVector2Array = PackedVector2Array()
 	pool.resize(COUNT)
 	for index: int in range(COUNT):
-		var first: float = _pick_double(rng, index + offset, true)
-		var second: float = _pick_double(rng, index + offset + 3, true)
+		var first: float = clampf(
+			_pick_double(rng, index + offset, true), -MAX_COMPONENT, MAX_COMPONENT
+		)
+		var second: float = clampf(
+			_pick_double(rng, index + offset + 3, true), -MAX_COMPONENT, MAX_COMPONENT
+		)
 		pool[index] = Vector2(first, second)
 	if stream == 2:
 		for index: int in range(COUNT):

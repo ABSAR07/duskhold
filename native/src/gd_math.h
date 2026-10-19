@@ -5,40 +5,46 @@
 // Godot 4.7.2-stable (tag 4.7.2-stable of github.com/godotengine/godot) and names its source in a
 // comment, so a port reads like the GDScript it replaces.
 //
-// OPERATION TABLE. Per operation: how the port gets it and the engine source it was checked
-// against. Later plans call only what this table allows. "mirror" = a function below; "godot-cpp"
-// = the godot-cpp method or operator, proven equal to the engine on 20,000 seeded inputs per
-// operation by tests/unit/test_native_math_contract.gd (the op-codes are the table at the top of
-// native/src/native_sim.h). The scalar rows follow GDScript's own widths: a GDScript float is a
-// double, a Vector2 holds single-precision floats, and a scalar meets a Vector2 only through a
-// cast to real_t at the operator.
+// OPERATION TABLE. For every operation the port may use: where its C++ comes from, the op codes of
+// tests/unit/test_native_math_contract.gd that prove it bit-equal to this engine (20,000 seeded
+// inputs each, probes in native/src/native_sim.h), and the engine source it was checked against.
+// Later plans call only what this table allows. "operator" = godot-cpp's own inline operator;
+// "mirror" = the function of that name below (the port calls the mirror: it is inline, compiled
+// with this target's flags and does not depend on how godot-cpp built its own library); "also
+// godot-cpp" = godot-cpp's out-of-line method gave the same bytes in the test (op code _CPP), so
+// it is allowed too. A scalar meets a Vector2 only through a cast to real_t at the operator (a
+// GDScript float is a double, a Vector2 holds single-precision floats).
 //
-//   operation                                   how        engine source checked against
-//   ------------------------------------------  ---------  -------------------------------------
-//   Vector2 + - (Vector2)                       godot-cpp  core/math/vector2.h operator+, operator-
-//   Vector2 * s, s * Vector2, Vector2 / s       godot-cpp  core/math/vector2.h operator*, operator/
-//                                                          (s is cast to real_t at the operator)
-//   Vector2(x, y) from doubles                  cast       core/variant/variant_construct.h (the
-//                                                          doubles narrow to real_t)
-//   length_squared, length                      mirror     core/math/vector2.cpp length_squared,
-//                                                          length
-//   distance_to, distance_squared_to            mirror     core/math/vector2.cpp distance_to,
-//                                                          distance_squared_to
-//   dot, cross                                  mirror     core/math/vector2.h dot, cross
-//   normalized                                  mirror     core/math/vector2.cpp normalize
-//   move_toward (Vector2)                       mirror     core/math/vector2.cpp move_toward
-//   lerp (Vector2)                              mirror     core/math/vector2.h lerp (Math::lerp)
-//   sqrt                                        mirror     core/variant/variant_utility.cpp sqrt
-//   maxf, minf, clampf                          mirror     core/variant/variant_utility.cpp maxf,
-//                                                          minf, clampf (core/typedefs.h MAX, MIN,
-//                                                          CLAMP: the comparison picks, never an
-//                                                          NaN-propagating or sign-aware std call)
-//   absf                                        mirror     core/variant/variant_utility.cpp absf
-//   floori, ceili, roundi                       mirror     core/variant/variant_utility.cpp floori,
-//                                                          ceili, roundi (Math::floor/ceil/round)
-//   maxi, mini, clampi                          mirror     core/variant/variant_utility.cpp
-//   posmod (int)                                mirror     core/math/math_funcs.h posmod
-//   SimClock.ticks, SimClock.flight_ticks       mirror     simulation/clock/sim_clock.gd
+//   operation                         C++ source               proving op codes           engine source
+//   -------------------------------   ----------------------   ------------------------   ----------------------------
+//   Vector2 + Vector2, - Vector2      operator                 OP_VEC_ADD, OP_VEC_SUB     core/math/vector2.h
+//   Vector2 * s, s * Vector2          operator, s cast to      OP_VEC_MUL_SCALAR,         core/math/vector2.h operator*
+//                                     real_t                   OP_VEC_SCALAR_MUL          (+ global operator*(double, V))
+//   Vector2 / s                       operator, s cast         OP_VEC_DIV_SCALAR          core/math/vector2.h operator/
+//   Vector2(x, y) from doubles        each cast to real_t      OP_VEC_FROM_DOUBLES        GDScript Vector2(x, y) construct
+//   length_squared, length            mirror (also godot-cpp)  OP_DBL_LENGTH_SQUARED,     core/math/vector2.cpp
+//                                                              OP_DBL_LENGTH (+ _CPP)
+//   distance_squared_to, distance_to  mirror (also godot-cpp)  OP_DBL_DISTANCE_*          core/math/vector2.cpp
+//   dot, cross                        mirror (also godot-cpp)  OP_DBL_DOT, OP_DBL_CROSS   core/math/vector2.cpp
+//   normalized                        mirror (also godot-cpp)  OP_VEC_NORMALIZED          core/math/vector2.cpp normalize
+//   move_toward (Vector2)             mirror (also godot-cpp)  OP_VEC_MOVE_TOWARD         core/math/vector2.cpp move_toward
+//   lerp (Vector2)                    mirror (also godot-cpp)  OP_VEC_LERP                core/math/vector2.h lerp
+//   sqrt                              mirror                   OP_DBL_SQRT                core/variant/variant_utility.cpp
+//   maxf, minf, clampf                mirror (MAX, MIN,        OP_DBL_MAXF, _MINF,        core/variant/variant_utility.cpp,
+//                                     CLAMP comparisons)       OP_DBL_CLAMPF              core/typedefs.h
+//   absf                              mirror                   OP_DBL_ABSF                core/variant/variant_utility.cpp
+//   floori, ceili, roundi             mirror                   OP_INT_FLOORI, _CEILI,     core/variant/variant_utility.cpp
+//                                                              _ROUNDI
+//   posmod, mini, maxi, clampi        mirror                   OP_INT_POSMOD, _MINI,      core/math/math_funcs.h,
+//                                                              _MAXI, _CLAMPI             core/variant/variant_utility.cpp
+//   SimClock.ticks, flight_ticks      mirror (sim_ticks,       OP_INT_TICKS,              simulation/clock/sim_clock.gd
+//                                     sim_flight_ticks)        OP_INT_FLIGHT_TICKS
+//
+// Scope of the proof: finite inputs, plus infinities and NaN among the double scalars (they stay
+// out of the Vector2 inputs, because the engine warns on normalizing a non-finite vector and the
+// payload that survives two NaN operands is the compiler's choice, not the simulation's). The test
+// is mutation-checked: a reciprocal multiply in normalized and a rounding slack of 0.0002 or
+// 0.00005 in sim_whole_ticks each fail it.
 //
 // Rules: no std::max, std::min or std::clamp on floats (signed zero and NaN differ from the
 // engine's comparison), no transcendental call, no fused multiply-add, no fast math; only + - * /
@@ -118,7 +124,8 @@ inline int64_t roundi(double x) {
 // core/math/math_funcs.h Math::posmod: the remainder takes the sign of the divisor. A zero divisor
 // answers 0 (the engine reports an error and returns 0).
 inline int64_t posmod(int64_t x, int64_t y) {
-	if (y == 0) {
+	// A divisor of -1 always leaves 0; answering it here avoids the INT64_MIN % -1 trap.
+	if (y == 0 || y == -1) {
 		return 0;
 	}
 	int64_t value = x % y;
@@ -136,6 +143,112 @@ inline real_t length_squared(const Vector2 &v) {
 // core/math/vector2.cpp Vector2::length: Math::sqrt(x * x + y * y) in real_t (the float overload).
 inline real_t length(const Vector2 &v) {
 	return std::sqrt(v.x * v.x + v.y * v.y);
+}
+
+// core/math/vector2.cpp Vector2::distance_squared_to: both differences are formed twice, as there.
+inline real_t distance_squared_to(const Vector2 &from, const Vector2 &to) {
+	return (from.x - to.x) * (from.x - to.x) + (from.y - to.y) * (from.y - to.y);
+}
+
+// core/math/vector2.cpp Vector2::distance_to: Math::sqrt of the expression above, in real_t.
+inline real_t distance_to(const Vector2 &from, const Vector2 &to) {
+	return std::sqrt((from.x - to.x) * (from.x - to.x) + (from.y - to.y) * (from.y - to.y));
+}
+
+// core/math/vector2.cpp Vector2::dot.
+inline real_t dot(const Vector2 &a, const Vector2 &b) {
+	return a.x * b.x + a.y * b.y;
+}
+
+// core/math/vector2.cpp Vector2::cross.
+inline real_t cross(const Vector2 &a, const Vector2 &b) {
+	return a.x * b.y - a.y * b.x;
+}
+
+// core/math/vector2.cpp Vector2::is_finite: Math::is_finite on both components.
+inline bool is_finite(const Vector2 &v) {
+	return std::isfinite(v.x) && std::isfinite(v.y);
+}
+
+// core/math/vector2.cpp Vector2::normalize, as normalized() (core/math/vector2.cpp
+// Vector2::normalized copies and normalizes): a non-finite vector and a zero vector give (0, 0);
+// else both components are divided by the real_t square root of length_squared.
+inline Vector2 normalized(const Vector2 &v) {
+	Vector2 result = v;
+	if (!is_finite(result)) {
+		return Vector2(0.0f, 0.0f);
+	}
+	real_t l = length_squared(result);
+	if (l == 0) {
+		return Vector2(0.0f, 0.0f);
+	}
+	l = std::sqrt(l);
+	result.x /= l;
+	result.y /= l;
+	return result;
+}
+
+// core/math/math_defs.h CMP_EPSILON.
+constexpr double CMP_EPSILON_VALUE = 0.00001;
+
+// core/math/vector2.cpp Vector2::move_toward: the target itself when it is within `delta` or
+// within CMP_EPSILON (as real_t); else the step along the unit difference. `delta` is already a
+// real_t (GDScript narrows the double at the call).
+inline Vector2 move_toward(const Vector2 &from, const Vector2 &to, real_t delta) {
+	const Vector2 vd = to - from;
+	const real_t len = length(vd);
+	if (len <= delta || len < static_cast<real_t>(CMP_EPSILON_VALUE)) {
+		return to;
+	}
+	return from + vd / len * delta;
+}
+
+// core/math/vector2.h Vector2::lerp: each component through Math::lerp (core/math/math_funcs.h,
+// the float overload): from + (to - from) * weight. `weight` is already a real_t.
+inline Vector2 lerp(const Vector2 &from, const Vector2 &to, real_t weight) {
+	Vector2 result = from;
+	result.x = result.x + (to.x - result.x) * weight;
+	result.y = result.y + (to.y - result.y) * weight;
+	return result;
+}
+
+// --- SimClock (simulation/clock/sim_clock.gd), the double constants as GDScript holds them ------
+
+// SimClock.STEP: the GDScript constant 1.0 / 30.0, a double.
+constexpr double SIM_STEP = 1.0 / 30.0;
+// SimClock.TICK_ROUNDING_SLACK.
+constexpr double SIM_TICK_ROUNDING_SLACK = 0.0001;
+// SimClock.MAX_TICKS (1 << 30).
+constexpr int64_t SIM_MAX_TICKS = static_cast<int64_t>(1) << 30;
+
+// SimClock._whole_ticks: 0 for NaN, else clampi(ceili(minf(steps, float(MAX_TICKS)) - slack), 1,
+// MAX_TICKS).
+inline int64_t sim_whole_ticks(double steps) {
+	if (std::isnan(steps)) {
+		return 0;
+	}
+	return clampi(
+			ceili(minf(steps, static_cast<double>(SIM_MAX_TICKS)) - SIM_TICK_ROUNDING_SLACK),
+			1,
+			SIM_MAX_TICKS);
+}
+
+// SimClock.ticks: 0 unless the duration is above zero (so for zero, negative and NaN), else the
+// whole ticks of duration / STEP.
+inline int64_t sim_ticks(double duration) {
+	if (!(duration > 0.0)) {
+		return 0;
+	}
+	return sim_whole_ticks(duration / SIM_STEP);
+}
+
+// SimClock.flight_ticks: 0 unless the speed is above zero, else the whole ticks of
+// distance / speed / STEP (left to right, two divisions).
+inline int64_t sim_flight_ticks(double distance, double speed) {
+	if (!(speed > 0.0)) {
+		return 0;
+	}
+	return sim_whole_ticks(distance / speed / SIM_STEP);
 }
 
 } // namespace gd
