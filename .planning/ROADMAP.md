@@ -254,7 +254,7 @@ Plans:
   3. A scripted stress night with hundreds of units, enemies, and projectiles on screen holds 60 fps on GTX 970-class hardware, or within a documented equivalent frame-time budget on the dev machine.
   4. Nights from Phases 1–3 play the same after the switch to batched simulation and rendering. All existing headless loop and combat tests still pass.
 
-**Plans**: 14/23 plans executed (04-12 to 04-23 close the 2026-10-19 UAT gaps G-04-5, G-04-6 and G-04-7 and the 04-VERIFICATION.md gap for success criterion 3)
+**Plans**: 15/23 plans executed (04-12 to 04-23 close the 2026-10-19 UAT gaps G-04-5, G-04-6 and G-04-7 and the 04-VERIFICATION.md gap for success criterion 3)
 
 Plans:
 **Wave 1**
@@ -300,7 +300,7 @@ Plans:
 - [x] 04-14: Native toolchain and scaffold — pinned godot-cpp, CMake build with MSVC (no install), NativeSim loads, the C++ determinism guard, godot-cpp attribution (G-04-5)
 
 **Gap wave 3 (wave 14)** *(blocked on 04-14)*
-- [ ] 04-22: A missing or stale native library is a named error in every wrapper and at boot; the export carries the DLL and launches (G-04-5)
+- [x] 04-22: A missing or stale native library is a named error in every wrapper and at boot; the export carries the DLL and launches (G-04-5)
 
 **Gap wave 4 (wave 15)** *(blocked on 04-22)*
 - [ ] 04-15: Tracer — Separation in C++, pinned on the GDScript first, goldens byte-identical, a machine-checked gain on the stress shape; the math contract against the engine (G-04-5)
@@ -477,7 +477,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 1. Foundation & Day Loop | 18/18 | Complete    | 2026-10-03 |
 | 2. Night Defense & Playtest Gate | 22/22 | Complete    | 2026-10-08 |
 | 3. King Combat & Troops | 19/19 | Complete    | 2026-10-15 |
-| 4. Crowd-Scale Battles & Walls | 14/23 | In Progress|  |
+| 4. Crowd-Scale Battles & Walls | 15/23 | In Progress|  |
 | 5. Castle Center & Economy Depth | 0/TBD | Not started | - |
 | 6. Enemy Roster & Tower Specializations | 0/TBD | Not started | - |
 | 7. Army Variety & Heroes | 0/TBD | Not started | - |
