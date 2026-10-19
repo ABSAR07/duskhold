@@ -1,0 +1,10 @@
+[configuration]
+
+entry_symbol = "duskhold_sim_library_init"
+compatibility_minimum = "4.7"
+reloadable = false
+
+[libraries]
+
+windows.x86_64 = "res://addons/duskhold_sim/bin/libduskhold_sim.windows.x86_64.dll"
+linux.x86_64 = "res://addons/duskhold_sim/bin/libduskhold_sim.linux.x86_64.so"

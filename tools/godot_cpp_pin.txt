@@ -1,0 +1,4 @@
+2bb1acf6f8ae1ce96ac7b9ba3a10b499c59c49ec
+# ref: refs/heads/master of https://github.com/godotengine/godot-cpp.git (Merge pull request #2068, committed 2026-10-16); no godot-4.6 or godot-4.7 release tag exists (newest tag godot-4.5-stable)
+# chosen: 2026-10-19 (date -u)
+# bundled gdextension/extension_api-4-7.json header: 4.7.0 stable (the build uses the API dumped from the pinned 4.7.2 binary instead)

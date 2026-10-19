@@ -30,3 +30,8 @@ Thumbs.db
 
 # Research cache
 /.planning/research/.cache/
+
+# Native simulation library: built by tools/native_build.sh, never committed before the
+# binary route is decided (plan 04-16)
+/addons/duskhold_sim/bin/
+/native/bin/
