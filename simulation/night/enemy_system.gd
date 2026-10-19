@@ -200,6 +200,21 @@ func living_within(pos: Vector2, reach: float) -> PackedInt64Array:
 	return _native.living_within(pos, reach)
 
 
+## The id of the living enemy nearest `pos` whose centre is within `reach` (inclusive, squared
+## distances compared; equally near enemies go to the lower id), or -1: the answer of every
+## "nearest enemy" question of the night, in C++ (plan 04-20). With `walls` standing (at least one
+## intact segment) only an enemy whose straight line from `pos` is clear of every intact segment,
+## for a walker of `radius` metres, counts; only a candidate that would improve the best pays for
+## the line test. Read-only; TargetQuery is the seam the callers use.
+func nearest_living(
+	pos: Vector2, reach: float, radius: float = -1.0, walls: WallSystem = null
+) -> int:
+	var mirror: NativeWalls = null
+	if walls != null and walls.intact_count() > 0:
+		mirror = walls.native()
+	return _native.nearest_living(pos, reach, radius, mirror)
+
+
 ## The enemy field as packed arrays (ids ascending, with previous and current positions), refilled
 ## only when something changed since the last read. The same object every time, so a caller reads
 ## it and never keeps it across a step. Emits no signal.

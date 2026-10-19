@@ -150,6 +150,14 @@ public:
 	// EnemyIndex.within over the living enemies: ids whose cell lies within `reach` of `pos`'s cell,
 	// ascending, rebuilt lazily after the field changed.
 	PackedInt64Array living_within(const Vector2 &pos, double reach);
+	// TargetQuery.nearest_enemy and nearest_enemy_clear over the same candidates (plan 04-20): the
+	// id of the living enemy nearest `pos` whose centre is within `reach` (inclusive, squared
+	// distances compared, the lower id on a tie), or -1. With `walls` given and at least one
+	// intact segment, only an enemy whose straight line from `pos` is clear of every intact
+	// segment for a walker of `radius` counts, and only a candidate that would improve the best
+	// pays for the line test. A null `walls` is the plain query.
+	int64_t nearest_living(
+			const Vector2 &pos, double reach, double radius, const Ref<NativeWalls> &walls);
 	// The read view's arrays: ids ascending with the previous and the current positions.
 	PackedInt64Array view_ids() const;
 	PackedVector2Array view_previous() const;
@@ -181,6 +189,8 @@ public:
 private:
 	int64_t slot_of(int64_t id) const;
 	void rebuild_grid();
+	// The ids living_within lists, ascending, appended to `found` (cleared first).
+	void collect_within(const Vector2 &pos, double reach, std::vector<int64_t> &found);
 
 	std::vector<EnemyRec> recs_;
 	std::vector<EnemyDefRow> defs_;
@@ -196,6 +206,8 @@ private:
 	int64_t grid_cells_ = 0;
 	bool grid_dirty_ = true;
 	std::vector<int64_t> strikes_;
+	// Scratch for nearest_living's candidate ids (one thread only).
+	std::vector<int64_t> candidates_;
 };
 
 } // namespace godot

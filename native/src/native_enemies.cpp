@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <limits>
 #include <vector>
 
 #include <godot_cpp/core/class_db.hpp>
@@ -56,6 +57,9 @@ void NativeEnemies::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("remove", "id"), &NativeEnemies::remove);
 	ClassDB::bind_method(D_METHOD("clear"), &NativeEnemies::clear);
 	ClassDB::bind_method(D_METHOD("living_within", "pos", "reach"), &NativeEnemies::living_within);
+	ClassDB::bind_method(
+			D_METHOD("nearest_living", "pos", "reach", "radius", "walls"),
+			&NativeEnemies::nearest_living);
 	ClassDB::bind_method(D_METHOD("view_ids"), &NativeEnemies::view_ids);
 	ClassDB::bind_method(D_METHOD("view_previous"), &NativeEnemies::view_previous);
 	ClassDB::bind_method(D_METHOD("view_current"), &NativeEnemies::view_current);
@@ -245,14 +249,14 @@ void NativeEnemies::rebuild_grid() {
 }
 
 // enemy_index.gd within.
-PackedInt64Array NativeEnemies::living_within(const Vector2 &pos, double reach) {
+void NativeEnemies::collect_within(const Vector2 &pos, double reach, std::vector<int64_t> &found) {
 	if (grid_dirty_) {
 		rebuild_grid();
 	}
 	const int64_t span = gd::ceili((gd::maxf(reach, 0.0) + GRID_REACH_MARGIN) / GRID_CELL);
 	const int64_t cell_x = gd::floori(static_cast<double>(pos.x) / GRID_CELL);
 	const int64_t cell_y = gd::floori(static_cast<double>(pos.y) / GRID_CELL);
-	std::vector<int64_t> found;
+	found.clear();
 	const int64_t block = wrap_add(wrap_mul(2, span), 1);
 	if (span < 0 || span > MAX_REACH_CELLS || wrap_mul(block, block) > grid_cells_) {
 		// A reach wider than the field: every occupied cell, an exact superset of the block.
@@ -273,12 +277,52 @@ PackedInt64Array NativeEnemies::living_within(const Vector2 &pos, double reach) 
 		}
 	}
 	std::sort(found.begin(), found.end());
+}
+
+PackedInt64Array NativeEnemies::living_within(const Vector2 &pos, double reach) {
+	std::vector<int64_t> found;
+	collect_within(pos, reach, found);
 	PackedInt64Array result;
 	result.resize(static_cast<int64_t>(found.size()));
 	for (size_t index = 0; index < found.size(); index++) {
 		result[static_cast<int64_t>(index)] = found[index];
 	}
 	return result;
+}
+
+// target_query.gd nearest_enemy and nearest_enemy_clear: the candidates are living_within's, in
+// ascending id; a candidate counts when it is alive, `d2 <= reach * reach` and `d2 < best_d2` (a
+// strictly nearer one replaces the best, so the lower id wins a tie), and, with walls standing,
+// only when Pathing.first_blocking(pos, there, radius) < 0, tested last so only an improving
+// candidate pays for it. The squared distance is real_t as Vector2.distance_squared_to computes it,
+// widened to double at the compare.
+int64_t NativeEnemies::nearest_living(
+		const Vector2 &pos, double reach, double radius, const Ref<NativeWalls> &walls) {
+	const bool test_walls = walls.is_valid() && walls->intact_count() > 0;
+	std::vector<int64_t> &candidates = candidates_;
+	collect_within(pos, reach, candidates);
+	int64_t best_id = -1;
+	double best_d2 = std::numeric_limits<double>::infinity();
+	const double limit = reach * reach;
+	for (const int64_t id : candidates) {
+		const int64_t slot = slot_of(id);
+		if (slot < 0) {
+			continue;
+		}
+		const EnemyRec &rec = recs_[static_cast<size_t>(slot)];
+		if (rec.health <= 0) {
+			continue;
+		}
+		const double d2 = static_cast<double>(gd::distance_squared_to(pos, rec.position));
+		if (d2 <= limit && d2 < best_d2) {
+			if (test_walls && walls->blocking_segment(pos, rec.position, radius) >= 0) {
+				continue;
+			}
+			best_d2 = d2;
+			best_id = id;
+		}
+	}
+	return best_id;
 }
 
 PackedInt64Array NativeEnemies::view_ids() const {
