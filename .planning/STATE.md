@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
 status: executing
-stopped_at: Completed 04-19-PLAN.md
-last_updated: "2026-10-19T18:36:15.002Z"
+stopped_at: Completed 04-20-PLAN.md
+last_updated: "2026-10-19T19:43:15.639Z"
 last_activity: 2026-10-19
 last_activity_desc: Phase 04 execution started
-state_head: 8b8a30d79042c90a9087212706fad49f3940102a
+state_head: b5a6f57b02c10538573996f281b09580a4df77af
 progress:
   total_phases: 13
   completed_phases: 3
   total_plans: 82
-  completed_plans: 80
+  completed_plans: 81
   percent: 23
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 04 (Crowd-Scale Battles & Walls) — EXECUTING
-Plan: 21 of 23 complete (11 gap-closure plans pending; 04-12 closed G-04-7)
+Plan: 22 of 23 complete (11 gap-closure plans pending; 04-12 closed G-04-7)
 Status: Owner gate done 2026-10-19 (04-UAT.md: 9 pass, 3 issues, 1 blocked); gaps G-04-5/6/7 diagnosed; gap plans 04-12 to 04-23 verified; next /gsd-execute-phase 4 --gaps-only
 Last activity: 2026-10-19 — Plan 04-12 complete (melee enemies break through walls to their target, G-04-7)
 
@@ -138,6 +138,7 @@ Progress: [██░░░░░░░░] 23%
 | Phase 04 P18 | 61 min | 2 tasks | 10 files |
 | Phase 04 P23 | 47min | 2 tasks | 22 files |
 | Phase 04 P19 | 58 min | 2 tasks | 13 files |
+| Phase 04 P20 | 61 min | 3 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -320,6 +321,8 @@ Recent decisions affecting current work:
 - [Phase 04]: Plan 04-23: the trace tool (tools/stress/enemy_trace.gd) is the oracle for 04-19; hooks are a trailing optional on_tick Callable on ReplayDriver.run, ReplayScenarios.run and GateStress.run, bounds derived from ReplayScenarios.max_ticks and GateStress.DEFAULT_MAX_SECONDS; line format documented in the file header
 - [Phase 04]: Plan 04-23: a grid block larger than the grid itself tests every candidate in ascending order (exact superset, no hang on an infinite range); StructureIndex gains native() for 04-19
 - [Phase 04]: 04-19: the enemy store is an id-ordered vector of records with a binary-search lookup, and the facade takes NativeRoute from Pathing's private _route (Pathing is at its 20-method cap); remove_dead removes one enemy at a time so enemy_died listeners see the GDScript field
+- [Phase 04]: 04-20: the read view carries a living flag next to targeted (the tracker skipped dead-but-unremoved enemies through is_alive) and a lethal damage marks the view stale; StuckTracker's constructor takes the castle position (default Vector2.ZERO), Pathing gains no method
+- [Phase 04]: 04-20: nearest_living (EnemySystem 19 of 20) answers every nearest-enemy question natively; stuck tracker native and read-only; the CI run 39310876191 is green on every job for b5a6f57 with the goldens on Linux and Windows; stress step median 2.18 ms, probe PHASE squads 1.41 ms
 
 ### Pending Todos
 
@@ -358,6 +361,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-19T18:36:14.249Z
-Stopped at: Completed 04-19-PLAN.md
+Last session: 2026-10-19T19:43:14.936Z
+Stopped at: Completed 04-20-PLAN.md
 Resume file: None
