@@ -12,6 +12,7 @@ table lists them in the same order.
 
 | Name | Kind | License | Author | Source | Paths | Retrieved | SHA256 |
 |------|------|---------|--------|--------|-------|-----------|--------|
+| godot-cpp (GDExtension C++ bindings, commit 2bb1acf) | code | MIT | Godot Engine contributors | https://github.com/godotengine/godot-cpp/tree/2bb1acf6f8ae1ce96ac7b9ba3a10b499c59c49ec | `addons/duskhold_sim/` (the folder the native simulation library is built into; godot-cpp is compiled into that library, fetched to `.tools/` by `tools/native_build.sh --fetch` and never committed) | 2026-10-19 | n/a (a git commit, pinned by SHA in `tools/godot_cpp_pin.txt`) |
 | Godot Engine 4.7.2 | engine | MIT | Godot Engine contributors | https://godotengine.org/ | none (not in the repository; verified by SHA512, see `tools/godot_sha512sums.txt`) | 2026-09-29 | n/a |
 | GUT (Godot Unit Test) 9.7.1 | code | MIT | Tom "Butch" Wesley (bitwes) and contributors | https://github.com/bitwes/Gut/releases/tag/v9.7.1 | `addons/gut/` (test only, not shipped) | 2026-09-29 | `14969aa46adc84aa08cdd21b9f6d1a64addd92ae60b36f02d0521ed305aa4086` |
 | Kenney Castle Kit 2.0 | model | CC0-1.0 | Kenney (www.kenney.nl) | https://kenney.nl/assets/castle-kit | `assets/third_party/kenney_castle_kit/` (7 GLBs + colormap; tower tiers I-II, castle center) | 2026-09-29 | `921f3f73927bb23106cae34bc21d5ab4b033a9fc120475e96f714a406e3169df` |

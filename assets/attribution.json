@@ -2,6 +2,22 @@
   "schema_version": 1,
   "entries": [
     {
+      "id": "godot-cpp",
+      "name": "godot-cpp (GDExtension C++ bindings, commit 2bb1acf)",
+      "kind": "code",
+      "license": "MIT",
+      "author": "Godot Engine contributors",
+      "source_url": "https://github.com/godotengine/godot-cpp/tree/2bb1acf6f8ae1ce96ac7b9ba3a10b499c59c49ec",
+      "license_url": "https://github.com/godotengine/godot-cpp/blob/2bb1acf6f8ae1ce96ac7b9ba3a10b499c59c49ec/LICENSE.md",
+      "paths": [
+        "res://addons/duskhold_sim/"
+      ],
+      "retrieved": "2026-10-19",
+      "sha256": "",
+      "ships_in_build": true,
+      "notes": "Compiled into the shipped native library addons/duskhold_sim/bin/libduskhold_sim.<platform>.x86_64 (PLAT-01), so the credits must name it. The repository holds no godot-cpp file: tools/native_build.sh --fetch clones https://github.com/godotengine/godot-cpp.git into .tools/ (git-ignored) at the commit pinned in tools/godot_cpp_pin.txt (full SHA 2bb1acf6f8ae1ce96ac7b9ba3a10b499c59c49ec, master of 2026-10-16; no 4.6 or 4.7 release tag exists), and no built library is committed. res://addons/duskhold_sim/ is the first-party folder that library is built into (the .gdextension file and, locally, the git-ignored bin/); the entry covers it because the binary inside is the third-party code. No sha256 is recorded: the source is a git commit, pinned by its SHA, not an archive."
+    },
+    {
       "id": "godot-engine",
       "name": "Godot Engine 4.7.2",
       "kind": "engine",
