@@ -296,6 +296,15 @@ static func _dawn_payout(runner: Node, map_root: MapRoot) -> bool:
 	return ctx.run_manager.get_phase() == RunManager.RunPhase.DAWN
 
 
+## One press of the overlay toggle action, then frames to let it land (a hidden overlay shows and
+## renders at once, a shown one hides).
+static func _toggle_overlay(runner: Node) -> void:
+	Input.action_press(&"toggle_debug_overlay")
+	await _wait_frames(runner, PRESS_FRAMES)
+	Input.action_release(&"toggle_debug_overlay")
+	await _wait_frames(runner, PRESS_FRAMES)
+
+
 static func _overlay_on(runner: Node, map_root: MapRoot) -> bool:
 	Input.action_press(&"toggle_debug_overlay")
 	await _wait_frames(runner, PRESS_FRAMES)
@@ -489,6 +498,11 @@ static func _overlay_paths(runner: Node, map_root: MapRoot) -> bool:
 		return false
 	var drawn: Callable = func() -> bool: return gizmo.line_count() > 0
 	var shown: bool = await _wait_until(runner, drawn, PATHS_POLL_TIMEOUT_S)
+	# The overlay refreshes on real time (every 0.25 s) while the fast-forward above runs in one
+	# frame, so it would still show the day it was opened in. Closing and reopening it renders at
+	# once, which needs no wait on frame times (slow software rendering on CI, the 03-12 lesson).
+	await _toggle_overlay(runner)
+	await _toggle_overlay(runner)
 	if not shown or not overlay.is_overlay_visible():
 		printerr(
 			(
