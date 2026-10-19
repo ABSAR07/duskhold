@@ -73,13 +73,15 @@ now buy the wall runs, the `_no_walls` rows are their Phase 3 orders):
 | greedy_economy | 0% | 2.9 / 2 / 4 | 4 | 9.2 | 5.0 | 1.8 |
 | houses_first | 40% | 6.7 / 2 / 8 | 7 | 21.1 | 14.7 | 1.1 |
 | towers_first | 0% | 6.1 / 6 / 7 | 7 | 6.1 | 5.9 | 2.6 |
-| balanced | 80% | 7.3 / 2 / 8 | 3 | 21.9 | 10.9 | 0.6 |
+| balanced | 80% | 7.3 / 2 / 8 | 3 | 21.9 | 10.8 | 0.6 |
 | army_balanced | 80% | 7.5 / 5 / 8 | 6 | 14.8 | 18.0 | 1.2 |
 | balanced_no_walls | 80% | 7.3 / 2 / 8 | 3 | 22.2 | 10.4 | 0.6 |
 | army_balanced_no_walls | 80% | 7.5 / 5 / 8 | 6 | 15.0 | 17.6 | 1.3 |
 
 Wins with and without walls: **balanced 8 and 8, army_balanced 8 and 8.** Seeds lost: balanced 3 (night 8) and 9
 (night 3) in both; army_balanced 1 (night 7) and 9 (night 6) in both.
+
+**Re-measured 2026-10-19 after plan 04-12 (G-04-7, owner decision of UAT test 13: a melee enemy breaks through a wall to reach its target).** `balanced` and `army_balanced`, seeds 1 to 10, compared run by run with a sweep made on the code before the change: 19 of the 20 runs are identical, army_balanced entirely. Only `balanced` seed 2 differs, in night 8 only (the north gap mouth the diagnosis predicted, enemy 187 and tower_3): its outcome (won) and nights survived (8) hold, and the per-seed rows above (kills 194, walls broken 0, economy gold 12) are unchanged. Old to new for that run: buildings lost 9 to 8, tower kills 123 to 125; night 8 kills by the king 9 to 10, by towers 28 to 30, by the castle 3 to 0, buildings lost 3 to 2, night length 40.7 to 34.4 s. The rows refreshed from it: the summary table (balanced buildings lost 10.9 to 10.8), the night 8 row of the balanced (with walls) per-night table (kills by king 9.8 to 9.9, towers 27.3 to 27.6, castle 1.6 to 1.2, buildings lost 2.2 to 2.1, night seconds 35.8 to 35.1) and the balanced row of the squads-with-walls table (tower kills 107.50 to 107.70, per tower gold 6.89 to 6.90). test_balance_acceptance holds with its constants unedited; walls broken stays 0 in all 20 runs.
 
 What the bots actually bought (`building_built` lines of the wall plots, by the shipped orders; "after night N"
 means in the day that follows night N):
@@ -171,7 +173,7 @@ read-only tally that does not move any digest):
 | 5 | 9 | 25.0 | 7.0 | 16.0 | 2.0 | 0.0 | 2.6 | 0.0 | 0.0 | 0.0 | 69.3 | 36.8 | 3.6 |
 | 6 | 9 | 31.0 | 6.8 | 23.6 | 0.7 | 0.0 | 2.2 | 0.0 | 0.0 | 0.0 | 70.0 | 34.5 | 6.4 |
 | 7 | 9 | 39.0 | 10.0 | 27.9 | 1.1 | 0.0 | 2.3 | 0.0 | 0.0 | 0.0 | 66.0 | 34.4 | 4.4 |
-| 8 | 9 | 40.0 | 9.8 | 27.3 | 1.6 | 0.0 | 2.2 | 0.0 | 0.0 | 0.1 | 62.2 | 35.8 | 1.1 |
+| 8 | 9 | 40.0 | 9.9 | 27.6 | 1.2 | 0.0 | 2.1 | 0.0 | 0.0 | 0.1 | 62.2 | 35.1 | 1.1 |
 
 **Per night: balanced_no_walls**
 
@@ -393,7 +395,7 @@ is a number for the owner, not a pin, and not a retune; it did not fall below th
 | greedy_economy | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | houses_first | 0.00 | 0.00 | 0.00 | 10.80 | 90.60 | 8.39 | 0.00 |
 | towers_first | 0.00 | 0.00 | 0.00 | 8.00 | 77.40 | 9.68 | 0.00 |
-| balanced | 0.00 | 0.00 | 0.00 | 15.60 | 107.50 | 6.89 | 0.00 |
+| balanced | 0.00 | 0.00 | 0.00 | 15.60 | 107.70 | 6.90 | 0.00 |
 | army_balanced | 7.20 | 33.40 | 4.64 | 3.60 | 18.80 | 5.22 | 0.89 |
 | balanced_no_walls | 0.00 | 0.00 | 0.00 | 16.20 | 108.00 | 6.67 | 0.00 |
 | army_balanced_no_walls | 7.20 | 31.00 | 4.31 | 4.40 | 20.70 | 4.70 | 0.92 |
