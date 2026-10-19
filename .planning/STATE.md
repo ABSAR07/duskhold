@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
 status: executing
-stopped_at: Completed 04-22-PLAN.md
-last_updated: "2026-10-19T12:07:39.157Z"
+stopped_at: Completed 04-15-PLAN.md
+last_updated: "2026-10-19T13:36:14.805Z"
 last_activity: 2026-10-19
 last_activity_desc: Phase 04 execution started
-state_head: bdbd62e9531198e172e055b6b8927e2f0c58f522
+state_head: 6352c5a075163ffab64795f5ea364be22d85c817
 progress:
   total_phases: 13
   completed_phases: 3
   total_plans: 82
-  completed_plans: 74
+  completed_plans: 75
   percent: 23
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 04 (Crowd-Scale Battles & Walls) — EXECUTING
-Plan: 15 of 23 complete (11 gap-closure plans pending; 04-12 closed G-04-7)
+Plan: 16 of 23 complete (11 gap-closure plans pending; 04-12 closed G-04-7)
 Status: Owner gate done 2026-10-19 (04-UAT.md: 9 pass, 3 issues, 1 blocked); gaps G-04-5/6/7 diagnosed; gap plans 04-12 to 04-23 verified; next /gsd-execute-phase 4 --gaps-only
 Last activity: 2026-10-19 — Plan 04-12 complete (melee enemies break through walls to their target, G-04-7)
 
@@ -132,6 +132,7 @@ Progress: [██░░░░░░░░] 23%
 | Phase 04 P13 | 45 min | 2 tasks | 4 files |
 | Phase 04 P14 | 89 min | 2 tasks | 15 files |
 | Phase 04 P22 | 49 min | 2 tasks | 11 files |
+| Phase 04 P15 | 88 min | 2 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -302,6 +303,8 @@ Recent decisions affecting current work:
 - [Phase 04]: 04-13: the F3 overlay panel sits below the night banner box (offset_top 104) with line_spacing 0, pinned by a y-only 1280x720 layout test; hud.tscn untouched (G-04-6)
 - [Phase 04]: 04-14: godot-cpp pinned to master commit 2bb1acf6f8ae1ce96ac7b9ba3a10b499c59c49ec (no 4.6/4.7 tag exists); build uses the API dumped from the 4.7.2 binary; GDScript may name native classes as types (rule i); first import of a minimal project with the extension exits 139 unless extension_list.cfg is pre-seeded or the import is repeated (plan 04-22 to handle)
 - [Phase 04]: 04-22: one shared native stamp function (duskhold_native_stamp) is used by native_build.sh and duskhold_require_native; seven wrappers exit 3 on a missing or stale library, export demands the windows DLL beside the exe and excludes native/*, MapRoot quits 1 without NativeSim; first-import hazard handled by pre-seeding .godot/extension_list.cfg
+- [Phase 04]: 04-15: the push-apart pass (Separation.displacements and displacements_bucketed) runs in C++ behind the unchanged GDScript API, byte-identical to 42 sha256 pins computed on the GDScript first; stress-shape step median 39.37 to 28.75 ms (interleaved A/B about 4 ms) and the native pass 15.2x faster at 300 circles, so the packed-array boundary pays; all replay and gate digests unchanged
+- [Phase 04]: 04-15: gd_math.h opens with the operation table; godot-cpp operators and out-of-line Vector2 methods are proven bit-equal to the engine by test_native_math_contract (20000 seeded inputs per op, _CPP twin ops) and the port calls the inline mirrors; Vector2 inputs of the contract stay finite and NaN free (engine warns on normalizing a non-finite vector, NaN payload with two NaN operands is compiler-chosen)
 
 ### Pending Todos
 
@@ -340,6 +343,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-19T12:07:37.418Z
-Stopped at: Completed 04-22-PLAN.md
+Last session: 2026-10-19T13:36:13.081Z
+Stopped at: Completed 04-15-PLAN.md
 Resume file: None
