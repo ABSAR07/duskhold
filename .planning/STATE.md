@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
 status: executing
-stopped_at: Completed 04-16-PLAN.md
-last_updated: "2026-10-19T14:39:44.559Z"
+stopped_at: Completed 04-17-PLAN.md
+last_updated: "2026-10-19T15:37:28.439Z"
 last_activity: 2026-10-19
 last_activity_desc: Phase 04 execution started
-state_head: 2c1b11efb169c8f880a48d59b5ca8433dda60a7f
+state_head: ead3dd52cea9a48d7f7bc3ca20d3c567edd9f399
 progress:
   total_phases: 13
   completed_phases: 3
   total_plans: 82
-  completed_plans: 76
+  completed_plans: 77
   percent: 23
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 04 (Crowd-Scale Battles & Walls) — EXECUTING
-Plan: 17 of 23 complete (11 gap-closure plans pending; 04-12 closed G-04-7)
+Plan: 18 of 23 complete (11 gap-closure plans pending; 04-12 closed G-04-7)
 Status: Owner gate done 2026-10-19 (04-UAT.md: 9 pass, 3 issues, 1 blocked); gaps G-04-5/6/7 diagnosed; gap plans 04-12 to 04-23 verified; next /gsd-execute-phase 4 --gaps-only
 Last activity: 2026-10-19 — Plan 04-12 complete (melee enemies break through walls to their target, G-04-7)
 
@@ -134,6 +134,7 @@ Progress: [██░░░░░░░░] 23%
 | Phase 04 P22 | 49 min | 2 tasks | 11 files |
 | Phase 04 P15 | 88 min | 2 tasks | 15 files |
 | Phase 04 P16 | 26 min | 2 tasks | 2 files |
+| Phase 04 P17 | 54 min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -309,6 +310,8 @@ Recent decisions affecting current work:
 - [Phase 04]: 04-15: gd_math.h opens with the operation table; godot-cpp operators and out-of-line Vector2 methods are proven bit-equal to the engine by test_native_math_contract (20000 seeded inputs per op, _CPP twin ops) and the port calls the inline mirrors; Vector2 inputs of the contract stay finite and NaN free (engine warns on normalizing a non-finite vector, NaN payload with two NaN operands is compiler-chosen)
 - [Phase 04]: 04-16: owner's option A (decided 2026-10-19): CI builds the native library on Linux (GCC) and Windows (MSVC) from the pinned sources; nothing binary is committed; artifacts native-linux / native-windows pass between jobs of the same run; the first run (39267563785) was green with identical goldens and gate digests on both compilers
 - [Phase 04]: 04-16: Windows replay-failure logs upload as windows-replay-logs (never native-*) so the export job's native-* download cannot pick them up
+- [Phase 04]: 04-17: wall solid test native; candidate sets are the GDScript's own (bucket keys, inflated box, ascending de-duplicated list); WR-02 tangency and IN-02 bucket walk ported unchanged on purpose — push_out depends on which segments segments_near visits; fixing either moves a digest and needs an owner golden decision
+- [Phase 04]: 04-17: stress-shape step gain judged by interleaved A/B (median 33.78 to 28.68 ms, every pair positive); the separate before/after files drifted (26.86 to 29.75) — laptop drift of several ms over 50 minutes; same lesson as 04-15
 
 ### Pending Todos
 
@@ -347,6 +350,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-19T14:39:43.692Z
-Stopped at: Completed 04-16-PLAN.md
+Last session: 2026-10-19T15:37:27.487Z
+Stopped at: Completed 04-17-PLAN.md
 Resume file: None

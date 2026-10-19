@@ -254,7 +254,7 @@ Plans:
   3. A scripted stress night with hundreds of units, enemies, and projectiles on screen holds 60 fps on GTX 970-class hardware, or within a documented equivalent frame-time budget on the dev machine.
   4. Nights from Phases 1–3 play the same after the switch to batched simulation and rendering. All existing headless loop and combat tests still pass.
 
-**Plans**: 17/23 plans executed (04-12 to 04-23 close the 2026-10-19 UAT gaps G-04-5, G-04-6 and G-04-7 and the 04-VERIFICATION.md gap for success criterion 3)
+**Plans**: 18/23 plans executed (04-12 to 04-23 close the 2026-10-19 UAT gaps G-04-5, G-04-6 and G-04-7 and the 04-VERIFICATION.md gap for success criterion 3)
 
 Plans:
 **Wave 1**
@@ -309,7 +309,7 @@ Plans:
 - [x] 04-16: The owner picks where the binaries come from (checkpoint), then CI builds or receives the library, replays the goldens on Linux and Windows and exports the DLL; one push watched green (G-04-5)
 
 **Gap wave 6 (wave 17)** *(blocked on 04-16)*
-- [ ] 04-17: The wall solid test in C++ (first_blocking, push_out, closest_point, segments_near) for every caller, pinned first (G-04-5)
+- [x] 04-17: The wall solid test in C++ (first_blocking, push_out, closest_point, segments_near) for every caller, pinned first (G-04-5)
 
 **Gap wave 7 (wave 18)** *(blocked on 04-17)*
 - [ ] 04-18: Flow-field reads and castle routing in C++ from a live grid mirror, pinned first (G-04-5)
@@ -477,7 +477,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 1. Foundation & Day Loop | 18/18 | Complete    | 2026-10-03 |
 | 2. Night Defense & Playtest Gate | 22/22 | Complete    | 2026-10-08 |
 | 3. King Combat & Troops | 19/19 | Complete    | 2026-10-15 |
-| 4. Crowd-Scale Battles & Walls | 17/23 | In Progress|  |
+| 4. Crowd-Scale Battles & Walls | 18/23 | In Progress|  |
 | 5. Castle Center & Economy Depth | 0/TBD | Not started | - |
 | 6. Enemy Roster & Tower Specializations | 0/TBD | Not started | - |
 | 7. Army Variety & Heroes | 0/TBD | Not started | - |
