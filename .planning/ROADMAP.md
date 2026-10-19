@@ -254,7 +254,7 @@ Plans:
   3. A scripted stress night with hundreds of units, enemies, and projectiles on screen holds 60 fps on GTX 970-class hardware, or within a documented equivalent frame-time budget on the dev machine.
   4. Nights from Phases 1–3 play the same after the switch to batched simulation and rendering. All existing headless loop and combat tests still pass.
 
-**Plans**: 20/23 plans executed (04-12 to 04-23 close the 2026-10-19 UAT gaps G-04-5, G-04-6 and G-04-7 and the 04-VERIFICATION.md gap for success criterion 3)
+**Plans**: 21/23 plans executed (04-12 to 04-23 close the 2026-10-19 UAT gaps G-04-5, G-04-6 and G-04-7 and the 04-VERIFICATION.md gap for success criterion 3)
 
 Plans:
 **Wave 1**
@@ -318,7 +318,7 @@ Plans:
 - [x] 04-23: The structure index and the wall decision state in C++, pinned first; the per-tick enemy trace tool with bounds taken from each scenario (G-04-5)
 
 **Gap wave 9 (wave 20)** *(blocked on 04-23)*
-- [ ] 04-19: The enemy store and step in C++ behind EnemySystem's facade, identical tick by tick to committed reference trace digests on five scenarios (G-04-5)
+- [x] 04-19: The enemy store and step in C++ behind EnemySystem's facade, identical tick by tick to committed reference trace digests on five scenarios (G-04-5)
 
 **Gap wave 10 (wave 21)** *(blocked on 04-19)*
 - [ ] 04-20: Native nearest-enemy queries and stuck tracker, then the whole port green on CI on Linux and Windows (G-04-5)
@@ -477,7 +477,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 1. Foundation & Day Loop | 18/18 | Complete    | 2026-10-03 |
 | 2. Night Defense & Playtest Gate | 22/22 | Complete    | 2026-10-08 |
 | 3. King Combat & Troops | 19/19 | Complete    | 2026-10-15 |
-| 4. Crowd-Scale Battles & Walls | 20/23 | In Progress|  |
+| 4. Crowd-Scale Battles & Walls | 21/23 | In Progress|  |
 | 5. Castle Center & Economy Depth | 0/TBD | Not started | - |
 | 6. Enemy Roster & Tower Specializations | 0/TBD | Not started | - |
 | 7. Army Variety & Heroes | 0/TBD | Not started | - |
