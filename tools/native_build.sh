@@ -286,16 +286,7 @@ fi
 # --- 7. install the library and the source stamp ----------------------------------------------
 mkdir -p "${OUT_DIR}"
 cp -f "${BUILD_DIR}/out/${LIB_NAME}" "${OUT_DIR}/${LIB_NAME}"
-(
-  cd "${DUSKHOLD_ROOT}" || exit 1
-  {
-    for f in tools/godot_cpp_pin.txt native/CMakeLists.txt; do
-      printf '%s  %s\n' "$(tr -d '\r' <"${f}" | sha256sum | cut -d' ' -f1)" "${f}"
-    done
-    find native/src -type f | LC_ALL=C sort | while IFS= read -r f; do
-      printf '%s  %s\n' "$(tr -d '\r' <"${f}" | sha256sum | cut -d' ' -f1)" "${f}"
-    done
-  } | sha256sum | cut -d' ' -f1
-) >"${OUT_DIR}/${PLATFORM}.stamp"
+# The stamp comes from the shared function in tools/_common.sh, the same one the guard checks with.
+duskhold_native_stamp >"${OUT_DIR}/${PLATFORM}.stamp"
 
 echo "NATIVE_BUILD_OK platform=${PLATFORM} lib=${LIB_NAME} godot_cpp=${PIN} api=${API_VERSION}"

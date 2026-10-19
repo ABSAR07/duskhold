@@ -24,6 +24,9 @@ if [ ! -x "${GODOT_BIN}" ] && [ ! -f "${GODOT_BIN}" ]; then
   exit 3
 fi
 
+# A missing or stale native library is a hard error (exit 3), never a silent fallback.
+duskhold_require_native || exit 3
+
 REPLAY_DIR="${DUSKHOLD_ROOT}/build/replay"
 IMPORT_LOG="${REPLAY_DIR}/import.log"
 REPLAY_LOG="${REPLAY_DIR}/replay.log"
@@ -33,6 +36,7 @@ mkdir -p "${REPLAY_DIR}"
 rm -f "${REPLAY_LOG}"
 
 # 1. Headless import pass (warms .godot/ so class_name scripts and resources resolve).
+duskhold_seed_extension_list
 "${GODOT_BIN}" --headless --path "${DUSKHOLD_ROOT_NATIVE}" --import >"${IMPORT_LOG}" 2>&1
 import_status=$?
 if [ "${import_status}" -ne 0 ]; then
