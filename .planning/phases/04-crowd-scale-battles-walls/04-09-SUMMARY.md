@@ -120,7 +120,8 @@ coverage:
 
 duration: 54 min
 completed: 2026-10-16
-status: halted
+status: complete  # was halted at the PLAT-01 stop rule (2026-10-16); halt resolved 2026-10-19 by the owner's route decision
+halt_resolution: "Owner 2026-10-16: 04-10 and 04-11 ran on the missed budget. Owner 2026-10-19 (/gsd-verify-work 4, 04-UAT.md test 11): route (3), a C++ GDExtension for the enemy and wall step with the 8.0 ms p95 budget kept; gap plans 04-14 to 04-23 implement it and 04-21 re-measures. PLAT-01 stays open (requirements-completed: []) until that measurement; the halt no longer blocks the gap plans"
 ---
 
 # Phase 4 Plan 09: The Frame-Time Budget Summary
