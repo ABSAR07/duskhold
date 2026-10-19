@@ -13,12 +13,7 @@ extends RefCounted
 ## broken segment is a hole open to everyone until dawn (D-05): a tier purchase raises its maximum
 ## but leaves it broken, and only restore_all() makes it whole again.
 
-## A performance parameter, never data: the edge in metres of the static bucket grid behind
-## segments_near. It changes how many segments are looked at, never which ones are solid.
-const BUCKET_CELL: float = 4.0
 const CENTIMETRES: float = 100.0
-const KEY_OFFSET: int = 1 << 19
-const KEY_STRIDE: int = 1 << 20
 
 var _events: SimEvents
 var _buildings: BuildingSystem
@@ -32,8 +27,6 @@ var _max_health: PackedInt32Array = PackedInt32Array()
 ## Wall plot id -> PackedInt32Array of its segments, ascending; and the wall plots in map order.
 var _runs: Dictionary = {}
 var _run_order: Array[StringName] = []
-## Bucket key -> Array[int] of the segments whose inflated box touches the cell, ascending.
-var _buckets: Dictionary = {}
 var _intact: int = 0
 var _version: int = 0
 ## The C++ copy of the segments (native/src/native_walls.cpp): every health write below is mirrored
@@ -135,24 +128,11 @@ func native() -> NativeWalls:
 
 
 ## The segments whose solid could reach a circle of radius `reach` metres around `pos`, ascending,
-## standing or not: a superset for the caller to narrow with its own exact test. Read-only.
+## standing or not: a superset for the caller to narrow with its own exact test. Read-only. The 4 m
+## bucket grid behind it (a performance parameter, never data: it changes how many segments are
+## looked at, never which ones are solid) lives in native/src/native_walls.cpp.
 func segments_near(pos: Vector2, reach: float) -> PackedInt32Array:
-	var found: PackedInt32Array = PackedInt32Array()
-	if _buckets.is_empty() or not is_finite(reach) or reach < 0.0:
-		return found
-	var low_x: int = floori((pos.x - reach) / BUCKET_CELL)
-	var high_x: int = floori((pos.x + reach) / BUCKET_CELL)
-	var low_y: int = floori((pos.y - reach) / BUCKET_CELL)
-	var high_y: int = floori((pos.y + reach) / BUCKET_CELL)
-	for cell_x: int in range(low_x, high_x + 1):
-		for cell_y: int in range(low_y, high_y + 1):
-			var bucket: Variant = _buckets.get(_key(cell_x, cell_y))
-			if bucket != null:
-				for segment: int in bucket as Array:
-					found.append(segment)
-	if high_x > low_x or high_y > low_y:
-		found = _sorted_unique(found)
-	return found
+	return _native.segments_near(pos, reach)
 
 
 ## Removes up to `amount` hit points (never below 0) from a standing segment and emits
@@ -220,7 +200,7 @@ func _recount() -> void:
 			_intact += 1
 
 
-## Appends the expanded segments of a wall plot, in path order, and buckets each one.
+## Appends the expanded segments of a wall plot, in path order.
 func _add_run(spot: BuildSpotDef) -> void:
 	var expanded: PackedInt32Array = spot.wall_run.expand()
 	var segments: PackedInt32Array = PackedInt32Array()
@@ -239,35 +219,5 @@ func _add_run(spot: BuildSpotDef) -> void:
 		_health.append(0)
 		_max_health.append(0)
 		segments.append(segment)
-		_bucket(segment, start, end, spot.wall_run.half_thickness)
 	_runs[spot.id] = segments
 	_run_order.append(spot.id)
-
-
-## Puts the segment in every cell its box, inflated by the half thickness, touches.
-func _bucket(segment: int, start: Vector2, end: Vector2, half: float) -> void:
-	var low_x: int = floori((minf(start.x, end.x) - half) / BUCKET_CELL)
-	var high_x: int = floori((maxf(start.x, end.x) + half) / BUCKET_CELL)
-	var low_y: int = floori((minf(start.y, end.y) - half) / BUCKET_CELL)
-	var high_y: int = floori((maxf(start.y, end.y) + half) / BUCKET_CELL)
-	for cell_x: int in range(low_x, high_x + 1):
-		for cell_y: int in range(low_y, high_y + 1):
-			var key: int = _key(cell_x, cell_y)
-			if not _buckets.has(key):
-				var fresh: Array[int] = []
-				_buckets[key] = fresh
-			(_buckets[key] as Array[int]).append(segment)
-
-
-func _key(cell_x: int, cell_y: int) -> int:
-	return (cell_x + KEY_OFFSET) * KEY_STRIDE + (cell_y + KEY_OFFSET)
-
-
-func _sorted_unique(values: PackedInt32Array) -> PackedInt32Array:
-	var sorted: PackedInt32Array = values.duplicate()
-	sorted.sort()
-	var unique: PackedInt32Array = PackedInt32Array()
-	for value: int in sorted:
-		if unique.is_empty() or unique[unique.size() - 1] != value:
-			unique.append(value)
-	return unique
