@@ -7,6 +7,7 @@
 #include <godot_cpp/godot.hpp>
 
 #include "native_sim.h"
+#include "native_walls.h"
 
 using namespace godot;
 
@@ -15,6 +16,7 @@ void initialize_duskhold_sim_module(ModuleInitializationLevel p_level) {
 		return;
 	}
 	GDREGISTER_CLASS(NativeSim);
+	GDREGISTER_CLASS(NativeWalls);
 }
 
 void uninitialize_duskhold_sim_module(ModuleInitializationLevel p_level) {

@@ -50,24 +50,7 @@ static func push_out(walls: WallSystem, pos: Vector2, radius: float) -> Vector2:
 ## to `to`: the one nearest to `from`, ties to the lower index. -1 when the line is clear. A segment
 ## blocks when the line passes closer than half_thickness + radius to it.
 static func first_blocking(walls: WallSystem, from: Vector2, to: Vector2, radius: float) -> int:
-	if walls.intact_count() == 0:
-		return -1
-	var middle: Vector2 = (from + to) * 0.5
-	var reach: float = from.distance_to(to) * 0.5 + radius + REACH_MARGIN
-	var best: int = -1
-	var best_distance: float = INF
-	for segment: int in walls.segments_near(middle, reach):
-		if not walls.is_intact(segment):
-			continue
-		var start: Vector2 = walls.segment_start(segment)
-		var end: Vector2 = walls.segment_end(segment)
-		if _segments_distance(from, to, start, end) >= walls.half_thickness_of(segment) + radius:
-			continue
-		var distance: float = from.distance_to(_closest_on(start, end, from))
-		if distance < best_distance:
-			best_distance = distance
-			best = segment
-	return best
+	return walls.native().first_blocking(from, to, radius)
 
 
 ## `pos` moved out of one segment when it overlaps it, else `pos` itself.

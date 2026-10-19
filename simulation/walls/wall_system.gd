@@ -36,6 +36,9 @@ var _run_order: Array[StringName] = []
 var _buckets: Dictionary = {}
 var _intact: int = 0
 var _version: int = 0
+## The C++ copy of the segments (native/src/native_walls.cpp): every health write below is mirrored
+## into it with set_health, and WallSolids answers its queries from it.
+var _native: NativeWalls = NativeWalls.new()
 
 
 func _init(map: MapConfig, buildings: BuildingSystem, events: SimEvents) -> void:
@@ -45,6 +48,7 @@ func _init(map: MapConfig, buildings: BuildingSystem, events: SimEvents) -> void
 		if spot == null or spot.wall_run == null or spot.id == &"" or _runs.has(spot.id):
 			continue
 		_add_run(spot)
+	_native.setup(_starts, _ends, _half)
 	events.building_built.connect(_on_building_built)
 
 
@@ -64,6 +68,7 @@ func on_building_built(spot_id: StringName, _building_id: StringName, tier: int)
 		_max_health[segment] = tier_def.max_health
 		if not was_built or _health[segment] > 0:
 			_health[segment] = tier_def.max_health
+			_native.set_health(segment, _health[segment])
 	_recount()
 	_version += 1
 
@@ -124,6 +129,11 @@ func max_health_of(segment: int) -> int:
 	return _max_health[segment] if _valid(segment) else 0
 
 
+## The native mirror of the segments, in step with every health change; WallSolids asks it.
+func native() -> NativeWalls:
+	return _native
+
+
 ## The segments whose solid could reach a circle of radius `reach` metres around `pos`, ascending,
 ## standing or not: a superset for the caller to narrow with its own exact test. Read-only.
 func segments_near(pos: Vector2, reach: float) -> PackedInt32Array:
@@ -155,6 +165,7 @@ func damage_segment(segment: int, amount: int) -> void:
 		return
 	var lost: int = mini(amount, _health[segment])
 	_health[segment] -= lost
+	_native.set_health(segment, _health[segment])
 	_events.wall_damaged.emit(
 		_owner[segment], segment, lost, _health[segment], _max_health[segment]
 	)
@@ -177,6 +188,7 @@ func restore_all() -> Array[StringName]:
 			if _max_health[segment] > 0 and _health[segment] < _max_health[segment]:
 				holes_closed = holes_closed or _health[segment] == 0
 				_health[segment] = _max_health[segment]
+				_native.set_health(segment, _health[segment])
 				touched = true
 		if touched:
 			changed.append(spot_id)
