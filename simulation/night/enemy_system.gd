@@ -250,9 +250,18 @@ func clear() -> void:
 ##      the castle, ties going to a unit first (the lower id among units), then the earlier spot,
 ##      and the castle last, so units and outer buildings shield the castle;
 ##   5. none: the enemy keeps marching on the castle.
+## While a wall stands the line to the target matters, per kind of enemy (owner decision of
+## 2026-10-19, UAT test 13, gap G-04-7): a default melee enemy (_breaks_to_targets) breaks through
+## to a king, unit or building it can reach only through a wall, remembering that target while it
+## attacks the segment in the way; a target in sight still wins, the castle is never a target behind
+## a wall and the target-less castle march keeps the 04-07 break-or-detour rule. A ranged enemy
+## shoots over walls within its attack range, and an enemy with drops_blocked_targets keeps the
+## 04-06 rule: a target it has no clear line to is dropped and it marches on the castle.
 func _choose_target(
 	record: Record, tick: int, castle: CastleState, king: KingState, buildings: BuildingSystem
 ) -> void:
+	if record.behind_kind != &"":
+		_release_held_wall(record, tick, castle, king, buildings)
 	var chosen: bool = _choose_base_target(record, tick, castle, king, buildings)
 	if _walls_are_solid() and not record.def.ignores_walls:
 		_target_walls_in_the_way(record, tick, chosen, castle, king, buildings)
@@ -278,11 +287,13 @@ func _choose_base_target(
 	):
 		record.target_kind = PendingHits.KIND_KING
 		record.target_id = 0
+		record.behind_kind = &""
 		return true
 	if valid:
 		return false
 	record.target_kind = &""
 	record.target_id = 0
+	record.behind_kind = &""
 	_pick_nearest_structure(record)
 	return record.target_kind != &""
 
@@ -294,7 +305,10 @@ func _choose_base_target(
 ## no target tests its line to the castle only on its rescan tick, caches the answer on the record
 ## and decides once it is within the notice range, so 300 marchers pay about 20 line tests a tick.
 ## An enemy already attacking a segment gives it up on a rescan tick only when the detour wins by
-## more than the hysteresis (WallDecision.keep_breaking).
+## more than the hysteresis (WallDecision.keep_breaking). A default melee enemy with a king, unit
+## or building target (_breaks_to_targets) takes the segment its centre line crosses (radius 0, so a
+## line that only grazes a gap's edge is clear), remembers the target in behind_kind and keeps the
+## segment until _release_held_wall lets it go: the castle detour never frees it.
 func _target_walls_in_the_way(
 	record: Record,
 	tick: int,
@@ -305,7 +319,7 @@ func _target_walls_in_the_way(
 ) -> void:
 	var rescan: bool = is_rescan_tick(tick, record.id, record.rescan_ticks)
 	if record.target_kind == PendingHits.KIND_WALL:
-		if not rescan or _keeps_breaking(record):
+		if record.behind_kind != &"" or not rescan or _keeps_breaking(record):
 			return
 		record.wall_given_up = record.target_id
 		record.target_kind = &""
@@ -316,14 +330,62 @@ func _target_walls_in_the_way(
 	record.wall_seg = -1
 	if not chosen and not rescan:
 		return
+	var breaks: bool = _breaks_to_targets(record)
+	if breaks and record.target_kind == PendingHits.KIND_CASTLE:
+		return
 	var goal: Vector2 = _goal_of(record, castle, king, buildings)
 	if _shoots_over(record, goal, _goal_radius_of(record, castle, king, buildings)):
 		return
+	var held_kind: StringName = record.target_kind
+	var held_id: int = record.target_id
+	var line_radius: float = 0.0 if breaks else record.def.radius
 	_take_wall(
-		record,
-		_pathing.first_blocking(record.position, goal, record.def.radius),
-		record.def.leash_range
+		record, _pathing.first_blocking(record.position, goal, line_radius), record.def.leash_range
 	)
+	if breaks and record.target_kind == PendingHits.KIND_WALL:
+		record.behind_kind = held_kind
+		record.behind_id = held_id
+
+
+## True for a default melee enemy while walls stand: no projectile, it does not pass over walls and
+## its def does not keep the 04-06 rule (drops_blocked_targets). Such an enemy breaks the wall in
+## its way to reach a king, unit or building target (G-04-7).
+func _breaks_to_targets(record: Record) -> bool:
+	return (
+		_walls_are_solid()
+		and not record.def.ignores_walls
+		and not record.def.drops_blocked_targets
+		and record.def.projectile_speed <= 0.0
+	)
+
+
+## Lets go of a segment held for a target (record.behind_kind set) and puts the target back, when
+## the segment no longer stands or, on the enemy's rescan tick, when the centre line to the target
+## no longer crosses it. When the target itself is gone (dead, fallen, knocked out or past the
+## leash) the enemy is left without one and chooses again. Otherwise the held segment stays.
+func _release_held_wall(
+	record: Record, tick: int, castle: CastleState, king: KingState, buildings: BuildingSystem
+) -> void:
+	var segment: int = record.target_id
+	record.target_kind = record.behind_kind
+	record.target_id = record.behind_id
+	var release: bool = false
+	if not _target_valid(record, castle, king, buildings):
+		record.target_kind = &""
+		record.target_id = 0
+		release = true
+	elif not _pathing.walls().is_intact(segment):
+		release = true
+	elif is_rescan_tick(tick, record.id, record.rescan_ticks):
+		var goal: Vector2 = _goal_of(record, castle, king, buildings)
+		release = _pathing.first_blocking(record.position, goal, 0.0) != segment
+	if release:
+		record.behind_kind = &""
+		record.behind_id = 0
+		record.wall_seg = -1
+	else:
+		record.target_kind = PendingHits.KIND_WALL
+		record.target_id = segment
 
 
 ## The target-less marcher's side of the wall rule. On its rescan tick it refreshes the segment in
@@ -444,9 +506,11 @@ func _goal_radius_of(
 	return castle.get_radius()
 
 
-## True while the enemy may keep or choose a target at `centre` (RESEARCH Open Question 3, decided
-## in plan 04-06): no wall stands, the def passes over walls, the straight line is clear of every
-## intact segment, or the enemy is ranged and the target's edge is within its attack range.
+## True while an enemy may keep or choose a target at `centre` under the 04-06 rule (RESEARCH Open
+## Question 3): no wall stands, the def passes over walls, the straight line is clear of every
+## intact segment, or the enemy is ranged and the target's edge is within its attack range. A
+## default melee enemy no longer asks (owner decision of 2026-10-19, G-04-7: it breaks through to
+## the target); a ranged enemy and one with drops_blocked_targets still do.
 func _can_see(record: Record, centre: Vector2, target_radius: float) -> bool:
 	if not _walls_are_solid() or record.def.ignores_walls:
 		return true
@@ -497,7 +561,13 @@ func _push_out_of_walls() -> void:
 ## buildings in spot order and the castle last.
 func _pick_nearest_structure(record: Record) -> void:
 	var found: Vector3i
-	if _walls_are_solid() and not record.def.ignores_walls:
+	if _breaks_to_targets(record):
+		found = _structures.nearest_visible(
+			record.position, record.def.aggro_range, _pathing, 0.0, -1.0
+		)
+		if found.z == 0:
+			found = _structures.nearest_through_walls(record.position, record.def.aggro_range)
+	elif _walls_are_solid() and not record.def.ignores_walls:
 		var ranged_reach: float = -1.0
 		if record.def.projectile_speed > 0.0:
 			ranged_reach = record.def.attack_range
@@ -708,3 +778,8 @@ class Record:
 	var wall_seg: int = -1
 	## The segment it gave up for the detour (hysteresis), which it does not take again, or -1.
 	var wall_given_up: int = -1
+	## While it attacks a segment standing between it and a king, unit or building target (G-04-7),
+	## that target's kind (empty otherwise) and id: the segment is held for it, and the target comes
+	## back when the segment breaks.
+	var behind_kind: StringName = &""
+	var behind_id: int = 0

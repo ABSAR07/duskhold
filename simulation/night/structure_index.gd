@@ -65,7 +65,7 @@ func rebuild(units: UnitSystem, buildings: BuildingSystem, castle: CastleState) 
 ## Vector3i(kind, id, 1); NONE when there is none. A unit or building id is the one the enemy's
 ## target carries (unit id, spot index); the castle's id is 0.
 func nearest(pos: Vector2, aggro_range: float) -> Vector3i:
-	return _scan(pos, aggro_range, null, 0.0, -1.0)
+	return _scan(pos, aggro_range, null, 0.0, -1.0, false)
 
 
 ## nearest() for an enemy behind walls (ENMY-04, RESEARCH Open Question 3): a candidate counts only
@@ -73,14 +73,29 @@ func nearest(pos: Vector2, aggro_range: float) -> Vector3i:
 ## of `radius` metres, or while the enemy is ranged (`ranged_reach` is its attack range, a negative
 ## number for a melee enemy) and the candidate's edge is within it. The same candidates in the same
 ## order with the same tests, so only a candidate that would improve the best pays for a line test.
+## A default melee enemy (the owner's rule of 2026-10-19, G-04-7) asks with radius 0.0, so only a
+## line through a segment's solid counts as blocked; the 04-06 radius is what a ranged enemy and an
+## enemy with drops_blocked_targets still pass.
 func nearest_visible(
 	pos: Vector2, aggro_range: float, pathing: Pathing, radius: float, ranged_reach: float
 ) -> Vector3i:
-	return _scan(pos, aggro_range, pathing, radius, ranged_reach)
+	return _scan(pos, aggro_range, pathing, radius, ranged_reach, false)
+
+
+## The nearest living unit or standing building inside `aggro_range` whatever walls stand between,
+## the castle never (G-04-7): what a melee enemy breaks through to when nothing is in sight. The
+## same candidates in the same order with the same `edge <= aggro_range and edge < best_edge` test.
+func nearest_through_walls(pos: Vector2, aggro_range: float) -> Vector3i:
+	return _scan(pos, aggro_range, null, 0.0, -1.0, true)
 
 
 func _scan(
-	pos: Vector2, aggro_range: float, pathing: Pathing, radius: float, ranged_reach: float
+	pos: Vector2,
+	aggro_range: float,
+	pathing: Pathing,
+	radius: float,
+	ranged_reach: float,
+	skip_castle: bool
 ) -> Vector3i:
 	var reach_cells: int = ceili((aggro_range + _largest_radius + REACH_MARGIN) / CELL)
 	var cell_x: int = floori(pos.x / CELL)
@@ -95,6 +110,8 @@ func _scan(
 	var best_edge: float = INF
 	var found: Vector3i = NONE
 	for index: int in candidates:
+		if skip_castle and _kinds[index] == KIND_CASTLE:
+			continue
 		var edge: float = pos.distance_to(_centres[index]) - _radii[index]
 		if edge <= aggro_range and edge < best_edge:
 			if pathing != null and not _seen(pos, index, edge, pathing, radius, ranged_reach):

@@ -28,3 +28,9 @@ extends Resource
 ## True for an enemy that passes over walls (Phase 6 flyers): no segment is solid to it and it never
 ## attacks one. No shipped enemy sets it.
 @export var ignores_walls: bool = false
+## True for an enemy that keeps the 04-06 rule: a target (king, unit or building) behind an intact
+## wall is dropped and the enemy marches on the castle. The default (false) is the owner's rule of
+## 2026-10-19 (G-04-7): a melee enemy breaks the wall in its way to reach the target. It is the hook
+## for the Phase 6 types that go castle-first; no shipped enemy sets it. Ranged enemies (projectile
+## speed above 0) shoot over walls whatever it says, and ignores_walls wins over it.
+@export var drops_blocked_targets: bool = false
