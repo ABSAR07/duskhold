@@ -106,4 +106,34 @@ inline void write_transform(
 	data[3] = custom.a;
 }
 
+// CrowdBatch.add's floats for instance `index` of the mirror `m` (index below layout.capacity, m
+// holding capacity * stride floats): the origin at offsets 3, 7 and 11, the colour only when the
+// batch has colours, then the custom data. The basis floats are left as the batch's setup wrote
+// them, exactly as the GDScript add leaves them. Every float is a plain store of an operand, no
+// arithmetic (plan 04-26: the enemy, bar and puff fills).
+inline void write_origin(
+		float *m,
+		const MirrorLayout &layout,
+		int64_t index,
+		const godot::Vector3 &origin,
+		const godot::Color &custom,
+		const godot::Color &color) {
+	float *at = m + index * layout.stride;
+	at[3] = origin.x;
+	at[7] = origin.y;
+	at[11] = origin.z;
+	if (layout.color_offset >= 0) {
+		float *tint = at + layout.color_offset;
+		tint[0] = color.r;
+		tint[1] = color.g;
+		tint[2] = color.b;
+		tint[3] = color.a;
+	}
+	float *data = at + layout.custom_offset;
+	data[0] = custom.r;
+	data[1] = custom.g;
+	data[2] = custom.b;
+	data[3] = custom.a;
+}
+
 } // namespace duskhold
