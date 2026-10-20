@@ -254,7 +254,7 @@ Plans:
   3. A scripted stress night with hundreds of units, enemies, and projectiles on screen holds 60 fps on GTX 970-class hardware, or within a documented equivalent frame-time budget on the dev machine.
   4. Nights from Phases 1–3 play the same after the switch to batched simulation and rendering. All existing headless loop and combat tests still pass.
 
-**Plans**: 23/28 plans executed (04-12 to 04-23 closed the 2026-10-19 UAT gaps G-04-5, G-04-6 and G-04-7; 04-24 to 04-28 are the second gap round for the 04-VERIFICATION.md gap for success criterion 3, PLAT-01, planned 2026-10-20)
+**Plans**: 24/28 plans executed (04-12 to 04-23 closed the 2026-10-19 UAT gaps G-04-5, G-04-6 and G-04-7; 04-24 to 04-28 are the second gap round for the 04-VERIFICATION.md gap for success criterion 3, PLAT-01, planned 2026-10-20)
 
 Plans:
 **Wave 1**
@@ -329,7 +329,7 @@ Plans:
 **Gap closure, round 2** *(re-verification 2026-10-20: PLAT-01 still missed at a median-run p95 of 10.95 ms against the unchanged 8.0 ms, the step now 2.33 ms and the three per-frame view loops the remaining cost; owner route 2026-10-20: port the view fills to C++, pins-first and byte-identical, budget unchanged, then re-measure; review CR-01 folded in first)*
 
 **Gap wave 12 (wave 23)** *(blocked on 04-21)*
-- [ ] 04-24: Review CR-01 first — the native stamp binds the library bytes and a failed copy leaves no stamp, with a hermetic probe; the committed per-view fill bench and the real-window view ablation, with the ablation baseline before any port (G-04-5)
+- [x] 04-24: Review CR-01 first — the native stamp binds the library bytes and a failed copy leaves no stamp, with a hermetic probe; the committed per-view fill bench and the real-window view ablation, with the ablation baseline before any port (G-04-5)
 
 **Gap wave 13 (wave 24)** *(blocked on 04-24)*
 - [ ] 04-25: Tracer — the arrows' per-frame flight in C++ (NativeArrows) behind ProjectileVfx's API, pinned on the GDScript fill first, the same pins and goldens, a measured gain, then the GDScript loop goes; the Vector3 math contract against the engine (G-04-5)
@@ -494,7 +494,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 1. Foundation & Day Loop | 18/18 | Complete    | 2026-10-03 |
 | 2. Night Defense & Playtest Gate | 22/22 | Complete    | 2026-10-08 |
 | 3. King Combat & Troops | 19/19 | Complete    | 2026-10-15 |
-| 4. Crowd-Scale Battles & Walls | 23/23 | In Progress|  |
+| 4. Crowd-Scale Battles & Walls | 24/28 | In Progress|  |
 | 5. Castle Center & Economy Depth | 0/TBD | Not started | - |
 | 6. Enemy Roster & Tower Specializations | 0/TBD | Not started | - |
 | 7. Army Variety & Heroes | 0/TBD | Not started | - |

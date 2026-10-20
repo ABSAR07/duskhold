@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
 status: executing
-stopped_at: "Halted 04-21-PLAN.md (stop rule: PLAT-01 NOT met, Task 2 not run)"
-last_updated: "2026-10-20T08:33:30.773Z"
+stopped_at: Completed 04-24-PLAN.md
+last_updated: "2026-10-20T09:07:15.075Z"
 last_activity: 2026-10-20
 last_activity_desc: Phase 04 execution started
-state_head: a9e62d5e016f354f3b8094ad03af473bd888e80a
+state_head: 78857ccb8c9549744579fd84e6dbfaa35b770b14
 progress:
   total_phases: 13
   completed_phases: 3
   total_plans: 87
-  completed_plans: 82
+  completed_plans: 83
   percent: 23
 ---
 
@@ -28,8 +28,8 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 04 (Crowd-Scale Battles & Walls) — EXECUTING
-Plan: 1 of 28
-Status: Executing Phase 04
+Plan: 2 of 28
+Status: Ready to execute
 Last activity: 2026-10-20 — Phase 04 execution started
 
 Progress: [██░░░░░░░░] 23%
@@ -140,6 +140,7 @@ Progress: [██░░░░░░░░] 23%
 | Phase 04 P19 | 58 min | 2 tasks | 13 files |
 | Phase 04 P20 | 61 min | 3 tasks | 15 files |
 | Phase 04 P21 | 11 min | 1 tasks | 1 files |
+| Phase 04 P24 | 31 min | 3 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -326,6 +327,8 @@ Recent decisions affecting current work:
 - [Phase 04]: 04-20: the read view carries a living flag next to targeted (the tracker skipped dead-but-unremoved enemies through is_alive) and a lethal damage marks the view stale; StuckTracker's constructor takes the castle position (default Vector2.ZERO), Pathing gains no method
 - [Phase 04]: 04-20: nearest_living (EnemySystem 19 of 20) answers every nearest-enemy question natively; stuck tracker native and read-only; the CI run 39310876191 is green on every job for b5a6f57 with the goldens on Linux and Windows; stress step median 2.18 ms, probe PHASE squads 1.41 ms
 - [Phase 04]: 04-21: stress night on the native step is NOT met (p95 10.95 ms vs 8.0 ms, p50 6.25 ms); remaining gap is the view layers' per-frame loops (p95 4.55 ms with them off), not the 2.33 ms step; plan halted by its stop rule, nothing lowered; next candidate named first is the view-layer port, squad port second
+- [Phase 04]: 04-24: the native stamp binds the installed library bytes (two lines: source stamp, library sha256); install = remove stamp, checked copy (status + cmp), stamp written last; every wrapper exits 3 on a failed, changed, swapped, one-line or missing case — Review CR-01: a failed copy over a loaded DLL left a valid-looking stamp, so a stale library passed every guard
+- [Phase 04]: 04-24: the view ablation records each frame delta under the slice running during the previous frame; ABLATION_SAVED is the median over trials of all_on mean minus slice mean; baseline before any port: projectile_vfx 2.13, enemy_views 1.32, unit_views 0.42, all_off 3.80 ms saved (build ablation.txt in 04-24-SUMMARY) — Same-instrument before for plan 04-28
 
 ### Pending Todos
 
@@ -364,6 +367,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-20T08:23:22Z
-Stopped at: Halted 04-21-PLAN.md (stop rule: PLAT-01 NOT met, Task 2 not run)
+Last session: 2026-10-20T09:07:13.911Z
+Stopped at: Completed 04-24-PLAN.md
 Resume file: None
