@@ -107,9 +107,13 @@ func add_transform(xform: Transform3D, custom: Color, color: Color = Color.WHITE
 
 
 ## Uploads the mirror in one call and shows the instances added since `begin()`; an empty frame
-## shows none.
+## shows none. A frame that holds nothing while nothing is shown uploads nothing (review IN-08: the
+## CPU mirror is unchanged on such a frame, no stale instance can be drawn, and the next drawn
+## frame uploads the whole mirror).
 func commit() -> void:
 	if multimesh == null:
+		return
+	if _count == 0 and multimesh.visible_instance_count == 0:
 		return
 	multimesh.buffer = _mirror
 	multimesh.visible_instance_count = _count

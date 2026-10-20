@@ -10,6 +10,7 @@
 #include "native_enemies.h"
 #include "native_enemy_views.h"
 #include "native_field.h"
+#include "native_puffs.h"
 #include "native_sim.h"
 #include "native_stuck.h"
 #include "native_structures.h"
@@ -33,6 +34,7 @@ void initialize_duskhold_sim_module(ModuleInitializationLevel p_level) {
 	GDREGISTER_CLASS(NativeStuck);
 	GDREGISTER_CLASS(NativeArrows);
 	GDREGISTER_CLASS(NativeEnemyViews);
+	GDREGISTER_CLASS(NativePuffs);
 }
 
 void uninitialize_duskhold_sim_module(ModuleInitializationLevel p_level) {

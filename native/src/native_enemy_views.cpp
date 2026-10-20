@@ -204,9 +204,9 @@ int64_t NativeEnemyViews::fill(
 	const int64_t *id_at = ids.ptr();
 	const Vector2 *previous_at = previous.ptr();
 	const Vector2 *current_at = current.ptr();
-	float *buffers[BATCH_TOTAL] = {
-		mirrors_[0].ptrw(), mirrors_[1].ptrw(), mirrors_[2].ptrw(), mirrors_[3].ptrw()
-	};
+	// A mirror is taken for writing only when its first instance is written, so a frame that draws
+	// nothing into a batch never copies the mirror that batch still shares (review IN-08).
+	float *buffers[BATCH_TOTAL] = { nullptr, nullptr, nullptr, nullptr };
 	const Color no_tint = Color(1.0f, 1.0f, 1.0f, 1.0f);
 
 	for (int64_t slot = 0; slot < total; slot++) {
@@ -231,6 +231,9 @@ int64_t NativeEnemyViews::fill(
 		if (counts_[kind] >= layouts_[kind].capacity) {
 			continue;
 		}
+		if (buffers[kind] == nullptr) {
+			buffers[kind] = mirrors_[kind].ptrw();
+		}
 		duskhold::write_origin(buffers[kind], layouts_[kind], counts_[kind], origin, custom, no_tint);
 		counts_[kind]++;
 		drawn_ids_[static_cast<size_t>(drawn_)] = static_cast<int32_t>(enemy_id);
@@ -245,6 +248,9 @@ int64_t NativeEnemyViews::fill(
 					0.0f,
 					0.0f,
 					0.0f);
+			if (buffers[BATCH_BARS] == nullptr) {
+				buffers[BATCH_BARS] = mirrors_[BATCH_BARS].ptrw();
+			}
 			duskhold::write_origin(
 					buffers[BATCH_BARS], layouts_[BATCH_BARS], counts_[BATCH_BARS], bar_origin, ratio, no_tint);
 			counts_[BATCH_BARS]++;

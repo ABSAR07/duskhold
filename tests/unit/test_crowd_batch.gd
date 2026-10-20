@@ -171,3 +171,31 @@ func test_commit_buffer_takes_a_right_size_buffer_and_refuses_the_rest() -> void
 	assert_false(_batch.commit_buffer(buffer, -1), "a negative count is refused")
 	assert_eq(_batch.count(), 1, "a refusal keeps the count")
 	assert_eq(_batch.origin_of(0), Vector3(9.5, 8.5, 7.5), "and the mirror")
+
+
+func test_an_idle_batch_uploads_no_buffer_until_something_is_drawn() -> void:
+	_setup()
+	var stride: int = (
+		CrowdBatch.TRANSFORM_FLOATS + CrowdBatch.COLOR_FLOATS + CrowdBatch.CUSTOM_FLOATS
+	)
+	assert_eq(
+		_batch.multimesh.buffer.size(), 0, "the headless server holds no buffer before an upload"
+	)
+	_batch.begin()
+	_batch.commit()
+	assert_eq(_batch.multimesh.buffer.size(), 0, "an empty frame after setup uploads nothing")
+	assert_eq(_batch.multimesh.visible_instance_count, 0, "and shows nothing")
+	_batch.begin()
+	_batch.add(FIRST, CUSTOM)
+	_batch.commit()
+	assert_eq(
+		_batch.multimesh.buffer.size(), CAPACITY * stride, "one instance uploads the whole mirror"
+	)
+	assert_eq(_batch.multimesh.visible_instance_count, 1, "and shows it")
+	_batch.begin()
+	_batch.commit()
+	assert_eq(
+		_batch.multimesh.visible_instance_count,
+		0,
+		"the first empty frame after a drawn one still shows 0"
+	)
