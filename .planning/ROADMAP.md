@@ -254,7 +254,7 @@ Plans:
   3. A scripted stress night with hundreds of units, enemies, and projectiles on screen holds 60 fps on GTX 970-class hardware, or within a documented equivalent frame-time budget on the dev machine.
   4. Nights from Phases 1–3 play the same after the switch to batched simulation and rendering. All existing headless loop and combat tests still pass.
 
-**Plans**: 23/23 plans executed (04-12 to 04-23 close the 2026-10-19 UAT gaps G-04-5, G-04-6 and G-04-7 and the 04-VERIFICATION.md gap for success criterion 3)
+**Plans**: 23/28 plans executed (04-12 to 04-23 closed the 2026-10-19 UAT gaps G-04-5, G-04-6 and G-04-7; 04-24 to 04-28 are the second gap round for the 04-VERIFICATION.md gap for success criterion 3, PLAT-01, planned 2026-10-20)
 
 Plans:
 **Wave 1**
@@ -325,6 +325,23 @@ Plans:
 
 **Gap wave 11 (wave 22)** *(blocked on 04-20)*
 - [x] 04-21: The stress night re-measured against the unchanged 8.0 ms p95 into 04-FRAME-REPORT.md with the residual step attribution, a launch-checked export and the owner's re-check list (G-04-5, criterion 3)
+
+**Gap closure, round 2** *(re-verification 2026-10-20: PLAT-01 still missed at a median-run p95 of 10.95 ms against the unchanged 8.0 ms, the step now 2.33 ms and the three per-frame view loops the remaining cost; owner route 2026-10-20: port the view fills to C++, pins-first and byte-identical, budget unchanged, then re-measure; review CR-01 folded in first)*
+
+**Gap wave 12 (wave 23)** *(blocked on 04-21)*
+- [ ] 04-24: Review CR-01 first — the native stamp binds the library bytes and a failed copy leaves no stamp, with a hermetic probe; the committed per-view fill bench and the real-window view ablation, with the ablation baseline before any port (G-04-5)
+
+**Gap wave 13 (wave 24)** *(blocked on 04-24)*
+- [ ] 04-25: Tracer — the arrows' per-frame flight in C++ (NativeArrows) behind ProjectileVfx's API, pinned on the GDScript fill first, the same pins and goldens, a measured gain, then the GDScript loop goes; the Vector3 math contract against the engine (G-04-5)
+
+**Gap wave 14 (wave 25)** *(blocked on 04-25)*
+- [ ] 04-26: Enemy bodies, flashes and bars filled in C++ (NativeEnemyViews) over the packed read view behind a clock seam, pinned first; the death-puff ring native and idle batches no longer uploading (review IN-08) (G-04-5)
+
+**Gap wave 15 (wave 26)** *(blocked on 04-26)*
+- [ ] 04-27: Unit bodies and bars filled in C++ (NativeUnitViews) from a packed UnitSystem read view, pinned first; the round's one push and CI green on both native jobs with a launched export (G-04-5)
+
+**Gap wave 16 (wave 27)** *(blocked on 04-27)*
+- [ ] 04-28: The stress night re-measured against the unchanged 8.0 ms p95 with the committed view ablation into 04-FRAME-REPORT.md; the export, three re-captured screenshots and the owner's dated re-check list for UAT tests 5, 6 and 13, in every outcome (G-04-5, criterion 3)
 
 ### Phase 5: Castle Center & Economy Depth
 

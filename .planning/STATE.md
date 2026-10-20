@@ -4,14 +4,14 @@ current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
 status: executing
 stopped_at: "Halted 04-21-PLAN.md (stop rule: PLAT-01 NOT met, Task 2 not run)"
-last_updated: "2026-10-19T19:56:37.913Z"
-last_activity: 2026-10-19
-last_activity_desc: Phase 04 execution started
+last_updated: "2026-10-20T08:23:22.876Z"
+last_activity: 2026-10-20
+last_activity_desc: Phase 04 gap round 2 planned (04-24 to 04-28)
 state_head: 9f896662ab673d289e7347bbc4bbef382948411a
 progress:
   total_phases: 13
   completed_phases: 3
-  total_plans: 82
+  total_plans: 87
   completed_plans: 82
   percent: 23
 ---
@@ -28,9 +28,9 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 04 (Crowd-Scale Battles & Walls) — EXECUTING
-Plan: all 23 plans have a SUMMARY (04-21 `halted` by its stop rule: PLAT-01 NOT met at p95 10.95 ms vs 8.0, Task 2 not run); gap round 04-12 to 04-23 closed out 2026-10-20 (validation, security, review 28 open, ledger, re-verification gaps_found)
-Status: 04-VERIFICATION.md 2026-10-20 gaps_found (3/4 criteria; PLAT-01 the one gap; G-04-6 and G-04-7 closed); owner route 2026-10-20: port the view loops; next /gsd-plan-phase 4 --gaps, then /gsd-execute-phase 4 --gaps-only; owner re-checks (UAT tests 5, 6, 13 and the packet) after that round
-Last activity: 2026-10-20 — Gap round close-out committed (4e60105 validation, 8f14928 security, 6434327 review, 0997db1 ledger, 64a9b1c verification); post-merge gate green (one e2e flake re-run 4/4 green)
+Plan: 23 of 28 plans have a SUMMARY (04-21 `halted` by its stop rule: PLAT-01 NOT met at p95 10.95 ms vs 8.0, Task 2 not run); gap round 04-12 to 04-23 closed out 2026-10-20; gap round 2 planned 2026-10-20: 04-24 to 04-28 (waves 23 to 27, one chain), checker passed with 0 blockers and 0 warnings after one revision
+Status: 04-VERIFICATION.md 2026-10-20 gaps_found (3/4 criteria; PLAT-01 the one gap; G-04-6 and G-04-7 closed); owner route 2026-10-20: port the view loops, planned as 04-24 to 04-28 (CR-01 and the instruments, arrows, enemies, units, re-measure with the packet in every outcome); next /gsd-execute-phase 4 --gaps-only; owner re-checks (UAT tests 5, 6, 13 and the packet) after that round
+Last activity: 2026-10-20 — Gap round 2 planned: 04-24 to 04-28 (view-fill port to C++, pins-first, CR-01 first, re-measure last); plan checker 0 blockers / 0 warnings after one revision; gates: requirements 3/3, decisions 15/15, gap analysis 18/18
 
 Progress: [██░░░░░░░░] 23%
 
@@ -364,6 +364,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-20T06:55:00Z
+Last session: 2026-10-20T08:23:22Z
 Stopped at: Halted 04-21-PLAN.md (stop rule: PLAT-01 NOT met, Task 2 not run)
 Resume file: None
