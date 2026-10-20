@@ -128,3 +128,46 @@ func test_set_bounds_fixes_the_culling_box() -> void:
 	var box: AABB = AABB(Vector3(-100.0, 0.0, -100.0), Vector3(200.0, 8.0, 200.0))
 	_batch.set_bounds(box)
 	assert_eq(_batch.multimesh.custom_aabb, box, "the custom aabb is set")
+
+
+func test_mirror_of_a_fresh_batch_carries_the_setup_scale_on_its_diagonals() -> void:
+	var scale: Vector3 = Vector3(2.0, 0.5, 3.0)
+	_setup(CAPACITY, true, scale)
+	var mirror: PackedFloat32Array = _batch.mirror()
+	var stride: int = (
+		CrowdBatch.TRANSFORM_FLOATS + CrowdBatch.COLOR_FLOATS + CrowdBatch.CUSTOM_FLOATS
+	)
+	assert_eq(mirror.size(), CAPACITY * stride, "capacity times stride floats")
+	for index: int in range(CAPACITY):
+		var offset: int = index * stride
+		assert_eq(mirror[offset], scale.x, "x diagonal of slot %d" % index)
+		assert_eq(mirror[offset + 5], scale.y, "y diagonal of slot %d" % index)
+		assert_eq(mirror[offset + 10], scale.z, "z diagonal of slot %d" % index)
+		assert_eq(mirror[offset + CrowdBatch.TRANSFORM_FLOATS + 3], 1.0, "colour alpha 1.0")
+
+
+func test_layout_names_the_capacity_the_stride_and_both_offsets() -> void:
+	_setup(CAPACITY, true)
+	assert_eq(_batch.layout(), PackedInt64Array([CAPACITY, 20, 12, 16]), "coloured batch")
+	_setup(5, false)
+	assert_eq(_batch.layout(), PackedInt64Array([5, 16, -1, 12]), "uncoloured batch")
+
+
+func test_commit_buffer_takes_a_right_size_buffer_and_refuses_the_rest() -> void:
+	_setup()
+	var buffer: PackedFloat32Array = _batch.mirror().duplicate()
+	buffer[3] = 9.5
+	buffer[7] = 8.5
+	buffer[11] = 7.5
+	assert_true(_batch.commit_buffer(buffer, 1), "a right-size buffer is taken")
+	assert_eq(_batch.count(), 1, "the count follows")
+	assert_eq(_batch.origin_of(0), Vector3(9.5, 8.5, 7.5), "the origin reads back")
+	assert_eq(_batch.multimesh.visible_instance_count, 1, "and one instance shows")
+	var short: PackedFloat32Array = PackedFloat32Array([1.0, 2.0])
+	assert_false(_batch.commit_buffer(short, 0), "a wrong size is refused")
+	assert_false(
+		_batch.commit_buffer(buffer, CAPACITY + 1), "a count above the capacity is refused"
+	)
+	assert_false(_batch.commit_buffer(buffer, -1), "a negative count is refused")
+	assert_eq(_batch.count(), 1, "a refusal keeps the count")
+	assert_eq(_batch.origin_of(0), Vector3(9.5, 8.5, 7.5), "and the mirror")

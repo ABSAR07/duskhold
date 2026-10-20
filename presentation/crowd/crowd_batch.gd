@@ -115,6 +115,33 @@ func commit() -> void:
 	multimesh.visible_instance_count = _count
 
 
+## The CPU mirror itself (a copy-on-write share, so reading it costs nothing until someone writes).
+## The native fills (PLAT-01, plan 04-25) start from the batch's own setup mirror.
+func mirror() -> PackedFloat32Array:
+	return _mirror
+
+
+## The shape of the mirror for a native writer: [capacity, stride, colour offset or -1 without
+## colours, custom data offset], offsets in floats from the start of an instance.
+func layout() -> PackedInt64Array:
+	var color_offset: int = TRANSFORM_FLOATS if _with_colors else -1
+	return PackedInt64Array([_capacity, _stride, color_offset, _custom_offset])
+
+
+## Takes a mirror a native fill has written (`instances` of them, the rest as earlier frames left
+## it) and uploads it exactly as `commit()` does. False, and nothing changes, when the batch is not
+## set up, the buffer is not capacity * stride floats or `instances` is outside 0 to the capacity.
+func commit_buffer(buffer: PackedFloat32Array, instances: int) -> bool:
+	if multimesh == null or _capacity < 1:
+		return false
+	if buffer.size() != _capacity * _stride or instances < 0 or instances > _capacity:
+		return false
+	_mirror = buffer
+	_count = instances
+	commit()
+	return true
+
+
 ## Instances added since `begin()`.
 func count() -> int:
 	return _count
