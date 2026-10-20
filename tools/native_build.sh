@@ -11,8 +11,9 @@
 # must report this version with single precision; (3) CMake configure; (4) the compile commands
 # must carry no fast-math, fused multiply-add, AVX or host-tuned switch; (5) build; (6) on Windows
 # the DLL must import no VCRUNTIME or MSVCP library; (7) the library is copied to
-# addons/duskhold_sim/bin/ with a source stamp (<platform>.stamp: the sha256 over the pin file,
-# native/CMakeLists.txt and every file under native/src, in path order).
+# addons/duskhold_sim/bin/ through a checked copy and a two-line stamp (<platform>.stamp: the sha256
+# over the pin file, native/CMakeLists.txt and every file under native/src in path order, then the
+# sha256 of the installed library); a failed copy prints NATIVE_BUILD_FAIL, leaves no stamp and exits 1.
 # Prints NATIVE_BUILD_OK platform=<p> lib=<file> godot_cpp=<sha> api=<version> on success.
 # Exit status: 0 ok; 1 build failure; 3 toolchain, Godot or godot-cpp checkout missing or wrong;
 # 64 usage error. The first build compiles every godot-cpp binding (10 to 30 minutes on MSVC);
@@ -287,8 +288,9 @@ fi
 
 # --- 7. install the library and the source stamp ----------------------------------------------
 mkdir -p "${OUT_DIR}"
-cp -f "${BUILD_DIR}/out/${LIB_NAME}" "${OUT_DIR}/${LIB_NAME}"
-# The stamp comes from the shared function in tools/_common.sh, the same one the guard checks with.
-duskhold_native_stamp >"${OUT_DIR}/${PLATFORM}.stamp"
+# The checked install in tools/_common.sh: it removes the old stamp, checks the copy and writes the
+# two-line stamp (sources, then the library's sha256) the guard recomputes. A failed copy leaves no
+# stamp and stops the build here, so NATIVE_BUILD_OK is never printed for a stale library.
+duskhold_native_install "${BUILD_DIR}/out/${LIB_NAME}" "${OUT_DIR}" "${PLATFORM}" || exit 1
 
 echo "NATIVE_BUILD_OK platform=${PLATFORM} lib=${LIB_NAME} godot_cpp=${PIN} api=${API_VERSION}"

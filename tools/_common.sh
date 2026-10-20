@@ -40,9 +40,12 @@ duskhold_godot_bin() {
 # --- native library (PLAT-01 GDExtension) -------------------------------------------------------
 # Every way of running the project needs addons/duskhold_sim/bin/libduskhold_sim.<platform>...
 # built from the current native/ sources. A missing or stale library is a hard error everywhere
-# (exit 3 with the build command), never a silent fallback. The stamp is computed by ONE function
-# below, used both by tools/native_build.sh when it writes <platform>.stamp and by
-# duskhold_require_native when it checks it, so the two cannot drift.
+# (exit 3 with the build command), never a silent fallback. The stamp binds the sources AND the
+# installed library bytes: <platform>.stamp holds two lines, the source stamp and the sha256 of the
+# library file. It is computed by ONE function below (duskhold_native_stamp_for), used both by
+# duskhold_native_install, which tools/native_build.sh installs through and which writes the stamp
+# only after a checked copy, and by duskhold_require_native when it checks it, so the two cannot
+# drift and a failed, changed or swapped library is refused (review CR-01).
 DUSKHOLD_NATIVE_BIN_DIR="${DUSKHOLD_ROOT}/addons/duskhold_sim/bin"
 
 # Prints the platform name of this host as the library file names spell it (windows or linux).
@@ -78,16 +81,58 @@ duskhold_native_lib() {
   esac
 }
 
-# Returns 0 when the library for the platform (default: this host) exists and its stamp equals the
-# current source stamp; otherwise prints one line naming the build command and returns 3. Callers
-# write: duskhold_require_native [platform] || exit 3
+# Prints the two stamp lines for an installed library: the source stamp (duskhold_native_stamp),
+# then the sha256 of the library file. Prints nothing and returns 1 when the file does not exist.
+duskhold_native_stamp_for() {
+  local lib="${1:-}"
+  local lib_sha
+  [ -n "${lib}" ] && [ -f "${lib}" ] || return 1
+  lib_sha="$(sha256sum "${lib}" | cut -d' ' -f1)" || return 1
+  [ -n "${lib_sha}" ] || return 1
+  printf '%s
+%s
+' "$(duskhold_native_stamp)" "${lib_sha}"
+}
+
+# Installs a built library: duskhold_native_install <built library> <destination directory> <platform>.
+# The old stamp is removed first, the copy is checked by exit status and by a byte comparison (a
+# Godot process holding the installed DLL open makes the copy fail on Windows), and the new stamp is
+# written through a temporary file only after the check. On any failure it prints NATIVE_BUILD_FAIL
+# to stderr, leaves NO stamp and returns 1.
+duskhold_native_install() {
+  local built="${1:-}" dest_dir="${2:-}" platform="${3:-}"
+  local name target stamp tmp
+  name="$(basename -- "${built}")"
+  target="${dest_dir}/${name}"
+  stamp="${dest_dir}/${platform}.stamp"
+  rm -f "${stamp}"
+  if ! cp -f "${built}" "${target}" || ! cmp -s "${built}" "${target}"; then
+    echo "NATIVE_BUILD_FAIL: cannot install ${name} (a Godot process may hold it open; close it and rebuild)" >&2
+    return 1
+  fi
+  tmp="${stamp}.tmp.$$"
+  if ! duskhold_native_stamp_for "${target}" >"${tmp}" || ! mv -f "${tmp}" "${stamp}"; then
+    rm -f "${tmp}" "${stamp}"
+    echo "NATIVE_BUILD_FAIL: cannot write the stamp for ${name}" >&2
+    return 1
+  fi
+  return 0
+}
+
+# Returns 0 when the library for the platform (default: this host) exists and its two-line stamp
+# equals duskhold_native_stamp_for of the installed file (current sources and these exact bytes);
+# otherwise prints one line naming the build command and returns 3. Callers write:
+# duskhold_require_native [platform] || exit 3
 duskhold_require_native() {
   local platform="${1:-$(duskhold_native_host_platform)}"
-  local lib stamp_file
+  local lib stamp_file expected
   lib="$(duskhold_native_lib "${platform}")"
   stamp_file="${DUSKHOLD_NATIVE_BIN_DIR}/${platform}.stamp"
-  if [ -z "${lib}" ] || [ ! -f "${lib}" ] || [ ! -f "${stamp_file}" ] \
-    || [ "$(tr -d '\r\n' <"${stamp_file}")" != "$(duskhold_native_stamp)" ]; then
+  expected=""
+  if [ -n "${lib}" ] && [ -f "${lib}" ]; then
+    expected="$(duskhold_native_stamp_for "${lib}")" || expected=""
+  fi
+  if [ -z "${expected}" ] || [ ! -f "${stamp_file}" ]     || [ "$(tr -d '' <"${stamp_file}")" != "${expected}" ]; then
     echo "native library missing or stale: run bash tools/native_build.sh" >&2
     return 3
   fi
