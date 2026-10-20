@@ -41,6 +41,9 @@ const KIND_FALLBACK: int = 2
 const CROWD_SHADER: Shader = preload("res://presentation/crowd/crowd_instance.gdshader")
 
 var _ctx: RunContext
+## The millisecond clock the flash and the puffs read: the engine's by default, replaceable only
+## through set_clock (the test seam that lets the fill be pinned deterministically).
+var _clock_ms: Callable = Callable(Time, &"get_ticks_msec")
 var _batches: Array[CrowdBatch] = []
 var _lifts: PackedFloat32Array = PackedFloat32Array()
 ## Enemy id -> archetype index, set on enemy_spawned and dropped on enemy_died.
@@ -70,6 +73,14 @@ func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 	ctx.events.enemy_spawned.connect(_on_enemy_spawned)
 	ctx.events.enemy_damaged.connect(_on_enemy_damaged)
 	ctx.events.enemy_died.connect(_on_enemy_died)
+
+
+## The test seam for the millisecond clock the flash and the puffs read (the frame sample, the
+## hit time, the puff birth and the puff refresh). Production keeps the engine's clock; an invalid
+## Callable is ignored.
+func set_clock(clock_ms: Callable) -> void:
+	if clock_ms.is_valid():
+		_clock_ms = clock_ms
 
 
 ## Enemies drawn this frame, across all archetypes.
@@ -130,7 +141,7 @@ func puff_count() -> int:
 func _process(_delta: float) -> void:
 	if _ctx == null:
 		return
-	_frame_ms = Time.get_ticks_msec()
+	_frame_ms = _clock_ms.call()
 	var night_running: bool = _ctx.run_manager.get_phase() == RunManager.RunPhase.NIGHT
 	var blend: float = _ctx.alpha() if night_running else 1.0
 	var enemies: EnemySystem = _ctx.night.get_enemies()
@@ -162,7 +173,8 @@ func _process(_delta: float) -> void:
 	for batch: CrowdBatch in _batches:
 		batch.commit()
 	_bars.commit()
-	_puffs.refresh(float(Time.get_ticks_msec()) / 1000.0)
+	var puff_ms: int = _clock_ms.call()
+	_puffs.refresh(float(puff_ms) / 1000.0)
 	if enemies.count() == 0 and not _kind_of.is_empty():
 		_kind_of.clear()
 		_hit_ms.clear()
@@ -179,7 +191,7 @@ func _on_enemy_spawned(enemy_id: int, def_id: StringName, _pos: Vector2) -> void
 ## A hit flashes the body and keeps the hit points for the bar.
 func _on_enemy_damaged(enemy_id: int, _amount: int, hp: int) -> void:
 	if _kind_of.has(enemy_id):
-		_hit_ms[enemy_id] = Time.get_ticks_msec()
+		_hit_ms[enemy_id] = _clock_ms.call()
 		_hp_of[enemy_id] = hp
 
 
@@ -192,7 +204,8 @@ func _on_enemy_died(enemy_id: int, def_id: StringName, pos: Vector2, _killer: St
 	_hit_ms.erase(enemy_id)
 	_hp_of.erase(enemy_id)
 	_max_hp_of.erase(enemy_id)
-	var now_s: float = float(Time.get_ticks_msec()) / 1000.0
+	var now_ms: int = _clock_ms.call()
+	var now_s: float = float(now_ms) / 1000.0
 	_puffs.spawn(Vector3(ground.x, PUFF_HEIGHT, ground.z), now_s, archetype_color_of(def_id))
 
 
