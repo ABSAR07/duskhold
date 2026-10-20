@@ -5,6 +5,7 @@
 #include <godot_cpp/variant/packed_float64_array.hpp>
 #include <godot_cpp/variant/packed_int64_array.hpp>
 #include <godot_cpp/variant/packed_vector2_array.hpp>
+#include <godot_cpp/variant/packed_vector3_array.hpp>
 #include <godot_cpp/variant/string.hpp>
 
 namespace godot {
@@ -51,6 +52,17 @@ namespace godot {
 //     OP_RULE_DAMAGE_PER_300 damage_per_300(a, b)     OP_RULE_TTD_TICKS ttd_ticks(a, b)
 //     OP_RULE_WALK_TICKS walk_ticks(a, b)             OP_RULE_SHOULD_BREAK should_break(a, b, c)
 //     OP_RULE_KEEP_BREAKING keep_breaking(a, b, c, d); a boolean answers 1 or 0
+//   probe_vector3(op, a, b, s) -> PackedVector3Array, one result per element of `a` (plan 04-25,
+//     tests/unit/test_native_view_math_contract.gd: the Vector3 rows of the view fills); `b` must
+//     have the size of `a`; `s` too, except OP_V3_FROM_DOUBLES, which needs 3 * size:
+//     OP_V3_ADD a + b                       OP_V3_SUB a - b
+//     OP_V3_MUL_SCALAR a * s (s narrowed)   OP_V3_FROM_DOUBLES Vector3(s[3i], s[3i + 1], s[3i + 2])
+//     OP_V3_NORMALIZED a.normalized()       OP_V3_CROSS a.cross(b)
+//     OP_V3_LERP a.lerp(b, s) (s narrowed)
+//   probe_double3(op, a, b) -> PackedFloat64Array, one result per element of `a`; `b` must have
+//     the size of `a` (a Vector3 method result leaves as a double):
+//     OP_DBL3_LENGTH a.length()   OP_DBL3_LENGTH_SQUARED a.length_squared()
+//     OP_DBL3_DISTANCE_TO a.distance_to(b)
 class NativeSim : public RefCounted {
 	GDCLASS(NativeSim, RefCounted)
 
@@ -105,6 +117,18 @@ public:
 		OP_RULE_WALK_TICKS = 2,
 		OP_RULE_SHOULD_BREAK = 3,
 		OP_RULE_KEEP_BREAKING = 4,
+
+		OP_V3_ADD = 32,
+		OP_V3_SUB = 33,
+		OP_V3_MUL_SCALAR = 34,
+		OP_V3_FROM_DOUBLES = 35,
+		OP_V3_NORMALIZED = 36,
+		OP_V3_CROSS = 37,
+		OP_V3_LERP = 38,
+
+		OP_DBL3_LENGTH = 32,
+		OP_DBL3_LENGTH_SQUARED = 33,
+		OP_DBL3_DISTANCE_TO = 34,
 	};
 
 	static String version();
@@ -148,6 +172,13 @@ public:
 			const PackedInt64Array &b,
 			const PackedInt64Array &c,
 			const PackedInt64Array &d);
+	static PackedVector3Array probe_vector3(
+			int64_t op,
+			const PackedVector3Array &a,
+			const PackedVector3Array &b,
+			const PackedFloat64Array &s);
+	static PackedFloat64Array probe_double3(
+			int64_t op, const PackedVector3Array &a, const PackedVector3Array &b);
 };
 
 } // namespace godot

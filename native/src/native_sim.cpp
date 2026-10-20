@@ -45,6 +45,14 @@ void NativeSim::_bind_methods() {
 			"NativeSim",
 			D_METHOD("probe_rules", "op", "a", "b", "c", "d"),
 			&NativeSim::probe_rules);
+	ClassDB::bind_static_method(
+			"NativeSim",
+			D_METHOD("probe_vector3", "op", "a", "b", "s"),
+			&NativeSim::probe_vector3);
+	ClassDB::bind_static_method(
+			"NativeSim",
+			D_METHOD("probe_double3", "op", "a", "b"),
+			&NativeSim::probe_double3);
 
 	BIND_CONSTANT(OP_VEC_ADD);
 	BIND_CONSTANT(OP_VEC_SUB);
@@ -92,6 +100,18 @@ void NativeSim::_bind_methods() {
 	BIND_CONSTANT(OP_RULE_WALK_TICKS);
 	BIND_CONSTANT(OP_RULE_SHOULD_BREAK);
 	BIND_CONSTANT(OP_RULE_KEEP_BREAKING);
+
+	BIND_CONSTANT(OP_V3_ADD);
+	BIND_CONSTANT(OP_V3_SUB);
+	BIND_CONSTANT(OP_V3_MUL_SCALAR);
+	BIND_CONSTANT(OP_V3_FROM_DOUBLES);
+	BIND_CONSTANT(OP_V3_NORMALIZED);
+	BIND_CONSTANT(OP_V3_CROSS);
+	BIND_CONSTANT(OP_V3_LERP);
+
+	BIND_CONSTANT(OP_DBL3_LENGTH);
+	BIND_CONSTANT(OP_DBL3_LENGTH_SQUARED);
+	BIND_CONSTANT(OP_DBL3_DISTANCE_TO);
 }
 
 String NativeSim::version() {
@@ -356,6 +376,84 @@ PackedInt64Array NativeSim::probe_rules(
 				break;
 			default:
 				return PackedInt64Array();
+		}
+	}
+	return result;
+}
+
+PackedVector3Array NativeSim::probe_vector3(
+		int64_t op,
+		const PackedVector3Array &a,
+		const PackedVector3Array &b,
+		const PackedFloat64Array &s) {
+	PackedVector3Array result;
+	const int64_t count = a.size();
+	const int64_t scalars_needed = (op == OP_V3_FROM_DOUBLES) ? 3 * count : count;
+	if (b.size() != count || s.size() != scalars_needed) {
+		return result;
+	}
+	result.resize(count);
+	Vector3 *out = result.ptrw();
+	const Vector3 *pa = a.ptr();
+	const Vector3 *pb = b.ptr();
+	const double *ps = s.ptr();
+	for (int64_t i = 0; i < count; i++) {
+		switch (op) {
+			case OP_V3_ADD:
+				out[i] = pa[i] + pb[i];
+				break;
+			case OP_V3_SUB:
+				out[i] = pa[i] - pb[i];
+				break;
+			case OP_V3_MUL_SCALAR:
+				out[i] = pa[i] * static_cast<real_t>(ps[i]);
+				break;
+			case OP_V3_FROM_DOUBLES:
+				out[i] = Vector3(
+						static_cast<real_t>(ps[3 * i]),
+						static_cast<real_t>(ps[3 * i + 1]),
+						static_cast<real_t>(ps[3 * i + 2]));
+				break;
+			case OP_V3_NORMALIZED:
+				out[i] = gd::normalized(pa[i]);
+				break;
+			case OP_V3_CROSS:
+				out[i] = gd::cross(pa[i], pb[i]);
+				break;
+			case OP_V3_LERP:
+				out[i] = gd::lerp(pa[i], pb[i], static_cast<real_t>(ps[i]));
+				break;
+			default:
+				return PackedVector3Array();
+		}
+	}
+	return result;
+}
+
+PackedFloat64Array NativeSim::probe_double3(
+		int64_t op, const PackedVector3Array &a, const PackedVector3Array &b) {
+	PackedFloat64Array result;
+	const int64_t count = a.size();
+	if (b.size() != count) {
+		return result;
+	}
+	result.resize(count);
+	double *out = result.ptrw();
+	const Vector3 *pa = a.ptr();
+	const Vector3 *pb = b.ptr();
+	for (int64_t i = 0; i < count; i++) {
+		switch (op) {
+			case OP_DBL3_LENGTH:
+				out[i] = static_cast<double>(gd::length(pa[i]));
+				break;
+			case OP_DBL3_LENGTH_SQUARED:
+				out[i] = static_cast<double>(gd::length_squared(pa[i]));
+				break;
+			case OP_DBL3_DISTANCE_TO:
+				out[i] = static_cast<double>(gd::distance_to(pa[i], pb[i]));
+				break;
+			default:
+				return PackedFloat64Array();
 		}
 	}
 	return result;
