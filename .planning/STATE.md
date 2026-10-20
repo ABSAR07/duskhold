@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
 status: executing
-stopped_at: Completed 04-25-PLAN.md
-last_updated: "2026-10-20T13:11:57.109Z"
+stopped_at: Completed 04-26-PLAN.md
+last_updated: "2026-10-20T14:06:19.189Z"
 last_activity: 2026-10-20
 last_activity_desc: Phase 04 execution started
-state_head: 5724df4c1985c959b102dfe64ee9ce4378c97074
+state_head: 4b1022c571e5c539aea9a0a9300630af2c9c28ab
 progress:
   total_phases: 13
   completed_phases: 3
   total_plans: 87
-  completed_plans: 84
+  completed_plans: 85
   percent: 23
 ---
 
@@ -28,8 +28,8 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 04 (Crowd-Scale Battles & Walls) — EXECUTING
-Plan: 1 of 28
-Status: Executing Phase 04
+Plan: 2 of 28
+Status: Ready to execute
 Last activity: 2026-10-20 — Phase 04 execution started
 
 Progress: [██░░░░░░░░] 23%
@@ -142,6 +142,7 @@ Progress: [██░░░░░░░░] 23%
 | Phase 04 P21 | 11 min | 1 tasks | 1 files |
 | Phase 04 P24 | 31 min | 3 tasks | 12 files |
 | Phase 04 P25 | 64min | 2 tasks | 13 files |
+| Phase 04 P26 | 51 min | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -331,6 +332,7 @@ Recent decisions affecting current work:
 - [Phase 04]: 04-24: the native stamp binds the installed library bytes (two lines: source stamp, library sha256); install = remove stamp, checked copy (status + cmp), stamp written last; every wrapper exits 3 on a failed, changed, swapped, one-line or missing case — Review CR-01: a failed copy over a loaded DLL left a valid-looking stamp, so a stale library passed every guard
 - [Phase 04]: 04-24: the view ablation records each frame delta under the slice running during the previous frame; ABLATION_SAVED is the median over trials of all_on mean minus slice mean; baseline before any port: projectile_vfx 2.13, enemy_views 1.32, unit_views 0.42, all_off 3.80 ms saved (build ablation.txt in 04-24-SUMMARY) — Same-instrument before for plan 04-28
 - [Phase 04]: 04-25: CrowdBatch mirror()/layout()/commit_buffer() and native_mirror.h are general so 04-26/04-27 copy the arrow shape; arrows bench median 2280.07 us -> 74.44 us (30.6x), GDScript flight deleted, no fallback
+- [Phase 04]: [04-26] The enemy fill and the death-puff ring run in C++ (NativeEnemyViews, NativePuffs) behind the unchanged EnemyViews and DeathPuffBatch APIs, pinned first on the GDScript behind a clock seam (pins include a puff flood since the stress night kills nobody); enemies bench 758.89 -> 73.12 us (10.4x), puffs 140.05 -> 4.63 us (30.2x); a native fill runs before its mirror is handed back (GDScript argument order); idle CrowdBatch commits skip the upload
 
 ### Pending Todos
 
@@ -369,6 +371,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-20T11:52:36.990Z
-Stopped at: Completed 04-25-PLAN.md
+Last session: 2026-10-20T14:06:18.416Z
+Stopped at: Completed 04-26-PLAN.md
 Resume file: None
