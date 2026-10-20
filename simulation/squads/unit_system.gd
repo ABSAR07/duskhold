@@ -13,6 +13,10 @@ var _events: SimEvents
 var _records: Dictionary = {}
 var _order: Array[int] = []
 var _next_id: int = 1
+## Bumped by every writer that may change an id, a position or a def; the read view is stale while
+## its version differs.
+var _changes: int = 0
+var _view: UnitReadView = UnitReadView.new()
 
 
 func _init(events: SimEvents) -> void:
@@ -33,6 +37,7 @@ func spawn(def: UnitDef, squad_id: StringName, slot: int, pos: Vector2) -> int:
 	_next_id += 1
 	_records[record.id] = record
 	_order.append(record.id)
+	_changes += 1
 	_events.unit_spawned.emit(record.id, squad_id, def.id, pos)
 	return record.id
 
@@ -40,6 +45,34 @@ func spawn(def: UnitDef, squad_id: StringName, slot: int, pos: Vector2) -> int:
 ## Ids of the units on the field, ascending. A copy.
 func ids() -> Array[int]:
 	return _order.duplicate()
+
+
+## The army as packed arrays (ids ascending, with previous and current positions and each unit's
+## def), refilled only when something changed since the last read. The same object every time, so a
+## caller reads it and never keeps it across a step. Emits no signal and writes nothing back.
+func read_view() -> UnitReadView:
+	if _view.version == _changes:
+		return _view
+	var total: int = _order.size()
+	_view.ids.resize(total)
+	_view.previous.resize(total)
+	_view.current.resize(total)
+	_view.def_slots.resize(total)
+	_view.defs.clear()
+	var slot_of_def: Dictionary = {}
+	for index: int in range(total):
+		var record: Record = _records[_order[index]]
+		_view.ids[index] = record.id
+		_view.previous[index] = record.previous
+		_view.current[index] = record.position
+		var def_slot: int = slot_of_def.get(record.def, -1)
+		if def_slot < 0:
+			def_slot = _view.defs.size()
+			slot_of_def[record.def] = def_slot
+			_view.defs.append(record.def)
+		_view.def_slots[index] = def_slot
+	_view.version = _changes
+	return _view
 
 
 func count() -> int:
@@ -73,13 +106,6 @@ func def_of(id: int) -> UnitDef:
 func health_of(id: int) -> int:
 	var record: Record = _records.get(id) as Record
 	return record.health if record != null else 0
-
-
-## The squad (military spot id) the unit belongs to; empty for an unknown id. Test hook: nothing in
-## the game reads it, the tests do.
-func squad_of(id: int) -> StringName:
-	var record: Record = _records.get(id) as Record
-	return record.squad_id if record != null else &""
 
 
 ## The formation slot the unit holds; -1 for an unknown id.
@@ -118,6 +144,7 @@ func remove_dead() -> void:
 		var record: Record = _records[id]
 		_records.erase(id)
 		_order.erase(id)
+		_changes += 1
 		_events.unit_died.emit(id, record.squad_id, record.position, record.killer_kind)
 
 
@@ -132,6 +159,7 @@ func heal_to_full(id: int) -> void:
 ## Writer for SquadSystem: remembers every unit position as "one step ago", before the step moves
 ## anyone.
 func begin_step() -> void:
+	_changes += 1
 	for id: int in _order:
 		var record: Record = _records[id]
 		record.previous = record.position
@@ -142,6 +170,7 @@ func set_position_of(id: int, pos: Vector2) -> void:
 	var record: Record = _records.get(id) as Record
 	if record != null:
 		record.position = pos
+		_changes += 1
 
 
 ## Writer for SquadSystem: commits a unit to an enemy id, or -1 for none.
@@ -188,6 +217,7 @@ func separate() -> void:
 	var pushes: PackedVector2Array = Separation.displacements_bucketed(positions, radii, ids, cell)
 	for index: int in range(alive.size()):
 		alive[index].position += pushes[index]
+	_changes += 1
 
 
 ## One unit state. Private to the system.
