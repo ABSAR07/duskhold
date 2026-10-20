@@ -1,14 +1,18 @@
 ---
-status: diagnosed
+status: testing
 phase: 04-crowd-scale-battles-walls
 source: [04-01-SUMMARY.md, 04-02-SUMMARY.md, 04-03-SUMMARY.md, 04-04-SUMMARY.md, 04-05-SUMMARY.md, 04-06-SUMMARY.md, 04-07-SUMMARY.md, 04-08-SUMMARY.md, 04-09-SUMMARY.md, 04-10-SUMMARY.md, 04-11-SUMMARY.md, 04-VERIFICATION.md, 04-PLAYTEST-GATE.md]
 started: 2026-10-16T21:07:26Z
-updated: 2026-10-19T06:02:43Z
+updated: 2026-10-20T16:44:46Z
 ---
 
 ## Current Test
 
-[testing complete]
+number: 14
+name: The stress night feels smooth and the crowd reads, now on the native step (UAT test 5)
+expected: |
+  After bash tools/native_build.sh in Git Bash, run the stress night from the editor binary in PowerShell: & ".\.tools\godot\4.7.2-stable\Godot_v4.7.2-stable_win64.exe" --path . res://tools/stress/stress_night.tscn -- --duration=30 (04-28 human-check 2; the step AND the arrows, enemies, bars, puffs and units are native now) Expected: 300 enemies, 50 footmen, 20 towers and the arrows are legible as a crowd and the frame time feels smooth, or the owner says where it still hurts. Claude measured about 256 fps at the median and a 5.37 ms p95 against the 8.0 ms budget (it was 142 fps and 10.95 ms before the view port) (Why human: Smoothness and crowd legibility are perceptual; the measurement is committed and is the closed gap, how it feels on the owner's machine is the owner's call)
+awaiting: user response
 
 ## Tests
 
@@ -117,12 +121,36 @@ result: issue
 reported: "Owner 2026-10-19: assumption 8 changes. A melee enemy whose target (a tower or other building, a unit, the king) is behind a wall must break through the wall to reach it, not drop the target and march on the castle; only some enemy types introduced in later phases go for the castle directly. Ranged enemies shooting over walls stays. All other 24 assumptions, the wall prices (2 / 4 / 6), the draw caps and the looks are signed off as they are; nothing else must land before Phase 5."
 severity: major
 
+### 14. The stress night feels smooth and the crowd reads, now on the native step (UAT test 5)
+expected: After bash tools/native_build.sh in Git Bash, run the stress night from the editor binary in PowerShell: & ".\.tools\godot\4.7.2-stable\Godot_v4.7.2-stable_win64.exe" --path . res://tools/stress/stress_night.tscn -- --duration=30 (04-28 human-check 2; the step AND the arrows, enemies, bars, puffs and units are native now) Expected: 300 enemies, 50 footmen, 20 towers and the arrows are legible as a crowd and the frame time feels smooth, or the owner says where it still hurts. Claude measured about 256 fps at the median and a 5.37 ms p95 against the 8.0 ms budget (it was 142 fps and 10.95 ms before the view port) (Why human: Smoothness and crowd legibility are perceptual; the measurement is committed and is the closed gap, how it feels on the owner's machine is the owner's call)
+result: [pending]
+
+### 15. The debug overlay sits below the night banner at 720p (UAT test 6, plan 04-13)
+expected: Press F3 on a night (the stress night or a prototype night with walls) in a 1280x720-based window and read the night banner ('Night 8 of 8 - 300 enemies left'), the fast-forward label and the last overlay row; look at the re-captured shots overlay_on, overlay_paths and overlay_field_gate (re-taken by 04-28) and the CI Linux fallback-font overlay_field_gate.png Expected: The banner reads whole above the panel, nothing that matters is hidden, the last row is on screen, and overlay_paths shows a night. In a live window the panel's Phase, Enemies and Drawn rows follow the night (see the stale-panel note in warnings) (Why human: Layout adequacy and legibility are by eye; the y-only layout test (test_overlay_banner_layout 4/4 re-run by me, panel offset_top 104.0 in ui/overlay/debug_overlay.tscn line 19) pins the geometry but not the look)
+result: [pending]
+
+### 16. Melee enemies chew through a wall to reach a tower, unit or the king (UAT test 13, plan 04-12)
+expected: Play a run on build/windows/Duskhold.exe with a wall bought in front of a tower (04-28 human-check 1) and watch a night: a grunt whose tower, unit or king is behind a standing wall should attack the segment in front of it until it breaks and then walk on to the target; ranged enemies still shoot over; a grunt in a gap mouth walks through Expected: The rule reads as the owner meant it on 2026-10-19 (melee breaks through to its target; only later enemy types go castle-first), or the owner names a change; the wall-break rebuild hitch stays accepted (UAT test 10, 11.61 ms mean per rebuild after this round) (Why human: The rule is pinned (test_wall_break_to_target, test_melee_breaks_to_target, test_los_targets, test_enemy_wall_flags_contract) and the four replays did not move, but whether it looks right in play is the owner's judgement)
+result: [pending]
+
+### 17. The owner's re-check packet and fresh export after the view-loop port
+expected: Open the dated update at the top of 04-PLAYTEST-GATE.md ('Update after the gap plans 04-12 to 04-28 (2026-10-20T15:51Z)') and launch build/windows/Duskhold.exe (exported 2026-10-20 at HEAD a482e3f, with libduskhold_sim.windows.x86_64.dll and Duskhold.pck beside it; the executor's launch check exited 0 in about 4 s) Expected: The build launches and plays a full run, the packet names UAT tests 5, 6 and 13 and the native build step, and the numbers it quotes (p95 5.37 ms, 256 fps) match 04-FRAME-REPORT.md (Why human: It is a hand-off to the owner; the packet and the export exist (read and listed by me) but the owner's own launch on the owner's machine is the check, and the export launch itself was not re-run by me)
+result: [pending]
+
+### 18. GTX 970 transfer of the dev-machine budget (insufficient_spec, backstop tier; UAT test 12 blocked by hardware)
+expected: If a GTX 970-class machine is ever available, run bash tools/stress.sh --runs=3 --duration=20 on it; otherwise accept the written projection Expected: The RESEARCH A1 projection recorded in 04-FRAME-REPORT.md after the view-layer port: p50 about 4.8 to 5.9 ms and p95 about 7.0 to 8.6 ms on a GTX 970-class machine (the pre-port projections were 14.2 to 17.5 ms and 48 to 59 ms at the p95); PLAT-01 is re-verified on real campaign battles in Phase 13 whatever this reads (Why human: A backstop-tier truth: no GTX 970 exists here, presence and wiring never qualify, and no wired held-out test can stand in for hardware; I abstain (insufficient_spec))
+result: [pending]
+
+### 19. The view-layer port draws the night as before (by-eye screenshot comparison)
+expected: Compare the arrows, the enemy crowd with its hit flashes and hurt-only bars, the death puffs and the friendly units and their bars in a night on the exported build (or the crowd_stress_night and walls_night_breach captures) with what the owner saw at UAT tests 5 and 13; the coverage items with human_judgment true in the SUMMARYs of 04-25, 04-26 and 04-27 record the executors' own comparison Expected: Nothing is missing, doubled, recoloured, mis-sized or popping; the arrows arc from the tower to the target as before; flashes last 0.15 s; puffs fade over 0.6 s; bars show only on hurt enemies and units (Why human: The view fills are pinned byte-for-byte on the batch mirrors (test_projectile_fill_pins 4/4, test_enemy_fill_pins 5/5, test_unit_fill_pins 4/4, SHA-256 over the instance buffers, computed on the GDScript before any native code, never edited) and the goldens did not move, so any difference could only be in how the buffer is drawn, which only an eye can judge. I read crowd_stress_night.png and overlay_field_gate.png and saw the purple crowd, pink flashes, red hurt-only bars, yellow arrows and blue units as described)
+result: [pending]
+
 ## Summary
 
-total: 13
+total: 19
 passed: 9
 issues: 3
-pending: 0
+pending: 6
 skipped: 0
 blocked: 1
 
@@ -200,3 +228,5 @@ blocked: 1
     - "Move test_los_targets to the new rule (old assertions onto a flagged def copy); keep smoke, army, walls and full_idle byte-identical (0 triggers measured; every wall branch is behind _walls_are_solid()); keep GATE_OK 300/300 with wall_hits 0 (the gate map has only the castle as a target); re-measure test_balance_acceptance (only balanced seed 2 can move); update the docs at enemy_system.gd :243-252 and :447-449, structure_index.gd :71-75, PLAYTEST-GATE assumption 8, RESEARCH OQ3/A5 and 04-07 flagged assumption 3"
   debug_session: .planning/debug/melee-targets-behind-walls.md
   note: "Rule change to 04-06's target rule (RESEARCH Open Question 3, packet assumption 8): melee enemies break the blocking wall to reach a blocked target; the walls golden and test_wall_behaviour pin the old rule and will move (a D-14 regeneration with its report)"
+
+> Round 2 (2026-10-20T16:44:46Z, after gap round 2, plans 04-24 to 04-28): tests 14 to 19 are the six owner items of 04-VERIFICATION.md verified 2026-10-20T16:41:25Z (status human_needed, 0 gaps, 4 of 4 criteria, PLAT-01 met at median-run p95 5.37 ms against 8.0). Tests 5, 6 and 13 stay as round-1 history and are superseded in substance by 14, 15 and 16; the gap rows G-04-5, G-04-6 and G-04-7 are reconciled at /gsd-verify-work 4.
