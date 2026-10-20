@@ -6,6 +6,7 @@
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
 
+#include "native_arrows.h"
 #include "native_enemies.h"
 #include "native_field.h"
 #include "native_sim.h"
@@ -29,6 +30,7 @@ void initialize_duskhold_sim_module(ModuleInitializationLevel p_level) {
 	GDREGISTER_CLASS(NativeWallDecision);
 	GDREGISTER_CLASS(NativeEnemies);
 	GDREGISTER_CLASS(NativeStuck);
+	GDREGISTER_CLASS(NativeArrows);
 }
 
 void uninitialize_duskhold_sim_module(ModuleInitializationLevel p_level) {

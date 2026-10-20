@@ -3,10 +3,13 @@ extends Node3D
 ## Makes every attack the simulation decides visible (KING-03, D-13). A tower, castle, skirmisher
 ## or archer shot flies a thin emissive arrow from the attacker to the target's current position for
 ## exactly SimClock.flight_ticks of simulation time, arcing on the way. Every arrow in the air is
-## one instance of a single batch (PLAT-01): the flights live in a ring of MAX_PROJECTILES slots
-## held in parallel arrays, and each frame the live ones are written into the batch in slot order
-## and uploaded once. The king's passive strike has no flight, so it shows a short flat slash at
-## the king pointing at his target instead (a node, capped at MAX_SLASHES).
+## one instance of a single batch (PLAT-01): the flights live in a ring of MAX_PROJECTILES slots,
+## and each frame the live ones are written into the batch in slot order and uploaded once. The
+## ring and the per-frame flight run in native/src/native_arrows.cpp (NativeArrows, plan 04-25, a
+## line-by-line port of the GDScript flight pinned by tests/unit/test_projectile_fill_pins.gd);
+## this node decides what to draw (the attack events, the launch points and targets, the colours)
+## and uploads what the native fill wrote. The king's passive strike has no flight, so it shows a
+## short flat slash at the king pointing at his target instead (a node, capped at MAX_SLASHES).
 ## Purely visual: the simulation has already decided the hit by the target's id (RESEARCH Pattern
 ## 2), so an arrow cannot miss, cannot hit anything else and, when its target is gone, finishes at
 ## the target's last known position. Arrows are capped at MAX_PROJECTILES (T-02-10, T-04-03) and a
@@ -45,26 +48,20 @@ const HEADING_STEP: float = 0.02
 ## The culling box of the arrow batch reaches this high above the ground.
 const BOUNDS_HEIGHT: float = 8.0
 const CROWD_SHADER: Shader = preload("res://presentation/crowd/crowd_instance.gdshader")
+## How NativeArrows follows an arrow's target each frame (native/src/native_arrows.h): a building,
+## castle or wall target resolves to the same point every frame, so it keeps the launch target;
+## an enemy is followed through the enemy read view by id, a unit is resolved here before each
+## fill, and the king is followed directly.
+const TARGET_FIXED: int = 0
+const TARGET_ENEMY: int = 1
+const TARGET_UNIT: int = 2
+const TARGET_KING: int = 3
 
 var _ctx: RunContext
 var _batch: CrowdBatch
 var _slash_mesh: BoxMesh
-## The ring of flights, parallel arrays indexed by slot. A slot is free while `_active` is 0.
-var _origins: PackedVector3Array = PackedVector3Array()
-var _last_targets: PackedVector3Array = PackedVector3Array()
-var _elapsed: PackedFloat32Array = PackedFloat32Array()
-var _durations: PackedFloat32Array = PackedFloat32Array()
-var _target_kinds: Array[StringName] = []
-var _target_ids: PackedInt32Array = PackedInt32Array()
-var _colors: PackedColorArray = PackedColorArray()
-var _active: PackedByteArray = PackedByteArray()
-var _live: int = 0
-var _cursor: int = 0
-## Arrows written into the batch by the latest frame; an idle frame after an idle frame uploads
-## nothing.
-var _drawn: int = 0
-## The launch point of each arrow drawn by the latest frame, in drawn order (test hook mirror).
-var _drawn_launches: PackedVector3Array = PackedVector3Array()
+## The ring of flights and the per-frame flight, in C++.
+var _native: NativeArrows
 
 
 ## Seconds a projectile of `flight_ticks` simulation ticks stays in the air.
@@ -76,10 +73,7 @@ static func flight_seconds(flight_ticks: int) -> float:
 ## `distance` metres: a parabola that is 0 at both ends and peaks halfway at distance *
 ## ARC_PER_METRE, never above MAX_ARC_HEIGHT. Progress outside 0 to 1 is on the ground.
 static func arc_height(t: float, distance: float) -> float:
-	if t <= 0.0 or t >= 1.0:
-		return 0.0
-	var peak: float = minf(maxf(distance, 0.0) * ARC_PER_METRE, MAX_ARC_HEIGHT)
-	return 4.0 * t * (1.0 - t) * peak
+	return NativeArrows.arc_height(t, distance, ARC_PER_METRE, MAX_ARC_HEIGHT)
 
 
 ## Where an arrow flying from `origin` to `target` is at progress `t` (clamped to 0 to 1), turned
@@ -87,40 +81,27 @@ static func arc_height(t: float, distance: float) -> float:
 ## direction of travel (the arc's slope included), y as upright as that allows and x across. The
 ## identity basis when origin and target coincide.
 static func arrow_transform(origin: Vector3, target: Vector3, t: float) -> Transform3D:
-	var progress: float = clampf(t, 0.0, 1.0)
-	var distance: float = origin.distance_to(target)
-	var here: Vector3 = _path_point(origin, target, progress, distance)
-	var behind: Vector3 = _path_point(origin, target, maxf(progress - HEADING_STEP, 0.0), distance)
-	var ahead: Vector3 = _path_point(origin, target, minf(progress + HEADING_STEP, 1.0), distance)
-	var heading: Vector3 = ahead - behind
-	if heading.length() < 0.0001:
-		heading = target - origin
-	if heading.length() < 0.0001:
-		return Transform3D(Basis.IDENTITY, here)
-	var forward: Vector3 = heading.normalized()
-	var across: Vector3 = Vector3.UP.cross(forward)
-	across = across.normalized() if across.length() > 0.001 else Vector3.RIGHT
-	var upright: Vector3 = forward.cross(across)
-	return Transform3D(Basis(across, upright, forward), here)
-
-
-static func _path_point(origin: Vector3, target: Vector3, t: float, distance: float) -> Vector3:
-	return origin.lerp(target, t) + Vector3.UP * arc_height(t, distance)
+	return NativeArrows.arrow_transform(
+		origin, target, t, ARC_PER_METRE, MAX_ARC_HEIGHT, HEADING_STEP
+	)
 
 
 func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 	if _ctx != null:
 		return
 	_ctx = ctx
-	_allocate_ring()
 	_build_batch(ctx.map)
+	_native = NativeArrows.new()
+	_native.configure(MAX_PROJECTILES, ARC_PER_METRE, MAX_ARC_HEIGHT, HEADING_STEP, UNIT_HEIGHT)
+	if not _native.set_mirror(_batch.mirror(), _batch.layout()):
+		push_error("ProjectileVfx: the native arrow fill refused the batch mirror")
 	_slash_mesh = _make_box(SLASH_SIZE, SLASH_COLOR)
 	ctx.events.attack_fired.connect(_on_attack_fired)
 
 
 ## Arrows in the air. Test hook, read-only.
 func live_count() -> int:
-	return _live
+	return _native.live_count() if _native != null else 0
 
 
 ## Arrows drawn by the latest frame. Test hook, read-only.
@@ -136,9 +117,7 @@ func arrow_color_at(index: int) -> Color:
 ## Where arrow `index` of the latest frame left from, launch height included; the zero vector past
 ## the last. Test hook, read-only.
 func arrow_launch_at(index: int) -> Vector3:
-	if index < 0 or index >= _drawn:
-		return Vector3.ZERO
-	return _drawn_launches[index]
+	return _native.drawn_launch(index) if _native != null else Vector3.ZERO
 
 
 ## Where arrow `index` of the latest frame is drawn, from the batch mirror; the zero vector past the
@@ -156,29 +135,25 @@ func slash_count() -> int:
 	return count
 
 
+## One native call per frame advances every flight, follows its target and writes the arrows into
+## the batch's mirror; an idle frame after an idle frame uploads nothing. A friendly unit is not in
+## the enemy read view (unit records stay GDScript), so its arrows get their target from here
+## first; unit positions do not change within a frame.
 func _process(delta: float) -> void:
 	if _ctx == null:
 		return
-	if _live == 0 and _drawn == 0:
+	if _native.live_count() == 0 and _native.count() == 0:
 		return
-	_batch.begin()
-	_drawn = 0
-	for slot: int in range(MAX_PROJECTILES):
-		if _active[slot] == 0:
-			continue
-		_elapsed[slot] += delta
-		_last_targets[slot] = _target_position(
-			_target_kinds[slot], _target_ids[slot], _last_targets[slot]
+	for slot: int in _native.slots_targeting(TARGET_UNIT):
+		_native.set_target(
+			slot,
+			_target_position(
+				PendingHits.KIND_UNIT, _native.target_id_at(slot), _native.target_at(slot)
+			)
 		)
-		var t: float = clampf(_elapsed[slot] / _durations[slot], 0.0, 1.0)
-		var xform: Transform3D = arrow_transform(_origins[slot], _last_targets[slot], t)
-		if _batch.add_transform(xform, Color(0.0, 0.0, 0.0, 0.0), _colors[slot]):
-			_drawn_launches[_drawn] = _origins[slot]
-			_drawn += 1
-		if t >= 1.0:
-			_active[slot] = 0
-			_live -= 1
-	_batch.commit()
+	var view: CrowdReadView = _ctx.night.get_enemies().read_view()
+	_native.fill(delta, _ctx.king.get_position(), view.ids, view.current, view.living)
+	_batch.commit_buffer(_native.mirror(), _native.count())
 
 
 func _on_attack_fired(
@@ -194,23 +169,19 @@ func _on_attack_fired(
 		return
 	if not _draws_arrows(attacker_kind):
 		return
-	if _live >= MAX_PROJECTILES:
+	if _native.live_count() >= MAX_PROJECTILES:
 		return
 	var origin: Vector3 = _attacker_position(attacker_kind, attacker_id)
 	if not origin.is_finite():
 		return
-	var slot: int = _free_slot()
-	if slot < 0:
-		return
-	_origins[slot] = origin
-	_last_targets[slot] = _target_position(target_kind, target_id, origin)
-	_elapsed[slot] = 0.0
-	_durations[slot] = maxf(flight_seconds(flight_ticks), SimClock.STEP)
-	_target_kinds[slot] = target_kind
-	_target_ids[slot] = target_id
-	_colors[slot] = _color_for(attacker_kind)
-	_active[slot] = 1
-	_live += 1
+	_native.launch(
+		origin,
+		_target_position(target_kind, target_id, origin),
+		maxf(flight_seconds(flight_ticks), SimClock.STEP),
+		_target_code(target_kind),
+		target_id,
+		_color_for(attacker_kind)
+	)
 
 
 ## Towers, the castle, enemies and friendly archers shoot arrows; the king and melee units strike
@@ -232,26 +203,16 @@ func _color_for(attacker_kind: StringName) -> Color:
 	return TOWER_COLOR
 
 
-## The next free slot at or after the cursor (the ring), or -1 when every slot is taken.
-func _free_slot() -> int:
-	for step: int in range(MAX_PROJECTILES):
-		var slot: int = (_cursor + step) % MAX_PROJECTILES
-		if _active[slot] == 0:
-			_cursor = (slot + 1) % MAX_PROJECTILES
-			return slot
-	return -1
-
-
-func _allocate_ring() -> void:
-	_origins.resize(MAX_PROJECTILES)
-	_last_targets.resize(MAX_PROJECTILES)
-	_elapsed.resize(MAX_PROJECTILES)
-	_durations.resize(MAX_PROJECTILES)
-	_target_kinds.resize(MAX_PROJECTILES)
-	_target_ids.resize(MAX_PROJECTILES)
-	_colors.resize(MAX_PROJECTILES)
-	_active.resize(MAX_PROJECTILES)
-	_drawn_launches.resize(MAX_PROJECTILES)
+## How NativeArrows follows a target of this kind: enemies and the king move, units are resolved
+## here, and every other kind (a building, the castle, a wall segment) stands still.
+func _target_code(kind: StringName) -> int:
+	if kind == PendingHits.KIND_ENEMY:
+		return TARGET_ENEMY
+	if kind == PendingHits.KIND_UNIT:
+		return TARGET_UNIT
+	if kind == PendingHits.KIND_KING:
+		return TARGET_KING
+	return TARGET_FIXED
 
 
 ## The one arrow batch: a thin box per arrow, tinted per instance through the crowd shader, white

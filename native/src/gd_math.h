@@ -40,11 +40,29 @@
 //   SimClock.ticks, flight_ticks      mirror (sim_ticks,       OP_INT_TICKS,              simulation/clock/sim_clock.gd
 //                                     sim_flight_ticks)        OP_INT_FLIGHT_TICKS
 //
+// The Vector3 rows below (plan 04-25, the view fills) are proven by
+// tests/unit/test_native_view_math_contract.gd through NativeSim.probe_vector3 and probe_double3
+// (20,000 seeded inputs each, op codes in native/src/native_sim.h). A scalar meets a Vector3 only
+// through a cast to real_t at the operator, exactly as for Vector2.
+//
+//   operation                         C++ source               proving op codes           engine source
+//   -------------------------------   ----------------------   ------------------------   ----------------------------
+//   Vector3 + Vector3, - Vector3      operator                 OP_V3_ADD, OP_V3_SUB       core/math/vector3.h
+//   Vector3 * s                       operator, s cast to      OP_V3_MUL_SCALAR           core/math/vector3.h operator*
+//                                     real_t
+//   Vector3(x, y, z) from doubles     each cast to real_t      OP_V3_FROM_DOUBLES         GDScript Vector3 construct
+//   length_squared, length            mirror                   OP_DBL3_LENGTH_SQUARED,    core/math/vector3.h
+//                                                              OP_DBL3_LENGTH
+//   distance_to                       mirror                   OP_DBL3_DISTANCE_TO        core/math/vector3.h distance_to
+//   normalized                        mirror                   OP_V3_NORMALIZED           core/math/vector3.h normalize
+//   cross                             mirror                   OP_V3_CROSS                core/math/vector3.h cross
+//   lerp (Vector3)                    mirror                   OP_V3_LERP                 core/math/vector3.h lerp
+//
 // Scope of the proof: finite inputs, plus infinities and NaN among the double scalars (they stay
-// out of the Vector2 inputs, because the engine warns on normalizing a non-finite vector and the
-// payload that survives two NaN operands is the compiler's choice, not the simulation's). The test
-// is mutation-checked: a reciprocal multiply in normalized and a rounding slack of 0.0002 or
-// 0.00005 in sim_whole_ticks each fail it.
+// out of the Vector2 and Vector3 inputs, because the engine warns on normalizing a non-finite
+// vector and the payload that survives two NaN operands is the compiler's choice, not the
+// simulation's). The tests are mutation-checked: a reciprocal multiply in normalized (Vector2 and
+// Vector3) and a rounding slack of 0.0002 or 0.00005 in sim_whole_ticks each fail them.
 //
 // Rules: no std::max, std::min or std::clamp on floats (signed zero and NaN differ from the
 // engine's comparison), no transcendental call, no fused multiply-add, no fast math; only + - * /
@@ -54,11 +72,13 @@
 #include <cstdint>
 
 #include <godot_cpp/variant/vector2.hpp>
+#include <godot_cpp/variant/vector3.hpp>
 
 namespace gd {
 
 using godot::real_t;
 using godot::Vector2;
+using godot::Vector3;
 
 // core/variant/variant_utility.cpp VariantUtilityFunctions::sqrt -> Math::sqrt (core/math/
 // math_funcs.h): the correctly rounded IEEE square root of a double.
@@ -209,6 +229,72 @@ inline Vector2 lerp(const Vector2 &from, const Vector2 &to, real_t weight) {
 	Vector2 result = from;
 	result.x = result.x + (to.x - result.x) * weight;
 	result.y = result.y + (to.y - result.y) * weight;
+	return result;
+}
+
+// --- Vector3 (plan 04-25: the view fills) ---------------------------------------------------------
+
+// core/math/vector3.h Vector3::length_squared: the three squares first, then summed left to right,
+// all in real_t.
+inline real_t length_squared(const Vector3 &v) {
+	real_t x2 = v.x * v.x;
+	real_t y2 = v.y * v.y;
+	real_t z2 = v.z * v.z;
+	return x2 + y2 + z2;
+}
+
+// core/math/vector3.h Vector3::length: Math::sqrt (the float overload) of the same sum.
+inline real_t length(const Vector3 &v) {
+	real_t x2 = v.x * v.x;
+	real_t y2 = v.y * v.y;
+	real_t z2 = v.z * v.z;
+	return std::sqrt(x2 + y2 + z2);
+}
+
+// core/math/vector3.h Vector3::distance_to: the length of (to - from).
+inline real_t distance_to(const Vector3 &from, const Vector3 &to) {
+	return length(to - from);
+}
+
+// core/math/vector3.h Vector3::is_finite: Math::is_finite on the three components.
+inline bool is_finite(const Vector3 &v) {
+	return std::isfinite(v.x) && std::isfinite(v.y) && std::isfinite(v.z);
+}
+
+// core/math/vector3.h Vector3::normalize, as normalized() (Vector3::normalized copies and
+// normalizes): a non-finite vector and a zero vector give (0, 0, 0); else the three components are
+// divided by the real_t square root of length_squared.
+inline Vector3 normalized(const Vector3 &v) {
+	Vector3 result = v;
+	if (!is_finite(result)) {
+		return Vector3(0.0f, 0.0f, 0.0f);
+	}
+	real_t l = length_squared(result);
+	if (l == 0) {
+		return Vector3(0.0f, 0.0f, 0.0f);
+	}
+	l = std::sqrt(l);
+	result.x /= l;
+	result.y /= l;
+	result.z /= l;
+	return result;
+}
+
+// core/math/vector3.h Vector3::cross.
+inline Vector3 cross(const Vector3 &a, const Vector3 &b) {
+	return Vector3(
+			(a.y * b.z) - (a.z * b.y),
+			(a.z * b.x) - (a.x * b.z),
+			(a.x * b.y) - (a.y * b.x));
+}
+
+// core/math/vector3.h Vector3::lerp: each component through Math::lerp (core/math/math_funcs.h,
+// the float overload): from + (to - from) * weight. `weight` is already a real_t.
+inline Vector3 lerp(const Vector3 &from, const Vector3 &to, real_t weight) {
+	Vector3 result = from;
+	result.x = result.x + (to.x - result.x) * weight;
+	result.y = result.y + (to.y - result.y) * weight;
+	result.z = result.z + (to.z - result.z) * weight;
 	return result;
 }
 
