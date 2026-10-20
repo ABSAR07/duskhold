@@ -2,11 +2,11 @@
 gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
-status: executing
+status: verifying
 stopped_at: Completed 04-28-PLAN.md
 last_updated: "2026-10-20T15:53:17.686Z"
 last_activity: 2026-10-20
-last_activity_desc: Phase 04 execution started
+last_activity_desc: Phase 04 gap round 2 executed (04-24 to 04-28), PLAT-01 met at p95 5.37 ms; ready for verification
 state_head: 2f34b899532c2110bb9c7882bc89a80574469648
 progress:
   total_phases: 13
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 
 ## Current Position
 
-Phase: 04 (Crowd-Scale Battles & Walls) — EXECUTING
-Plan: 4 of 28
-Status: Ready to execute
-Last activity: 2026-10-20 — Phase 04 execution started
+Phase: 04 (Crowd-Scale Battles & Walls) — VERIFYING
+Plan: 28 of 28
+Status: Phase complete — ready for verification (gap round 2: all four view ports native, FRAME_REPORT_OK p95_ms=5.37 within=true)
+Last activity: 2026-10-20 — Gap round 2 executed (04-24 to 04-28, 5 of 5 complete, no halts); PLAT-01 met at median-run p95 5.37 ms against 8.0; CI run 39445109146 green; next: phase verification
 
 Progress: [██░░░░░░░░] 23%
 
