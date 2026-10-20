@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
 status: executing
-stopped_at: Completed 04-26-PLAN.md
-last_updated: "2026-10-20T14:06:19.189Z"
+stopped_at: Completed 04-27-PLAN.md
+last_updated: "2026-10-20T15:24:34.374Z"
 last_activity: 2026-10-20
 last_activity_desc: Phase 04 execution started
-state_head: 4b1022c571e5c539aea9a0a9300630af2c9c28ab
+state_head: 960bf8eb9689c46801f3966c068c3f67e815b9ac
 progress:
   total_phases: 13
   completed_phases: 3
   total_plans: 87
-  completed_plans: 85
+  completed_plans: 86
   percent: 23
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 04 (Crowd-Scale Battles & Walls) — EXECUTING
-Plan: 2 of 28
+Plan: 3 of 28
 Status: Ready to execute
 Last activity: 2026-10-20 — Phase 04 execution started
 
@@ -143,6 +143,7 @@ Progress: [██░░░░░░░░] 23%
 | Phase 04 P24 | 31 min | 3 tasks | 12 files |
 | Phase 04 P25 | 64min | 2 tasks | 13 files |
 | Phase 04 P26 | 51 min | 2 tasks | 14 files |
+| Phase 04 P27 | 63 min | 2 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -333,6 +334,8 @@ Recent decisions affecting current work:
 - [Phase 04]: 04-24: the view ablation records each frame delta under the slice running during the previous frame; ABLATION_SAVED is the median over trials of all_on mean minus slice mean; baseline before any port: projectile_vfx 2.13, enemy_views 1.32, unit_views 0.42, all_off 3.80 ms saved (build ablation.txt in 04-24-SUMMARY) — Same-instrument before for plan 04-28
 - [Phase 04]: 04-25: CrowdBatch mirror()/layout()/commit_buffer() and native_mirror.h are general so 04-26/04-27 copy the arrow shape; arrows bench median 2280.07 us -> 74.44 us (30.6x), GDScript flight deleted, no fallback
 - [Phase 04]: [04-26] The enemy fill and the death-puff ring run in C++ (NativeEnemyViews, NativePuffs) behind the unchanged EnemyViews and DeathPuffBatch APIs, pinned first on the GDScript behind a clock seam (pins include a puff flood since the stress night kills nobody); enemies bench 758.89 -> 73.12 us (10.4x), puffs 140.05 -> 4.63 us (30.2x); a native fill runs before its mirror is handed back (GDScript argument order); idle CrowdBatch commits skip the upload
+- [Phase 04]: 04-27: UnitSystem.read_view() (UnitReadView) is a change-counted packed read refilled only after an id, position or def writer; squad_of (caller-less) gave up its slot so UnitSystem stays at 20 public methods — Review IN-07's recommended fix; one implementation, the GDScript per-unit loop deleted; pins computed on the GDScript first, units bench 273.88 us to 30.16 us (9.1x, bar 2.0)
+- [Phase 04]: 04-27: the view-layer round (plans 04-24 to 04-27) pushed once; CI run 39445109146 green on every job for e0ecde0 with the four replays and the gate on GCC and MSVC and the CI export launched; no fix cycle — Option A for CI (both native libraries built from source); goldens byte-identical, no digest moved
 
 ### Pending Todos
 
@@ -371,6 +374,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-20T14:06:18.416Z
-Stopped at: Completed 04-26-PLAN.md
+Last session: 2026-10-20T15:24:33.609Z
+Stopped at: Completed 04-27-PLAN.md
 Resume file: None
