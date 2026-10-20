@@ -1,5 +1,234 @@
 # Phase 4 Frame Report: the stress night against the 8 ms budget (PLAT-01, D-10, D-12)
 
+## After the view-layer port (plans 04-24 to 04-28), 2026-10-20T15:48Z
+
+Measured 2026-10-20 by plan 04-28 on the same dev machine, with the method of plans 04-09 and 04-21 (both kept below as the before). **Verdict: the budget is MET.** The median run's p95 frame time is **5.37 ms against the unchanged 8.0 ms budget** (2.63 ms, 33 percent, under it; it was 10.95 ms, 1.37 times over, after the step port, and 37.04 ms, 4.6 times over, before any port), with the D-10 on-screen bar met in full (300 enemies, 50 units and 237 or more arrows in view at every sampled frame). Taking the three view layers' per-frame fill into C++ (arrows in plan 04-25, enemies and death puffs in 04-26, units in 04-27) bought a factor of 2.0 on the p95 and 1.7 on the median frame (p50 6.25 ms to 3.70 ms, about 142 fps to about 256 fps), and a factor of 6.9 on the p95 since 04-09. **PLAT-01 and ROADMAP success criterion 3 are closed by measurement on the dev machine (gap G-04-5).** Nothing was lowered or raised: no budget change (`FrameReport.BUDGET_P95_MS` is 8.0), no fewer enemies, no skipped steps, no draw-cap or fidelity change, the stress map, the load numbers and the stress tools untouched.
+
+```
+FRAME_REPORT_OK runs=3 median_run=2 p95_ms=5.37 budget_ms=8.0 within=true enemies=300 units=50 arrows=237
+```
+
+**Upstream halts: none.** All four view ports of this round shipped natively and none halted: the arrows (plan 04-25, bench 2280.07 us to 74.44 us, 30.6 times), the enemy bodies, flashes and hurt-only bars and the death-puff ring (plan 04-26, 758.89 us to 73.12 us, 10.4 times, and 140.05 us to 4.63 us, 30.2 times), and the unit bodies and bars (plan 04-27, 273.88 us to 30.16 us, 9.1 times); the SUMMARYs of 04-24 to 04-27 all read `status: complete`, so the measurement below covers every per-frame view loop of the night as native code (no view kept its GDScript). The whole round went out in one push and CI run 39445109146 (https://github.com/ABSAR07/duskhold/actions/runs/39445109146, head `e0ecde0`) was green on every job (lint, test, native-linux, native-windows, screenshots, export) with the four replays and the gate on both the GCC and the MSVC library.
+
+### What was proven first
+
+The measured code is the proven code (`HEAD 9282d64`, which holds the code of `e0ecde0`; the commits after it change only `.planning/`; native library rebuilt and stamp-checked by `bash tools/native_build.sh`, which printed `NATIVE_BUILD_OK platform=windows lib=libduskhold_sim.windows.x86_64.dll godot_cpp=2bb1acf6f8ae1ce96ac7b9ba3a10b499c59c49ec api=4.7.2`): the four replays and the gate, each twice, all unchanged against the owner's D-14 reading.
+
+```
+REPLAY_OK scenario=smoke seed=1 outcome=won ticks=703 digest=2599c7c250f45b3dfe6653a8fc683918cbdce768a9afcaf8e3752d3454ccf31f
+REPLAY_OK scenario=army seed=1 outcome=won ticks=1353 digest=f7a967edc68054f2a75ae55a54100cfc3f069d8f3029e8299cd31fec7a8959c4
+REPLAY_OK scenario=walls seed=1 outcome=won ticks=1961 digest=bfb05fc7e4c7b956eb8a6c3a16bdcaa546fd8558853878897704c32311ab8b58
+REPLAY_OK scenario=full_idle seed=1 outcome=won ticks=6911 digest=4385f569c3e05d69d769fd6c75441637cd8543888d01cdabbcf08924cfdd2faf
+GATE_OK enemies=300 crossed=300 stuck=0 median_cross_s=14.93 max_cross_s=21.93 longest_flag_s=3.37 wall_hits=0 digest=e448ffdbd4d1ea8fcfd5c7b8c7dc3a257cd17b1ebdb52a6552cd7572efd5336a
+```
+
+(The three golden scenarios ran with `--twice --expect-file=tests/golden/<name>.json`, full_idle with `--twice`; all exit 0.)
+
+### Method and hardware
+
+Identical to the sections below: `bash tools/stress.sh --runs=3 --duration=20` (10 s warm-up, 20 s measured, three runs, the median-p95 run published), real window, requested 1920x1080 (actual window 1920x1050, viewport 1316x720), vsync off, `Engine.max_fps = 0`, speed 1.0x, the camera at y 119.5, NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan 1.4.341), Intel Core i5-10500H, Windows 11 Home, Godot 4.7.2-stable (official), Forward+. The stress map, the load numbers (300 grunts, 50 footmen, 20 towers, the gate wall, arrow speed 5 m/s) and the stress tools are exactly those of plan 04-09; nothing in `tools/stress/` changed (the two instruments plan 04-24 added are new files, not edits). The headless numbers were taken first, one command at a time, then the three stress runs, then the ablation, then the rebuild probe; no other Godot process was running (checked with `tasklist` before each real-window run) and nothing else ran on the machine.
+
+### Result (median of 3 runs)
+
+The published run is run 2 (the median by p95: 5.00, 5.37, 5.56).
+
+| Measure | After the view port | After the step port (04-21) | Before (04-09) |
+|---------|--------------------:|----------------------------:|---------------:|
+| Frames measured | 5119 (about 256 fps) | 2838 (about 142 fps) | 856 (about 43 fps) |
+| Frame time p50 | 3.70 ms | 6.25 ms | 20.92 ms |
+| Frame time p95 | **5.37 ms** | **10.95 ms** | **37.04 ms** |
+| Frame time p99 | 6.60 ms | 13.33 ms | 50.00 ms |
+| Worst 1 percent mean | 8.76 ms | 14.11 ms | 55.42 ms |
+| Frame time max | 46.71 ms | 16.88 ms | 74.82 ms |
+| Frame time mean | 3.86 ms | 6.99 ms | 23.33 ms |
+| Step (ctx.advance) mean / p50 / p95 / max, all frames | 0.55 / 0.02 / 4.39 / 36.37 ms | 0.73 / 0.01 / 3.62 / 24.10 ms | 14.34 / 18.14 / 25.43 / 56.35 ms |
+| Render CPU, median | 0.64 ms | 0.45 ms | 0.70 ms |
+| Render GPU, median | 0.77 ms | 1.21 ms | 4.46 ms |
+| Draw calls / objects / primitives, median | 230 / 328 / 719,000 | 230 / 328 / 718,998 | 230 / 328 / 718,962 |
+
+p95 5.37 ms against the 8.0 ms budget: **within**.
+
+The maximum of the published run is one frame (46.71 ms, frame 850, a frame that also ran a 4.69 ms step); every run has exactly one frame over 16.7 ms (run 1 18.44 ms, run 2 46.71 ms, run 3 23.70 ms) and 16 to 23 frames over 8 ms (0.3 to 0.45 percent of the frames), so the tail is a handful of single-frame spikes, not a trend. The p99 is 6.60 ms. The render CPU median reads 0.64 ms here against 0.45 ms in 04-21; it was not investigated (the machine's session drift is the likely part), and it is small beside the 3.70 ms median frame.
+
+### All runs
+
+| Run | Frames | p50 ms | p95 ms | p99 ms | max ms | Published |
+|-----|-------:|-------:|-------:|-------:|-------:|-----------|
+| 1 | 5432 | 3.46 | 5.00 | 6.06 | 18.44 |  |
+| 2 | 5119 | 3.70 | 5.37 | 6.60 | 46.71 | yes |
+| 3 | 5084 | 3.70 | 5.56 | 6.67 | 23.70 |  |
+
+The three runs agree to within 11 percent on p95 (5.00 to 5.56 ms) and the worst of them is 2.44 ms under the budget, so the pass is not a lucky run. (04-21's runs were 10.88 / 10.95 / 11.11 ms.) The frame times are quantised by the host timer (3.33, 3.70, 4.17 ms and so on), which is why the percentiles sit on those values.
+
+### On-screen counts
+
+| Kind | Minimum (gated) | Median | Bar (D-10) |
+|------|----------------:|-------:|-----------:|
+| Enemies | 300 | 300 | 300 |
+| Units | 50 | 50 | 50 |
+| Arrows | 237 | 257 | 200 |
+
+Counted on every 30th frame of the measured window (170 samples in the median run); the minimum arrows of all three runs were 237 (04-21: 239). All 300 grunts had spawned before the measured window began (`spawned_at_start` 300). The crowd, the arrows and the framing are what they were; only how fast the frame is made changed.
+
+### With-step and without-step frames
+
+In the median run 603 of 5119 frames (12 percent; the tick is 30 Hz and the frame rate is now about 256 fps, so a step lands on one frame in about eight) ran a simulation step, taken as a step of 0.5 ms or more (the other 4516 frames spend under 0.2 ms calling `ctx.advance` without a tick). On those frames the step took 4.53 ms on average (p50 4.09, p95 6.80, max 36.37 ms; 04-21 read 3.39 ms on average in the window against 2.33 ms headless, so the window run costs the step more than the dummy-renderer probe, and this session reads about 1 ms higher still, which is the laptop's session drift and not a code change: the headless probe below is within 0.15 ms of 04-21's):
+
+| Frames | p50 frame ms | p95 frame ms |
+|--------|-------------:|-------------:|
+| With a step (603) | 3.70 | 5.56 |
+| Without a step (4516) | 3.70 | 5.31 |
+
+(Runs 1 and 3: step frames 601 and 601, p50 3.33 and 3.70, p95 5.16 and 5.56; frames without a step 4831 and 4483, p50 3.58 and 3.70, p95 5.00 and 5.56.) In 04-21 a frame cost the same with or without the step and the p95 was set by something every frame paid, the three view loops; now, in the published run, a step frame costs 0.25 ms more at the p95 than a plain frame (runs 1 and 3: 0.16 and 0.00 ms more), which is the step showing through at most, and the all-frames p95 (5.37 ms) sits between the two. Nothing every frame pays dominates any more.
+
+### Where the step goes (the committed attribution probe, run before the real-window runs)
+
+`bash tools/godot.sh --headless --path . -s res://tools/stress/step_attribution.gd -- --runs=3 --out=build/bench/attribution.txt` (headless, dummy renderer, ablation deltas by the variant method of the 04-09 report, so the phases need not add up) wrote build/bench/attribution.txt:
+
+```
+VARIANT full mean_ms=2.47
+VARIANT no_towers mean_ms=1.83
+VARIANT no_squads mean_ms=1.00
+VARIANT enemies_only mean_ms=0.46
+PHASE total ms=2.47
+PHASE towers ms=0.63
+PHASE squads ms=1.47
+PHASE enemies ms=0.46
+PHASE rest ms=-0.09
+STEP_ATTRIBUTION_OK runs=3 enemies=300 warmup=300 steps=300
+```
+
+| Phase | 04-09 profile (GDScript) | 04-21 probe | This run |
+|-------|-------------------------:|------------:|---------:|
+| Total step | 22.2 ms | 2.33 ms | **2.47 ms** |
+| Enemies | 15.6 ms | 0.48 ms | **0.46 ms** |
+| Squads (50 units: orders, slot walks, goal-field walks) | 2.7 ms | 1.34 ms | **1.47 ms** |
+| Towers (20 towers, 300 targets) | 2.1 ms | 0.49 ms | **0.63 ms** |
+| Rest | 1.8 ms | 0.02 ms | **-0.09 ms** |
+
+The step was not touched by this round (plans 04-24 to 04-27 changed the view layer, the stamp and the tools), so the step reads as before within the laptop's drift of 0.1 to 0.15 ms per phase; the squads are still its largest piece (1.47 ms of 2.47 ms). The five stress-shape `step_bench` lines read 2.55, 2.51, 4.10, 2.25 and 2.33 ms (median **2.51 ms**; p95 2.63 to 7.63 ms, max 3.57 to 31.35 ms, the 4.10 ms run carrying a 31 ms single-frame spike) and the five prototype lines 1.19, 0.97, 1.58, 0.98 and 0.99 ms (median **0.99 ms**), appended to build/bench/final.txt; 04-21 read 2.47 ms and 0.96 ms. The step side did not move, which is the point: the improvement below comes from the view layers alone.
+
+### Bench medians per port plan (the step)
+
+| Plan (what moved to C++) | Stress step, before | Stress step, after | Prototype step, before | Prototype step, after |
+|--------------------------|--------------------:|-------------------:|-----------------------:|----------------------:|
+| 04-09 baseline (GDScript, profile / bench) | 22.2 ms | | 20.1 to 22.9 ms | |
+| 04-15 push-apart and the gd_math table | 39.37 ms | 28.75 ms | 35.23 ms | 26.57 ms |
+| 04-17 wall solid test | 26.86 ms | 29.75 ms (A/B gain 5.10 ms) | 25.78 ms | 22.36 ms |
+| 04-18 flow-field reads and castle routing | 23.89 ms | 22.78 ms | 23.93 ms | 22.80 ms |
+| 04-23 structure index and wall decision | 22.78 ms | 17.88 ms | 22.80 ms | 11.35 ms |
+| 04-19 the enemy store and step | 17.88 ms | 4.58 ms | 11.35 ms | 2.07 ms |
+| 04-20 nearest-enemy query and stuck tracker | 4.58 ms | 2.18 ms | 2.07 ms | 1.08 ms |
+| 04-21 re-measurement | | 2.47 ms | | 0.96 ms |
+| **Now (this plan, HEAD 9282d64, no step change since)** | | **2.51 ms** | | **0.99 ms** |
+
+### The view fills: bench medians per view plan
+
+`view_fill_bench.gd` (headless, dummy renderer, script and buffer cost only, 1440 warm-up and 720 timed frames at 1/144 s) is the per-view check each port plan used; "now" is the median of three runs per view of this plan (`build/bench/view_final.txt`), the other columns are as the SUMMARYs of 04-24 to 04-27 recorded them (their own medians of three or five runs). Medians in microseconds per frame:
+
+| View (plan) | 04-24 baseline (before any port) | The plan's own before | The plan's own after | Ratio (plan before / after) | Now (this plan) | Now against the 04-24 baseline |
+|-------------|---------------------------------:|----------------------:|---------------------:|----------------------------:|----------------:|-------------------------------:|
+| Arrows (04-25) | 2736.99 | 2280.07 | 74.44 | 30.6 | **57.44** | 47.6 times lower |
+| Enemies (04-26) | 611.33 | 758.89 | 73.12 (38.13 on the final build) | 10.4 (19.9) | **38.97** | 15.7 times lower |
+| Units (04-27) | 177.25 | 273.88 | 30.16 | 9.1 | **25.23** | 7.0 times lower |
+| Puffs (04-26) | 105.79 | 140.05 | 4.63 | 30.2 | **6.36** | 16.6 times lower |
+| **Sum of the four views** | **3631.36 (3.63 ms)** | | | | **128.00 (0.13 ms)** | **28.4 times lower** |
+
+The nine "now" lines (three runs per view, sorted by mean_us, the middle one is the median):
+
+```
+VIEW_FILL_BENCH view=arrows warmup=1440 frames=720 mean_us=57.44 p95_us=91.00 max_us=171.00 drawn_max=507
+VIEW_FILL_BENCH view=arrows warmup=1440 frames=720 mean_us=58.73 p95_us=89.00 max_us=176.00 drawn_max=507
+VIEW_FILL_BENCH view=arrows warmup=1440 frames=720 mean_us=53.59 p95_us=88.00 max_us=197.00 drawn_max=507
+VIEW_FILL_BENCH view=enemies warmup=1440 frames=720 mean_us=38.88 p95_us=62.00 max_us=163.00 drawn_max=300
+VIEW_FILL_BENCH view=enemies warmup=1440 frames=720 mean_us=40.49 p95_us=69.00 max_us=169.00 drawn_max=300
+VIEW_FILL_BENCH view=enemies warmup=1440 frames=720 mean_us=38.97 p95_us=63.00 max_us=106.00 drawn_max=300
+VIEW_FILL_BENCH view=units warmup=1440 frames=720 mean_us=23.92 p95_us=77.00 max_us=153.00 drawn_max=50
+VIEW_FILL_BENCH view=units warmup=1440 frames=720 mean_us=25.23 p95_us=79.00 max_us=137.00 drawn_max=50
+VIEW_FILL_BENCH view=units warmup=1440 frames=720 mean_us=26.29 p95_us=87.00 max_us=141.00 drawn_max=50
+VIEW_FILL_BENCH view=puffs warmup=1440 frames=720 mean_us=6.36 p95_us=7.00 max_us=25.00 drawn_max=87
+VIEW_FILL_BENCH view=puffs warmup=1440 frames=720 mean_us=11.27 p95_us=14.00 max_us=121.00 drawn_max=87
+VIEW_FILL_BENCH view=puffs warmup=1440 frames=720 mean_us=5.25 p95_us=6.00 max_us=20.00 drawn_max=87
+```
+
+(The arrows bench fills about 507 of the 512 slots, a ceiling for the real window's roughly 250 arrows; the puffs bench's three lines were taken in the order shown and the median is the 6.36 us line.) The sum fell from 3.63 ms to 0.13 ms of script and buffer work per frame, and the real-window ablation below shows the same thing from the other side.
+
+### The residual, attributed by the committed probe (view ablation)
+
+`bash tools/godot.sh --path . --resolution 1920x1080 -s res://tools/stress/view_ablation.gd -- --duration=60 --warmup=10 --run=9 --out=build/stress/ablation` (the committed probe of plan 04-24, real window, nothing else running, two trials of six 5 s slices after the 10 s warm-up) wrote build/stress/ablation/ablation.txt, whole:
+
+```
+ABLATION_SLICE trial=1 slice=all_on frames=1323 p50_ms=3.70 p95_ms=5.00 mean_ms=3.78
+ABLATION_SLICE trial=1 slice=enemy_views_off frames=1356 p50_ms=3.33 p95_ms=5.56 mean_ms=3.69
+ABLATION_SLICE trial=1 slice=unit_views_off frames=1349 p50_ms=3.33 p95_ms=5.56 mean_ms=3.71
+ABLATION_SLICE trial=1 slice=projectile_vfx_off frames=1327 p50_ms=3.38 p95_ms=5.56 mean_ms=3.77
+ABLATION_SLICE trial=1 slice=all_off frames=1414 p50_ms=3.33 p95_ms=5.03 mean_ms=3.54
+ABLATION_SLICE trial=1 slice=all_on_again frames=1323 p50_ms=3.70 p95_ms=5.56 mean_ms=3.78
+ABLATION_SLICE trial=2 slice=all_on frames=1335 p50_ms=3.33 p95_ms=5.56 mean_ms=3.75
+ABLATION_SLICE trial=2 slice=enemy_views_off frames=1363 p50_ms=3.33 p95_ms=5.56 mean_ms=3.67
+ABLATION_SLICE trial=2 slice=unit_views_off frames=1322 p50_ms=3.70 p95_ms=6.06 mean_ms=3.78
+ABLATION_SLICE trial=2 slice=projectile_vfx_off frames=1404 p50_ms=3.33 p95_ms=5.00 mean_ms=3.56
+ABLATION_SLICE trial=2 slice=all_off frames=1408 p50_ms=3.33 p95_ms=5.56 mean_ms=3.55
+ABLATION_SLICE trial=2 slice=all_on_again frames=1305 p50_ms=3.70 p95_ms=5.56 mean_ms=3.83
+ABLATION_SAVED slice=enemy_views_off mean_ms=0.09
+ABLATION_SAVED slice=unit_views_off mean_ms=0.02
+ABLATION_SAVED slice=projectile_vfx_off mean_ms=0.10
+ABLATION_SAVED slice=all_off mean_ms=0.22
+VIEW_ABLATION_OK trials=2 slice_s=5
+```
+
+The same probe's baseline from before any port (04-24, unchanged views) and 04-21's scratch trials beside this run, mean frame ms and p95 per slice (trial 1 [trial 2]):
+
+| Slice (5 s each) | Now: mean / p95 | 04-24 baseline: mean / p95 | 04-21 scratch: mean / p95 |
+|------------------|----------------:|---------------------------:|--------------------------:|
+| All three views on | 3.78 [3.75] / 5.00 [5.56] | 7.59 [6.77] / 12.39 [9.09] | 7.14 [6.98] / 11.32 [10.43] |
+| EnemyViews off | 3.69 [3.67] / 5.56 [5.56] | 5.94 [5.79] / 9.09 [8.33] | 6.09 [5.88] / 8.33 [8.33] |
+| UnitViews off | 3.71 [3.78] / 5.56 [6.06] | 6.57 [6.95] / 10.94 [10.74] | 6.51 [6.63] / 10.42 [10.00] |
+| ProjectileVfx off | 3.77 [3.56] / 5.56 [5.00] | 4.77 [5.33] / 7.58 [8.33] | 5.00 [5.15] / 7.41 [6.67] |
+| All three off | 3.54 [3.55] / 5.03 [5.56] | 3.39 [3.38] / 4.17 [4.52] | 3.60 [3.59] / 4.55 [4.55] |
+| All three on again (drift check) | 3.78 [3.83] / 5.56 [5.56] | 7.58 [7.86] / 11.11 [12.96] | 7.53 [7.53] / 12.50 [11.67] |
+
+| Mean frame ms saved vs all on (ABLATION_SAVED) | Now | 04-24 baseline | 04-21 scratch (trial 1 [trial 2]) |
+|------------------------------------------------|----:|---------------:|---------------------------------:|
+| EnemyViews off | 0.09 | 1.32 | 1.05 [1.10] |
+| UnitViews off | 0.02 | 0.42 | 0.63 [0.35] |
+| ProjectileVfx off | 0.10 | 2.13 | 2.14 [1.83] |
+| All three off | **0.22** | **3.80** | 3.54 [3.39] |
+
+Reading: before the round the three view loops were 3.4 to 3.8 ms of a 7.1 to 7.6 ms mean frame, almost exactly the gap between the all-on and all-off slices; now switching them off saves 0.22 ms of a 3.78 ms mean frame (well inside the 0.4 ms drift the earlier sections state for this probe), and the all-on slices sit at the all-off slices' level: the views are no longer a cost worth attributing. What is left is the floor the all-off slices always had: a mean frame of about 3.5 ms (04-24: 3.4 ms), made of the step (0.55 ms mean, 4.5 ms on the one frame in eight that runs it), the renderer (render CPU 0.64 ms, GPU 0.77 ms, 230 draw calls) and the engine. That floor is why the full-night p95 is 5.37 ms and not lower: the p95 is set by the step frames and the timer quantisation, not by any view. The probe's embedded stress run (`STRESS_RUN run=9 frames=16229 p50_ms=3.33 p95_ms=5.56 p99_ms=6.25 max_ms=13.80 enemies_min=300 units_min=50 arrows_min=240`) is not a budget measurement (the views were switched off for a share of it); the budget is judged by the three runs above.
+
+### Wall-break rebuild (UAT test 10: the hitch the owner accepted for now)
+
+`bash tools/godot.sh --headless --path . -s res://tools/stress/step_bench.gd -- --enemies=300 --steps=30 --rebuilds=16` after the stress runs and the ablation, nothing else running:
+
+```
+STEP_BENCH enemies=300 steps=30 mean_ms=1.01 p95_ms=1.18 max_ms=1.53
+STEP_BENCH_REBUILD cells=5494 rebuilds=16 mean_ms=11.61 max_ms=13.48
+```
+
+| Measure | Now | After the step port (04-21) | Before (04-09) |
+|---------|----:|----------------------------:|---------------:|
+| Mean per rebuild | 11.61 ms | 10.00 ms | 11.74 ms |
+| Maximum per rebuild | 13.48 ms | 11.74 ms | 13.22 ms |
+| Break-frame estimate (median-run p50 frame plus the maximum rebuild) | 3.70 + 13.48 = 17.18 ms | 6.25 + 11.74 = 17.99 ms | 34.14 ms |
+
+A wall break still drops about one frame at 60 fps (17.18 ms against 16.7 ms, by 0.5 ms; the rebuild itself is unchanged by this round and reads within the session's drift of earlier readings). **The owner accepted the hitch for now (UAT test 10, 2026-10-19: "pass for now, revisit later")**: it is reported here and not fixed; count-based time slicing of the rebuild stays the named alternative, a rule change that is not made. The stress night never breaks a wall (its walls carry 100000 health), so the hitch cannot show in the percentiles above.
+
+### Budget and the GTX 970 projection (RESEARCH A1, a projection, not a measurement)
+
+The budget is the same as before: a median-run p95 of at most 8.0 ms at 1080p, 1.0x speed, vsync off on the dev machine (D-12's documented 2x headroom on the 16.7 ms frame). **No GTX 970 was available and none was measured** (UAT test 12 is blocked by hardware). Applying RESEARCH A1 (the GPU portion 3 to 4 times slower than this RTX 3060 Laptop, the host's script work 1.3 to 1.6 times slower than this i5-10500H) to the median run:
+
+- GPU median 0.77 ms becomes about 2.3 to 3.1 ms, far inside a frame (it was 13 to 18 ms in the 04-09 projection and 3.6 to 4.8 ms in 04-21's).
+- The CPU-bound frame p50 of 3.70 ms becomes about 4.8 to 5.9 ms (about 170 to 210 fps at the median), and the p95 of 5.37 ms about 7.0 to 8.6 ms: at or under the 8.6 ms end, about half of the 16.7 ms (60 fps) line, so about 2x headroom, which is what the 8.0 ms dev-machine budget exists to guarantee. The 04-21 projection was 14.2 to 17.5 ms at the p95 (borderline) and the 04-09 projection 48 to 59 ms (3 to 4 times over).
+- So the view-layer port moved the old-hardware projection from borderline at the p95 to comfortably inside the 60 fps line. It stays a projection: the same stress night on real GTX 970 hardware is the only measurement that could confirm it, and PLAT-01 is re-verified on real campaign battles in Phase 13 whatever this reads.
+
+### Verdict and the open decision
+
+- **PLAT-01 on the dev machine is MET:** median-run p95 5.37 ms against 8.0 ms (6.9 times better than the 37.04 ms before; 2.0 times better than 04-21's 10.95 ms; 2.63 ms, 33 percent, under the budget); p50 3.70 ms (about 256 fps); the D-10 crowd (300 / 50 / 200) is on screen at every sampled frame. G-04-5 and ROADMAP success criterion 3 are closed by measurement; PLAT-01 is marked complete in REQUIREMENTS.md.
+- **Not done, by design:** the budget was not raised and fidelity was not lowered (no fewer enemies, no skipped or lengthened steps, nothing drawn fewer than alive, the stress map and tools unchanged). The squad per-unit port and a higher budget, rejected by the owner on 2026-10-20 on the numbers, were not needed.
+- **What the owner re-judges:** the stress night by eye (UAT test 5), the overlay below the night banner (test 6) and melee enemies breaking through to their targets (test 13); see the update at the top of 04-PLAYTEST-GATE.md. The look of the crowd, the arrows and the army was compared before and after each port by the executors and again after this plan (SUMMARY review lines); the owner's own eye is the harvested human check.
+- **Open, not blocking:** the GTX 970 transfer is a projection (test 12, blocked by hardware); the wall-break rebuild hitch is accepted for now (test 10, revisit later); on a step frame the step is 4.5 ms in the window (2.5 ms headless), the largest remaining per-frame cost and still smaller than a frame.
+
 ## After the native port (plans 04-12 to 04-23), 2026-10-19T19:54Z
 
 Measured 2026-10-19 by plan 04-21 on the same dev machine, with the method of plan 04-09 (the measurement kept below as the before). **Verdict: the budget is still NOT met.** The median run's p95 frame time is **10.95 ms against the unchanged 8.0 ms budget** (1.37 times over; it was 37.04 ms, 4.6 times over), with the D-10 on-screen bar met in full (300 enemies, 50 units and 239 or more arrows in view at every sampled frame). The port bought a factor of 3.4 on the p95 and on the median frame (p50 20.92 ms to 6.25 ms, about 43 fps to about 142 fps), but the remaining miss is **not the simulation step any more**: the step is 2.3 ms headless and frames that run a step are no slower than frames that do not. What is left is the per-frame GDScript of the three view layers (arrows, enemies, units), measured below. Nothing was lowered or raised: no budget change (`FrameReport.BUDGET_P95_MS` is 8.0), no fewer enemies, no skipped steps. The stop rule of the plan applies; the decision on the next candidates is the owner's.
