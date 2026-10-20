@@ -10,8 +10,8 @@ name: CI
 # it to the other jobs as artifacts of the same run. native-linux (GCC) builds the .so that the
 # test and screenshots jobs load. native-windows (MSVC) builds the .dll, then replays the four
 # goldens and the gate on it, so the DLL that export packs next to Duskhold.exe is the one that
-# was checked. The source stamp the script writes covers sources only, so each stamp is valid for
-# every job of the run.
+# was checked. The stamp the script writes binds the sources and the sha256 of the installed
+# library, and the library rides along with its stamp, so each stamp is valid for every job of the run.
 # lint and native-linux are independent; test needs native-linux; screenshots needs test and
 # native-linux; export needs lint, test, native-linux and native-windows.
 # The token is read-only and no secrets are used anywhere.

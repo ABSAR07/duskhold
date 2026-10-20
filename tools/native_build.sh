@@ -103,7 +103,7 @@ if [ ! -s "${DUMP_DIR}/extension_api.json" ] || [ ! -s "${DUMP_DIR}/gdextension_
 fi
 for dumped in extension_api.json gdextension_interface.json; do
   if ! cmp -s "${DUMP_DIR}/${dumped}" "${API_DIR}/${dumped}"; then
-    cp -f "${DUMP_DIR}/${dumped}" "${API_DIR}/${dumped}"
+    cp -f "${DUMP_DIR}/${dumped}" "${API_DIR}/${dumped}"       || fail_toolchain "cannot copy ${dumped} into build/native/api"
   fi
 done
 
