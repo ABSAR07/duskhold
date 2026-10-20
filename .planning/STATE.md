@@ -28,9 +28,9 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 04 (Crowd-Scale Battles & Walls) — EXECUTING
-Plan: 04-21 HALTED by its stop rule (PLAT-01 NOT met: p95 10.95 ms vs 8.0 ms, Task 2 not run); every other plan has a SUMMARY; owner picks the route (view-layer plan recommended, squad port second)
-Status: Owner gate done 2026-10-19 (04-UAT.md: 9 pass, 3 issues, 1 blocked); gaps G-04-5/6/7 diagnosed; gap plans 04-12 to 04-23 verified; next /gsd-execute-phase 4 --gaps-only
-Last activity: 2026-10-19 — Plan 04-12 complete (melee enemies break through walls to their target, G-04-7)
+Plan: all 23 plans have a SUMMARY (04-21 `halted` by its stop rule: PLAT-01 NOT met at p95 10.95 ms vs 8.0, Task 2 not run); gap round 04-12 to 04-23 closed out 2026-10-20 (validation, security, review 28 open, ledger, re-verification gaps_found)
+Status: 04-VERIFICATION.md 2026-10-20 gaps_found (3/4 criteria; PLAT-01 the one gap; G-04-6 and G-04-7 closed); owner route 2026-10-20: port the view loops; next /gsd-plan-phase 4 --gaps, then /gsd-execute-phase 4 --gaps-only; owner re-checks (UAT tests 5, 6, 13 and the packet) after that round
+Last activity: 2026-10-20 — Gap round close-out committed (4e60105 validation, 8f14928 security, 6434327 review, 0997db1 ledger, 64a9b1c verification); post-merge gate green (one e2e flake re-run 4/4 green)
 
 Progress: [██░░░░░░░░] 23%
 
@@ -364,6 +364,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-19T19:56:37.172Z
+Last session: 2026-10-20T06:55:00Z
 Stopped at: Halted 04-21-PLAN.md (stop rule: PLAT-01 NOT met, Task 2 not run)
 Resume file: None
