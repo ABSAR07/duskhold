@@ -67,7 +67,8 @@ coverage:
 
 duration: 11min
 completed: 2026-10-19
-status: halted
+status: complete  # was halted at the PLAT-01 stop rule (2026-10-19); halt resolved 2026-10-20 by the owner's route decision
+halt_resolution: "Owner 2026-10-20 (STATE.md, commit 920674a): one more gap round porting the per-frame view fills (ProjectileVfx, EnemyViews, UnitViews) to C++, pins-first and byte-identical, before the measurement is repeated; the 8.0 ms budget stays. Gap plans 04-24 to 04-28 implement it and 04-28 re-measures and runs this plan's unfinished Task 2 (export, screenshots, owner packet) in every outcome. PLAT-01 stays open (requirements-completed: []) until that measurement; the halt no longer blocks the gap plans"
 ---
 
 # Phase 4 Plan 21: The Stress Night on the Native Step, Re-Measured Summary
