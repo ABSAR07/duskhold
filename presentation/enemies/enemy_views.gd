@@ -6,8 +6,12 @@ extends Node3D
 ## clock's alpha, so the 30 Hz simulation looks smooth at any frame rate. The types differ in
 ## colour and silhouette (the skirmisher is violet, taller and narrower than the grunt), a hit
 ## flashes the body through the instance's custom data, a hurt enemy shows a billboard bar from a
-## bar batch and a death leaves a small puff from a puff batch. Purely visual: it reads the
-## simulation and the event bus and never writes either (D-13).
+## bar batch and a death leaves a small puff from a puff batch. The per-enemy fill (the ground
+## point, the flash and the bar of every drawn enemy) runs in native/src/native_enemy_views.cpp
+## (NativeEnemyViews, plan 04-26: a line-by-line port of the GDScript loop pinned by
+## tests/unit/test_enemy_fill_pins.gd); this node keeps the batches and the event handlers and
+## uploads what the native fill wrote. Purely visual: it reads the simulation and the event bus and
+## never writes either (D-13).
 
 ## Cap on enemies drawn in total across the archetype batches (it was 256 puppets). A spawn past
 ## it is not drawn; the simulation still has the enemy and keeps stepping it.
@@ -38,6 +42,8 @@ const BOUNDS_HEIGHT: float = 8.0
 const KIND_GRUNT: int = 0
 const KIND_SKIRMISHER: int = 1
 const KIND_FALLBACK: int = 2
+## The bar batch's index in NativeEnemyViews (the archetype batches are 0 to 2).
+const BAR_BATCH: int = 3
 const CROWD_SHADER: Shader = preload("res://presentation/crowd/crowd_instance.gdshader")
 
 var _ctx: RunContext
@@ -46,19 +52,8 @@ var _ctx: RunContext
 var _clock_ms: Callable = Callable(Time, &"get_ticks_msec")
 var _batches: Array[CrowdBatch] = []
 var _lifts: PackedFloat32Array = PackedFloat32Array()
-## Enemy id -> archetype index, set on enemy_spawned and dropped on enemy_died.
-var _kind_of: Dictionary = {}
-## Enemy id -> real milliseconds of its last hit, for the flash.
-var _hit_ms: Dictionary = {}
-## Enemy id -> its max health, set on enemy_spawned for the bars.
-var _max_hp_of: Dictionary = {}
-## Enemy id -> its hit points as of its last hit; an enemy never hit has no entry.
-var _hp_of: Dictionary = {}
-var _frame_ms: int = 0
-## The enemies drawn this frame, ascending by id: the CPU mirror the test hooks read.
-var _drawn_ids: PackedInt32Array = PackedInt32Array()
-var _drawn_origins: PackedVector3Array = PackedVector3Array()
-var _drawn: int = 0
+## The per-enemy state (archetype, max health, hit points, last hit) and the per-frame fill, in C++.
+var _native: NativeEnemyViews
 var _bars: HealthBarBatch
 var _puffs: DeathPuffBatch
 
@@ -67,9 +62,12 @@ func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 	if _ctx != null:
 		return
 	_ctx = ctx
-	_drawn_ids.resize(MAX_VIEWS)
-	_drawn_origins.resize(MAX_VIEWS)
 	_build_batches(ctx.map)
+	_native = NativeEnemyViews.new()
+	_native.configure(MAX_VIEWS, _lifts, BAR_CLEARANCE, FLASH_SECONDS)
+	for index: int in range(_batches.size()):
+		_hand_over(index, _batches[index])
+	_hand_over(BAR_BATCH, _bars)
 	ctx.events.enemy_spawned.connect(_on_enemy_spawned)
 	ctx.events.enemy_damaged.connect(_on_enemy_damaged)
 	ctx.events.enemy_died.connect(_on_enemy_died)
@@ -85,27 +83,24 @@ func set_clock(clock_ms: Callable) -> void:
 
 ## Enemies drawn this frame, across all archetypes.
 func view_count() -> int:
-	return _drawn
+	return _native.drawn_count() if _native != null else 0
 
 
 ## True when enemy `enemy_id` is drawn this frame.
 func has_view(enemy_id: int) -> bool:
-	return _find(enemy_id) >= 0
+	return _native != null and _native.has_view(enemy_id)
 
 
 ## The ground point (y = 0) where enemy `enemy_id` is drawn this frame; the zero vector when it is
 ## not drawn.
 func puppet_position(enemy_id: int) -> Vector3:
-	var slot: int = _find(enemy_id)
-	return _drawn_origins[slot] if slot >= 0 else Vector3.ZERO
+	return _native.puppet_position(enemy_id) if _native != null else Vector3.ZERO
 
 
 ## The flash of a drawn enemy: 1.0 at its last hit, falling linearly to 0.0 over FLASH_SECONDS of
 ## real time; 0.0 when it was not hit lately or is not drawn.
 func flash_of(enemy_id: int) -> float:
-	if not has_view(enemy_id):
-		return 0.0
-	return _flash_amount(enemy_id)
+	return _native.flash_of(enemy_id) if _native != null else 0.0
 
 
 ## The body colour of an enemy type: grunt red, skirmisher violet, anything else the fallback.
@@ -124,11 +119,11 @@ func bar_count() -> int:
 
 ## The fill ratio (hp / max health) of a drawn, hurt enemy's bar; -1.0 when it has none.
 func bar_ratio_of(enemy_id: int) -> float:
-	if not has_view(enemy_id) or not _hp_of.has(enemy_id):
+	if not has_view(enemy_id):
 		return -1.0
-	var hp: int = _hp_of[enemy_id]
-	var max_hp: int = _max_hp_of.get(enemy_id, 0)
-	if not HealthBar3D.should_show(hp, max_hp):
+	var hp: int = _native.hp_of(enemy_id)
+	var max_hp: int = _native.max_hp_of(enemy_id)
+	if hp < 0 or not HealthBar3D.should_show(hp, max_hp):
 		return -1.0
 	return float(hp) / float(max_hp)
 
@@ -141,102 +136,42 @@ func puff_count() -> int:
 func _process(_delta: float) -> void:
 	if _ctx == null:
 		return
-	_frame_ms = _clock_ms.call()
+	var frame_ms: int = _clock_ms.call()
 	var night_running: bool = _ctx.run_manager.get_phase() == RunManager.RunPhase.NIGHT
 	var blend: float = _ctx.alpha() if night_running else 1.0
 	var enemies: EnemySystem = _ctx.night.get_enemies()
-	for batch: CrowdBatch in _batches:
-		batch.begin()
-	_bars.begin()
-	_drawn = 0
 	var view: CrowdReadView = enemies.read_view()
-	for slot: int in range(view.ids.size()):
-		if _drawn >= MAX_VIEWS:
-			break
-		var enemy_id: int = view.ids[slot]
-		var kind: int = _kind_of.get(enemy_id, -1)
-		if kind < 0:
-			continue
-		var ground: Vector2 = view.previous[slot].lerp(view.current[slot], blend)
-		var origin: Vector3 = Vector3(ground.x, _lifts[kind], ground.y)
-		var flash: Color = Color(_flash_amount(enemy_id), 0.0, 0.0, 0.0)
-		if not _batches[kind].add(origin, flash):
-			continue
-		_drawn_ids[_drawn] = enemy_id
-		_drawn_origins[_drawn] = Vector3(ground.x, 0.0, ground.y)
-		_drawn += 1
-		if _hp_of.has(enemy_id):
-			var bar_origin: Vector3 = Vector3(
-				ground.x, _lifts[kind] * 2.0 + BAR_CLEARANCE, ground.y
-			)
-			_bars.add_if_hurt(bar_origin, _hp_of[enemy_id], _max_hp_of.get(enemy_id, 0))
-	for batch: CrowdBatch in _batches:
-		batch.commit()
-	_bars.commit()
+	_native.fill(frame_ms, blend, view.ids, view.previous, view.current)
+	for index: int in range(_batches.size()):
+		_batches[index].commit_buffer(_native.mirror(index), _native.count(index))
+	_bars.commit_buffer(_native.mirror(BAR_BATCH), _native.count(BAR_BATCH))
 	var puff_ms: int = _clock_ms.call()
 	_puffs.refresh(float(puff_ms) / 1000.0)
-	if enemies.count() == 0 and not _kind_of.is_empty():
-		_kind_of.clear()
-		_hit_ms.clear()
-		_hp_of.clear()
-		_max_hp_of.clear()
+	if enemies.count() == 0 and _native.known_count() > 0:
+		_native.clear()
 
 
 func _on_enemy_spawned(enemy_id: int, def_id: StringName, _pos: Vector2) -> void:
-	_kind_of[enemy_id] = _kind_for(def_id)
 	var def: EnemyDef = _ctx.map.find_enemy(def_id)
-	_max_hp_of[enemy_id] = def.max_health if def != null else 0
+	_native.on_spawned(enemy_id, _kind_for(def_id), def.max_health if def != null else 0)
 
 
 ## A hit flashes the body and keeps the hit points for the bar.
 func _on_enemy_damaged(enemy_id: int, _amount: int, hp: int) -> void:
-	if _kind_of.has(enemy_id):
-		_hit_ms[enemy_id] = _clock_ms.call()
-		_hp_of[enemy_id] = hp
+	var hit_ms: int = _clock_ms.call()
+	_native.on_damaged(enemy_id, hp, hit_ms)
 
 
 ## The enemy leaves its batch (its state is dropped) and a puff stands where it was last drawn, or
 ## at the event position when it never was.
 func _on_enemy_died(enemy_id: int, def_id: StringName, pos: Vector2, _killer: StringName) -> void:
-	var slot: int = _find(enemy_id)
-	var ground: Vector3 = _drawn_origins[slot] if slot >= 0 else Vector3(pos.x, 0.0, pos.y)
-	_kind_of.erase(enemy_id)
-	_hit_ms.erase(enemy_id)
-	_hp_of.erase(enemy_id)
-	_max_hp_of.erase(enemy_id)
+	var ground: Vector3 = Vector3(pos.x, 0.0, pos.y)
+	if _native.has_view(enemy_id):
+		ground = _native.puppet_position(enemy_id)
+	_native.forget(enemy_id)
 	var now_ms: int = _clock_ms.call()
 	var now_s: float = float(now_ms) / 1000.0
 	_puffs.spawn(Vector3(ground.x, PUFF_HEIGHT, ground.z), now_s, archetype_color_of(def_id))
-
-
-## The flash amount from the last hit, measured against the clock sampled at the start of the
-## latest frame so a hit landing after that frame reads exactly 1.0 until the next one.
-func _flash_amount(enemy_id: int) -> float:
-	var hit: int = _hit_ms.get(enemy_id, -1)
-	if hit < 0:
-		return 0.0
-	var elapsed_s: float = float(maxi(_frame_ms - hit, 0)) / 1000.0
-	var amount: float = 1.0 - elapsed_s / FLASH_SECONDS
-	if amount <= 0.0:
-		_hit_ms.erase(enemy_id)
-		return 0.0
-	return amount
-
-
-## Slot of `enemy_id` among the drawn enemies (ascending ids), or -1.
-func _find(enemy_id: int) -> int:
-	var low: int = 0
-	var high: int = _drawn - 1
-	while low <= high:
-		var middle: int = (low + high) >> 1
-		var found: int = _drawn_ids[middle]
-		if found == enemy_id:
-			return middle
-		if found < enemy_id:
-			low = middle + 1
-		else:
-			high = middle - 1
-	return -1
 
 
 func _kind_for(def_id: StringName) -> int:
@@ -245,6 +180,12 @@ func _kind_for(def_id: StringName) -> int:
 	if def_id == RANGED_ID:
 		return KIND_SKIRMISHER
 	return KIND_FALLBACK
+
+
+## Gives the native fill batch `index`'s mirror and layout; it refuses a mirror of the wrong shape.
+func _hand_over(index: int, batch: CrowdBatch) -> void:
+	if not _native.set_mirror(index, batch.mirror(), batch.layout()):
+		push_error("EnemyViews: the native enemy fill refused the mirror of batch %d" % index)
 
 
 ## One batch per archetype, sized as the puppets were: the grunt at its def radius, the skirmisher
