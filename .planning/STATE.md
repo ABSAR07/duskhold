@@ -3,10 +3,10 @@ gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
 status: verifying
-stopped_at: Completed 04-28-PLAN.md
+stopped_at: "Phase 04 re-verified after gap round 2: human_needed (04-UAT.md tests 14 to 19 await the owner)"
 last_updated: "2026-10-20T15:53:17.686Z"
 last_activity: 2026-10-20
-last_activity_desc: Phase 04 gap round 2 executed (04-24 to 04-28), PLAT-01 met at p95 5.37 ms; ready for verification
+last_activity_desc: Phase 04 gap round 2 closed out (validation, security, review, re-verification human_needed); next /gsd-verify-work 4
 state_head: 2f34b899532c2110bb9c7882bc89a80574469648
 progress:
   total_phases: 13
@@ -29,8 +29,8 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 
 Phase: 04 (Crowd-Scale Battles & Walls) — VERIFYING
 Plan: 28 of 28
-Status: Phase complete — ready for verification (gap round 2: all four view ports native, FRAME_REPORT_OK p95_ms=5.37 within=true)
-Last activity: 2026-10-20 — Gap round 2 executed (04-24 to 04-28, 5 of 5 complete, no halts); PLAT-01 met at median-run p95 5.37 ms against 8.0; CI run 39445109146 green; next: phase verification
+Status: 04-VERIFICATION.md 2026-10-20T16:41Z human_needed (4/4 criteria, 154/155 truths, 0 gaps; PLAT-01 VERIFIED at median-run p95 5.37 ms against 8.0); 04-UAT.md extended with tests 14 to 19 (status testing); next: /gsd-verify-work 4 (owner re-judges UAT tests 14 to 16 and 19, launches the fresh export per 17); then /gsd-code-review 4 --fix --all for the 33 open findings
+Last activity: 2026-10-20 — Gap round 2 close-out: 04-VALIDATION.md extended (61 rows, nyquist_compliant true), 04-SECURITY.md extended (77 threats closed, threats_open 0), 04-REVIEW.md round-2 review (0 critical, 13 warnings, 20 info; CR-01, IN-07, IN-08 fixed; ledger 33 of 36 open), regression gate 99 of 99 prior-phase scripts green, verifier human_needed with 0 gaps
 
 Progress: [██░░░░░░░░] 23%
 
@@ -359,6 +359,8 @@ None yet.
 - [Phase 4] PLAT-01 frame budget missed (04-09): median p95 37.04 ms against 8.0 ms; see 04-FRAME-REPORT.md and .planning/debug/stress-night-step-over-budget.md. Owner route 2026-10-19: GDExtension (plans 04-14 to 04-21, 04-22, 04-23); 04-16 needs the owner's choice of where CI gets the native binaries
 - [Phase 4] Code review 04-REVIEW.md (2026-10-16): 0 critical, 7 warning, 6 info, all 13 open in 04-REVIEW-DISPOSITION.md (WR-01 3 m gap routability, WR-02 tangency epsilon, WR-03 off-grid is_sealed, WR-04 wall tier health validation, WR-05 stress.sh arithmetic, WR-06 wall-bot balance proof, WR-07 wall-clock bound in test_wall_tracer_scene; IN-01 hot-path allocation wins); fix through /gsd-code-review 4 --fix
 
+- [Phase 4] After gap round 2 (2026-10-20): PLAT-01 is met by measurement (p95 5.37 ms) but three items stay open for the next passes: (1) 04-REVIEW.md round-2 review leaves 33 findings open, none critical, incl. new WR-12 (the native stamp's source half is taken at install time, not at build start), WR-13 (tools/native_stamp_probe.sh is run by nothing: not CI, test.sh or prepush_check.sh) and IN-17 (tools/_common.sh carries a raw CR byte and raw newlines inside quoted strings at lines 92-94 and 135; git now classifies the file as binary, no eol normalisation; works on both CI platforms) — route: /gsd-code-review 4 --fix --all; (2) REQUIREMENTS.md still lists BLDG-10 and ENMY-04 unchecked after the c962bb7 revert although their evidence is complete (only PLAT-01 was re-marked by 04-28) — phase.complete at the UAT close-out marks them; (3) screenshots/overlay_field_gate.png shows the panel text Phase DAY / Enemies 0 / Drawn 0 while a crowd is drawn (read by the verifier as a capture-harness timing artefact, 0.25 s panel refresh vs fast-forward; not proven) — noted on UAT test 15 for the owner.
+
 ### Quick Tasks Completed
 
 | # | Description | Date | Commit | Directory |
@@ -377,5 +379,5 @@ Items acknowledged and deferred at milestone close, most recent first:
 ## Session Continuity
 
 Last session: 2026-10-20T15:53:16.155Z
-Stopped at: Completed 04-28-PLAN.md
+Stopped at: Phase 04 re-verified after gap round 2 (human_needed); awaiting /gsd-verify-work 4
 Resume file: None
