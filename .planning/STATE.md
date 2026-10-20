@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 04
 current_phase_name: Crowd-Scale Battles & Walls
 status: executing
-stopped_at: Completed 04-27-PLAN.md
-last_updated: "2026-10-20T15:24:34.374Z"
+stopped_at: Completed 04-28-PLAN.md
+last_updated: "2026-10-20T15:53:17.686Z"
 last_activity: 2026-10-20
 last_activity_desc: Phase 04 execution started
-state_head: 960bf8eb9689c46801f3966c068c3f67e815b9ac
+state_head: 2f34b899532c2110bb9c7882bc89a80574469648
 progress:
   total_phases: 13
   completed_phases: 3
   total_plans: 87
-  completed_plans: 86
+  completed_plans: 87
   percent: 23
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 04 (Crowd-Scale Battles & Walls) — EXECUTING
-Plan: 3 of 28
+Plan: 4 of 28
 Status: Ready to execute
 Last activity: 2026-10-20 — Phase 04 execution started
 
@@ -144,6 +144,7 @@ Progress: [██░░░░░░░░] 23%
 | Phase 04 P25 | 64min | 2 tasks | 13 files |
 | Phase 04 P26 | 51 min | 2 tasks | 14 files |
 | Phase 04 P27 | 63 min | 2 tasks | 13 files |
+| Phase 04 P28 | 14 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -336,6 +337,7 @@ Recent decisions affecting current work:
 - [Phase 04]: [04-26] The enemy fill and the death-puff ring run in C++ (NativeEnemyViews, NativePuffs) behind the unchanged EnemyViews and DeathPuffBatch APIs, pinned first on the GDScript behind a clock seam (pins include a puff flood since the stress night kills nobody); enemies bench 758.89 -> 73.12 us (10.4x), puffs 140.05 -> 4.63 us (30.2x); a native fill runs before its mirror is handed back (GDScript argument order); idle CrowdBatch commits skip the upload
 - [Phase 04]: 04-27: UnitSystem.read_view() (UnitReadView) is a change-counted packed read refilled only after an id, position or def writer; squad_of (caller-less) gave up its slot so UnitSystem stays at 20 public methods — Review IN-07's recommended fix; one implementation, the GDScript per-unit loop deleted; pins computed on the GDScript first, units bench 273.88 us to 30.16 us (9.1x, bar 2.0)
 - [Phase 04]: 04-27: the view-layer round (plans 04-24 to 04-27) pushed once; CI run 39445109146 green on every job for e0ecde0 with the four replays and the gate on GCC and MSVC and the CI export launched; no fix cycle — Option A for CI (both native libraries built from source); goldens byte-identical, no digest moved
+- [Phase 04]: 04-28: the stress night after the view-layer port is MET (median-run p95 5.37 ms against the unchanged 8.0 ms, runs 5.00/5.37/5.56); G-04-5 and criterion 3 closed by measurement, PLAT-01 complete; the three view loops now cost 0.22 ms of the frame (3.80 ms before) — FRAME_REPORT_OK within=true, committed view ablation, nothing lowered; GTX 970 transfer stays a projection (test 12), Phase 13 re-verifies
 
 ### Pending Todos
 
@@ -374,6 +376,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-20T15:24:33.609Z
-Stopped at: Completed 04-27-PLAN.md
+Last session: 2026-10-20T15:53:16.155Z
+Stopped at: Completed 04-28-PLAN.md
 Resume file: None

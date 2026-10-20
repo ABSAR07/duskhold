@@ -127,7 +127,7 @@ Requirements for the initial release (5-map campaign). Each maps to exactly one 
 
 ### Platform & Release
 
-- [ ] **PLAT-01**: The game holds 60 fps on GTX 970-class hardware during the largest battles (hundreds of units and projectiles on screen)
+- [x] **PLAT-01**: The game holds 60 fps on GTX 970-class hardware during the largest battles (hundreds of units and projectiles on screen)
 - [ ] **PLAT-02**: A Windows build exports from the command line and runs on a clean Windows machine without extra installs
 - [ ] **PLAT-03**: The game is published on itch.io with a store page that avoids Thronefall branding and explains the Windows SmartScreen warning
 
@@ -258,7 +258,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ART-02 | Phase 1 | Complete |
 | AUD-01 | Phase 8 | Pending |
 | AUD-02 | Phase 8 | Pending |
-| PLAT-01 | Phase 4 | Pending |
+| PLAT-01 | Phase 4 | Complete |
 | PLAT-02 | Phase 13 | Pending |
 | PLAT-03 | Phase 13 | Pending |
 | DEV-01 | Phase 1 | Complete |

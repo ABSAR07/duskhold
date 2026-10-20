@@ -254,7 +254,7 @@ Plans:
   3. A scripted stress night with hundreds of units, enemies, and projectiles on screen holds 60 fps on GTX 970-class hardware, or within a documented equivalent frame-time budget on the dev machine.
   4. Nights from Phases 1–3 play the same after the switch to batched simulation and rendering. All existing headless loop and combat tests still pass.
 
-**Plans**: 27/28 plans executed (04-12 to 04-23 closed the 2026-10-19 UAT gaps G-04-5, G-04-6 and G-04-7; 04-24 to 04-28 are the second gap round for the 04-VERIFICATION.md gap for success criterion 3, PLAT-01, planned 2026-10-20)
+**Plans**: 28/28 plans executed (04-12 to 04-23 closed the 2026-10-19 UAT gaps G-04-5, G-04-6 and G-04-7; 04-24 to 04-28 are the second gap round for the 04-VERIFICATION.md gap for success criterion 3, PLAT-01, planned 2026-10-20)
 
 Plans:
 **Wave 1**
@@ -341,7 +341,7 @@ Plans:
 - [x] 04-27: Unit bodies and bars filled in C++ (NativeUnitViews) from a packed UnitSystem read view, pinned first; the round's one push and CI green on both native jobs with a launched export (G-04-5)
 
 **Gap wave 16 (wave 27)** *(blocked on 04-27)*
-- [ ] 04-28: The stress night re-measured against the unchanged 8.0 ms p95 with the committed view ablation into 04-FRAME-REPORT.md; the export, three re-captured screenshots and the owner's dated re-check list for UAT tests 5, 6 and 13, in every outcome (G-04-5, criterion 3)
+- [x] 04-28: The stress night re-measured against the unchanged 8.0 ms p95 with the committed view ablation into 04-FRAME-REPORT.md; the export, three re-captured screenshots and the owner's dated re-check list for UAT tests 5, 6 and 13, in every outcome (G-04-5, criterion 3)
 
 ### Phase 5: Castle Center & Economy Depth
 
@@ -494,7 +494,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 1. Foundation & Day Loop | 18/18 | Complete    | 2026-10-03 |
 | 2. Night Defense & Playtest Gate | 22/22 | Complete    | 2026-10-08 |
 | 3. King Combat & Troops | 19/19 | Complete    | 2026-10-15 |
-| 4. Crowd-Scale Battles & Walls | 27/28 | In Progress|  |
+| 4. Crowd-Scale Battles & Walls | 28/28 | In Progress|  |
 | 5. Castle Center & Economy Depth | 0/TBD | Not started | - |
 | 6. Enemy Roster & Tower Specializations | 0/TBD | Not started | - |
 | 7. Army Variety & Heroes | 0/TBD | Not started | - |
