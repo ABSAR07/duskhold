@@ -1,5 +1,41 @@
 # Phase 4 Playtest Gate: Crowd-Scale Battles & Walls (owner packet)
 
+## Update after the gap plans 04-12 to 04-28 (2026-10-20T15:51Z)
+
+This update sits on top of the packet below, which is otherwise left as written on 2026-10-16/17 (its "performance is NOT met" paragraphs describe the state before the gap rounds; this update replaces them where they disagree). Since your decisions of 2026-10-19 the gap plans changed three things you are asked to look at again, and one of them changes the performance answer.
+
+**Performance: the budget is now MET on the dev machine.** The stress night (300 enemies, 50 footmen, 20 towers, 239 or more arrows in view) was measured again after the view layers moved into C++ (plans 04-24 to 04-27; nothing was lowered, the budget is still 8.0 ms and the load is unchanged). The median of three real-window runs gives a p95 frame time of 5.37 ms (the runs read 5.00, 5.37 and 5.56 ms), a median frame of 3.70 ms (about 256 fps), against 10.95 ms before this round and 37.04 ms before any port. The verdict line, quoted verbatim from 04-FRAME-REPORT.md:
+
+```
+FRAME_REPORT_OK runs=3 median_run=2 p95_ms=5.37 budget_ms=8.0 within=true enemies=300 units=50 arrows=237
+```
+
+This closes the performance gap (G-04-5, ROADMAP success criterion 3, PLAT-01) on the machine it was measured on. It is still a projection, not a measurement, for an old GTX 970-class machine (UAT test 12 stays blocked by hardware; the report projects about 7.0 to 8.6 ms at the p95 there, about 2x headroom on 16.7 ms). The wall-break rebuild hitch is unchanged (11.61 ms mean, 13.48 ms maximum; you accepted it for now at test 10). The full numbers, tables and the attribution are in 04-FRAME-REPORT.md under "After the view-layer port".
+
+**Fresh build and where it came from:** `build/windows/Duskhold.exe` was exported on 2026-10-20 (UTC) by `bash tools/export.sh` from the working tree at HEAD `a482e3f` (its game code is that of `e0ecde0`; every commit after `e0ecde0` changes planning files only). That game code is the one CI checked: run 39445109146, https://github.com/ABSAR07/duskhold/actions/runs/39445109146, green on every job (lint, test, native-linux, native-windows, screenshots, export), with the four replays and the gate on both the Linux and the Windows library. The export has `libduskhold_sim.windows.x86_64.dll` and `Duskhold.pck` beside it, and `timeout 90 build/windows/Duskhold.exe --headless --quit-after 120` launched and quit cleanly (exit 0 in about 4 s). It replaces the export named under "How to play" below. Three screenshots were re-captured in a real window on the same tree (`screenshots/crowd_stress_night.png`, `screenshots/walls_night_breach.png`, `screenshots/overlay_field_gate.png`); the crowd, the breach and the overlay look as they did before the ports (no rule and no look changed).
+
+**Playing from the editor binary now needs the native library built first.** The game's simulation runs in a C++ library that is git-ignored, so after a fresh checkout or any change under `native/` run this once in **Git Bash** (not PowerShell, whose `bash` is WSL):
+
+```bash
+bash tools/native_build.sh
+```
+
+It prints `NATIVE_BUILD_OK` when the library is installed next to the project. Then the PowerShell commands under "How to play" work unchanged. The exported build needs nothing: its library is already beside the exe.
+
+**What to re-judge at `/gsd-verify-work 4` (UAT tests 5, 6 and 13; each is a quick look, not a new playthrough):**
+
+1. **Test 5, the stress night feels smooth.** Run the stress night from the editor binary (after the native build step above):
+
+   ```powershell
+   & ".\.tools\godot\4.7.2-stable\Godot_v4.7.2-stable_win64.exe" --path . res://tools/stress/stress_night.tscn -- --duration=30
+   ```
+
+   Do 300 enemies, 50 footmen, 20 towers and the arrows now feel smooth and read as a crowd? The measurement says yes on the dev machine (about 256 fps, p95 5.37 ms); this is your eye on it.
+2. **Test 6, the overlay leaves the night banner whole.** Press F3 at night (stress night, or a prototype night with walls). Plan 04-13 moved the overlay panel below the banner box: the banner "N enemies left" should now read in full at 1280x720, with the field arrows, wall crosses and the Walls / Field / Crowd sections all still readable. (The re-captured `overlay_field_gate.png` shows the banner whole and the panel under it.)
+3. **Test 13, melee enemies break through to their targets.** Plan 04-12 changed the rule you decided on 2026-10-19: a default melee enemy whose target (a tower or other building, a unit, the king) is behind a wall now breaks the wall segment in front of it to reach that target, remembers the target through the break and resumes it, instead of dropping it and marching on the castle; ranged enemies still shoot over walls. Play a night on `build/windows/Duskhold.exe` with walls bought in front of a tower and watch: do melee enemies chew through to the tower, a unit or the king behind the wall, with ranged ones still shooting over? (No replay, gate or balance number moved with this change.)
+
+The `<human-check>` items of plan 04-28 are these same two looks (the stress night by eye, the packet and the build); nothing else is asked of you for the gap rounds. Everything below this update is the packet as it was.
+
 You are the gate (the feel half of D-15, ROADMAP success criteria 1 to 4 of Phase 4). Claude has checked everything it can observe and lists it below. It cannot tell you whether walls feel worth their gold, whether the gates funnel the crowd the way you want, whether enemies that break a wall or walk to the gap look smart, or whether a big battle feels good to watch. Spend two or three full runs buying walls, and watch the stress night once, then sign off or name the fixes that must land before Phase 5.
 
 **Read this first: the performance goal is NOT met.** PLAT-01 and ROADMAP success criterion 3 ("hundreds of units, enemies, and projectiles at 60 fps") are recorded as **not met** (details under "What Claude already checked"). Plan 04-09 halted at its own stop rule with a median-run p95 frame time of **37.04 ms against the 8.0 ms budget**, about **43 fps** at the median with **300 enemies** on screen, and the shipped nights top out at about **40 enemies** (a step of about 3.6 ms in the bench). You chose to run this gate on the missed budget (decision of 2026-10-16), so the packet below asks for the feel judgement and for your route on performance, which is the open decision it needs from you.
