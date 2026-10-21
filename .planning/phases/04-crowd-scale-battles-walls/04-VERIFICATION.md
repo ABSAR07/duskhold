@@ -1,7 +1,7 @@
 ---
 phase: 04-crowd-scale-battles-walls
 verified: 2026-10-20T16:41:25Z
-status: human_needed
+status: passed
 score: "4/4 roadmap success criteria verified (criterion 3, PLAT-01, now VERIFIED by the committed real-window measurement: median-run p95 5.37 ms against the unchanged 8.0 ms budget, within=true); 154/155 plan truths verified, 0 failed, 1 insufficient_spec (04-09 GTX 970 transfer, backstop tier); 3/3 requirement IDs have implementation evidence (BLDG-10, ENMY-04, PLAT-01 satisfied); 6 owner-judgement items remain, 0 gaps"
 must_haves:
   roadmap_truths: 4
@@ -321,7 +321,7 @@ covered_files:
   - ui/overlay/debug_overlay.tscn
   - ui/overlay/night_overlay_sections.gd
   - ui/world/spot_label_model.gd
-covered_digest: "v2:sha256:a7ba1b6353688db354c5335bf3cf9b8eee73049841d149ffad7d344d2a5837f4"
+covered_digest: "v2:sha256:a8d23d51a77eaf44cd79aaa2d04f82fdadf38b63e1da2ad0ffcc8bf8c9d495ac"
 behavior_unverified: 1
 overrides_applied: 0
 gaps: []
@@ -396,6 +396,8 @@ human_verification:
     expected: "Nothing is missing, doubled, recoloured, mis-sized or popping; the arrows arc from the tower to the target as before; flashes last 0.15 s; puffs fade over 0.6 s; bars show only on hurt enemies and units"
     why_human: "The view fills are pinned byte-for-byte on the batch mirrors (test_projectile_fill_pins 4/4, test_enemy_fill_pins 5/5, test_unit_fill_pins 4/4, SHA-256 over the instance buffers, computed on the GDScript before any native code, never edited) and the goldens did not move, so any difference could only be in how the buffer is drawn, which only an eye can judge. I read crowd_stress_night.png and overlay_field_gate.png and saw the purple crowd, pink flashes, red hurt-only bars, yellow arrows and blue units as described"
 ---
+
+**Canonicalization note (2026-10-21).** `status` was set from `human_needed` to `passed` by /gsd-verify-work 4 after the UAT session closed (04-UAT.md complete: 17 of 19 tests passed, 0 issues, 2 deferred follow-ups; the six human items of this report are UAT tests 14 to 19: 15, 17 and 19 self-verified by the orchestrator with evidence, 14 and 16 passed by the owner on the numbers and the pinned rule, 18 deferred to Phase 13 with test 12; the round-1 issue rows 5, 6 and 13 were superseded with the owner's approval). No source, data or test file changed after this report was written (`git diff ca81c03 HEAD -- . ':!.planning/'` is empty); the covered document that changed is 04-UAT.md (results), so `covered_digest` was recomputed over the same 289 paths.
 
 # Phase 4: Crowd-Scale Battles & Walls Verification Report
 
