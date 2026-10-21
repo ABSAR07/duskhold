@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 05
 current_phase_name: Castle Center & Economy Depth
 status: executing
-stopped_at: Completed 05-04-PLAN.md
-last_updated: "2026-10-21T15:38:21.105Z"
+stopped_at: Completed 05-05-PLAN.md
+last_updated: "2026-10-21T16:37:56.499Z"
 last_activity: 2026-10-21
 last_activity_desc: Phase 05 execution started
-state_head: 989238204517088c39fbca3b855c87b5a912fc39
+state_head: dc191f859af0ca76fffa284c88baf7f731b4768f
 progress:
   total_phases: 13
   completed_phases: 4
   total_plans: 99
-  completed_plans: 91
+  completed_plans: 92
   percent: 31
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-21)
 ## Current Position
 
 Phase: 05 (Castle Center & Economy Depth) — EXECUTING
-Plan: 5 of 12
+Plan: 6 of 12
 Status: Ready to execute
 Last activity: 2026-10-21 — Phase 05 execution started
 
@@ -150,6 +150,7 @@ Progress: [███░░░░░░░] 31%
 | Phase 05 P02 | 75 min | 2 tasks | 57 files |
 | Phase 05 P03 | 57 min | 2 tasks | 25 files |
 | Phase 05 P04 | 78 min | 2 tasks | 58 files |
+| Phase 05 P05 | 56 min | 2 tasks | 20 files |
 
 ## Accumulated Context
 
@@ -353,6 +354,7 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-04: a mouse highlight on the castle cards is sticky (pointing off every card keeps it) so a click or point then a hold buys that card; a press is consumed only when it lands on a card
 - [Phase 05]: 05-04: card icons are first-party CC0 SVGs under assets/first_party/card_icons/ logged in ASSETS.md prose; the key tile is the logged Kenney keyboard_1 to keyboard_4; cards widened to 3.4 m so the numbers line fits
 - [Phase 05]: 05-04: the keep swaps to castle_center_t2/t3/t4 (composed from the seven Castle Kit GLBs) on the castle plot's building_built, the hurt-only bar moves with it; the tier IV roof tip is cropped at the default camera
+- [Phase 05]: 05-05: requirement checks (CASTLE_TIER, NEEDS_SPOT) sit between MAX_TIER and CANNOT_AFFORD; castle requirements apply only on maps with a castle plot; requires_spot applies to a plot's first build only; shipped data stays ungated until 05-11
 
 ### Pending Todos
 
@@ -390,6 +392,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-21T15:38:20.036Z
-Stopped at: Completed 05-04-PLAN.md
+Last session: 2026-10-21T16:37:55.505Z
+Stopped at: Completed 05-05-PLAN.md
 Resume file: None
