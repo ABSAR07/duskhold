@@ -24,6 +24,7 @@ void NativeArrows::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("mirror"), &NativeArrows::mirror);
 	ClassDB::bind_method(D_METHOD("count"), &NativeArrows::count);
 	ClassDB::bind_method(D_METHOD("live_count"), &NativeArrows::live_count);
+	ClassDB::bind_method(D_METHOD("unit_flights"), &NativeArrows::unit_flights);
 	ClassDB::bind_method(D_METHOD("drawn_launch", "index"), &NativeArrows::drawn_launch);
 	ClassDB::bind_method(D_METHOD("slots_targeting", "target_code"), &NativeArrows::slots_targeting);
 	ClassDB::bind_method(D_METHOD("target_id_at", "slot"), &NativeArrows::target_id_at);
@@ -64,6 +65,7 @@ void NativeArrows::configure(
 	unit_height_ = unit_height;
 	cursor_ = 0;
 	live_ = 0;
+	unit_live_ = 0;
 	count_ = 0;
 	origins_.clear();
 	targets_.clear();
@@ -131,6 +133,9 @@ int64_t NativeArrows::launch(
 		colors_[at] = color;
 		active_[at] = 1;
 		live_++;
+		if (target_codes_[at] == TARGET_UNIT) {
+			unit_live_++;
+		}
 		return slot;
 	}
 	return -1;
@@ -198,6 +203,9 @@ int64_t NativeArrows::fill(
 		if (t >= 1.0) {
 			active_[slot] = 0;
 			live_--;
+			if (code == TARGET_UNIT) {
+				unit_live_--;
+			}
 		}
 	}
 	return count_;
@@ -213,6 +221,10 @@ int64_t NativeArrows::count() const {
 
 int64_t NativeArrows::live_count() const {
 	return live_;
+}
+
+int64_t NativeArrows::unit_flights() const {
+	return unit_live_;
 }
 
 Vector3 NativeArrows::drawn_launch(int64_t index) const {

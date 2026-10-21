@@ -144,13 +144,14 @@ func _process(delta: float) -> void:
 		return
 	if _native.live_count() == 0 and _native.count() == 0:
 		return
-	for slot: int in _native.slots_targeting(TARGET_UNIT):
-		_native.set_target(
-			slot,
-			_target_position(
-				PendingHits.KIND_UNIT, _native.target_id_at(slot), _native.target_at(slot)
+	if _native.unit_flights() > 0:
+		for slot: int in _native.slots_targeting(TARGET_UNIT):
+			_native.set_target(
+				slot,
+				_target_position(
+					PendingHits.KIND_UNIT, _native.target_id_at(slot), _native.target_at(slot)
+				)
 			)
-		)
 	var view: CrowdReadView = _ctx.night.get_enemies().read_view()
 	_native.fill(delta, _ctx.king.get_position(), view.ids, view.current, view.living)
 	_batch.commit_buffer(_native.mirror(), _native.count())

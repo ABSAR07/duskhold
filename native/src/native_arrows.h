@@ -102,6 +102,9 @@ public:
 	int64_t count() const;
 	// Flights in the air.
 	int64_t live_count() const;
+	// Flights in the air whose target code is TARGET_UNIT: GDScript resolves those before each
+	// fill and skips the scan while there are none.
+	int64_t unit_flights() const;
 	// The launch point of the arrow written as instance `index` by the latest fill; the zero
 	// vector outside 0..count - 1.
 	Vector3 drawn_launch(int64_t index) const;
@@ -165,6 +168,7 @@ private:
 	std::vector<Vector3> drawn_launches_;
 	int64_t cursor_ = 0;
 	int64_t live_ = 0;
+	int64_t unit_live_ = 0;
 	int64_t count_ = 0;
 
 	double arc_per_metre_ = 0.0;

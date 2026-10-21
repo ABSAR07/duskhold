@@ -106,6 +106,10 @@ func test_a_flight_that_reaches_progress_one_is_written_once_and_then_freed() ->
 	_arrows.launch(ORIGIN, TARGET, 0.1, NativeArrows.TARGET_FIXED, 0, TINT)
 	assert_eq(_fill(0.2), 1, "its landing frame is still drawn")
 	assert_eq(_arrows.live_count(), 0, "and the slot is free after it")
+	_arrows.launch(ORIGIN, TARGET, 0.1, NativeArrows.TARGET_UNIT, 5, TINT)
+	assert_eq(_arrows.unit_flights(), 1, "a unit flight is counted")
+	_fill(0.2)
+	assert_eq(_arrows.unit_flights(), 0, "and not once it landed")
 	assert_eq(_fill(0.2), 0, "the next frame draws nothing")
 	assert_eq(_arrows.count(), 0, "and holds nothing")
 
@@ -145,6 +149,7 @@ func test_unit_flights_are_listed_for_gdscript_and_take_the_target_it_sets() -> 
 	_launch(NativeArrows.TARGET_FIXED)
 	var second: int = _launch(NativeArrows.TARGET_UNIT, 12)
 	assert_eq(_arrows.slots_targeting(NativeArrows.TARGET_UNIT), PackedInt32Array([first, second]))
+	assert_eq(_arrows.unit_flights(), 2, "two friendly-unit flights are counted")
 	assert_eq(_arrows.slots_targeting(NativeArrows.TARGET_ENEMY).size(), 0, "no enemy flights")
 	assert_eq(_arrows.target_id_at(second), 12, "the unit id")
 	_arrows.set_target(first, Vector3(9.0, 1.2, 9.0))

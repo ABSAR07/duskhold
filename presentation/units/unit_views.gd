@@ -54,6 +54,12 @@ var _ctx: RunContext
 var _batches: Array[CrowdBatch] = []
 ## Unit type id -> its index in `_batches` and in NativeUnitViews, once the type's mesh is ready.
 var _batch_index_of: Dictionary = {}
+## Each read-view def slot's batch index (-1 while its mesh is not ready), kept between frames: it
+## only changes when the view's defs or the batch list does (review IN-21).
+var _batch_of_def: PackedInt32Array = PackedInt32Array()
+var _batch_of_def_view: UnitReadView
+var _batch_of_def_version: int = -1
+var _batch_of_def_batches: int = -1
 ## Unit type id -> &"baked" or &"capsule".
 var _source_of: Dictionary = {}
 ## Unit type id -> the model kept in the tree until its bake succeeds or the one retry fails.
@@ -136,14 +142,29 @@ func _process(_delta: float) -> void:
 		return
 	_settle_waiting_types()
 	var view: UnitReadView = _ctx.squads.get_units().read_view()
-	var batch_of_def: PackedInt32Array = PackedInt32Array()
-	batch_of_def.resize(view.defs.size())
-	for slot: int in range(view.defs.size()):
-		batch_of_def[slot] = _batch_index_of.get(view.defs[slot].id, -1)
-	_native.fill(_ctx.alpha(), view.ids, view.previous, view.current, view.def_slots, batch_of_def)
+	_native.fill(
+		_ctx.alpha(), view.ids, view.previous, view.current, view.def_slots, _batches_of(view)
+	)
 	for index: int in range(_batches.size()):
 		_batches[index].commit_buffer(_native.mirror(index), _native.count(index))
 	_bars.commit_buffer(_native.bar_mirror(), _native.bar_count())
+
+
+## The batch index of each of the view's defs, rebuilt only when the view was refilled or a type's
+## batch became ready since the last call.
+func _batches_of(view: UnitReadView) -> PackedInt32Array:
+	if (
+		view != _batch_of_def_view
+		or view.version != _batch_of_def_version
+		or _batches.size() != _batch_of_def_batches
+	):
+		_batch_of_def.resize(view.defs.size())
+		for slot: int in range(view.defs.size()):
+			_batch_of_def[slot] = _batch_index_of.get(view.defs[slot].id, -1)
+		_batch_of_def_view = view
+		_batch_of_def_version = view.version
+		_batch_of_def_batches = _batches.size()
+	return _batch_of_def
 
 
 func _on_unit_spawned(
