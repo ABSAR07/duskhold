@@ -8,14 +8,16 @@ extends RefCounted
 ## by reference: treat them as read-only.
 
 var _events: SimEvents
+var _stats: StatStack
 var _order: Array[StringName] = []
 var _spots: Dictionary = {}
 var _defs: Dictionary = {}
 var _instances: Dictionary = {}
 
 
-func _init(map: MapConfig, events: SimEvents) -> void:
+func _init(map: MapConfig, events: SimEvents, stat_stack: StatStack = null) -> void:
 	_events = events
+	_stats = stat_stack if stat_stack != null else StatStack.new()
 	# A null entry is a data error MapConfig.validate() already reported; skip it rather than crash.
 	for building_def: BuildingDef in map.buildings:
 		# An empty or duplicate id is a reported data error too. Skip an empty id (a spot whose
@@ -31,6 +33,7 @@ func _init(map: MapConfig, events: SimEvents) -> void:
 			continue
 		_order.append(spot.id)
 		_spots[spot.id] = spot
+	_stats.changed.connect(_on_stats_changed)
 
 
 ## Spot ids in MapConfig order. A copy: changing it cannot corrupt the system's own order.
@@ -237,8 +240,18 @@ func _snapshot(instance: BuildingInstance) -> BuildingInstance:
 	return copy
 
 
-## Hit points of the instance's current tier; 0 for null or a building no map definition covers.
+## Hit points of the instance's current tier with every building.max_health modifier applied; 0 for
+## null or a building no map definition covers. A wall plot keeps the raw tier value: its segments
+## carry the wall health (WallSystem, wall.max_health).
 func _max_health_of(instance: BuildingInstance) -> int:
+	var raw: int = _raw_max_health_of(instance)
+	if raw <= 0 or (_spots[instance.spot_id] as BuildSpotDef).wall_run != null:
+		return raw
+	return _stats.int_value(&"building.max_health", raw)
+
+
+## Hit points of the instance's current tier as the data says; 0 for null or an unknown building.
+func _raw_max_health_of(instance: BuildingInstance) -> int:
 	if instance == null:
 		return 0
 	var building_def: BuildingDef = _defs.get(instance.building_id) as BuildingDef
@@ -246,6 +259,25 @@ func _max_health_of(instance: BuildingInstance) -> int:
 		return 0
 	var tier_def: BuildingTierDef = building_def.tier_def(instance.tier)
 	return tier_def.max_health if tier_def != null else 0
+
+
+## A change of building.max_health: every standing plain building gains the gain of its maximum, so
+## a hurt one stays hurt by the same amount, and a loss clamps it into [1, max]. A fallen building
+## stays fallen (the dawn rebuild fills it to the new maximum). Emits nothing: a refresh is not a
+## hit.
+func _on_stats_changed(stats: Array[StringName]) -> void:
+	if not stats.has(&"building.max_health"):
+		return
+	for spot_id: StringName in _order:
+		var instance: BuildingInstance = _instances.get(spot_id) as BuildingInstance
+		if instance == null or instance.destroyed:
+			continue
+		if (_spots[spot_id] as BuildSpotDef).wall_run != null:
+			continue
+		var raw: int = _raw_max_health_of(instance)
+		var gain: int = _stats.int_value(&"building.max_health", raw)
+		gain -= _stats.previous_int_value(&"building.max_health", raw)
+		instance.health = clampi(instance.health + gain, 1, _max_health_of(instance))
 
 
 ## Null at max tier or for an unknown spot.

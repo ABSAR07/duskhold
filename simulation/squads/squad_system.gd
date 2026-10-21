@@ -25,6 +25,7 @@ const ARRIVE_EPSILON: float = 0.001
 var _map: MapConfig
 var _buildings: BuildingSystem
 var _events: SimEvents
+var _stats: StatStack
 var _units: UnitSystem
 var _squads: Dictionary = {}
 var _order: Array[StringName] = []
@@ -36,11 +37,14 @@ var _pathing: Pathing
 var _sight: Dictionary = {}
 
 
-func _init(map: MapConfig, buildings: BuildingSystem, events: SimEvents) -> void:
+func _init(
+	map: MapConfig, buildings: BuildingSystem, events: SimEvents, stat_stack: StatStack = null
+) -> void:
 	_map = map
 	_buildings = buildings
 	_events = events
-	_units = UnitSystem.new(events)
+	_stats = stat_stack if stat_stack != null else StatStack.new()
+	_units = UnitSystem.new(events, _stats)
 
 
 func get_units() -> UnitSystem:
@@ -316,7 +320,9 @@ func _sync(night: bool) -> void:
 			squad = _make_squad(spot_id, building_def, unit_def)
 		squad.tier = tier
 		squad.cap = clampi(tier_def.squad_size, 0, MAX_UNITS_PER_SQUAD)
-		squad.respawn_seconds = tier_def.squad_respawn_seconds
+		squad.respawn_seconds = _stats.float_value(
+			&"squad.respawn_seconds", tier_def.squad_respawn_seconds
+		)
 		if not night:
 			_fill(squad)
 
@@ -581,7 +587,7 @@ func _step_unit(
 		unit_id,
 		PendingHits.KIND_ENEMY,
 		target,
-		def.attack_damage
+		_stats.int_value(&"unit.attack_damage", def.attack_damage)
 	)
 	_events.attack_fired.emit(
 		PendingHits.KIND_UNIT, unit_id, PendingHits.KIND_ENEMY, target, flight

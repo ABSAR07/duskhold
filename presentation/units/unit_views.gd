@@ -92,7 +92,8 @@ func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 		_prepare_type(def)
 	var units: UnitSystem = ctx.squads.get_units()
 	for unit_id: int in units.ids():
-		_native.set_max_hp(unit_id, units.def_of(unit_id).max_health)
+		_native.set_max_hp(unit_id, _max_health_of(units.def_of(unit_id)))
+	ctx.stat_stack.changed.connect(_on_stats_changed)
 	ctx.events.unit_spawned.connect(_on_unit_spawned)
 	ctx.events.unit_damaged.connect(_on_unit_damaged)
 	ctx.events.unit_died.connect(_on_unit_died)
@@ -171,7 +172,22 @@ func _on_unit_spawned(
 	unit_id: int, _squad_id: StringName, def_id: StringName, _pos: Vector2
 ) -> void:
 	var def: UnitDef = _ctx.map.find_unit(def_id)
-	_native.set_max_hp(unit_id, def.max_health if def != null else 0)
+	_native.set_max_hp(unit_id, _max_health_of(def) if def != null else 0)
+
+
+## The maximum a unit of `def` stands at, read through the same stack the simulation uses (research
+## P7), so a bar never disagrees with the unit's health.
+func _max_health_of(def: UnitDef) -> int:
+	return _ctx.stat_stack.int_value(&"unit.max_health", maxi(def.max_health, 1))
+
+
+## A unit.max_health change (a pick, a buff) moves every living unit's maximum: the bars follow.
+func _on_stats_changed(stats: Array[StringName]) -> void:
+	if not stats.has(&"unit.max_health"):
+		return
+	var units: UnitSystem = _ctx.squads.get_units()
+	for unit_id: int in units.ids():
+		_native.set_max_hp(unit_id, _max_health_of(units.def_of(unit_id)))
 
 
 ## The bar fills to hp / max and shows from the first hit.

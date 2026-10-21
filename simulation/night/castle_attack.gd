@@ -38,14 +38,17 @@ func _init(map: MapConfig, castle: CastleState, events: SimEvents) -> void:
 ## sub-step interval would fire every tick, because SimClock.ticks floors at one tick; an infinite
 ## or NaN one fails the bounds) and a finite arrow speed of 0 or more (review IN-02).
 func is_armed() -> bool:
+	var reach: float = _castle.arrow_range()
+	var interval: float = _castle.arrow_interval()
+	var speed: float = _castle.arrow_speed()
 	return (
-		_map.castle_attack_damage > 0
-		and is_finite(_map.castle_attack_range)
-		and _map.castle_attack_range > 0.0
-		and _map.castle_attack_interval >= SimClock.STEP
-		and _map.castle_attack_interval <= MapConfig.MAX_CASTLE_ATTACK_INTERVAL_S
-		and is_finite(_map.castle_projectile_speed)
-		and _map.castle_projectile_speed >= 0.0
+		_castle.arrow_damage() > 0
+		and is_finite(reach)
+		and reach > 0.0
+		and interval >= SimClock.STEP
+		and interval <= MapConfig.MAX_CASTLE_ATTACK_INTERVAL_S
+		and is_finite(speed)
+		and speed >= 0.0
 	)
 
 
@@ -60,11 +63,11 @@ func step(tick: int, enemies: EnemySystem, hits: PendingHits) -> void:
 	if not is_armed() or _castle.is_destroyed() or tick < _ready_at:
 		return
 	var origin: Vector2 = _castle.get_position()
-	var target_id: int = TargetQuery.nearest_enemy(enemies, origin, _map.castle_attack_range)
+	var target_id: int = TargetQuery.nearest_enemy(enemies, origin, _castle.arrow_range())
 	if target_id < 0:
 		return
 	var flight: int = SimClock.flight_ticks(
-		origin.distance_to(enemies.position_of(target_id)), _map.castle_projectile_speed
+		origin.distance_to(enemies.position_of(target_id)), _castle.arrow_speed()
 	)
 	hits.enqueue(
 		tick + flight,
@@ -72,7 +75,7 @@ func step(tick: int, enemies: EnemySystem, hits: PendingHits) -> void:
 		0,
 		PendingHits.KIND_ENEMY,
 		target_id,
-		_map.castle_attack_damage
+		_castle.arrow_damage()
 	)
 	_events.attack_fired.emit(PendingHits.KIND_CASTLE, 0, PendingHits.KIND_ENEMY, target_id, flight)
-	_ready_at = tick + SimClock.ticks(_map.castle_attack_interval)
+	_ready_at = tick + SimClock.ticks(_castle.arrow_interval())

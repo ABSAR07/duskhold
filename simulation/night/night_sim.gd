@@ -45,12 +45,12 @@ func _init(
 	_stat_stack = stat_stack if stat_stack != null else StatStack.new()
 	_events = events
 	_king = king
-	_castle = castle if castle != null else CastleState.new(map, events)
-	_buildings = buildings if buildings != null else BuildingSystem.new(map, events)
-	_walls = walls if walls != null else WallSystem.new(map, _buildings, events)
+	_castle = castle if castle != null else CastleState.new(map, events, _stat_stack)
+	_buildings = buildings if buildings != null else BuildingSystem.new(map, events, _stat_stack)
+	_walls = walls if walls != null else WallSystem.new(map, _buildings, events, _stat_stack)
 	_pathing = Pathing.new(map, _walls)
 	_run_seed = run_seed
-	_squads = squads if squads != null else SquadSystem.new(map, _buildings, events)
+	_squads = squads if squads != null else SquadSystem.new(map, _buildings, events, _stat_stack)
 	_enemies = EnemySystem.new(events)
 	_towers = TowerSystem.new(_buildings, events, _stat_stack)
 	_castle_attack = CastleAttack.new(map, _castle, events)

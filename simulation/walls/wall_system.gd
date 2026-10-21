@@ -17,6 +17,7 @@ const CENTIMETRES: float = 100.0
 
 var _events: SimEvents
 var _buildings: BuildingSystem
+var _stats: StatStack
 ## Per segment: owner plot, endpoints in metres (from centimetres), half thickness, health.
 var _owner: Array[StringName] = []
 var _starts: PackedVector2Array = PackedVector2Array()
@@ -34,15 +35,19 @@ var _version: int = 0
 var _native: NativeWalls = NativeWalls.new()
 
 
-func _init(map: MapConfig, buildings: BuildingSystem, events: SimEvents) -> void:
+func _init(
+	map: MapConfig, buildings: BuildingSystem, events: SimEvents, stat_stack: StatStack = null
+) -> void:
 	_events = events
 	_buildings = buildings
+	_stats = stat_stack if stat_stack != null else StatStack.new()
 	for spot: BuildSpotDef in map.spots:
 		if spot == null or spot.wall_run == null or spot.id == &"" or _runs.has(spot.id):
 			continue
 		_add_run(spot)
 	_native.setup(_starts, _ends, _half)
 	events.building_built.connect(_on_building_built)
+	_stats.changed.connect(_on_stats_changed)
 
 
 ## A purchase on a wall plot: every segment of the run takes the per-segment maximum of the tier.
@@ -56,11 +61,12 @@ func on_building_built(spot_id: StringName, _building_id: StringName, tier: int)
 	var tier_def: BuildingTierDef = _tier_def(spot_id, tier)
 	if tier_def == null:
 		return
+	var segment_health: int = _stats.int_value(&"wall.max_health", tier_def.max_health)
 	for segment: int in segments:
 		var was_built: bool = _max_health[segment] > 0
-		_max_health[segment] = tier_def.max_health
+		_max_health[segment] = segment_health
 		if not was_built or _health[segment] > 0:
-			_health[segment] = tier_def.max_health
+			_health[segment] = segment_health
 			_native.set_health(segment, _health[segment])
 	_recount()
 	_version += 1
@@ -183,6 +189,28 @@ func restore_all() -> Array[StringName]:
 
 func _on_building_built(spot_id: StringName, building_id: StringName, new_tier: int) -> void:
 	on_building_built(spot_id, building_id, new_tier)
+
+
+## A change of wall.max_health: every built run takes the new per-segment maximum. A standing
+## segment gains the gain of the maximum (a hurt one stays hurt by the same amount) and a loss
+## clamps it into [1, max]; a broken segment keeps its new maximum but stays broken until the dawn
+## restore.
+## Emits nothing and changes no segment's standing, so version() stays.
+func _on_stats_changed(stats: Array[StringName]) -> void:
+	if not stats.has(&"wall.max_health"):
+		return
+	for spot_id: StringName in _run_order:
+		var segments: PackedInt32Array = _runs[spot_id]
+		var tier_def: BuildingTierDef = _tier_def(spot_id, _buildings.current_tier(spot_id))
+		if tier_def == null or segments.is_empty() or _max_health[segments[0]] <= 0:
+			continue
+		var new_max: int = _stats.int_value(&"wall.max_health", tier_def.max_health)
+		for segment: int in segments:
+			var gain: int = new_max - _max_health[segment]
+			_max_health[segment] = new_max
+			if _health[segment] > 0:
+				_health[segment] = clampi(_health[segment] + gain, 1, new_max)
+				_native.set_health(segment, _health[segment])
 
 
 func _valid(segment: int) -> bool:

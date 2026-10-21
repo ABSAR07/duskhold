@@ -32,6 +32,7 @@ var _def: KingDef
 var _weapon: WeaponDef
 var _events: SimEvents
 var _tuning: LoopTuning
+var _stats: StatStack
 var _spawn: Vector2
 var _position: Vector2
 var _cooldown_ready_tick: int = 0
@@ -47,14 +48,22 @@ var _regen_delay_ticks_left: int = 0
 var _regen_progress: float = 0.0
 
 
-func _init(def: KingDef, spawn: Vector2, events: SimEvents, tuning: LoopTuning = null) -> void:
+func _init(
+	def: KingDef,
+	spawn: Vector2,
+	events: SimEvents,
+	tuning: LoopTuning = null,
+	stat_stack: StatStack = null
+) -> void:
 	_def = def
 	_weapon = def.weapon if def.weapon != null else WeaponDef.new()
 	_spawn = spawn
 	_position = spawn
 	_events = events
 	_tuning = tuning if tuning != null else LoopTuning.new()
-	_health = maxi(def.max_health, 1)
+	_stats = stat_stack if stat_stack != null else StatStack.new()
+	_health = get_max_health()
+	_stats.changed.connect(_on_stats_changed)
 
 
 func get_def() -> KingDef:
@@ -120,7 +129,12 @@ func resolve_ability(tick: int, enemies: EnemySystem, hits: PendingHits) -> void
 			continue
 		if _position.distance_squared_to(enemies.position_of(id)) <= limit:
 			hits.enqueue(
-				tick, PendingHits.KIND_KING, 0, PendingHits.KIND_ENEMY, id, _weapon.slam_damage
+				tick,
+				PendingHits.KIND_KING,
+				0,
+				PendingHits.KIND_ENEMY,
+				id,
+				_stats.int_value(&"king.slam_damage", _weapon.slam_damage)
 			)
 			struck += 1
 	_events.king_ability_used.emit(struck)
@@ -142,7 +156,7 @@ func get_health() -> int:
 
 
 func get_max_health() -> int:
-	return maxi(_def.max_health, 1)
+	return _stats.int_value(&"king.max_health", maxi(_def.max_health, 1))
 
 
 ## True from the hit that takes him to 0 until he respawns.
@@ -156,6 +170,7 @@ func is_down() -> bool:
 func take_damage(amount: int) -> void:
 	if _down or amount <= 0:
 		return
+	amount = _stats.int_value(&"king.damage_taken", amount)
 	var lost: int = mini(amount, _health)
 	_health -= lost
 	_regen_delay_ticks_left = _regen_delay_ticks()
@@ -257,10 +272,28 @@ func _passive_attack(tick: int, enemies: EnemySystem, hits: PendingHits) -> void
 	if target_id < 0:
 		return
 	hits.enqueue(
-		tick, PendingHits.KIND_KING, 0, PendingHits.KIND_ENEMY, target_id, _weapon.attack_damage
+		tick,
+		PendingHits.KIND_KING,
+		0,
+		PendingHits.KIND_ENEMY,
+		target_id,
+		_stats.int_value(&"king.attack_damage", _weapon.attack_damage)
 	)
 	_events.attack_fired.emit(PendingHits.KIND_KING, 0, PendingHits.KIND_ENEMY, target_id, 0)
-	_cooldown_ready_tick = tick + SimClock.ticks(_weapon.attack_interval)
+	var interval: float = _stats.float_value(&"king.attack_interval", _weapon.attack_interval)
+	_cooldown_ready_tick = tick + SimClock.ticks(interval)
+
+
+## A change of king.max_health (a pick, a buff): the gain raises current health by the gain of the
+## maximum and a loss clamps it into [1, max]. A downed king stays at 0 (the respawn restores him to
+## the new maximum). Emits nothing: a refresh is neither a hit nor a heal.
+func _on_stats_changed(stats: Array[StringName]) -> void:
+	if _down or not stats.has(&"king.max_health"):
+		return
+	var base: int = maxi(_def.max_health, 1)
+	var gain: int = _stats.int_value(&"king.max_health", base)
+	gain -= _stats.previous_int_value(&"king.max_health", base)
+	_health = clampi(_health + gain, 1, get_max_health())
 
 
 ## Up again at the spawn with full health. His attack is ready at once.

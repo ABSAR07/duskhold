@@ -42,19 +42,17 @@ func _init(
 	stat_stack = StatStack.new()
 	stats = RunStats.new(events)
 	economy = Economy.new(events, map_config.starting_gold)
-	buildings = BuildingSystem.new(map_config, events)
-	walls = WallSystem.new(map_config, buildings, events)
-	castle = CastleState.new(map_config, events)
+	buildings = BuildingSystem.new(map_config, events, stat_stack)
+	walls = WallSystem.new(map_config, buildings, events, stat_stack)
+	castle = CastleState.new(map_config, events, stat_stack)
 	king = KingState.new(
-		def, Vector2(map_config.king_spawn.x, map_config.king_spawn.z), events, tuning
+		def, Vector2(map_config.king_spawn.x, map_config.king_spawn.z), events, tuning, stat_stack
 	)
-	squads = SquadSystem.new(map_config, buildings, events)
+	squads = SquadSystem.new(map_config, buildings, events, stat_stack)
 	night = NightSim.new(
 		map_config, events, king, run_seed, castle, buildings, squads, walls, stat_stack
 	)
-	run_manager = RunManager.new(
-		events, economy, buildings, tuning, night, king, castle, map_config.base_dawn_income, squads
-	)
+	run_manager = RunManager.new(events, economy, buildings, tuning, night, king, castle, squads)
 	commands = CommandProcessor.new(
 		economy, buildings, run_manager, events, king, squads, map_config
 	)

@@ -21,7 +21,6 @@ var _night: NightSim
 var _king: KingState
 var _castle: CastleState
 var _squads: SquadSystem
-var _base_dawn_income: int = 0
 var _phase: RunPhase = RunPhase.DAY
 var _elapsed: float = 0.0
 var _phase_elapsed: float = 0.0
@@ -37,7 +36,6 @@ func _init(
 	night: NightSim = null,
 	king: KingState = null,
 	castle: CastleState = null,
-	base_dawn_income: int = 0,
 	squads: SquadSystem = null
 ) -> void:
 	_events = events
@@ -48,7 +46,6 @@ func _init(
 	_king = king
 	_castle = castle
 	_squads = squads
-	_base_dawn_income = maxi(base_dawn_income, 0)
 
 
 func get_phase() -> RunPhase:
@@ -205,8 +202,9 @@ func _enter_day() -> void:
 ## rebases gold, so unspent gold carries over (ECON-07).
 func _apply_dawn_payout() -> void:
 	var per_spot: Dictionary = _buildings.dawn_income_by_spot()
-	if _base_dawn_income > 0:
-		per_spot[MapConfig.CASTLE_PAYOUT_KEY] = _base_dawn_income
+	var base_income: int = _castle.base_income() if _castle != null else 0
+	if base_income > 0:
+		per_spot[MapConfig.CASTLE_PAYOUT_KEY] = base_income
 	var total: int = 0
 	for amount: int in per_spot.values():
 		total += amount

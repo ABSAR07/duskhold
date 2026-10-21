@@ -10,6 +10,7 @@ extends RefCounted
 const SEPARATION_CELL_SLACK: float = 0.001
 
 var _events: SimEvents
+var _stats: StatStack
 var _records: Dictionary = {}
 var _order: Array[int] = []
 var _next_id: int = 1
@@ -19,8 +20,10 @@ var _changes: int = 0
 var _view: UnitReadView = UnitReadView.new()
 
 
-func _init(events: SimEvents) -> void:
+func _init(events: SimEvents, stat_stack: StatStack = null) -> void:
 	_events = events
+	_stats = stat_stack if stat_stack != null else StatStack.new()
+	_stats.changed.connect(_on_stats_changed)
 
 
 ## Adds a unit of `def` to squad `squad_id`, seated in formation slot `slot`, and returns its id;
@@ -33,7 +36,7 @@ func spawn(def: UnitDef, squad_id: StringName, slot: int, pos: Vector2) -> int:
 	record.slot = slot
 	record.position = pos
 	record.previous = pos
-	record.health = maxi(def.max_health, 1)
+	record.health = _max_health_of(def)
 	_next_id += 1
 	_records[record.id] = record
 	_order.append(record.id)
@@ -153,7 +156,7 @@ func remove_dead() -> void:
 func heal_to_full(id: int) -> void:
 	var record: Record = _records.get(id) as Record
 	if record != null and record.health > 0:
-		record.health = maxi(record.def.max_health, 1)
+		record.health = _max_health_of(record.def)
 
 
 ## Writer for SquadSystem: remembers every unit position as "one step ago", before the step moves
@@ -218,6 +221,26 @@ func separate() -> void:
 	for index: int in range(alive.size()):
 		alive[index].position += pushes[index]
 	_changes += 1
+
+
+## A unit type's maximum health with every unit.max_health modifier applied.
+func _max_health_of(def: UnitDef) -> int:
+	return _stats.int_value(&"unit.max_health", maxi(def.max_health, 1))
+
+
+## A change of unit.max_health: every living unit gains the gain of its type's maximum, and a loss
+## clamps it into [1, max]. Emits nothing: a refresh is neither a hit nor a heal.
+func _on_stats_changed(stats: Array[StringName]) -> void:
+	if not stats.has(&"unit.max_health"):
+		return
+	for id: int in _order:
+		var record: Record = _records[id]
+		if record.health <= 0:
+			continue
+		var base: int = maxi(record.def.max_health, 1)
+		var gain: int = _stats.int_value(&"unit.max_health", base)
+		gain -= _stats.previous_int_value(&"unit.max_health", base)
+		record.health = clampi(record.health + gain, 1, _max_health_of(record.def))
 
 
 ## One unit state. Private to the system.
