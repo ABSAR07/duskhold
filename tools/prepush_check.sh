@@ -95,6 +95,19 @@ else
   echo "  OK: every large binary is routed through Git LFS"
 fi
 
+# --- native stamp guard ------------------------------------------------------------------------
+# The fail-closed stamp (a stale or half-installed native library must never pass) has one regression
+# test; a later edit of tools/_common.sh must not be able to reopen it unnoticed (review WR-13).
+echo
+echo "== Native stamp guard =="
+if probe_out="$(bash "${DUSKHOLD_ROOT}/tools/native_stamp_probe.sh" 2>&1)"; then
+  echo "  OK: $(echo "${probe_out}" | tail -n 1)"
+else
+  echo "FAIL: tools/native_stamp_probe.sh failed:" >&2
+  echo "${probe_out}" | sed 's/^/  /' >&2
+  fail=1
+fi
+
 # --- what becomes public -----------------------------------------------------------------------
 echo
 echo "== What would become public =="

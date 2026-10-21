@@ -47,6 +47,10 @@ jobs:
         run: python -m pip install -r tools/requirements-lint.txt
       - name: gdformat --check and gdlint
         run: bash tools/lint.sh
+      # The regression test of the fail-closed native stamp guard (review CR-01, WR-12, WR-13): no Godot,
+      # no build, only sha256 over a copy of the sources.
+      - name: native stamp guard
+        run: bash tools/native_stamp_probe.sh
 
   native-linux:
     name: native-linux
