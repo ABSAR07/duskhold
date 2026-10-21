@@ -75,6 +75,10 @@ const BALANCED_FIRST_LOSS_NIGHT: int = 3
 const BALANCED_WALLS_LOST_SEEDS: Array[int] = [3, 9]
 const ARMY_BALANCED_LOST_SEEDS: Array[int] = [1, 9]
 const ARMY_BALANCED_WALLS_LOST_SEEDS: Array[int] = [1, 9]
+## Review WR-06: seeds of ten in which each bot with walls bought at least one wall tier, as
+## measured; the orders put the walls late, so most seeds never reach them.
+const BALANCED_WALL_SEEDS_MIN: int = 6
+const ARMY_BALANCED_WALL_SEEDS_MIN: int = 3
 const GRUNT_PATH := "res://data/enemies/grunt.tres"
 const GRUNT_MAX_HEALTH: int = 6
 ## Greedy economy must lose on a night from 3 to 5 (D-10: around the middle nights; the last was
@@ -222,23 +226,33 @@ func test_the_army_no_walls_twin_keeps_the_phase_three_result() -> void:
 	assert_eq(_lost_seeds(&"army_balanced_no_walls"), ARMY_BALANCED_LOST_SEEDS, "seeds 1 and 9")
 
 
-func test_the_bots_with_walls_pay_for_walls_in_some_seeds() -> void:
+func test_the_bots_with_walls_pay_for_walls_in_enough_seeds() -> void:
 	## The wall entries are in the orders but sit late (the economy leaves little room), so some
-	## seeds never reach them. A wall counts as economy in the gold ledger, so a bot that bought one
-	## spends more on the economy role than its twin over the ten seeds.
+	## seeds never reach them. A wall counts as economy in the gold ledger, so a seed in which the
+	## bot bought a wall tier spends more on the economy role than the same seed of its twin.
+	## Measured on seeds 1 to 10: balanced buys walls in 6 seeds, army_balanced in 3. The floors
+	## are those counts, so a change that makes the orders skip the walls fails here (review WR-06).
+	## No wall segment falls in any of these runs (the per-night walls_broken column is all zero),
+	## so wall damage is pinned by the walls scenarios, not here.
 	for pair: Array in [
-		[&"balanced", &"balanced_no_walls"], [&"army_balanced", &"army_balanced_no_walls"]
+		[&"balanced", &"balanced_no_walls", BALANCED_WALL_SEEDS_MIN],
+		[&"army_balanced", &"army_balanced_no_walls", ARMY_BALANCED_WALL_SEEDS_MIN]
 	]:
 		var with_walls: Array = _runs_of(pair[0])
 		var without: Array = _runs_of(pair[1])
-		var extra: int = 0
+		var seeds_with_walls: int = 0
 		for index: int in range(with_walls.size()):
 			assert_eq(with_walls[index]["seed"], without[index]["seed"], "same seed order")
-			extra += (
+			var extra: int = (
 				int(with_walls[index]["economy_gold_spent"])
 				- int(without[index]["economy_gold_spent"])
 			)
-		assert_gt(extra, 0, "%s paid for at least one wall tier over ten seeds" % pair[0])
+			seeds_with_walls += 1 if extra > 0 else 0
+		assert_gte(
+			seeds_with_walls,
+			int(pair[2]),
+			"%s paid for a wall tier in at least %d of ten seeds" % [pair[0], int(pair[2])]
+		)
 
 
 func test_greedy_economy_never_wins_and_loses_on_the_middle_nights() -> void:
