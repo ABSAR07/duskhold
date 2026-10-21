@@ -8,13 +8,15 @@ extends RefCounted
 
 var _buildings: BuildingSystem
 var _events: SimEvents
+var _stats: StatStack
 ## spot_id -> first tick on which that tower may shoot again. A missing entry means ready.
 var _ready_at: Dictionary = {}
 
 
-func _init(buildings: BuildingSystem, events: SimEvents) -> void:
+func _init(buildings: BuildingSystem, events: SimEvents, stat_stack: StatStack = null) -> void:
 	_buildings = buildings
 	_events = events
+	_stats = stat_stack if stat_stack != null else StatStack.new()
 
 
 ## A new night: every tower is ready on night tick 0.
@@ -33,7 +35,8 @@ func step(tick: int, enemies: EnemySystem, hits: PendingHits) -> void:
 			continue
 		var spot_position: Vector3 = _buildings.get_spot(spot_id).position
 		var origin: Vector2 = Vector2(spot_position.x, spot_position.z)
-		var target_id: int = TargetQuery.nearest_enemy(enemies, origin, tier.attack_range)
+		var reach: float = _stats.float_value(&"tower.range", tier.attack_range)
+		var target_id: int = TargetQuery.nearest_enemy(enemies, origin, reach)
 		if target_id < 0:
 			continue
 		var flight: int = SimClock.flight_ticks(
@@ -46,7 +49,7 @@ func step(tick: int, enemies: EnemySystem, hits: PendingHits) -> void:
 			spot_index,
 			PendingHits.KIND_ENEMY,
 			target_id,
-			tier.attack_damage
+			_stats.int_value(&"tower.damage", tier.attack_damage)
 		)
 		_events.attack_fired.emit(
 			PendingHits.KIND_BUILDING, spot_index, PendingHits.KIND_ENEMY, target_id, flight

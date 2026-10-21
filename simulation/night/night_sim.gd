@@ -18,6 +18,7 @@ var _pathing: Pathing
 var _run_seed: int
 var _enemies: EnemySystem
 var _towers: TowerSystem
+var _stat_stack: StatStack
 var _squads: SquadSystem
 var _castle_attack: CastleAttack
 var _hits: PendingHits = PendingHits.new()
@@ -37,9 +38,11 @@ func _init(
 	castle: CastleState = null,
 	buildings: BuildingSystem = null,
 	squads: SquadSystem = null,
-	walls: WallSystem = null
+	walls: WallSystem = null,
+	stat_stack: StatStack = null
 ) -> void:
 	_map = map
+	_stat_stack = stat_stack if stat_stack != null else StatStack.new()
 	_events = events
 	_king = king
 	_castle = castle if castle != null else CastleState.new(map, events)
@@ -49,7 +52,7 @@ func _init(
 	_run_seed = run_seed
 	_squads = squads if squads != null else SquadSystem.new(map, _buildings, events)
 	_enemies = EnemySystem.new(events)
-	_towers = TowerSystem.new(_buildings, events)
+	_towers = TowerSystem.new(_buildings, events, _stat_stack)
 	_castle_attack = CastleAttack.new(map, _castle, events)
 
 

@@ -19,6 +19,9 @@ var night: NightSim
 var run_manager: RunManager
 var commands: CommandProcessor
 var stats: RunStats
+## The one stat-modifier stack (META-08, D-15): every bonus goes through it and every modifiable
+## stat is read through it.
+var stat_stack: StatStack
 var run_seed: int = 1
 ## Simulation steps run so far.
 var tick_count: int = 0
@@ -36,6 +39,7 @@ func _init(
 	run_seed = seed_value
 	var def: KingDef = king_def if king_def != null else load(DEFAULT_KING_PATH) as KingDef
 	events = SimEvents.new()
+	stat_stack = StatStack.new()
 	stats = RunStats.new(events)
 	economy = Economy.new(events, map_config.starting_gold)
 	buildings = BuildingSystem.new(map_config, events)
@@ -45,7 +49,9 @@ func _init(
 		def, Vector2(map_config.king_spawn.x, map_config.king_spawn.z), events, tuning
 	)
 	squads = SquadSystem.new(map_config, buildings, events)
-	night = NightSim.new(map_config, events, king, run_seed, castle, buildings, squads, walls)
+	night = NightSim.new(
+		map_config, events, king, run_seed, castle, buildings, squads, walls, stat_stack
+	)
 	run_manager = RunManager.new(
 		events, economy, buildings, tuning, night, king, castle, map_config.base_dawn_income, squads
 	)
