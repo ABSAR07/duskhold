@@ -18,6 +18,11 @@ const RICH_GOLD: int = 100
 const NO_MINE_ROW := "gold_mine_1"
 const HARBOR: StringName = &"harbor_1"
 const BOAT_CAP: int = 3
+const SHRINE_WEST: StringName = &"shrine_west"
+const SHRINE_EAST: StringName = &"shrine_east"
+const SHRINE_THRESHOLD: int = 100
+const SHRINE_ASLEEP_DEATHS: int = 5
+const SHRINE_RADIUS: float = 18.0
 
 var _tuning: LoopTuning
 
@@ -42,6 +47,9 @@ func _context() -> RunContext:
 		if building_def.id == &"fishing_harbor":
 			building_def.tier_def(1).boat_cap = BOAT_CAP
 			building_def.tier_def(1).boat_income = 1
+		if building_def.id == &"shrine":
+			building_def.tier_def(1).wake_threshold_hp = SHRINE_THRESHOLD
+			building_def.tier_def(1).wake_radius = SHRINE_RADIUS
 	return RunContext.new(map, _tuning)
 
 
@@ -199,3 +207,57 @@ func test_the_harbor_row_counts_the_boats_dawn_by_dawn() -> void:
 	_dawn(ctx)
 	var rows: Array = EconomyOverlaySections.economy_rows(ctx)
 	assert_eq(_value(rows, HARBOR), "boats 2 of %d" % BOAT_CAP, "harbor_1: boats 2 of 3")
+
+
+func _wake_shrine(ctx: RunContext, spot_id: StringName, extra_credit: Array[StringName]) -> void:
+	var plot: Vector3 = ctx.buildings.get_spot(spot_id).position
+	var at: Vector2 = Vector2(plot.x, plot.z)
+	var tier: BuildingTierDef = ctx.buildings.get_building_def_for_spot(spot_id).tier_def(1)
+	var grunt: int = ctx.map.find_enemy(&"grunt").max_health
+	var deaths: int = ceili(float(tier.wake_threshold_hp) / float(grunt))
+	for death: int in range(deaths):
+		ctx.events.enemy_died.emit(death, &"grunt", at, &"tower")
+	for enemy_id: StringName in extra_credit:
+		ctx.events.enemy_died.emit(0, enemy_id, at, &"tower")
+
+
+func test_there_is_no_shrine_row_until_a_shrine_stands() -> void:
+	var rows: Array = EconomyOverlaySections.economy_rows(_context())
+	assert_null(_value(rows, SHRINE_WEST), "an empty plot has no row")
+	assert_null(_value(rows, SHRINE_EAST), "nor the other one")
+
+
+func test_a_dormant_shrine_row_reads_its_credit_against_the_threshold() -> void:
+	var ctx: RunContext = _context()
+	_buy(ctx, SHRINE_WEST)
+	var plot: Vector3 = ctx.buildings.get_spot(SHRINE_WEST).position
+	var grunt: int = ctx.map.find_enemy(&"grunt").max_health
+	for death: int in range(SHRINE_ASLEEP_DEATHS):
+		ctx.events.enemy_died.emit(death, &"grunt", Vector2(plot.x, plot.z), &"tower")
+	var rows: Array = EconomyOverlaySections.economy_rows(ctx)
+	var threshold: int = SHRINE_THRESHOLD
+	var expected: String = "asleep %d of %d" % [SHRINE_ASLEEP_DEATHS * grunt, threshold]
+	assert_eq(_value(rows, SHRINE_WEST), expected, "shrine_west: asleep 30 of 100")
+
+
+func test_an_awake_shrine_row_reads_its_credit() -> void:
+	var ctx: RunContext = _context()
+	_buy(ctx, SHRINE_EAST)
+	_wake_shrine(ctx, SHRINE_EAST, [&"ranged"] as Array[StringName])
+	var rows: Array = EconomyOverlaySections.economy_rows(ctx)
+	var credit: int = ctx.income.kill_credit(SHRINE_EAST)
+	assert_true(ctx.income.is_awake(SHRINE_EAST), "it woke")
+	assert_eq(_value(rows, SHRINE_EAST), "awake %d" % credit, "shrine_east: awake with its credit")
+	assert_gt(credit, SHRINE_THRESHOLD - 1, "the credit passed the threshold")
+
+
+func test_reading_the_shrine_rows_changes_nothing() -> void:
+	var ctx: RunContext = _context()
+	_buy(ctx, SHRINE_WEST)
+	_wake_shrine(ctx, SHRINE_WEST, [] as Array[StringName])
+	watch_signals(ctx.events)
+	var before: int = ctx.income.kill_credit(SHRINE_WEST)
+	for read: int in range(5):
+		EconomyOverlaySections.economy_rows(ctx)
+	assert_eq(ctx.income.kill_credit(SHRINE_WEST), before, "the credit did not move")
+	assert_signal_not_emitted(ctx.events, "shrine_woke", "and nothing was announced")

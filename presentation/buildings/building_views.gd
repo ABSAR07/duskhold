@@ -16,6 +16,8 @@ const TOWER_MARKER_COLOR := Color(0.36, 0.44, 0.62)
 const MILITARY_MARKER_COLOR := Color(0.62, 0.3, 0.28)
 ## Wall plots (BLDG-10): a timber tan, so the king can tell a wall plot from the other kinds.
 const WALL_MARKER_COLOR := Color(0.7, 0.55, 0.35)
+## Shrine plots (ECON-06): a violet that echoes the glow and the bolts.
+const SHRINE_MARKER_COLOR := Color(0.55, 0.4, 0.75)
 const HOUSE_COLOR := Color(0.78, 0.66, 0.45)
 const TOWER_COLOR := Color(0.42, 0.5, 0.68)
 const KEEP_COLOR := Color(0.55, 0.55, 0.58)
@@ -84,6 +86,11 @@ func get_castle_health_bar() -> HealthBar3D:
 ## the spot has no standing building (empty, or fallen into rubble).
 func get_health_bar(spot_id: StringName) -> HealthBar3D:
 	return _bars.get(spot_id) as HealthBar3D
+
+
+## True while the Shrine on the plot shows its glow; false for any other plot. Test hook, read-only.
+func is_shrine_glowing(_spot_id: StringName) -> bool:
+	return false
 
 
 ## Null if no building stands on the spot.

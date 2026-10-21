@@ -8,6 +8,8 @@ extends RefCounted
 ## append their shots here.
 
 const CASTLE: StringName = &"castle_plot"
+## shrine_awake_night runs on the Shrine fixture (two towers and a Shrine beside the west road).
+const SHRINE_FIXTURE := "res://tests/fixtures/fixture_map_shrine.tres"
 ## field_locked: the Field the king stands beside; the Mill plot (mill_1) lies 5 m north of it.
 const LOCKED_FIELD: StringName = &"field_2"
 const LOCKED_LINE := "Needs a Mill"

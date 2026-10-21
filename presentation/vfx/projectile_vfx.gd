@@ -23,6 +23,8 @@ const ARC_PER_METRE: float = 0.12
 const MAX_ARC_HEIGHT: float = 2.5
 const TOWER_COLOR := Color(1.0, 0.85, 0.25)
 const SKIRMISHER_COLOR := Color(0.6, 0.3, 0.9)
+## A Shrine's bolt (ECON-06): a lighter violet than the skirmisher's, from the friendly side.
+const SHRINE_COLOR := Color(0.7, 0.45, 1.0)
 ## Friendly archers shoot a pale blue arrow, readable against both the gold tower arrows and the
 ## violet skirmisher arrows.
 const UNIT_ARROW_COLOR := Color(0.55, 0.85, 1.0)

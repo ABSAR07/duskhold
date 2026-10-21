@@ -25,6 +25,11 @@ const MAX_BOAT_CAP: int = 20
 const MAX_POND_RADIUS: float = 30.0
 ## The clear water kept between the pond's edge and every spawn-to-castle road segment, in metres.
 const POND_ROAD_CLEARANCE: float = 10.0
+## The widest wake radius in metres, the largest wake threshold in enemy health and the largest
+## synergy percent a Shrine tier may hold (ECON-06, T-05-17).
+const MAX_WAKE_RADIUS: float = 40.0
+const MAX_WAKE_THRESHOLD: int = 100000
+const MAX_SYNERGY_PERCENT: int = 100
 
 
 ## Every curve and pond problem of `map`, in building and tier order and then the pond's; empty when

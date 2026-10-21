@@ -1,10 +1,10 @@
 extends GutTest
-## ECON-03 to ECON-05, D-11 to D-13: the economy data contract. The Gold Mine's, the Mill's, the
-## Field's and the Fishing Harbor's numbers, their plots and the pond are pinned here and nowhere
-## else (the behaviour tests set their own on a deep copy). D-12 fixes the step and the floor: each
-## paying dawn pays 1 less, down to a floor of 1, never 0. The Mine's cost 4, first payout 3 and
-## health 20, the Mill's, the Field's and the Harbor's numbers are the planner's starting numbers;
-## plan 05-11 refits them with the bots, and does it by
+## ECON-03 to ECON-06, D-11 to D-13: the economy data contract. The Gold Mine's, the Mill's, the
+## Field's, the Fishing Harbor's and the Shrine's numbers, their plots and the pond are pinned
+## here and nowhere else (the behaviour tests set their own on a deep copy). D-12 fixes the step and
+## the floor: each paying dawn pays 1 less, down to a floor of 1, never 0. The Mine's cost 4, first
+## payout 3 and health 20, the Mill's, the Field's, the Harbor's and the Shrine's numbers are the
+## planner's starting numbers; plan 05-11 refits them with the bots, and does it by
 ## editing this file in the same commit (a deliberate retune, never a silent one). The .tres
 ## files store IncomeCurve as its integer, so the enum order is pinned too.
 
@@ -12,6 +12,7 @@ const MINE_PATH := "res://data/buildings/gold_mine.tres"
 const MILL_PATH := "res://data/buildings/mill.tres"
 const FIELD_PATH := "res://data/buildings/field.tres"
 const HARBOR_PATH := "res://data/buildings/fishing_harbor.tres"
+const SHRINE_PATH := "res://data/buildings/shrine.tres"
 const MAP_PATH := "res://data/maps/prototype_map.tres"
 const CATALOG_PATH := "res://presentation/buildings/building_view_catalog.tres"
 const FLAT_BUILDING_PATHS: Array[String] = [
@@ -55,6 +56,19 @@ const HARBOR_BODY_RADIUS: float = 1.5
 ## The visual-only pond (D-11): at the south edge of the built-up area, the Harbor on its shore.
 const POND_CENTER := Vector2(0.0, 30.0)
 const POND_RADIUS: float = 8.0
+
+## The Shrine (plan 05-09), [ASSUMED] starting numbers that plan 05-11 fits with the bots.
+const SHRINE_COST: int = 3
+const SHRINE_INCOME: int = 1
+const SHRINE_DAMAGE: int = 3
+const SHRINE_REACH: float = 9.0
+const SHRINE_INTERVAL: float = 1.1
+const SHRINE_BOLT_SPEED: float = 20.0
+const SHRINE_HEALTH: int = 30
+const SHRINE_WAKE_RADIUS: float = 18.0
+const SHRINE_WAKE_THRESHOLD: int = 100
+const SHRINE_SYNERGY: int = 20
+const SHRINE_BODY_RADIUS: float = 1.2
 
 
 func _mine() -> BuildingDef:
@@ -251,3 +265,61 @@ func test_the_catalog_has_models_for_both_harbor_tiers() -> void:
 	assert_not_null(catalog.find(&"fishing_harbor", 1), "tier I has a model")
 	assert_not_null(catalog.find(&"fishing_harbor", 2), "tier II has a model")
 	assert_null(catalog.find(&"fishing_harbor", 3), "and there is no tier III")
+
+
+func test_the_shrine_has_one_awakened_tier_with_the_pinned_numbers() -> void:
+	var shrine: BuildingDef = load(SHRINE_PATH)
+	assert_eq(shrine.id, &"shrine", "the id")
+	assert_eq(shrine.display_name, "Shrine", "the name")
+	assert_eq(shrine.max_tier(), 1, "one tier")
+	assert_eq(shrine.income_curve, BuildingDef.IncomeCurve.AWAKENED, "AWAKENED")
+	assert_eq(shrine.body_radius, SHRINE_BODY_RADIUS, "its footprint")
+	assert_eq(shrine.damage_stat, &"shrine.damage", "its damage stat")
+	assert_eq(shrine.range_stat, &"shrine.range", "its range stat")
+	var tier: BuildingTierDef = shrine.tier_def(1)
+	assert_eq(tier.cost, SHRINE_COST, "cost")
+	assert_eq(tier.dawn_income, SHRINE_INCOME, "pays once awake")
+	assert_eq(tier.attack_damage, SHRINE_DAMAGE, "attack damage")
+	assert_eq(tier.attack_range, SHRINE_REACH, "attack range")
+	assert_eq(tier.attack_interval, SHRINE_INTERVAL, "attack interval")
+	assert_eq(tier.projectile_speed, SHRINE_BOLT_SPEED, "bolt speed")
+	assert_eq(tier.max_health, SHRINE_HEALTH, "health")
+	assert_eq(tier.wake_radius, SHRINE_WAKE_RADIUS, "wake radius")
+	assert_eq(tier.wake_threshold_hp, SHRINE_WAKE_THRESHOLD, "wake threshold")
+	assert_eq(tier.synergy_percent, SHRINE_SYNERGY, "synergy")
+	assert_eq(tier.requires_castle_tier, 0, "never gated")
+	assert_true(shrine.pays_income(1), "the crossed coin applies")
+
+
+func test_the_map_lists_the_shrine_its_two_plots_and_the_catalog_has_its_model() -> void:
+	var map: MapConfig = load(MAP_PATH)
+	var listed: bool = false
+	for building_def: BuildingDef in map.buildings:
+		listed = listed or building_def.id == &"shrine"
+	assert_true(listed, "the building is in the map's list")
+	for plot_id: StringName in [&"shrine_west", &"shrine_east"]:
+		var found: bool = false
+		for spot: BuildSpotDef in map.spots:
+			if spot.id == plot_id:
+				found = true
+				assert_eq(spot.building_id, &"shrine", "%s takes the Shrine" % plot_id)
+		assert_true(found, "%s is on the map" % plot_id)
+	var catalog: BuildingViewCatalog = load(CATALOG_PATH)
+	assert_not_null(catalog.find(&"shrine", 1), "tier I has a model")
+	assert_null(catalog.find(&"shrine", 2), "and there is no tier II")
+
+
+func test_no_other_building_has_wake_data_or_its_own_stat_ids() -> void:
+	var paths: Array[String] = FLAT_BUILDING_PATHS.duplicate()
+	paths.append_array([MINE_PATH, HARBOR_PATH])
+	for path: String in paths:
+		var building_def: BuildingDef = load(path)
+		assert_eq(
+			building_def.damage_stat, &"tower.damage", "%s keeps the tower damage stat" % path
+		)
+		assert_eq(building_def.range_stat, &"tower.range", "%s keeps the tower range stat" % path)
+		for index: int in range(building_def.max_tier()):
+			var tier: BuildingTierDef = building_def.tier_def(index + 1)
+			assert_eq(tier.wake_radius, 0.0, "%s tier %d has no wake radius" % [path, index + 1])
+			assert_eq(tier.wake_threshold_hp, 0, "%s tier %d has no threshold" % [path, index + 1])
+			assert_eq(tier.synergy_percent, 0, "%s tier %d has no synergy" % [path, index + 1])
