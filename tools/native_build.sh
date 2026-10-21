@@ -178,6 +178,11 @@ else
   echo "native_build: API diff skipped (no python or no bundled extension_api-4-7.json)"
 fi
 
+# The source stamp as of now, before CMake reads anything: the install refuses to run when the sources
+# moved while the build was going (review WR-12), so a library is never stamped with sources it was
+# not compiled from.
+SOURCES_AT_START="$(duskhold_native_stamp)"
+
 # --- 3. configure ------------------------------------------------------------------------------
 if [ "${DO_CLEAN}" -eq 1 ]; then
   rm -rf "${BUILD_DIR}"
@@ -289,8 +294,10 @@ fi
 # --- 7. install the library and the source stamp ----------------------------------------------
 mkdir -p "${OUT_DIR}"
 # The checked install in tools/_common.sh: it removes the old stamp, checks the copy and writes the
-# two-line stamp (sources, then the library's sha256) the guard recomputes. A failed copy leaves no
-# stamp and stops the build here, so NATIVE_BUILD_OK is never printed for a stale library.
-duskhold_native_install "${BUILD_DIR}/out/${LIB_NAME}" "${OUT_DIR}" "${PLATFORM}" || exit 1
+# two-line stamp (sources as of the start of the build, then the library's sha256) the guard recomputes.
+# A failed copy, or sources that changed during the build, leaves no stamp and stops the build here,
+# so NATIVE_BUILD_OK is never printed for a stale library.
+duskhold_native_install "${BUILD_DIR}/out/${LIB_NAME}" "${OUT_DIR}" "${PLATFORM}" \
+  "${SOURCES_AT_START}" || exit 1
 
 echo "NATIVE_BUILD_OK platform=${PLATFORM} lib=${LIB_NAME} godot_cpp=${PIN} api=${API_VERSION}"

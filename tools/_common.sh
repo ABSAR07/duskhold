@@ -81,37 +81,46 @@ duskhold_native_lib() {
   esac
 }
 
-# Prints the two stamp lines for an installed library: the source stamp (duskhold_native_stamp),
-# then the sha256 of the library file. Prints nothing and returns 1 when the file does not exist.
+# Prints the two stamp lines for an installed library: the source stamp, then the sha256 of the
+# library file. The source stamp is duskhold_native_stamp evaluated now, or the optional second
+# argument (the stamp taken before the build began, review WR-12). Prints nothing and returns 1
+# when the file does not exist.
 duskhold_native_stamp_for() {
-  local lib="${1:-}"
+  local lib="${1:-}" sources="${2:-}"
   local lib_sha
   [ -n "${lib}" ] && [ -f "${lib}" ] || return 1
   lib_sha="$(sha256sum "${lib}" | cut -d' ' -f1)" || return 1
   [ -n "${lib_sha}" ] || return 1
-  printf '%s
-%s
-' "$(duskhold_native_stamp)" "${lib_sha}"
+  if [ -z "${sources}" ]; then
+    sources="$(duskhold_native_stamp)" || return 1
+  fi
+  printf '%s\n%s\n' "${sources}" "${lib_sha}"
 }
 
-# Installs a built library: duskhold_native_install <built library> <destination directory> <platform>.
-# The old stamp is removed first, the copy is checked by exit status and by a byte comparison (a
-# Godot process holding the installed DLL open makes the copy fail on Windows), and the new stamp is
-# written through a temporary file only after the check. On any failure it prints NATIVE_BUILD_FAIL
-# to stderr, leaves NO stamp and returns 1.
+# Installs a built library: duskhold_native_install <built library> <destination directory> <platform>
+# [source stamp taken before the build began]. The old stamp is removed first, the copy is checked by
+# exit status and by a byte comparison (a Godot process holding the installed DLL open makes the copy
+# fail on Windows), and the new stamp is written through a temporary file only after the check. When
+# the optional fourth argument is given the install is refused if the sources changed since that stamp
+# was taken (the library was compiled from the old ones, review WR-12), and that stamp is the one
+# written. On any failure it prints NATIVE_BUILD_FAIL to stderr, leaves NO stamp and returns 1.
 duskhold_native_install() {
-  local built="${1:-}" dest_dir="${2:-}" platform="${3:-}"
+  local built="${1:-}" dest_dir="${2:-}" platform="${3:-}" sources_at_start="${4:-}"
   local name target stamp tmp
   name="$(basename -- "${built}")"
   target="${dest_dir}/${name}"
   stamp="${dest_dir}/${platform}.stamp"
   rm -f "${stamp}"
+  if [ -n "${sources_at_start}" ] && [ "$(duskhold_native_stamp)" != "${sources_at_start}" ]; then
+    echo "NATIVE_BUILD_FAIL: native sources changed during the build; rebuild" >&2
+    return 1
+  fi
   if ! cp -f "${built}" "${target}" || ! cmp -s "${built}" "${target}"; then
     echo "NATIVE_BUILD_FAIL: cannot install ${name} (a Godot process may hold it open; close it and rebuild)" >&2
     return 1
   fi
   tmp="${stamp}.tmp.$$"
-  if ! duskhold_native_stamp_for "${target}" >"${tmp}" || ! mv -f "${tmp}" "${stamp}"; then
+  if ! duskhold_native_stamp_for "${target}" "${sources_at_start}" >"${tmp}" || ! mv -f "${tmp}" "${stamp}"; then
     rm -f "${tmp}" "${stamp}"
     echo "NATIVE_BUILD_FAIL: cannot write the stamp for ${name}" >&2
     return 1
