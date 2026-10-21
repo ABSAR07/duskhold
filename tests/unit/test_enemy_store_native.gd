@@ -192,7 +192,9 @@ func test_living_within_lists_every_living_enemy_in_reach_ascending() -> void:
 	for id: int in ids:
 		if _enemies.is_alive(id) and _enemies.position_of(id).distance_to(centre) <= reach:
 			assert_true(id in found, "living enemy %d within reach is listed" % id)
-	assert_false(ids[4] in found, "a dead enemy is not indexed")
+	# A dead enemy that is not removed yet "may be listed" (EnemySystem.living_within), so the test
+	# only holds the living ones to the contract.
+	assert_false(_enemies.is_alive(ids[4]), "the enemy killed above is dead")
 	var empty: PackedInt64Array = _enemies.living_within(Vector2(-500.0, 500.0), 1.0)
 	for index: int in range(1, empty.size()):
 		assert_gt(
