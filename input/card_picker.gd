@@ -13,6 +13,14 @@ extends Node
 ##
 ## The presses are read in _process from Input.is_action_just_pressed with the same action-level
 ## fallback CommandKeyController uses, so scripted Input.action_press works in tests and replays.
+##
+## The mouse (D-05, research Pattern 8 and Pitfall 7): pointing at a card highlights it, and a left
+## click on a card highlights it too. The cards' screen rectangles come from CardRow.card_rects
+## (Camera3D.unproject_position per corner) and CardRowModel.hit_test picks the card. Motion is
+## never consumed. A left press that lands on a card is consumed in _input, before
+## SelectionController's _unhandled_input can start a drag box or clear the selection, and so is its
+## matching release; a press anywhere else is left alone. A click never submits anything: the hold
+## through BuildHoldController stays the only way to buy.
 
 ## The highlighted card changed; `index` is -1 when none is highlighted.
 signal highlight_changed(index: int)
@@ -22,6 +30,8 @@ const DIGIT_ACTIONS: Array[StringName] = [&"group_1", &"group_2", &"group_3", &"
 
 var _ctx: RunContext
 var _hold: BuildHoldController
+var _row: CardRow
+var _click_taken: bool = false
 var _showing: bool = false
 var _spot: StringName = &""
 var _tier: int = 0
@@ -35,6 +45,7 @@ func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
 		return
 	_ctx = ctx
 	_hold = map_root.get_build_hold()
+	_row = map_root.get_node_or_null("CardRow") as CardRow
 	_hold.focus_changed.connect(_on_state_changed)
 	ctx.events.building_built.connect(_on_building_built)
 	ctx.events.phase_changed.connect(_on_phase_changed)
@@ -49,6 +60,33 @@ func _process(_delta: float) -> void:
 	for index: int in range(DIGIT_ACTIONS.size()):
 		if _pressed_now(DIGIT_ACTIONS[index]) and _showing:
 			set_highlight(CardRowModel.index_for_digit(index + 1, _ids.size()))
+
+
+## Mouse hover and click on the cards. Runs before the unhandled-input stage on purpose, so a press
+## on a card is taken before the squad selection sees it (Pitfall 7).
+func _input(event: InputEvent) -> void:
+	if _ctx == null:
+		return
+	var motion: InputEventMouseMotion = event as InputEventMouseMotion
+	if motion != null:
+		var hovered: int = _card_at(motion.position)
+		if hovered >= 0:
+			set_highlight(hovered)
+		return
+	var button: InputEventMouseButton = event as InputEventMouseButton
+	if button == null or button.button_index != MOUSE_BUTTON_LEFT:
+		return
+	if not button.pressed:
+		if _click_taken:
+			_click_taken = false
+			get_viewport().set_input_as_handled()
+		return
+	var clicked: int = _card_at(button.position)
+	if clicked < 0:
+		return
+	_click_taken = true
+	set_highlight(clicked)
+	get_viewport().set_input_as_handled()
 
 
 ## True while the cards are on show: the digit keys 1 to 4 pick cards and recall no control group.
@@ -107,6 +145,16 @@ func _refresh() -> void:
 	if show_row:
 		for card: Dictionary in CardRowModel.cards(_ctx, spot, -1):
 			_ids.append(card["id"] as StringName)
+
+
+## The card under the viewport point `position`, or -1 when the cards are hidden or none is there.
+func _card_at(position: Vector2) -> int:
+	if not _showing or _row == null:
+		return -1
+	var camera: Camera3D = get_viewport().get_camera_3d()
+	if camera == null:
+		return -1
+	return CardRowModel.hit_test(_row.card_rects(camera), position)
 
 
 func _clear_highlight() -> void:

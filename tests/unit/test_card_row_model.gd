@@ -96,3 +96,46 @@ func test_every_flavour_line_is_short_and_every_name_is_set() -> void:
 		assert_false(card.flavour.is_empty(), "%s has a flavour line" % card.id)
 		assert_lte(card.flavour.length(), MAX_FLAVOUR_CHARACTERS, "%s flavour" % card.id)
 		assert_false(card.modifiers.is_empty(), "%s does something" % card.id)
+
+
+func test_every_card_carries_the_numbers_line_of_its_modifiers() -> void:
+	var shown: Array[Dictionary] = CardRowModel.cards(_ctx, CASTLE, -1)
+	var authored: Array[ChoiceDef] = _tier_two_cards()
+	for index: int in range(mini(shown.size(), authored.size())):
+		assert_eq(
+			shown[index]["effect_line"], authored[index].effect_line(), "card %d" % (index + 1)
+		)
+		assert_false((shown[index]["effect_line"] as String).is_empty(), "it says something")
+
+
+func test_every_card_carries_the_key_that_picks_it() -> void:
+	var shown: Array[Dictionary] = CardRowModel.cards(_ctx, CASTLE, -1)
+	for index: int in range(shown.size()):
+		var label: String = "card %d is picked by key %d" % [index + 1, index + 1]
+		assert_eq(shown[index]["key_hint"], index + 1, label)
+
+
+func test_hit_test_returns_the_card_whose_rectangle_holds_the_point() -> void:
+	var rects: Array[Rect2] = [Rect2(0, 0, 10, 10), Rect2(10, 0, 10, 10)]
+	assert_eq(CardRowModel.hit_test(rects, Vector2(5, 5)), 0, "inside the first")
+	assert_eq(CardRowModel.hit_test(rects, Vector2(15, 5)), 1, "inside the second")
+	assert_eq(CardRowModel.hit_test(rects, Vector2(0, 0)), 0, "the top left corner is inside")
+
+
+func test_hit_test_gives_a_shared_edge_to_the_lower_index() -> void:
+	var rects: Array[Rect2] = [Rect2(0, 0, 10, 10), Rect2(10, 0, 10, 10)]
+	assert_eq(CardRowModel.hit_test(rects, Vector2(10, 5)), 0, "the edge both share")
+	assert_eq(CardRowModel.hit_test(rects, Vector2(20, 5)), 1, "the far edge belongs to the last")
+
+
+func test_hit_test_gives_overlapping_rectangles_to_the_lower_index() -> void:
+	var rects: Array[Rect2] = [Rect2(0, 0, 10, 10), Rect2(5, 0, 10, 10)]
+	assert_eq(CardRowModel.hit_test(rects, Vector2(7, 5)), 0, "inside both")
+	assert_eq(CardRowModel.hit_test(rects, Vector2(12, 5)), 1, "inside the second only")
+
+
+func test_hit_test_gives_minus_one_outside_every_rectangle_and_for_no_rectangle() -> void:
+	var rects: Array[Rect2] = [Rect2(0, 0, 10, 10), Rect2(10, 0, 10, 10)]
+	assert_eq(CardRowModel.hit_test(rects, Vector2(25, 5)), -1, "to the right")
+	assert_eq(CardRowModel.hit_test(rects, Vector2(5, 11)), -1, "below")
+	assert_eq(CardRowModel.hit_test([] as Array[Rect2], Vector2(5, 5)), -1, "an empty list")

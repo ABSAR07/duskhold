@@ -4,9 +4,11 @@ extends Node3D
 ## unshaded quad with an icon slot, a name and a wrapped flavour line, drawn over everything like
 ## the spot label. The row hangs ROW_HEIGHT above the shown spot, turns to face the camera each
 ## frame so the cards stay side by side on screen, and scales with the camera distance by
-## SpotLabel's LEGIBLE_CAMERA_DISTANCE rule. The highlighted card is raised and brighter. The row is
-## hidden whenever CardPicker is not showing; it reads CardPicker and CardRowModel and writes
-## nothing. The numbers on highlight and the key hints arrive with plan 05-04.
+## SpotLabel's LEGIBLE_CAMERA_DISTANCE rule. The highlighted card is raised and brighter and is the
+## only one that prints its numbers line (ChoiceDef.effect_line(), D-07), whether it was highlighted
+## by key or by mouse. The row is hidden whenever CardPicker is not showing; it reads CardPicker and
+## CardRowModel and writes nothing. card_rects() gives the cards' screen rectangles for the mouse
+## hit test (Camera3D.unproject_position per corner: no colliders, no physics, no SubViewport).
 
 ## Height of the row's centre above the shown spot, clear of the spot label.
 const ROW_HEIGHT: float = 7.6
@@ -17,6 +19,9 @@ const RAISE: float = 0.35
 const ICON_SLOT_SIZE: float = 0.9
 const ICON_HEIGHT: float = 1.0
 const ICON_PIXELS: float = 0.9
+const NUMBERS_HEIGHT: float = -1.25
+## Where the rectangle of a card behind the camera is parked: far outside any viewport.
+const OFFSCREEN: float = 1.0e9
 const TEXT_WIDTH_PIXELS: float = 220.0
 const TEXT_PIXEL_SIZE: float = 0.01
 const CARD_COLOR := Color(0.14, 0.16, 0.22, 0.94)
@@ -25,6 +30,7 @@ const SLOT_COLOR := Color(0.07, 0.08, 0.11, 0.9)
 const TEXT_COLOR := Color(0.88, 0.88, 0.9)
 const TEXT_HIGHLIGHT_COLOR := Color(1.0, 1.0, 1.0)
 const FLAVOUR_COLOR := Color(0.72, 0.74, 0.8)
+const NUMBERS_COLOR := Color(1.0, 0.86, 0.4)
 const OUTLINE_COLOR := Color(0.0, 0.0, 0.0)
 
 var _ctx: RunContext
@@ -33,6 +39,8 @@ var _cards: Array[Node3D] = []
 var _faces: Array[MeshInstance3D] = []
 var _names: Array[Label3D] = []
 var _flavours: Array[Label3D] = []
+var _numbers: Array[Label3D] = []
+var _effect_lines: Array[String] = []
 var _signature: String = ""
 
 
@@ -83,6 +91,47 @@ func card_name(index: int) -> String:
 	return _names[index].text
 
 
+## The numbers line printed on the card at `index`: its effect text while the card is highlighted,
+## empty for every other card and for an index that addresses no drawn card.
+func numbers_text(index: int) -> String:
+	if not visible or index < 0 or index >= _numbers.size():
+		return ""
+	return _numbers[index].text
+
+
+## The screen rectangle of each drawn card, in card order, as the camera sees the row now: the
+## bounding box of the card's four corners projected with Camera3D.unproject_position (a raised card
+## is projected where it is drawn). Empty while the row is hidden. A corner behind the camera sends
+## its card's rectangle off screen, so it can never be hit.
+func card_rects(camera: Camera3D) -> Array[Rect2]:
+	var rects: Array[Rect2] = []
+	if not visible or camera == null:
+		return rects
+	var half: Vector2 = CARD_SIZE * 0.5
+	var corners: Array[Vector3] = [
+		Vector3(-half.x, -half.y, 0.0),
+		Vector3(half.x, -half.y, 0.0),
+		Vector3(half.x, half.y, 0.0),
+		Vector3(-half.x, half.y, 0.0),
+	]
+	for card: Node3D in _cards:
+		rects.append(_screen_rect(camera, card, corners))
+	return rects
+
+
+func _screen_rect(camera: Camera3D, card: Node3D, corners: Array[Vector3]) -> Rect2:
+	var rect: Rect2 = Rect2()
+	var first: bool = true
+	for corner: Vector3 in corners:
+		var world: Vector3 = card.global_transform * corner
+		if camera.is_position_behind(world):
+			return Rect2(Vector2(-OFFSCREEN, -OFFSCREEN), Vector2.ZERO)
+		var point: Vector2 = camera.unproject_position(world)
+		rect = Rect2(point, Vector2.ZERO) if first else rect.expand(point)
+		first = false
+	return rect
+
+
 func _on_highlight_changed(_index: int) -> void:
 	_refresh()
 
@@ -115,6 +164,8 @@ func _clear_cards() -> void:
 	_faces.clear()
 	_names.clear()
 	_flavours.clear()
+	_numbers.clear()
+	_effect_lines.clear()
 
 
 func _build_cards(content: Array[Dictionary]) -> void:
@@ -130,6 +181,8 @@ func _build_cards(content: Array[Dictionary]) -> void:
 		_add_icon(card, content[index]["icon"] as Texture2D)
 		_names.append(_add_name(card, content[index]["name"] as String, index + 1))
 		_flavours.append(_add_flavour(card, content[index]["flavour"] as String))
+		_numbers.append(_add_numbers(card))
+		_effect_lines.append(content[index]["effect_line"] as String)
 
 
 func _pitch() -> float:
@@ -189,6 +242,15 @@ func _add_flavour(card: Node3D, text: String) -> Label3D:
 	return label
 
 
+## The numbers line: empty until the card is highlighted (see _restyle).
+func _add_numbers(card: Node3D) -> Label3D:
+	var label: Label3D = _make_label("", 26, NUMBERS_COLOR, Vector3(0.0, NUMBERS_HEIGHT, 0.03))
+	label.name = "Numbers"
+	label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	card.add_child(label)
+	return label
+
+
 func _make_label(text: String, size: int, color: Color, at: Vector3) -> Label3D:
 	var label: Label3D = Label3D.new()
 	label.text = text
@@ -218,6 +280,7 @@ func _restyle(highlighted_index: int) -> void:
 		)
 		material.albedo_color = CARD_HIGHLIGHT_COLOR if lit else CARD_COLOR
 		_names[index].modulate = TEXT_HIGHLIGHT_COLOR if lit else TEXT_COLOR
+		_numbers[index].text = _effect_lines[index] if lit else ""
 
 
 func _make_material(color: Color) -> StandardMaterial3D:
