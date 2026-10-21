@@ -1,14 +1,19 @@
 class_name ShotEconomyScenarios
 extends RefCounted
-## The Phase 5 scenes of `tools/screenshot.sh` (plan 05-04): the four ability cards above the castle
-## with card 2 raised, and the tier IV keep with its three picks on the label. They follow the
+## The Phase 5 scenes of `tools/screenshot.sh` (plans 05-04 and 05-07): the four ability cards above
+## the castle with card 2 raised, the tier IV keep with its three picks on the label, and a Field
+## beside the unbuilt Mill reading "Needs a Mill". They follow the
 ## rules of ShotScenarios: every scene reaches its state through the command intents and the
 ## Input Map, never by writing simulation state. Later Phase 5 plans append their shots here.
 
 const CASTLE: StringName = &"castle_plot"
+## field_locked: the Field the king stands beside; the Mill plot (mill_1) lies 5 m north of it.
+const LOCKED_FIELD: StringName = &"field_2"
+const LOCKED_LINE := "Needs a Mill"
 const ECONOMY_SHOTS: Array[StringName] = [
 	ShotScenarios.CASTLE_CARDS,
 	ShotScenarios.CASTLE_TIER_FOUR,
+	ShotScenarios.FIELD_LOCKED,
 ]
 ## The gold the Phase 5 shots start with: enough for all three castle upgrades (6 + 10 + 16).
 const SHOT_GOLD: int = 60
@@ -48,6 +53,8 @@ static func run(shot_name: StringName, runner: Node, map_root: MapRoot) -> bool:
 			return await _castle_cards(runner, map_root)
 		ShotScenarios.CASTLE_TIER_FOUR:
 			return await _castle_tier_four(runner, map_root)
+		ShotScenarios.FIELD_LOCKED:
+			return await _field_locked(runner, map_root)
 	printerr("unknown economy shot %s" % shot_name)
 	return false
 
@@ -100,4 +107,16 @@ static func _castle_tier_four(runner: Node, map_root: MapRoot) -> bool:
 	)
 	if not ready:
 		printerr("the tier IV keep or its picks line is not showing")
+	return ready
+
+
+## By day with the Mill unbuilt and the king beside the second Field: its label reads "Needs a Mill"
+## with no price, and the empty Mill plot and the neighbouring Field plots are in the frame.
+static func _field_locked(runner: Node, map_root: MapRoot) -> bool:
+	await ShotScenarios._stand_beside(runner, map_root, LOCKED_FIELD)
+	await ShotScenarios._wait(runner, SETTLE_S)
+	var status: Label3D = map_root.find_child("Status", true, false) as Label3D
+	var ready: bool = status != null and status.visible and status.text == LOCKED_LINE
+	if not ready:
+		printerr("the Field label does not read '%s'" % LOCKED_LINE)
 	return ready

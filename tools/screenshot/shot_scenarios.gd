@@ -92,6 +92,7 @@ const CROWD_STRESS_NIGHT := &"crowd_stress_night"
 ## The Phase 5 shots (plan 05-04 on); their scenes live in ShotEconomyScenarios.
 const CASTLE_CARDS := &"castle_cards"
 const CASTLE_TIER_FOUR := &"castle_tier_four"
+const FIELD_LOCKED := &"field_locked"
 const ARMY_SHOTS: Array[StringName] = [
 	HUD_DAY_SQUADS,
 	HUD_NIGHT_SQUAD_DOWN,
@@ -151,7 +152,8 @@ const ALL_SHOTS: Array[StringName] = [
 	OVERLAY_FIELD_GATE,
 	CROWD_STRESS_NIGHT,
 	CASTLE_CARDS,
-	CASTLE_TIER_FOUR
+	CASTLE_TIER_FOUR,
+	FIELD_LOCKED
 ]
 
 
