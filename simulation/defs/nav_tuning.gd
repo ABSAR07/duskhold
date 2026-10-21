@@ -7,7 +7,8 @@ extends Resource
 ## decision cadence, the notice range, the hysteresis and the stuck numbers (D-07 to D-09).
 
 ## Metres per grid cell. Smaller cells follow walls more closely and rebuild slower; authored
-## gaps are at least 3 m wide (WallValidation.MIN_GAP_METRES) so 2 m cells keep every gap open.
+## gaps are at least 3 m wide and at least one cell plus twice (half thickness + largest agent
+## radius) (WallValidation), which keeps a cell centre inside every gap whatever the alignment.
 @export var cell_size: float = 2.0
 ## Metres added around the map's content (castle, spots, spawns, wall ends) to size the grid.
 @export var bounds_margin: float = 10.0

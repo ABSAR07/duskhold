@@ -43,13 +43,14 @@ static func errors(map: MapConfig) -> PackedStringArray:
 	var out: PackedStringArray = PackedStringArray()
 	var total_segments: float = 0.0
 	var has_walls: bool = false
+	var grid_gap: float = _grid_gap(map)
 	for spot: BuildSpotDef in map.spots:
 		if spot == null or spot.wall_run == null:
 			continue
 		has_walls = true
 		out.append_array(_building_errors(map, spot))
 		var run_errors: PackedStringArray = PackedStringArray()
-		var pieces: float = _run_errors(spot.id, spot.wall_run, run_errors)
+		var pieces: float = _run_errors(spot.id, spot.wall_run, grid_gap, run_errors)
 		out.append_array(run_errors)
 		total_segments += pieces
 	if total_segments > float(MAX_SEGMENTS_PER_MAP):
@@ -193,7 +194,9 @@ static func _building_errors(map: MapConfig, spot: BuildSpotDef) -> PackedString
 
 ## Appends the errors of one run to `out`; returns the segments it expands to (0 when the data is
 ## unusable, so a broken run adds nothing to the map total).
-static func _run_errors(spot_id: StringName, run: WallRunDef, out: PackedStringArray) -> float:
+static func _run_errors(
+	spot_id: StringName, run: WallRunDef, grid_gap: float, out: PackedStringArray
+) -> float:
 	var label: String = "wall plot '%s'" % spot_id
 	var usable: bool = true
 	if not _points_ok(label, run, out):
@@ -221,7 +224,7 @@ static func _run_errors(spot_id: StringName, run: WallRunDef, out: PackedStringA
 	if not usable:
 		return 0.0
 	var total: float = _path_length(run.points)
-	if not _gaps_ok(label, run, total, out):
+	if not _gaps_ok(label, run, total, grid_gap, out):
 		return 0.0
 	var pieces: float = _piece_count(run, total)
 	if pieces > float(WallRunDef.MAX_SEGMENTS_PER_RUN):
@@ -250,9 +253,36 @@ static func _points_ok(label: String, run: WallRunDef, out: PackedStringArray) -
 	return true
 
 
+## The part of the narrowest routable gap that does not depend on the run: one grid cell plus twice
+## the largest agent radius the nav grid keeps clear of a wall (review WR-01). NavGrid blocks every
+## cell centre within half_thickness + that radius of an intact segment, so a gap leaves
+## width - 2 * (half_thickness + radius) of open centre line, and a cell centre is only guaranteed
+## to fall inside it when that is at least one cell wide. 0 when the cell size is not usable (the
+## nav tuning ranges report it).
+static func _grid_gap(map: MapConfig) -> float:
+	var cell: float = NavGrid.tuning_of(map).cell_size
+	var radius: float = NavGrid.largest_radius_of(map)
+	if not is_finite(cell) or cell <= 0.0 or not is_finite(radius):
+		return 0.0
+	return cell + 2.0 * radius
+
+
+## The narrowest gap of `run` the pathing can route through: MIN_GAP_METRES, or more when the grid
+## needs it (`grid_gap` plus twice the run's half thickness).
+static func _min_gap(run: WallRunDef, grid_gap: float) -> float:
+	var half: float = 0.0
+	if is_finite(run.half_thickness) and run.half_thickness > 0.0:
+		if run.half_thickness <= MAX_HALF_THICKNESS:
+			half = run.half_thickness
+	return maxf(MIN_GAP_METRES, grid_gap + 2.0 * half)
+
+
 ## Checks every gap; false when one is not finite (the others cannot be ordered then).
-static func _gaps_ok(label: String, run: WallRunDef, total: float, out: PackedStringArray) -> bool:
+static func _gaps_ok(
+	label: String, run: WallRunDef, total: float, grid_gap: float, out: PackedStringArray
+) -> bool:
 	var spans: Array[Vector2] = []
+	var minimum: float = _min_gap(run, grid_gap)
 	for index: int in range(run.gaps.size()):
 		var gap: Vector2 = run.gaps[index]
 		if not is_finite(gap.x) or not is_finite(gap.y):
@@ -260,11 +290,11 @@ static func _gaps_ok(label: String, run: WallRunDef, total: float, out: PackedSt
 			return false
 		var low: float = minf(gap.x, gap.y)
 		var high: float = maxf(gap.x, gap.y)
-		if high - low < MIN_GAP_METRES:
+		if high - low < minimum:
 			out.append(
 				(
 					"%s gap %d is %s m wide, under the %s m minimum"
-					% [label, index + 1, high - low, MIN_GAP_METRES]
+					% [label, index + 1, high - low, minimum]
 				)
 			)
 		if low < 0.0 or high > total:

@@ -92,10 +92,16 @@ func test_a_gap_under_three_metres_is_reported() -> void:
 	_assert_one_error(map, ["wall_west", "gap 1", "minimum"], "a 2.5 m gap")
 
 
-func test_a_gap_exactly_three_metres_wide_is_accepted() -> void:
+## One 2 m cell plus twice (0.4 m half thickness + 0.5 m largest agent radius) is 3.8 m: a 3 m gap
+## leaves 1.2 m of open centre line, narrower than a cell (review WR-01).
+func test_a_gap_the_grid_cannot_route_is_reported_and_a_wider_one_is_accepted() -> void:
 	var map: MapConfig = _map()
 	_run(map, WEST).gaps = PackedVector2Array([Vector2(16.0, 19.0)])
-	assert_eq(map.validate().size(), 0, "3 m is the minimum, not an error")
+	_assert_one_error(map, ["wall_west", "gap 1", "3.8"], "a 3 m gap")
+	_run(map, WEST).gaps = PackedVector2Array([Vector2(16.0, 19.7)])
+	_assert_one_error(map, ["wall_west", "gap 1", "minimum"], "a 3.7 m gap")
+	_run(map, WEST).gaps = PackedVector2Array([Vector2(16.0, 19.9)])
+	assert_eq(map.validate().size(), 0, "3.9 m is wide enough for one cell")
 
 
 func test_a_gap_past_the_end_of_the_path_is_reported() -> void:

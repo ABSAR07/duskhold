@@ -50,7 +50,7 @@ var _native: NativeGrid = NativeGrid.new()
 func _init(map: MapConfig, tuning: NavTuning = null) -> void:
 	var used: NavTuning = tuning if tuning != null else tuning_of(map)
 	var layout: PackedFloat64Array = _layout(map, used)
-	_inflate = _largest_radius(map)
+	_inflate = largest_radius_of(map)
 	if layout.is_empty() or layout[2] * layout[3] > float(MAX_NAV_CELLS):
 		return
 	_cell = used.cell_size
@@ -289,7 +289,8 @@ static func _key_of(point: Vector2) -> int:
 
 
 ## The largest radius among the map's enemies and units; DEFAULT_INFLATE when it names none.
-static func _largest_radius(map: MapConfig) -> float:
+## WallValidation reads it to size the narrowest routable gap.
+static func largest_radius_of(map: MapConfig) -> float:
 	var largest: float = 0.0
 	if map == null:
 		return DEFAULT_INFLATE
