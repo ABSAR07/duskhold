@@ -276,9 +276,9 @@ func test_the_overlay_lists_wave_king_and_paths_after_the_defaults_and_earlier_s
 		(
 			(
 				["Perf", "Loop", "Agents", "Early", "Wave", "King", "Paths", "Squads"]
-				+ ["Stats", "Walls", "Field", "Crowd"]
+				+ ["Stats", "Economy", "Walls", "Field", "Crowd"]
 			)
 			as Array[String]
 		),
-		"defaults first, early sections kept, then night, squad, stats and crowd sections"
+		"defaults first, early sections kept, then night, squad, stats, economy and crowd sections"
 	)

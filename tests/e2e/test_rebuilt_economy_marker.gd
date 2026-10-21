@@ -142,6 +142,9 @@ func test_the_marker_asks_the_building_not_the_raw_income_field() -> void:
 			# A BOATS building pays per boat, which the Harbor's own plan adds: until then it pays
 			# nothing at its tier, whatever dawn_income says, so a rebuilt one is not marked.
 			building_def.income_curve = BuildingDef.IncomeCurve.BOATS
+			# The decline fields do not belong to this curve (validate() would report them).
+			building_def.tier_def(1).income_step = 0
+			building_def.tier_def(1).income_floor = 0
 	await _start()
 	await _night([MINE, HOUSE], [MINE, HOUSE])
 	var marker: DawnNoIncomeMarker = _marker()

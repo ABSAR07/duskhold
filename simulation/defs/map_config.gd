@@ -187,6 +187,7 @@ func validate() -> PackedStringArray:
 	errors.append_array(PackedStringArray(ChoiceValidation.problems(self)))
 	errors.append_array(PackedStringArray(CastleValidation.problems(self)))
 	errors.append_array(PackedStringArray(BuildRequirementValidation.problems(self)))
+	errors.append_array(PackedStringArray(EconomyValidation.problems(self)))
 	return errors
 
 

@@ -55,8 +55,8 @@ func marked_spots() -> Array[StringName]:
 	return spots
 
 
-## One mark per rebuilt building whose current tier pays income, in the order listed. A building
-## that never pays (a Tower) is not marked: there is no income to miss.
+## One mark per rebuilt building whose current tier pays income, whatever its income curve, in the
+## order listed. A building that never pays (a Tower) is not marked: there is no income to miss.
 func _on_buildings_rebuilt(spot_ids: Array) -> void:
 	_clear_marks()
 	for spot_id: StringName in spot_ids:
@@ -73,8 +73,7 @@ func _pays_income(spot_id: StringName) -> bool:
 	var building_def: BuildingDef = _ctx.buildings.get_building_def_for_spot(spot_id)
 	if building_def == null:
 		return false
-	var tier_def: BuildingTierDef = building_def.tier_def(_ctx.buildings.current_tier(spot_id))
-	return tier_def != null and tier_def.dawn_income > 0
+	return building_def.pays_income(_ctx.buildings.current_tier(spot_id))
 
 
 func _add_mark(spot_id: StringName) -> void:
