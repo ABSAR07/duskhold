@@ -117,21 +117,31 @@ public:
 		if (alive.size() < 2) {
 			return;
 		}
-		PackedVector2Array positions;
-		PackedFloat64Array radii;
-		PackedInt64Array ids;
+		// Plain std::vectors, handed to the raw-pointer core: no Godot packed array is built only to
+		// be read back (IN-01).
+		separation_positions_.clear();
+		separation_radii_.clear();
+		separation_ids_.clear();
 		double largest = 0.0;
 		for (const EnemyRec *rec : alive) {
-			positions.push_back(rec->position);
-			radii.push_back(def_of(*rec).radius);
-			ids.push_back(rec->id);
+			separation_positions_.push_back(rec->position);
+			separation_radii_.push_back(def_of(*rec).radius);
+			separation_ids_.push_back(rec->id);
 			largest = gd::maxf(largest, def_of(*rec).radius);
 		}
 		const double cell = 2.0 * largest + NativeEnemies::SEPARATION_CELL_SLACK;
-		const PackedVector2Array pushes =
-				duskhold::separation_displacements_bucketed(positions, radii, ids, cell);
+		const int64_t count = static_cast<int64_t>(alive.size());
+		separation_pushes_.resize(alive.size());
+		duskhold::separation_displacements_bucketed_raw(
+				separation_positions_.data(),
+				separation_radii_.data(),
+				separation_ids_.data(),
+				count,
+				cell,
+				separation_pushes_.data(),
+				separation_scratch_);
 		for (size_t index = 0; index < alive.size(); index++) {
-			alive[index]->position += pushes[static_cast<int64_t>(index)];
+			alive[index]->position += separation_pushes_[index];
 		}
 	}
 
@@ -542,6 +552,12 @@ private:
 	NativeWallDecision *decision_;
 	const NativeStructures *structures_;
 	bool solid_;
+	// separate()'s plain arrays and scratch, kept for the pass.
+	std::vector<Vector2> separation_positions_;
+	std::vector<double> separation_radii_;
+	std::vector<int64_t> separation_ids_;
+	std::vector<Vector2> separation_pushes_;
+	duskhold::SeparationScratch separation_scratch_;
 };
 
 } // namespace

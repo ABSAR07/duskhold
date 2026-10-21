@@ -66,19 +66,11 @@ bool pair_push(
 
 } // namespace
 
-PackedVector2Array separation_displacements(
-		const PackedVector2Array &positions,
-		const PackedFloat64Array &radii,
-		const PackedInt64Array &ids) {
-	const int64_t count = positions.size();
-	PackedVector2Array result = zero_displacements(count);
-	if (radii.size() != count || ids.size() != count) {
-		return result;
+void separation_displacements_raw(
+		const Vector2 *pos, const double *rad, const int64_t *idv, int64_t count, Vector2 *out) {
+	for (int64_t index = 0; index < count; index++) {
+		out[index] = Vector2(0.0f, 0.0f);
 	}
-	const Vector2 *pos = positions.ptr();
-	const double *rad = radii.ptr();
-	const int64_t *idv = ids.ptr();
-	Vector2 *out = result.ptrw();
 	for (int64_t first = 0; first < count; first++) {
 		for (int64_t second = first + 1; second < count; second++) {
 			Vector2 amount;
@@ -89,23 +81,35 @@ PackedVector2Array separation_displacements(
 			out[second] += amount;
 		}
 	}
+}
+
+PackedVector2Array separation_displacements(
+		const PackedVector2Array &positions,
+		const PackedFloat64Array &radii,
+		const PackedInt64Array &ids) {
+	const int64_t count = positions.size();
+	PackedVector2Array result = zero_displacements(count);
+	if (radii.size() != count || ids.size() != count) {
+		return result;
+	}
+	separation_displacements_raw(positions.ptr(), radii.ptr(), ids.ptr(), count, result.ptrw());
 	return result;
 }
 
-PackedVector2Array separation_displacements_bucketed(
-		const PackedVector2Array &positions,
-		const PackedFloat64Array &radii,
-		const PackedInt64Array &ids,
-		double cell) {
-	const int64_t count = positions.size();
-	PackedVector2Array result = zero_displacements(count);
-	if (radii.size() != count || ids.size() != count || count < 2) {
-		return result;
+void separation_displacements_bucketed_raw(
+		const Vector2 *pos,
+		const double *rad,
+		const int64_t *idv,
+		int64_t count,
+		double cell,
+		Vector2 *out,
+		SeparationScratch &scratch) {
+	for (int64_t index = 0; index < count; index++) {
+		out[index] = Vector2(0.0f, 0.0f);
 	}
-	const Vector2 *pos = positions.ptr();
-	const double *rad = radii.ptr();
-	const int64_t *idv = ids.ptr();
-
+	if (count < 2) {
+		return;
+	}
 	const double edge = gd::maxf(cell, MIN_CELL);
 	double largest = 0.0;
 	for (int64_t index = 0; index < count; index++) {
@@ -118,16 +122,19 @@ PackedVector2Array separation_displacements_bucketed(
 	// bits (the cell decides the work, never an answer), so the pairwise pass answers instead.
 	const int64_t side = gd::wrap_add(gd::wrap_mul(2, span), 1);
 	if (span >= count || side >= count || gd::wrap_mul(side, side) >= count) {
-		return separation_displacements(positions, radii, ids);
+		separation_displacements_raw(pos, rad, idv, count, out);
+		return;
 	}
-	Vector2 *out = result.ptrw();
 
 	const size_t size = static_cast<size_t>(count);
-	std::vector<int64_t> cell_x(size);
-	std::vector<int64_t> cell_y(size);
+	std::vector<int64_t> &cell_x = scratch.cell_x;
+	std::vector<int64_t> &cell_y = scratch.cell_y;
+	cell_x.resize(size);
+	cell_y.resize(size);
 	// (key, index) in ascending order: the circles of one cell come out in ascending index order,
 	// exactly the order the GDScript dictionary appended them in.
-	std::vector<std::pair<int64_t, int64_t>> cells;
+	std::vector<std::pair<int64_t, int64_t>> &cells = scratch.cells;
+	cells.clear();
 	cells.reserve(size);
 	for (int64_t index = 0; index < count; index++) {
 		const size_t slot = static_cast<size_t>(index);
@@ -137,14 +144,15 @@ PackedVector2Array separation_displacements_bucketed(
 	}
 	std::sort(cells.begin(), cells.end());
 
-	std::vector<int64_t> partners;
+	std::vector<int64_t> &partners = scratch.partners;
 	for (int64_t index = 0; index < count; index++) {
 		const size_t slot = static_cast<size_t>(index);
 		// separation.gd _partner_sum: the partners from the cells within `span`, sorted ascending.
 		partners.clear();
 		for (int64_t offset_x = -span; offset_x <= span; offset_x++) {
 			for (int64_t offset_y = -span; offset_y <= span; offset_y++) {
-				const int64_t key = gd::cell_key(gd::wrap_add(cell_x[slot], offset_x), gd::wrap_add(cell_y[slot], offset_y));
+				const int64_t key = gd::cell_key(
+						gd::wrap_add(cell_x[slot], offset_x), gd::wrap_add(cell_y[slot], offset_y));
 				auto bucket = std::lower_bound(
 						cells.begin(), cells.end(), std::make_pair(key, static_cast<int64_t>(INT64_MIN)));
 				for (; bucket != cells.end() && bucket->first == key; ++bucket) {
@@ -172,6 +180,21 @@ PackedVector2Array separation_displacements_bucketed(
 		}
 		out[index] = total;
 	}
+}
+
+PackedVector2Array separation_displacements_bucketed(
+		const PackedVector2Array &positions,
+		const PackedFloat64Array &radii,
+		const PackedInt64Array &ids,
+		double cell) {
+	const int64_t count = positions.size();
+	PackedVector2Array result = zero_displacements(count);
+	if (radii.size() != count || ids.size() != count || count < 2) {
+		return result;
+	}
+	SeparationScratch scratch;
+	separation_displacements_bucketed_raw(
+			positions.ptr(), radii.ptr(), ids.ptr(), count, cell, result.ptrw(), scratch);
 	return result;
 }
 
