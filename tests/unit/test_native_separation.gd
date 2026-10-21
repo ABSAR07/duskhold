@@ -52,7 +52,7 @@ func test_the_cell_size_never_changes_an_answer() -> void:
 	var expected: PackedVector2Array = NativeSim.separation_displacements(
 		circles["positions"], circles["radii"], circles["ids"]
 	)
-	for cell: float in [0.2, 0.3, 0.5, 1.001, 3.0, 100.0]:
+	for cell: float in [0.0, 0.001, 0.2, 0.3, 0.5, 1.001, 3.0, 100.0]:
 		var pushes: PackedVector2Array = NativeSim.separation_displacements_bucketed(
 			circles["positions"], circles["radii"], circles["ids"], cell
 		)

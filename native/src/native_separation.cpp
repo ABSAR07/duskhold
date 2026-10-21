@@ -121,10 +121,23 @@ PackedVector2Array separation_displacements_bucketed(
 	const Vector2 *pos = positions.ptr();
 	const double *rad = radii.ptr();
 	const int64_t *idv = ids.ptr();
-	Vector2 *out = result.ptrw();
 
 	const double edge = gd::maxf(cell, MIN_CELL);
 	double largest = 0.0;
+	for (int64_t index = 0; index < count; index++) {
+		largest = gd::maxf(largest, rad[index]);
+	}
+	const int64_t span = gd::maxi(gd::ceili(2.0 * largest / edge), 1);
+	// Every circle visits (2 * span + 1) squared cells, so a small caller-chosen `cell` makes the
+	// work grow with the square of 1 / cell (review WR-11). A block that holds at least as many
+	// cells as there are circles is never cheaper than the pairwise pass, which answers the same
+	// bits (the cell decides the work, never an answer), so the pairwise pass answers instead.
+	const int64_t side = wrap_add(wrap_mul(2, span), 1);
+	if (span >= count || side >= count || wrap_mul(side, side) >= count) {
+		return separation_displacements(positions, radii, ids);
+	}
+	Vector2 *out = result.ptrw();
+
 	const size_t size = static_cast<size_t>(count);
 	std::vector<int64_t> cell_x(size);
 	std::vector<int64_t> cell_y(size);
@@ -134,13 +147,11 @@ PackedVector2Array separation_displacements_bucketed(
 	cells.reserve(size);
 	for (int64_t index = 0; index < count; index++) {
 		const size_t slot = static_cast<size_t>(index);
-		largest = gd::maxf(largest, rad[index]);
 		cell_x[slot] = gd::floori(static_cast<double>(pos[index].x) / edge);
 		cell_y[slot] = gd::floori(static_cast<double>(pos[index].y) / edge);
 		cells.emplace_back(cell_key(cell_x[slot], cell_y[slot]), index);
 	}
 	std::sort(cells.begin(), cells.end());
-	const int64_t span = gd::maxi(gd::ceili(2.0 * largest / edge), 1);
 
 	std::vector<int64_t> partners;
 	for (int64_t index = 0; index < count; index++) {
