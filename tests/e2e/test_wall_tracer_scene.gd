@@ -10,7 +10,9 @@ const SEGMENTS: int = 32
 const DRAW_TIMEOUT_S: float = 1.0
 ## The collapse of a broken piece takes 0.4 s of presentation time; this is a generous bound.
 const COLLAPSE_TIMEOUT_S: float = 3.0
-const NIGHT_TIMEOUT_S: float = 90.0
+## The night is driven by simulation ticks, never by wall-clock time (review WR-07): the most
+## simulated seconds it may take to reach dawn, a bound on the loop and not a timer.
+const NIGHT_LIMIT_SIM_SECONDS: float = 180.0
 ## An enemy inside this square on both axes is inside the ring (its walls stand at 12 m).
 const INSIDE_LIMIT: float = 11.5
 const HALF_THICKNESS: float = 0.4
@@ -25,6 +27,9 @@ func _spawn_wall_map() -> MapRoot:
 	map_root.fixed_run_seed = 1
 	add_child_autofree(map_root)
 	await wait_process_frames(2)
+	# The tests advance the simulation themselves with RunContext.step(); the root's own _process
+	# would add real-time steps on top.
+	map_root.set_process(false)
 	return map_root
 
 
@@ -53,15 +58,15 @@ func test_a_bought_ring_is_drawn_broken_into_rubble_and_walked_through() -> void
 		func(_spot: StringName, segment: int) -> void: broken.append(segment)
 	)
 	assert_eq(ctx.commands.submit(StartNightIntent.new()), CommandProcessor.OK, "night starts")
-	var started: int = Time.get_ticks_msec()
-	var timeout_ms: int = roundi(NIGHT_TIMEOUT_S * 1000.0)
+	var king_at: Vector3 = map_root.get_king().global_position
+	ctx.king.report_position(Vector2(king_at.x, king_at.z))
+	var steps: int = 0
+	var max_steps: int = SimClock.ticks(NIGHT_LIMIT_SIM_SECONDS)
 	var checked_rubble: bool = false
 	var saw_inside: bool = false
-	while (
-		ctx.run_manager.get_phase() != RunManager.RunPhase.DAWN
-		and Time.get_ticks_msec() - started < timeout_ms
-	):
-		await wait_process_frames(1)
+	while ctx.run_manager.get_phase() != RunManager.RunPhase.DAWN and steps < max_steps:
+		ctx.step()
+		steps += 1
 		saw_inside = saw_inside or _any_enemy_inside(ctx.night.get_enemies())
 		if not broken.is_empty() and not checked_rubble:
 			checked_rubble = true
