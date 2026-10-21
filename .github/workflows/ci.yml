@@ -77,6 +77,13 @@ jobs:
         with:
           path: .tools/godot-cpp
           key: godot-cpp-linux-${{ hashFiles('tools/godot_cpp_pin.txt') }}
+      # A restored cache entry is only trusted at the pinned commit with no tracked file changed
+      # (review WR-10); the build script refuses a modified checkout, so discard any drift first.
+      - name: Discard drift in the cached godot-cpp checkout
+        run: |
+          if [ -d .tools/godot-cpp/.git ]; then
+            git -C .tools/godot-cpp checkout --force --detach "$(head -n 1 tools/godot_cpp_pin.txt | tr -d '[:space:]')" || true
+          fi
       - name: Build the native library (GCC)
         run: bash tools/native_build.sh --fetch
       - name: Upload the Linux native library
@@ -127,6 +134,13 @@ jobs:
         with:
           path: .tools/godot-cpp
           key: godot-cpp-windows-${{ hashFiles('tools/godot_cpp_pin.txt') }}
+      # A restored cache entry is only trusted at the pinned commit with no tracked file changed
+      # (review WR-10); the build script refuses a modified checkout, so discard any drift first.
+      - name: Discard drift in the cached godot-cpp checkout
+        run: |
+          if [ -d .tools/godot-cpp/.git ]; then
+            git -C .tools/godot-cpp checkout --force --detach "$(head -n 1 tools/godot_cpp_pin.txt | tr -d '[:space:]')" || true
+          fi
       - name: Build the native library (MSVC)
         run: bash tools/native_build.sh --fetch
       - name: Upload the Windows native library

@@ -84,6 +84,12 @@ ACTUAL_HEAD="$(git -C "${GODOT_CPP_DIR}" rev-parse HEAD 2>/dev/null)"
 if [ "${ACTUAL_HEAD}" != "${PIN}" ]; then
   fail_toolchain "godot-cpp is at ${ACTUAL_HEAD}, the pin is ${PIN}; run: bash tools/native_build.sh --fetch"
 fi
+# The commit alone does not prove the files: an edited or half-restored tracked file keeps HEAD at the
+# pin and would be compiled into the shipped library (review WR-10). Untracked files (build output,
+# editor leftovers) are not compiled by this build and are ignored here.
+if [ -n "$(git -C "${GODOT_CPP_DIR}" status --porcelain --untracked-files=no)" ]; then
+  fail_toolchain "godot-cpp has local modifications; run: git -C .tools/godot-cpp checkout --force ${PIN}"
+fi
 
 # --- 2. the API dumped from the pinned Godot binary --------------------------------------------
 GODOT_BIN="$(duskhold_godot_bin)"
