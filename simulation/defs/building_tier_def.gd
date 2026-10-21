@@ -20,6 +20,10 @@ extends Resource
 @export var squad_size: int = 0
 ## Seconds per replacement unit at night (read by the squad respawn rule).
 @export var squad_respawn_seconds: float = 0.0
+## The cards this tier is bought with (BLDG-05): the player picks exactly one when buying it, and
+## the pick lasts the run. Empty means no branching, a plain upgrade. Any building tier may carry
+## cards; the castle's tier II is the first user.
+@export var choices: Array[ChoiceDef] = []
 
 
 ## One-line effect text shown next to the cost, e.g. "+2 gold at dawn".

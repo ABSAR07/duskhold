@@ -1,0 +1,45 @@
+class_name CardRowModel
+extends RefCounted
+## Pure content of the world-space card row (UI-02, D-06, D-07): which cards the next tier of a spot
+## offers, in the tier's authored order, and which one is highlighted. Reads RunContext data only;
+## it never mutates it and creates no Nodes.
+
+
+## The cards the next tier on `spot_id` is bought with, left to right in the authored order. Each is
+## a Dictionary with the keys id, name, flavour, icon (Texture2D or null) and highlighted (true for
+## the card at `highlighted_index` only). Empty for an unknown spot, a tier with no cards or a
+## building at its top tier.
+static func cards(
+	ctx: RunContext, spot_id: StringName, highlighted_index: int
+) -> Array[Dictionary]:
+	var shown: Array[Dictionary] = []
+	var building_def: BuildingDef = ctx.buildings.get_building_def_for_spot(spot_id)
+	if building_def == null:
+		return shown
+	var tier_def: BuildingTierDef = building_def.tier_def(ctx.buildings.current_tier(spot_id) + 1)
+	if tier_def == null:
+		return shown
+	for card: ChoiceDef in tier_def.choices:
+		if card == null:
+			continue
+		(
+			shown
+			. append(
+				{
+					"id": card.id,
+					"name": card.display_name,
+					"flavour": card.flavour,
+					"icon": card.icon,
+					"highlighted": shown.size() == highlighted_index,
+				}
+			)
+		)
+	return shown
+
+
+## The card index (0-based) the digit key `digit` (1 to 9) addresses among `count` cards; -1 for a
+## digit that addresses none (0, or above the card count).
+static func index_for_digit(digit: int, count: int) -> int:
+	if digit < 1 or digit > count:
+		return -1
+	return digit - 1

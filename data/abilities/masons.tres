@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="ChoiceDef" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://simulation/defs/choice_def.gd" id="1_choice"]
+[ext_resource type="Script" path="res://simulation/stats/stat_modifier_def.gd" id="2_mod"]
+
+[sub_resource type="Resource" id="Resource_buildings"]
+script = ExtResource("2_mod")
+stat = &"building.max_health"
+bucket = 1
+value = 30
+
+[sub_resource type="Resource" id="Resource_walls"]
+script = ExtResource("2_mod")
+stat = &"wall.max_health"
+bucket = 1
+value = 30
+
+[resource]
+script = ExtResource("1_choice")
+id = &"masons"
+display_name = "Masons"
+flavour = "Stone laid true holds against the storm."
+modifiers = Array[ExtResource("2_mod")]([SubResource("Resource_buildings"), SubResource("Resource_walls")])

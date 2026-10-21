@@ -1,7 +1,9 @@
-[gd_scene load_steps=34 format=3]
+[gd_scene load_steps=36 format=3]
 
 [ext_resource type="Script" path="res://presentation/map/map_root.gd" id="1_map"]
 [ext_resource type="Script" path="res://input/build_hold_controller.gd" id="2_hold"]
+[ext_resource type="Script" path="res://input/card_picker.gd" id="28_cards"]
+[ext_resource type="Script" path="res://ui/world/card_row.gd" id="29_card_row"]
 [ext_resource type="Script" path="res://presentation/buildings/building_views.gd" id="3_views"]
 [ext_resource type="Script" path="res://presentation/enemies/enemy_views.gd" id="13_enemies"]
 [ext_resource type="Script" path="res://presentation/walls/wall_views.gd" id="27_walls"]
@@ -77,6 +79,9 @@ environment = SubResource("Environment_day")
 [node name="BuildHold" type="Node" parent="." groups=["run_bound"]]
 script = ExtResource("2_hold")
 
+[node name="CardPicker" type="Node" parent="." groups=["run_bound"]]
+script = ExtResource("28_cards")
+
 [node name="StartNightHold" type="Node" parent="." groups=["run_bound"]]
 script = ExtResource("11_night_hold")
 
@@ -119,6 +124,10 @@ script = ExtResource("25_pad_view")
 [node name="HUD" parent="." groups=["run_bound"] instance=ExtResource("5_hud")]
 
 [node name="SpotLabel" parent="." groups=["run_bound"] instance=ExtResource("9_label")]
+
+[node name="CardRow" type="Node3D" parent="." groups=["run_bound"]]
+visible = false
+script = ExtResource("29_card_row")
 
 [node name="ResultsScreen" parent="." groups=["run_bound"] instance=ExtResource("15_results")]
 

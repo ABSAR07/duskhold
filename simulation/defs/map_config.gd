@@ -161,10 +161,15 @@ func validate() -> PackedStringArray:
 				)
 			errors.append_array(_validate_tier_combat(building_def.id, index, tier))
 	var spot_ids: Dictionary = {}
+	var castle_plots: int = 0
 	for spot: BuildSpotDef in spots:
 		if spot == null:
 			errors.append("a spot entry is empty")
 			continue
+		if spot.is_castle:
+			castle_plots += 1
+			if spot.wall_run != null:
+				errors.append("spot '%s' is both the castle plot and a wall plot" % spot.id)
 		if spot.id == &"":
 			errors.append("a spot has an empty id")
 		if spot.id == CASTLE_PAYOUT_KEY:
@@ -174,6 +179,8 @@ func validate() -> PackedStringArray:
 		spot_ids[spot.id] = true
 		if not building_ids.has(spot.building_id):
 			errors.append("spot '%s' uses unknown building id '%s'" % [spot.id, spot.building_id])
+	if castle_plots > 1:
+		errors.append("%d castle plots, at most one is allowed" % castle_plots)
 	errors.append_array(_validate_night_data())
 	errors.append_array(_validate_squads())
 	errors.append_array(WallValidation.errors(self))

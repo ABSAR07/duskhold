@@ -20,10 +20,22 @@ func _rich_prototype() -> RunContext:
 	return _context_for(map)
 
 
+## The first card of the tier the next purchase on the spot buys (the castle's tier II offers four);
+## empty for a plain tier.
+func _first_card(ctx: RunContext, spot_id: StringName) -> StringName:
+	var building_def: BuildingDef = ctx.buildings.get_building_def_for_spot(spot_id)
+	var next_tier: BuildingTierDef = building_def.tier_def(ctx.buildings.current_tier(spot_id) + 1)
+	if next_tier == null or next_tier.choices.is_empty():
+		return &""
+	return next_tier.choices[0].id
+
+
 func test_each_spot_builds_only_its_own_building_type() -> void:
 	var ctx: RunContext = _rich_prototype()
 	for spot_id: StringName in ctx.buildings.spot_ids():
-		var result: StringName = ctx.commands.submit(BuildIntent.new(spot_id))
+		var result: StringName = ctx.commands.submit(
+			BuildIntent.new(spot_id, _first_card(ctx, spot_id))
+		)
 		assert_eq(result, CommandProcessor.OK, "%s accepts a build" % spot_id)
 		var instance: BuildingInstance = ctx.buildings.get_instance(spot_id)
 		assert_not_null(instance, "%s now holds a building" % spot_id)
@@ -59,6 +71,8 @@ func test_unknown_and_empty_spot_ids_are_rejected_and_change_nothing() -> void:
 		assert_eq(ctx.commands.submit(BuildIntent.new(bad_id)), CommandProcessor.UNKNOWN_SPOT)
 	assert_eq(ctx.economy.get_gold(), start_gold, "gold unchanged")
 	for spot_id: StringName in ctx.buildings.spot_ids():
+		if ctx.buildings.get_spot(spot_id).is_castle:
+			continue  # the castle plot stands at tier I from the start (plan 05-02)
 		assert_null(ctx.buildings.get_instance(spot_id), "no building appeared on %s" % spot_id)
 
 

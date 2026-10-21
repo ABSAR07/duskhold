@@ -62,7 +62,8 @@ func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 	_ctx = ctx
 	_add_castle(ctx.map.castle_position)
 	for spot_id: StringName in ctx.buildings.spot_ids():
-		_add_marker(spot_id)
+		if not ctx.buildings.get_spot(spot_id).is_castle:
+			_add_marker(spot_id)
 	ctx.events.building_built.connect(_on_building_built)
 	ctx.events.building_damaged.connect(_on_building_damaged)
 	ctx.events.building_destroyed.connect(_on_building_destroyed)
@@ -193,8 +194,10 @@ func _marker_color(spot_id: StringName, building_id: StringName) -> Color:
 
 ## A wall plot gets no model, no stand-in and no bar: WallViews draws its segments, and the plot
 ## marker stays so the king can find the plot (RESEARCH Pitfall 5).
+## The castle plot gets neither: the keep stays the landmark (plan 05-04 swaps its model per tier).
 func _on_building_built(spot_id: StringName, building_id: StringName, new_tier: int) -> void:
-	if _ctx.buildings.get_spot(spot_id).wall_run != null:
+	var spot: BuildSpotDef = _ctx.buildings.get_spot(spot_id)
+	if spot.wall_run != null or spot.is_castle:
 		return
 	_place_building(spot_id, building_id, new_tier)
 

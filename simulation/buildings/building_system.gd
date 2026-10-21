@@ -3,6 +3,9 @@ extends RefCounted
 ## Fixed build spots and the building standing on each. Reads never mutate; the mutations are
 ## apply_next_tier, which leaves affordability and range to CommandProcessor, its only caller, and
 ## damage_building, which the night's hit resolver calls (BLDG-07).
+## The castle plot (BuildSpotDef.is_castle) stands at tier I from the start with no event and
+## carries only its tier: CastleState owns the castle's health, so health_of and max_health_of read
+## 0 for it, it is never damaged, destroyed or rebuilt here, and it is never a target or a payer.
 ## The BuildingInstance objects handed out are snapshots, so a reader cannot change what stands on
 ## a spot. The BuildSpotDef and BuildingDef resources are shared with the MapConfig and returned
 ## by reference: treat them as read-only.
@@ -33,6 +36,9 @@ func _init(map: MapConfig, events: SimEvents, stat_stack: StatStack = null) -> v
 			continue
 		_order.append(spot.id)
 		_spots[spot.id] = spot
+		if spot.is_castle and _defs.has(spot.building_id):
+			if (_defs[spot.building_id] as BuildingDef).max_tier() > 0:
+				_stand_castle_plot(spot)
 	_stats.changed.connect(_on_stats_changed)
 
 
@@ -76,15 +82,16 @@ func next_action_cost(spot_id: StringName) -> int:
 
 
 ## What each standing building pays at dawn: spot_id -> gold, in MapConfig order, listing only
-## spots whose current tier pays more than 0. A wall plot never pays. A destroyed building pays
-## nothing, and neither does one rebuilt this dawn (LOOP-05). Pure: it never mutates anything.
+## spots whose current tier pays more than 0. A wall plot never pays, and neither does the castle
+## plot (CastleState pays the castle's base income). A destroyed building pays nothing, and neither
+## does one rebuilt this dawn (LOOP-05). Pure: it never mutates anything.
 func dawn_income_by_spot() -> Dictionary:
 	var income: Dictionary = {}
 	for spot_id: StringName in _order:
 		var instance: BuildingInstance = _instances.get(spot_id) as BuildingInstance
 		if instance == null or instance.destroyed or instance.rebuilt_this_dawn:
 			continue
-		if (_spots[spot_id] as BuildSpotDef).wall_run != null:
+		if not _is_plain(_spots[spot_id] as BuildSpotDef):
 			continue
 		var building_def: BuildingDef = _defs.get(instance.building_id) as BuildingDef
 		if building_def == null:
@@ -146,12 +153,13 @@ func spot_at_index(index: int) -> StringName:
 
 ## Spots with a building that has not fallen, in MapConfig order. A fresh array. A wall plot is
 ## never listed: its segments take the hits, never the plot, so enemies and towers never see it.
+## The castle plot is never listed either: the castle is hit as the castle (KIND_CASTLE).
 func standing_spot_ids() -> Array[StringName]:
 	var standing: Array[StringName] = []
 	for spot_id: StringName in _order:
 		var instance: BuildingInstance = _instances.get(spot_id) as BuildingInstance
 		var spot: BuildSpotDef = _spots[spot_id]
-		if instance != null and not instance.destroyed and spot.wall_run == null:
+		if instance != null and not instance.destroyed and _is_plain(spot):
 			standing.append(spot_id)
 	return standing
 
@@ -182,10 +190,14 @@ func radius_of(spot_id: StringName) -> float:
 ## Removes up to `amount` hit points (never below 0) from the spot's building and emits
 ## building_damaged with the points actually lost; the hit that reaches 0 then emits
 ## building_destroyed, once. A hit on an unknown spot, an empty plot or a fallen building, or a
-## non-positive amount, is dropped silently: a hit on a thing that is gone is not an error.
+## non-positive amount, is dropped silently: a hit on a thing that is gone is not an error. A hit
+## on the castle plot is dropped the same way: castle hits arrive as KIND_CASTLE through
+## CastleState.
 func damage_building(spot_id: StringName, amount: int) -> void:
 	var instance: BuildingInstance = _instances.get(spot_id) as BuildingInstance
 	if instance == null or instance.destroyed or amount <= 0:
+		return
+	if (_spots[spot_id] as BuildSpotDef).is_castle:
 		return
 	var lost: int = mini(amount, instance.health)
 	instance.health -= lost
@@ -242,10 +254,16 @@ func _snapshot(instance: BuildingInstance) -> BuildingInstance:
 
 ## Hit points of the instance's current tier with every building.max_health modifier applied; 0 for
 ## null or a building no map definition covers. A wall plot keeps the raw tier value: its segments
-## carry the wall health (WallSystem, wall.max_health).
+## carry the wall health (WallSystem, wall.max_health). The castle plot reads 0, a documented
+## sentinel: the instance carries the tier only and CastleState owns the castle's health.
 func _max_health_of(instance: BuildingInstance) -> int:
+	if instance == null:
+		return 0
+	var spot: BuildSpotDef = _spots[instance.spot_id] as BuildSpotDef
+	if spot.is_castle:
+		return 0
 	var raw: int = _raw_max_health_of(instance)
-	if raw <= 0 or (_spots[instance.spot_id] as BuildSpotDef).wall_run != null:
+	if raw <= 0 or spot.wall_run != null:
 		return raw
 	return _stats.int_value(&"building.max_health", raw)
 
@@ -272,7 +290,7 @@ func _on_stats_changed(stats: Array[StringName]) -> void:
 		var instance: BuildingInstance = _instances.get(spot_id) as BuildingInstance
 		if instance == null or instance.destroyed:
 			continue
-		if (_spots[spot_id] as BuildSpotDef).wall_run != null:
+		if not _is_plain(_spots[spot_id] as BuildSpotDef):
 			continue
 		var raw: int = _raw_max_health_of(instance)
 		var gain: int = _stats.int_value(&"building.max_health", raw)
@@ -286,3 +304,17 @@ func _next_tier_def(spot_id: StringName) -> BuildingTierDef:
 	if building_def == null:
 		return null
 	return building_def.tier_def(current_tier(spot_id) + 1)
+
+
+## True for an ordinary plot: neither a wall plot nor the castle plot.
+func _is_plain(spot: BuildSpotDef) -> bool:
+	return spot.wall_run == null and not spot.is_castle
+
+
+## The castle plot stands at tier I from the start, with no event and no health of its own.
+func _stand_castle_plot(spot: BuildSpotDef) -> void:
+	var instance: BuildingInstance = BuildingInstance.new()
+	instance.spot_id = spot.id
+	instance.building_id = spot.building_id
+	instance.tier = 1
+	_instances[spot.id] = instance

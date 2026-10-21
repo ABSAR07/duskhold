@@ -11,6 +11,8 @@ var tuning: LoopTuning
 var events: SimEvents
 var economy: Economy
 var buildings: BuildingSystem
+## The cards picked at branching tiers and the arming of their modifiers (BLDG-05).
+var choices: ChoiceLedger
 var walls: WallSystem
 var squads: SquadSystem
 var castle: CastleState
@@ -43,6 +45,7 @@ func _init(
 	stats = RunStats.new(events)
 	economy = Economy.new(events, map_config.starting_gold)
 	buildings = BuildingSystem.new(map_config, events, stat_stack)
+	choices = ChoiceLedger.new(map_config, buildings, events, stat_stack)
 	walls = WallSystem.new(map_config, buildings, events, stat_stack)
 	castle = CastleState.new(map_config, events, stat_stack)
 	king = KingState.new(

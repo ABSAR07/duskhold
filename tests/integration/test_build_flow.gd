@@ -17,7 +17,11 @@ func _context_for(map_path: String) -> RunContext:
 func _building_count(ctx: RunContext) -> int:
 	var count: int = 0
 	for spot_id: StringName in ctx.buildings.spot_ids():
-		if ctx.buildings.get_instance(spot_id) != null:
+		# The castle plot stands at tier I from the start (plan 05-02); it is not a built building.
+		if (
+			ctx.buildings.get_instance(spot_id) != null
+			and not ctx.buildings.get_spot(spot_id).is_castle
+		):
 			count += 1
 	return count
 

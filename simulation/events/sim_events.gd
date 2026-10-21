@@ -82,3 +82,6 @@ signal king_healed(amount: int, hp: int, max_hp: int)
 ## metres (Vector2) the simulation resolved for the verb: none for follow, the frozen anchor for
 ## hold, the king position for rally. The recorder quantises them like every other position.
 signal squad_ordered(squad_id: StringName, verb: StringName, queued: bool, points: Array)
+## A building tier with cards was bought with the card `choice_id` (BLDG-05). Emitted right after
+## the building_built of the same purchase; the pick lasts the run.
+signal choice_picked(spot_id: StringName, tier: int, choice_id: StringName)

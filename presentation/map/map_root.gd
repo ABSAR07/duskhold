@@ -18,6 +18,7 @@ var _selection: SelectionModel
 
 @onready var _king: King = $King
 @onready var _build_hold: BuildHoldController = $BuildHold
+@onready var _cards: CardPicker = get_node_or_null("CardPicker")
 @onready var _device_tracker: LastDeviceTracker = get_node_or_null("LastDeviceTracker")
 
 
@@ -87,6 +88,12 @@ func get_king() -> King:
 
 func get_build_hold() -> BuildHoldController:
 	return _build_hold
+
+
+## The choice cards' picker: which card is highlighted and whether the row shows (UI-02). Null on a
+## map scene that has none.
+func get_cards() -> CardPicker:
+	return _cards
 
 
 ## The squads the player has selected. Presentation state: it never reaches the simulation, an order

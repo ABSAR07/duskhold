@@ -19,6 +19,10 @@ const UNKNOWN_VERB := &"unknown_verb"
 const BAD_POINT := &"bad_point"
 const TOO_MANY_POINTS := &"too_many_points"
 const QUEUE_CLOSED := &"queue_closed"
+## The tier being bought offers cards and none was picked (BLDG-05).
+const CHOICE_REQUIRED := &"choice_required"
+## The card is not one of the next tier's cards, or the tier offers none (BLDG-05).
+const BAD_CHOICE := &"bad_choice"
 
 var _economy: Economy
 var _buildings: BuildingSystem
@@ -56,9 +60,12 @@ func _init(
 	}
 
 
-## Read-only check of whether a build or upgrade on `spot_id` would be accepted right now.
-## Check order: NOT_DAY, UNKNOWN_SPOT, MAX_TIER, CANNOT_AFFORD.
-func validate_build(spot_id: StringName) -> StringName:
+## Read-only check of whether a build or upgrade on `spot_id`, bought with the card `choice_id`
+## (empty for none), would be accepted right now.
+## Check order: NOT_DAY, UNKNOWN_SPOT, MAX_TIER, CANNOT_AFFORD, CHOICE_REQUIRED, BAD_CHOICE.
+## Affordability comes before the choice on purpose: the cards only show when the tier is affordable
+## (D-05), so a player without the gold sees the price, not a pick prompt.
+func validate_build(spot_id: StringName, choice_id: StringName = &"") -> StringName:
 	if not _run_manager.is_build_allowed():
 		return NOT_DAY
 	if _buildings.get_spot(spot_id) == null:
@@ -68,7 +75,7 @@ func validate_build(spot_id: StringName) -> StringName:
 		return MAX_TIER
 	if not _economy.can_afford(cost):
 		return CANNOT_AFFORD
-	return OK
+	return _choice_rejection(spot_id, choice_id)
 
 
 ## Applies an intent. Returns OK or the rejection reason; nothing changes on a rejection. The
@@ -201,13 +208,46 @@ func _submit_start_night(_intent: RefCounted) -> StringName:
 	return OK
 
 
+## CHOICE_REQUIRED when the tier being bought offers cards and `choice_id` is empty; BAD_CHOICE when
+## it names a card that tier does not offer, or any card at a tier that offers none; else OK.
+func _choice_rejection(spot_id: StringName, choice_id: StringName) -> StringName:
+	var cards: Array[ChoiceDef] = _next_tier_choices(spot_id)
+	if cards.is_empty():
+		return OK if choice_id == &"" else BAD_CHOICE
+	if choice_id == &"":
+		return CHOICE_REQUIRED
+	for card: ChoiceDef in cards:
+		if card != null and card.id == choice_id:
+			return OK
+	return BAD_CHOICE
+
+
+## The cards of the tier the next purchase on the spot buys; empty when it offers none or nothing is
+## left to buy.
+func _next_tier_choices(spot_id: StringName) -> Array[ChoiceDef]:
+	var building_def: BuildingDef = _buildings.get_building_def_for_spot(spot_id)
+	if building_def == null:
+		return []
+	var tier_def: BuildingTierDef = building_def.tier_def(_buildings.current_tier(spot_id) + 1)
+	if tier_def == null:
+		return []
+	return tier_def.choices
+
+
+## Validates with the intent's card, spends, raises the tier, then (when that tier offered cards)
+## announces the pick. A rejection returns the reason, announces command_rejected and changes
+## nothing.
 func _submit_build(intent: RefCounted) -> StringName:
-	var spot_id: StringName = (intent as BuildIntent).spot_id
-	var reason: StringName = validate_build(spot_id)
+	var build: BuildIntent = intent as BuildIntent
+	var spot_id: StringName = build.spot_id
+	var reason: StringName = validate_build(spot_id, build.choice_id)
 	if reason == OK and not _economy.try_spend(_buildings.next_action_cost(spot_id)):
 		reason = CANNOT_AFFORD
 	if reason != OK:
 		_events.command_rejected.emit(&"build", spot_id, reason)
 		return reason
-	_buildings.apply_next_tier(spot_id)
+	var picked: bool = not _next_tier_choices(spot_id).is_empty()
+	var built: BuildingInstance = _buildings.apply_next_tier(spot_id)
+	if picked and built != null:
+		_events.choice_picked.emit(spot_id, built.tier, build.choice_id)
 	return OK

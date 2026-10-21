@@ -232,6 +232,9 @@ func _agent_rows() -> Array:
 func _count_buildings() -> int:
 	var count: int = 0
 	for spot_id: StringName in _ctx.buildings.spot_ids():
-		if _ctx.buildings.current_tier(spot_id) > 0:
+		if (
+			_ctx.buildings.current_tier(spot_id) > 0
+			and not _ctx.buildings.get_spot(spot_id).is_castle
+		):
 			count += 1
 	return count

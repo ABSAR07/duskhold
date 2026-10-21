@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="MapConfig" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://simulation/defs/map_config.gd" id="1_map"]
+[ext_resource type="Script" path="res://simulation/defs/build_spot_def.gd" id="2_spot"]
+[ext_resource type="Script" path="res://simulation/defs/building_def.gd" id="3_bdef"]
+[ext_resource type="Resource" path="res://data/buildings/house.tres" id="4_house"]
+[ext_resource type="Resource" path="res://data/buildings/castle_center.tres" id="5_castle"]
+
+[sub_resource type="Resource" id="Resource_house_1"]
+script = ExtResource("2_spot")
+id = &"house_1"
+position = Vector3(-9, 0, 9)
+building_id = &"house"
+
+[sub_resource type="Resource" id="Resource_castle_plot"]
+script = ExtResource("2_spot")
+id = &"castle_plot"
+position = Vector3(0, 0, 5)
+building_id = &"castle_center"
+is_castle = true
+
+[resource]
+script = ExtResource("1_map")
+id = &"fixture_castle"
+display_name = "Fixture Castle"
+is_sandbox = true
+starting_gold = 40
+base_dawn_income = 1
+king_spawn = Vector3(0, 0, 7)
+castle_position = Vector3(0, 0, 0)
+buildings = Array[ExtResource("3_bdef")]([ExtResource("4_house"), ExtResource("5_castle")])
+spots = Array[ExtResource("2_spot")]([SubResource("Resource_house_1"), SubResource("Resource_castle_plot")])
+castle_max_health = 70
+castle_radius = 3.5
+castle_attack_damage = 2
+castle_attack_range = 22.0
+castle_attack_interval = 1.5
+castle_projectile_speed = 27.0

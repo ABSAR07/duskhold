@@ -10,3 +10,8 @@ extends Resource
 ## A non-null run marks a wall plot (D-01): holding at it builds every segment of the run at once.
 ## The plot's kind is data, not an id convention; null is an ordinary plot.
 @export var wall_run: WallRunDef
+## True marks the castle plot (BLDG-08): the castle's upgrade plot, whose building is the castle. At
+## most one per map. The plot's kind is data, not an id convention (the id `castle` is reserved for
+## the dawn payout). The castle stands from the start, is never a target and never pays per-spot
+## income; CastleState owns its health and numbers.
+@export var is_castle: bool = false

@@ -74,6 +74,9 @@ func test_scene_has_a_castle_landmark_and_a_marker_for_every_spot() -> void:
 		assert_eq(castle.position, ctx.map.castle_position, "castle stands at castle_position")
 	for spot_id: StringName in ctx.buildings.spot_ids():
 		var marker: Node = map_root.get_node_or_null("BuildingViews/Spot_%s" % spot_id)
+		if ctx.buildings.get_spot(spot_id).is_castle:
+			assert_null(marker, "the castle plot gets no disc: the keep is its landmark")
+			continue
 		assert_not_null(marker, "marker Spot_%s exists" % spot_id)
 	assert_gte(ctx.buildings.spot_ids().size(), 8, "the Phase 1 plots are all still there")
 
@@ -83,6 +86,8 @@ func test_markers_are_colour_coded_by_building_type() -> void:
 	var ctx: RunContext = map_root.get_context()
 	var colors: Dictionary = {}
 	for spot_id: StringName in ctx.buildings.spot_ids():
+		if ctx.buildings.get_spot(spot_id).is_castle:
+			continue  # no disc for the castle plot (plan 05-02)
 		var color: Color = _marker_color(map_root, spot_id)
 		var building: BuildingDef = ctx.buildings.get_building_def_for_spot(spot_id)
 		# D-06 (plan 04-05): a wall plot is told by its run, not by its building's id.

@@ -95,7 +95,8 @@ func _road_direction(map: MapConfig, road: StringName) -> Vector2:
 
 func test_the_wall_plots_are_appended_after_archery_1_in_order() -> void:
 	var map: MapConfig = _map()
-	assert_eq(map.spots.size(), FIRST_WALL_PLOT + WALL_PLOT_IDS.size(), "fourteen plots")
+	# Plan 05-02 appends the castle plot after them; the total is pinned in test_prototype_map_economy.
+	assert_gte(map.spots.size(), FIRST_WALL_PLOT + WALL_PLOT_IDS.size(), "the fourteen plots")
 	for index: int in range(WALL_PLOT_IDS.size()):
 		var spot: BuildSpotDef = map.spots[FIRST_WALL_PLOT + index]
 		assert_eq(spot.id, WALL_PLOT_IDS[index], "plot %d id" % (FIRST_WALL_PLOT + index))

@@ -28,12 +28,20 @@ func _tuning() -> LoopTuning:
 
 
 ## Every tier cost on the shipped prototype map, over every tier of every building.
+## The price of every tier a player can buy. The castle's tier I (plan 05-02) is never charged, the
+## castle starts standing, so it is not a purchase and its placeholder cost is left out.
 func _tier_costs() -> Array[int]:
 	var map: MapConfig = load(PROTOTYPE_MAP)
+	var standing: Array[StringName] = []
+	for spot: BuildSpotDef in map.spots:
+		if spot.is_castle:
+			standing.append(spot.building_id)
 	var costs: Array[int] = []
 	for building_def: BuildingDef in map.buildings:
-		for tier: BuildingTierDef in building_def.tiers:
-			costs.append(tier.cost)
+		for index: int in range(building_def.tiers.size()):
+			if index == 0 and standing.has(building_def.id):
+				continue
+			costs.append(building_def.tiers[index].cost)
 	return costs
 
 

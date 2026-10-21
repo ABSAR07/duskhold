@@ -20,8 +20,10 @@ const COSTS: Array[int] = [4, 8, 16]
 const SQUAD_SIZES: Array[int] = [4, 8, 14]
 const RESPAWN_SECONDS: Array[float] = [10.0, 7.0, 4.0]
 ## Ten Phase 1 to 3 plots and, since plan 04-05 (D-06), the four wall plots appended after them.
+## Plan 05-02 appends the castle plot after those fourteen; the total is pinned in
+## test_prototype_map_economy, so this contract pins only the first fourteen.
 const WALL_PLOT_COUNT: int = 4
-const SPOT_COUNT: int = 14
+const PHASE_FOUR_SPOT_COUNT: int = 14
 const BARRACKS_SPOT: int = 8
 const ARCHERY_SPOT: int = 9
 const MIN_CLEARANCE_M: float = 5.0
@@ -103,9 +105,12 @@ func test_the_footman_is_a_fifth_of_the_king_and_the_archer_is_frailer_with_a_lo
 
 func test_the_prototype_map_has_the_barracks_and_archery_plots_before_the_wall_plots() -> void:
 	var map: MapConfig = _map()
-	# D-06 (plan 04-05): four wall plots follow the ten plots of D-03, so the count is 14.
-	assert_eq(map.spots.size(), SPOT_COUNT, "ten plots (D-03) and four wall plots (D-06)")
-	assert_eq(map.spots.size() - WALL_PLOT_COUNT, ARCHERY_SPOT + 1, "the wall plots come last")
+	# D-06 (plan 04-05): four wall plots follow the ten plots of D-03, so the first 14 are fixed.
+	assert_gte(map.spots.size(), PHASE_FOUR_SPOT_COUNT, "ten plots (D-03), four wall plots (D-06)")
+	for index: int in range(ARCHERY_SPOT + 1, PHASE_FOUR_SPOT_COUNT):
+		assert_not_null(map.spots[index].wall_run, "plot %d is a wall plot, right after" % index)
+	assert_eq(PHASE_FOUR_SPOT_COUNT - WALL_PLOT_COUNT, ARCHERY_SPOT + 1, "the wall plots follow")
+	assert_true(map.spots[PHASE_FOUR_SPOT_COUNT].is_castle, "the castle plot is appended next")
 	assert_eq(map.spots[BARRACKS_SPOT].id, &"barracks_1", "the Barracks plot is ninth")
 	assert_eq(map.spots[BARRACKS_SPOT].building_id, &"barracks", "and takes a Barracks")
 	assert_eq(map.spots[ARCHERY_SPOT].id, &"archery_1", "the Archery Range plot is tenth")

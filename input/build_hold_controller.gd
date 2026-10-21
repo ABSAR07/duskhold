@@ -18,8 +18,12 @@ const ACTION: StringName = &"action_build"
 
 var _ctx: RunContext
 var _king: King
+var _cards: CardPicker
 var _focused: StringName = &""
 var _active: StringName = &""
+## The card highlighted when the hold started (BLDG-05); it rides the one BuildIntent. Empty for a
+## tier with no cards.
+var _active_choice: StringName = &""
 var _cost: int = 0
 var _coins_paid: int = 0
 var _hold_elapsed: float = 0.0
@@ -29,6 +33,7 @@ var _was_pressed: bool = false
 func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
 	_ctx = ctx
 	_king = map_root.get_king()
+	_cards = map_root.get_cards()
 
 
 func get_focused_spot() -> StringName:
@@ -82,11 +87,15 @@ func _update_focus() -> void:
 ## range or the day ending cancels it. A hold that finishes or cancels needs a fresh key press to
 ## start again, because starting is edge-triggered (the key must be released in between).
 func _try_start_hold() -> void:
-	var reason: StringName = _ctx.commands.validate_build(_focused)
+	var choice: StringName = &""
+	if _cards != null and _cards.shown_spot() == _focused:
+		choice = _cards.highlighted()
+	var reason: StringName = _ctx.commands.validate_build(_focused, choice)
 	if reason != CommandProcessor.OK:
 		hold_denied.emit(_focused, reason)
 		return
 	_active = _focused
+	_active_choice = choice
 	_cost = _ctx.buildings.next_action_cost(_active)
 	_coins_paid = 0
 	_hold_elapsed = 0.0
@@ -123,7 +132,7 @@ func _active_spot_in_range() -> bool:
 func _finish_hold() -> void:
 	var spot_id: StringName = _active
 	var coins: int = _coins_paid
-	var result: StringName = _ctx.commands.submit(BuildIntent.new(spot_id))
+	var result: StringName = _ctx.commands.submit(BuildIntent.new(spot_id, _active_choice))
 	_reset_hold()
 	if result == CommandProcessor.OK:
 		hold_completed.emit(spot_id)
@@ -141,6 +150,7 @@ func _cancel_hold() -> void:
 
 func _reset_hold() -> void:
 	_active = &""
+	_active_choice = &""
 	_cost = 0
 	_coins_paid = 0
 	_hold_elapsed = 0.0

@@ -1,0 +1,51 @@
+[gd_resource type="Resource" script_class="BuildingDef" load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://simulation/defs/building_tier_def.gd" id="1_tier"]
+[ext_resource type="Script" path="res://simulation/defs/building_def.gd" id="2_def"]
+[ext_resource type="Script" path="res://simulation/defs/choice_def.gd" id="3_choice"]
+[ext_resource type="Resource" path="res://data/abilities/royal_training.tres" id="4_royal"]
+[ext_resource type="Resource" path="res://data/abilities/commander.tres" id="5_commander"]
+[ext_resource type="Resource" path="res://data/abilities/masons.tres" id="6_masons"]
+[ext_resource type="Resource" path="res://data/abilities/prosperity.tres" id="7_prosperity"]
+
+[sub_resource type="Resource" id="Resource_tier1"]
+script = ExtResource("1_tier")
+cost = 1
+
+[sub_resource type="Resource" id="Resource_tier2"]
+script = ExtResource("1_tier")
+cost = 6
+dawn_income = 2
+attack_range = 22.0
+attack_damage = 3
+max_health = 100
+attack_interval = 1.5
+projectile_speed = 27.0
+choices = Array[ExtResource("3_choice")]([ExtResource("4_royal"), ExtResource("5_commander"), ExtResource("6_masons"), ExtResource("7_prosperity")])
+
+[sub_resource type="Resource" id="Resource_tier3"]
+script = ExtResource("1_tier")
+cost = 10
+dawn_income = 3
+attack_range = 22.0
+attack_damage = 4
+max_health = 140
+attack_interval = 1.5
+projectile_speed = 27.0
+
+[sub_resource type="Resource" id="Resource_tier4"]
+script = ExtResource("1_tier")
+cost = 16
+dawn_income = 4
+attack_range = 22.0
+attack_damage = 5
+max_health = 200
+attack_interval = 1.5
+projectile_speed = 27.0
+
+[resource]
+script = ExtResource("2_def")
+id = &"castle_center"
+display_name = "Castle"
+body_radius = 3.5
+tiers = Array[ExtResource("1_tier")]([SubResource("Resource_tier1"), SubResource("Resource_tier2"), SubResource("Resource_tier3"), SubResource("Resource_tier4")])
