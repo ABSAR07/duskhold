@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 05
 current_phase_name: Castle Center & Economy Depth
 status: executing
-stopped_at: Completed 05-05-PLAN.md
-last_updated: "2026-10-21T16:37:56.499Z"
+stopped_at: Completed 05-06-PLAN.md
+last_updated: "2026-10-21T18:37:28.730Z"
 last_activity: 2026-10-21
 last_activity_desc: Phase 05 execution started
-state_head: dc191f859af0ca76fffa284c88baf7f731b4768f
+state_head: 71207325bab7c7a50efb5a6737f0817d7b68f49a
 progress:
   total_phases: 13
   completed_phases: 4
   total_plans: 99
-  completed_plans: 92
+  completed_plans: 93
   percent: 31
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-21)
 ## Current Position
 
 Phase: 05 (Castle Center & Economy Depth) — EXECUTING
-Plan: 6 of 12
+Plan: 7 of 12
 Status: Ready to execute
 Last activity: 2026-10-21 — Phase 05 execution started
 
@@ -151,6 +151,7 @@ Progress: [███░░░░░░░] 31%
 | Phase 05 P03 | 57 min | 2 tasks | 25 files |
 | Phase 05 P04 | 78 min | 2 tasks | 58 files |
 | Phase 05 P05 | 56 min | 2 tasks | 20 files |
+| Phase 05 P06 | 98 min | 2 tasks | 39 files |
 
 ## Accumulated Context
 
@@ -355,6 +356,9 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-04: card icons are first-party CC0 SVGs under assets/first_party/card_icons/ logged in ASSETS.md prose; the key tile is the logged Kenney keyboard_1 to keyboard_4; cards widened to 3.4 m so the numbers line fits
 - [Phase 05]: 05-04: the keep swaps to castle_center_t2/t3/t4 (composed from the seven Castle Kit GLBs) on the castle plot's building_built, the hurt-only bar moves with it; the tier IV roof tip is cropped at the default camera
 - [Phase 05]: 05-05: requirement checks (CASTLE_TIER, NEEDS_SPOT) sit between MAX_TIER and CANNOT_AFFORD; castle requirements apply only on maps with a castle plot; requires_spot applies to a plot's first build only; shipped data stays ungated until 05-11
+- [Phase 05]: 05-06: dawn_income is the Mine's first payout and the income curve, not a zero, decides who pays: BuildingSystem lists FLAT only, IncomeState every other curve, merged by walking spot_ids() with the castle key last
+- [Phase 05]: 05-06: IncomeState's paid-dawn counter advances only while the payout was above the floor and the step is 1 or more, so it stops at ceil((start - floor) / step); a rebuilt-this-dawn plot skips with no progress (D-14)
+- [Phase 05]: 05-06: each Phase 5 plot plan appends its id to PHASE_FIVE_PLOT_IDS (test_prototype_map_economy), PHASE_FIVE_PLOTS (test_structure_decision_pins, keeps the Phase 4 pinned worlds Phase 4) and ECONOMIC_PLOT_IDS (test_prototype_map_data)
 
 ### Pending Todos
 
@@ -392,6 +396,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-21T16:37:55.505Z
-Stopped at: Completed 05-05-PLAN.md
+Last session: 2026-10-21T18:37:27.724Z
+Stopped at: Completed 05-06-PLAN.md
 Resume file: None
