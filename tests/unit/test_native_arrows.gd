@@ -56,6 +56,10 @@ func test_set_mirror_refuses_a_wrong_size_and_a_layout_that_does_not_fit() -> vo
 		"the colour would leave the stride"
 	)
 	assert_false(
+		fresh.set_mirror(_batch.mirror(), PackedInt64Array([CAPACITY, 20, 12, 12])),
+		"the custom data would overlap the colour"
+	)
+	assert_false(
 		fresh.set_mirror(_batch.mirror(), PackedInt64Array([CAPACITY + 1, 20, 12, 16])),
 		"capacity times stride is not the mirror size"
 	)

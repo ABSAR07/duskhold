@@ -57,7 +57,10 @@ inline bool layout_from(
 					candidate.color_offset > candidate.stride - COLOR_FLOATS)) {
 		return false;
 	}
-	if (candidate.custom_offset < TRANSFORM_FLOATS ||
+	// The custom data sits behind the colour when there is one, so the two never overlap.
+	const int64_t earliest_custom =
+			candidate.color_offset == -1 ? TRANSFORM_FLOATS : candidate.color_offset + COLOR_FLOATS;
+	if (candidate.custom_offset < earliest_custom ||
 			candidate.custom_offset > candidate.stride - CUSTOM_FLOATS) {
 		return false;
 	}

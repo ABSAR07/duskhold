@@ -232,6 +232,8 @@ func test_set_mirror_refuses_a_wrong_size_and_an_unknown_batch() -> void:
 	assert_false(fresh.set_mirror(TYPES, batch.mirror(), layout), "batch past type_count")
 	assert_false(fresh.set_mirror(0, PackedFloat32Array([1.0, 2.0]), layout), "a short mirror")
 	assert_false(fresh.set_mirror(0, batch.mirror(), PackedInt64Array([MAX_VIEWS, 16])), "layout")
+	var overlapping: PackedInt64Array = PackedInt64Array([layout[0], layout[1], 12, 12])
+	assert_false(fresh.set_mirror(0, batch.mirror(), overlapping), "custom data over the colour")
 	assert_false(fresh.set_bar_mirror(PackedFloat32Array([1.0]), layout), "a short bar mirror")
 	assert_eq(fresh.mirror(0).size(), 0, "a refusal keeps nothing")
 	assert_true(fresh.set_mirror(0, batch.mirror(), layout), "the batch's own mirror and layout")
