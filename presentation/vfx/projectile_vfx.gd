@@ -51,11 +51,11 @@ const CROWD_SHADER: Shader = preload("res://presentation/crowd/crowd_instance.gd
 ## How NativeArrows follows an arrow's target each frame (native/src/native_arrows.h): a building,
 ## castle or wall target resolves to the same point every frame, so it keeps the launch target;
 ## an enemy is followed through the enemy read view by id, a unit is resolved here before each
-## fill, and the king is followed directly.
-const TARGET_FIXED: int = 0
-const TARGET_ENEMY: int = 1
-const TARGET_UNIT: int = 2
-const TARGET_KING: int = 3
+## fill, and the king is followed directly. The codes are the native class's own constants.
+const TARGET_FIXED: int = NativeArrows.TARGET_FIXED
+const TARGET_ENEMY: int = NativeArrows.TARGET_ENEMY
+const TARGET_UNIT: int = NativeArrows.TARGET_UNIT
+const TARGET_KING: int = NativeArrows.TARGET_KING
 
 var _ctx: RunContext
 var _batch: CrowdBatch

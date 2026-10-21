@@ -43,7 +43,7 @@ const KIND_GRUNT: int = 0
 const KIND_SKIRMISHER: int = 1
 const KIND_FALLBACK: int = 2
 ## The bar batch's index in NativeEnemyViews (the archetype batches are 0 to 2).
-const BAR_BATCH: int = 3
+const BAR_BATCH: int = NativeEnemyViews.BATCH_BARS
 const CROWD_SHADER: Shader = preload("res://presentation/crowd/crowd_instance.gdshader")
 
 var _ctx: RunContext
