@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 05
 current_phase_name: Castle Center & Economy Depth
 status: executing
-stopped_at: Completed 05-06-PLAN.md
-last_updated: "2026-10-21T18:37:28.730Z"
+stopped_at: Completed 05-07-PLAN.md
+last_updated: "2026-10-21T20:21:02.323Z"
 last_activity: 2026-10-21
 last_activity_desc: Phase 05 execution started
-state_head: 71207325bab7c7a50efb5a6737f0817d7b68f49a
+state_head: 33591a77f57f300ef7e3f866b9e7fd26936d5356
 progress:
   total_phases: 13
   completed_phases: 4
   total_plans: 99
-  completed_plans: 93
+  completed_plans: 94
   percent: 31
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-21)
 ## Current Position
 
 Phase: 05 (Castle Center & Economy Depth) — EXECUTING
-Plan: 7 of 12
+Plan: 8 of 12
 Status: Ready to execute
 Last activity: 2026-10-21 — Phase 05 execution started
 
@@ -152,6 +152,7 @@ Progress: [███░░░░░░░] 31%
 | Phase 05 P04 | 78 min | 2 tasks | 58 files |
 | Phase 05 P05 | 56 min | 2 tasks | 20 files |
 | Phase 05 P06 | 98 min | 2 tasks | 39 files |
+| Phase 05 P07 | 90 min | 2 tasks | 24 files |
 
 ## Accumulated Context
 
@@ -359,6 +360,7 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-06: dawn_income is the Mine's first payout and the income curve, not a zero, decides who pays: BuildingSystem lists FLAT only, IncomeState every other curve, merged by walking spot_ids() with the castle key last
 - [Phase 05]: 05-06: IncomeState's paid-dawn counter advances only while the payout was above the floor and the step is 1 or more, so it stops at ceil((start - floor) / step); a rebuilt-this-dawn plot skips with no progress (D-14)
 - [Phase 05]: 05-06: each Phase 5 plot plan appends its id to PHASE_FIVE_PLOT_IDS (test_prototype_map_economy), PHASE_FIVE_PLOTS (test_structure_decision_pins, keeps the Phase 4 pinned worlds Phase 4) and ECONOMIC_PLOT_IDS (test_prototype_map_data)
+- [Phase 05]: 05-07: Field cost is 2 not 1 (owner's 0.5 s minimum-hold pin); Mill and Field are FLAT so IncomeState is untouched; the Field lock reads the Mill's tier so a fallen Mill never relocks Fields
 
 ### Pending Todos
 
@@ -396,6 +398,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-21T18:37:27.724Z
-Stopped at: Completed 05-06-PLAN.md
+Last session: 2026-10-21T20:21:00.819Z
+Stopped at: Completed 05-07-PLAN.md
 Resume file: None
