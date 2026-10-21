@@ -1,5 +1,6 @@
 #include "native_puffs.h"
 
+#include <cmath>
 #include <cstdint>
 
 #include <godot_cpp/core/class_db.hpp>
@@ -23,6 +24,11 @@ void NativePuffs::configure(int64_t capacity, double puff_seconds, double never_
 	born_.clear();
 	colors_.clear();
 	if (capacity < 1 || capacity > MAX_CAPACITY) {
+		return;
+	}
+	// The age divides by this: zero, a negative or a non-finite value would make it NaN, so a ring
+	// with such a lifetime stays unconfigured like one with a bad capacity.
+	if (!(puff_seconds > 0.0) || !std::isfinite(puff_seconds)) {
 		return;
 	}
 	const size_t slots = static_cast<size_t>(capacity);

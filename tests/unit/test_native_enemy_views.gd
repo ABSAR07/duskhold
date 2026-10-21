@@ -119,6 +119,9 @@ func test_a_flash_runs_out_and_the_expired_hit_is_forgotten() -> void:
 	_fill(1, 1000)
 	assert_eq(_views.flash_of(1), 0.0, "an expired hit stays forgotten whatever the clock says")
 	assert_eq(_views.hp_of(1), 4, "the hit points outlive the flash")
+	for bad_seconds: float in [0.0, -0.15, NAN, INF]:
+		_views.configure(MAX_VIEWS, LIFTS, CLEARANCE, bad_seconds)
+		assert_eq(_fill(1), 0, "a flash of %s seconds stays unconfigured" % bad_seconds)
 
 
 func test_clear_and_forget_drop_what_was_remembered() -> void:
@@ -301,6 +304,12 @@ func test_an_unconfigured_ring_or_a_missing_mirror_does_nothing() -> void:
 	assert_eq(bare.refresh(1.0), 0, "and nothing is drawn")
 	bare.configure(0, PUFF_S, NEVER_BORN)
 	assert_eq(bare.active_count(), 0, "a capacity of 0 stays unconfigured")
+	for bad_seconds: float in [0.0, -0.6, NAN, INF]:
+		bare.configure(PUFF_CAPACITY, bad_seconds, NEVER_BORN)
+		bare.spawn(Vector3.ZERO, 1.0, Color.WHITE)
+		assert_eq(
+			bare.active_count(), 0, "a lifetime of %s seconds stays unconfigured" % bad_seconds
+		)
 	var no_mirror: NativePuffs = NativePuffs.new()
 	no_mirror.configure(PUFF_CAPACITY, PUFF_S, NEVER_BORN)
 	no_mirror.spawn(Vector3.ZERO, 1.0, Color.WHITE)

@@ -1,6 +1,7 @@
 #include "native_enemy_views.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
 
 #include <godot_cpp/core/class_db.hpp>
@@ -63,6 +64,10 @@ void NativeEnemyViews::configure(
 	max_views_ = 0;
 	configured_ = false;
 	if (max_views < 1 || max_views > MAX_VIEWS_LIMIT || lifts_.empty()) {
+		return;
+	}
+	// The flash divides by this: zero, a negative or a non-finite value would make it NaN.
+	if (!(flash_seconds > 0.0) || !std::isfinite(flash_seconds)) {
 		return;
 	}
 	max_views_ = max_views;
