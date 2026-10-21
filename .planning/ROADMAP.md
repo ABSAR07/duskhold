@@ -359,7 +359,7 @@ Plans:
      - a Shrine, which activates after enough nearby enemy deaths, then attacks, pays, and strengthens other active Shrines
   4. Bonuses from building upgrades and castle abilities combine in one fixed, documented order. Automated tests verify single-modifier and combined-modifier cases.
 
-**Plans**: 2/12 plans executed (planned 2026-10-21: 12 plans in 11 waves, one chain with 05-04 and 05-05 side by side; research P1 to P8 and the one approved golden step folded in)
+**Plans**: 3/12 plans executed (planned 2026-10-21: 12 plans in 11 waves, one chain with 05-04 and 05-05 side by side; research P1 to P8 and the one approved golden step folded in)
 
 Plans:
 
@@ -370,7 +370,7 @@ Plans:
 - [x] 05-02: Castle tracer — the castle plot and its four tiers, BuildIntent choice_id, choice_picked and the ChoiceLedger, the world-space card row picked with keys 1 to 4 and the digit hand-over from control groups (BLDG-08, BLDG-05, UI-02, D-01, D-05, D-06)
 
 **Wave 3** *(blocked on 05-02)*
-- [ ] 05-03: All twelve cards, the castle label showing the next tier's effect and the locked picks, castle and choice validation, the ability data contract (D-02, D-04, D-07)
+- [x] 05-03: All twelve cards, the castle label showing the next tier's effect and the locked picks, castle and choice validation, the ability data contract (D-02, D-04, D-07)
 
 **Wave 4** *(blocked on 05-03)*
 - [ ] 05-04: Mouse hover and click on the cards, exact numbers on highlight, first-party SVG icons with key tiles, the keep's look per tier, two screenshots (UI-02, D-05, D-07)
@@ -532,7 +532,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 2. Night Defense & Playtest Gate | 22/22 | Complete    | 2026-10-08 |
 | 3. King Combat & Troops | 19/19 | Complete    | 2026-10-15 |
 | 4. Crowd-Scale Battles & Walls | 28/28 | Complete    | 2026-10-21 |
-| 5. Castle Center & Economy Depth | 2/12 | In Progress|  |
+| 5. Castle Center & Economy Depth | 3/12 | In Progress|  |
 | 6. Enemy Roster & Tower Specializations | 0/TBD | Not started | - |
 | 7. Army Variety & Heroes | 0/TBD | Not started | - |
 | 8. Art, Readability & Sound | 0/TBD | Not started | - |

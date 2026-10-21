@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 05
 current_phase_name: Castle Center & Economy Depth
 status: executing
-stopped_at: Completed 05-02-PLAN.md
-last_updated: "2026-10-21T12:45:42.953Z"
+stopped_at: Completed 05-03-PLAN.md
+last_updated: "2026-10-21T13:58:11.086Z"
 last_activity: 2026-10-21
 last_activity_desc: Phase 05 execution started
-state_head: a44121ff5d709c5cf81cc677ebdd175bede4a0cf
+state_head: 9bdc5fc2897ac81cb018fef85d626e26f5da690a
 progress:
   total_phases: 13
   completed_phases: 4
   total_plans: 99
-  completed_plans: 89
+  completed_plans: 90
   percent: 31
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-21)
 ## Current Position
 
 Phase: 05 (Castle Center & Economy Depth) — EXECUTING
-Plan: 3 of 12
+Plan: 4 of 12
 Status: Ready to execute
 Last activity: 2026-10-21 — Phase 05 execution started
 
@@ -148,6 +148,7 @@ Progress: [███░░░░░░░] 31%
 | Phase 04 P28 | 14 min | 2 tasks | 2 files |
 | Phase 05 P01 | 65 min | 2 tasks | 36 files |
 | Phase 05 P02 | 75 min | 2 tasks | 57 files |
+| Phase 05 P03 | 57 min | 2 tasks | 25 files |
 
 ## Accumulated Context
 
@@ -345,6 +346,9 @@ Recent decisions affecting current work:
 - [Phase 05]: StatStack (META-08): flat/percent/multiplier buckets with one half-up rounding, percent sum clamped -90..1000 when read, sorted id lists via StatIds.sorted (StringName.sort is not alphabetical); all consumers read through RunContext.stat_stack, identity while empty (smoke, army, walls, full_idle digests unchanged)
 - [Phase 05]: 05-02: castle plot is castle_plot (castle is the payout key) appended as spot 15 at (0, 0, 4.2); BuildingSystem stands it silently at tier I and its instance carries the tier only (health_of and max_health_of read 0), CastleState owns the castle's health; tier I of castle_center carries only a never-charged cost and the map's castle fields stay its numbers
 - [Phase 05]: 05-02: validate_build order is NOT_DAY, UNKNOWN_SPOT, MAX_TIER, CANNOT_AFFORD, CHOICE_REQUIRED, BAD_CHOICE; no card is pre-highlighted so a hold with no highlight is refused with choice_required; digits 1 to 4 (with or without Ctrl) pick cards and recall no group while the cards show, 5 to 9 and 0 never; the card row is 2.4 x 3.2 m at 7.6 m above the plot after the first real-window look
+- [Phase 05]: 05-03: castle label reads next-tier health, arrow and gold through the stat stack; Picks line is generic (any plot with picks)
+- [Phase 05]: 05-03: ChoiceValidation also rejects a card with no name or no modifiers; CastleValidation does not repeat checks MapConfig already owns (second castle plot, unknown building, bad radius)
+- [Phase 05]: 05-03: tiers III and IV of castle_center carry four cards each, so tests that bought them without a card now pick one (Headsman's Edge, Iron Discipline)
 
 ### Pending Todos
 
@@ -382,6 +386,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-21T12:45:41.249Z
-Stopped at: Completed 05-02-PLAN.md
+Last session: 2026-10-21T13:58:08.731Z
+Stopped at: Completed 05-03-PLAN.md
 Resume file: None
