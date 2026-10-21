@@ -359,7 +359,43 @@ Plans:
      - a Shrine, which activates after enough nearby enemy deaths, then attacks, pays, and strengthens other active Shrines
   4. Bonuses from building upgrades and castle abilities combine in one fixed, documented order. Automated tests verify single-modifier and combined-modifier cases.
 
-**Plans**: TBD
+**Plans**: 0/12 plans complete (planned 2026-10-21: 12 plans in 11 waves, one chain with 05-04 and 05-05 side by side; research P1 to P8 and the one approved golden step folded in)
+
+Plans:
+
+**Wave 1**
+- [ ] 05-01: Tracer — the StatStack (flat, percent, multiplier buckets, one half-up rounding) with docs/STAT_MODIFIERS.md and the single- and combined-modifier tests; every modifiable stat read through it with identity values, smoke, army, walls and full_idle byte-identical; Stats overlay (META-08, D-15)
+
+**Wave 2** *(blocked on 05-01)*
+- [ ] 05-02: Castle tracer — the castle plot and its four tiers, BuildIntent choice_id, choice_picked and the ChoiceLedger, the world-space card row picked with keys 1 to 4 and the digit hand-over from control groups (BLDG-08, BLDG-05, UI-02, D-01, D-05, D-06)
+
+**Wave 3** *(blocked on 05-02)*
+- [ ] 05-03: All twelve cards, the castle label showing the next tier's effect and the locked picks, castle and choice validation, the ability data contract (D-02, D-04, D-07)
+
+**Wave 4** *(blocked on 05-03)*
+- [ ] 05-04: Mouse hover and click on the cards, exact numbers on highlight, first-party SVG icons with key tiles, the keep's look per tier, two screenshots (UI-02, D-05, D-07)
+- [ ] 05-05: The one requirement mechanism — a tier that needs the castle at tier N and a plot that needs another spot at tier N — refused at the build gate with "Needs Castle II" / "Needs a Mill" labels and the denied bump, validated in data, the bots' defer-on-locked rule (BLDG-09, D-03, D-10)
+
+**Wave 5** *(blocked on 05-04 and 05-05)*
+- [ ] 05-06: Gold Mine and IncomeState — the declining payout merged into the one dawn payout, the crossed coin on a rebuilt building, curve validation, Economy overlay (ECON-03, D-12, D-14)
+
+**Wave 6** *(blocked on 05-06)*
+- [ ] 05-07: Mill and its three Fields locked until the Mill stands, Mill III gated, the field_locked shot (ECON-04, D-10, D-13)
+
+**Wave 7** *(blocked on 05-07)*
+- [ ] 05-08: Fishing Harbor — one boat per surviving dawn up to the tier's cap, harbor_boats_changed, the visual-only pond and its clearance validation (ECON-05, D-11)
+
+**Wave 8** *(blocked on 05-08)*
+- [ ] 05-09: Shrines — wake by nearby kill credit, the awake gate in the tower loop, the mutual +20% through the stack, shrine_woke; the edge-probe ledger (ECON-06, D-12)
+
+**Wave 9** *(blocked on 05-09)*
+- [ ] 05-10: The new economy replay golden on a frozen fixture with its CI lines, scripted bot card picks, the one-night D-14 test across all four buildings
+
+**Wave 10** *(blocked on 05-10)*
+- [ ] 05-11: Castle-aware bots and no-castle twins, D-03's gate on the shipped top tiers, numbers fitted to the 7-8 of 10 bar with the fewest changes, the re-pin and 05-BALANCE-REPORT.md with the full_idle before/after (D-08), two shots
+
+**Wave 11** *(blocked on 05-11)*
+- [ ] 05-12: Phase gate — the full local pass with all 44 shots, push and green CI, a launch-checked export and 05-PLAYTEST-GATE.md for the owner's feel check
 **UI hint**: yes
 
 ### Phase 6: Enemy Roster & Tower Specializations

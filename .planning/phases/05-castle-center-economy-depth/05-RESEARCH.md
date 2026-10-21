@@ -530,23 +530,28 @@ Combined-case examples for the tests (computed with E1's formula): tower damage 
    - What we know: eight new plots plus the existing 14 make 22; the castle is bought like a plot, so `spots` has 23 entries (P6).
    - What's unclear: whether any display or report should say 22 or 23.
    - Recommendation: treat the castle plot as infrastructure ("22 buildable plots, 23 spots"), pin both numbers in the tests, and mention it in the plan so nobody "fixes" the 23.
+   - **RESOLVED (plan 05-02):** the castle plot is infrastructure: "22 buildable plots, 23 spots". Plan 05-02 appends `castle_plot` as spot 15 and creates `tests/unit/test_prototype_map_economy.gd` as the single place the counts are pinned; plans 05-06 to 05-09 raise them as they add plots, ending at 23 spots (22 buildable plus the castle) in plan 05-09.
 
 2. **Where does the pond live in data?**
    - What we know: D-11 says visual only; `validate()` cannot check "off the roads" for a scene-only node.
    - What's unclear: whether the owner minds two new `MapConfig` fields.
    - Recommendation: `MapConfig.pond_center: Vector2` and `pond_radius: float` (0 = none); `MapRoot` or `PondView` draws it; `validate()` and a test prove it contains no plot, spawn point or road segment (point-to-segment distance from each spawn point to the castle at least `pond_radius + 10 m`).
+   - **RESOLVED (plan 05-08):** `MapConfig.pond_center` (0, 30) and `pond_radius` 8.0 (0 = no pond), drawn by `PondView` with no collision and never entering NavGrid; `EconomyValidation` reports a pond that holds a plot or spawn point or lies within `pond_radius + 10 m` of a road segment, and `tests/unit/test_pond_layout.gd` pins the shipped layout.
 
 3. **Card icons: download a pack or draw first-party?**
    - What we know: D-07 wants CC0 icons logged in `ASSETS.md`; no icon pack is in the repo; the vendor pages do not list icon names (A5).
    - What's unclear: whether a suitable CC0 pack exists with sword/shield/heart/coin/tower-style glyphs.
    - Recommendation: the plan gets one `checkpoint:human-verify` task to approve a specific CC0 pack download (record URL, size, SHA256 as Phase 1 did); fallback is first-party icons drawn as committed PNG/SVG files, which need no third-party log entry.
+   - **RESOLVED (plan 05-04):** first-party icons, no download: twelve original SVG glyphs under `assets/first_party/card_icons/`, dedicated CC0-1.0 and logged in a new "First-party assets" section of `ASSETS.md` (icon art is Claude's discretion in CONTEXT, so no owner checkpoint is needed); the key hint on each card reuses the already-logged Kenney Input Prompts tiles `keyboard_1.png` to `keyboard_4.png`. The Phase 8 art pass may replace the icons.
 
 4. **Does the castle's per-tier look need new models?**
    - What we know: the castle scene composes seven existing Kenney pieces; only seven GLBs of each pack are in the repo.
    - Recommendation: build tiers II to IV by adding pieces from the already-extracted set (more turrets, a second roof, flags) in `.tscn` wrappers, as the House tiers do; extract new GLBs only if a checkpoint approves a download.
+   - **RESOLVED (plan 05-04):** `castle_center_t2.tscn`, `castle_center_t3.tscn` and `castle_center_t4.tscn` compose only the seven Castle Kit GLBs already in the repository (extra storeys, raised turrets, wall pieces, flags); catalog entries for `castle_center` tiers 2 to 4; BuildingViews swaps the keep on the castle plot's `building_built`. No download.
 
 5. **Where does the overlay show the Shrine counts?**
    - Recommendation: one new `Economy` section (awake shrines, kill hp per shrine, Mine dawns, Harbor boats) and one `Stats` section (each stat with a non-identity result: base -> final) registered through `DebugOverlay.register_section` the way `NightOverlaySections.register` does; both read-only (a `test_debug_overlay_readonly` style test).
+   - **RESOLVED (plans 05-01, 05-06, 05-08, 05-09):** `StatOverlaySections` (the Stats section, plan 05-01) and `EconomyOverlaySections` (the Economy section: castle tier and picks and Mine rows in plan 05-06, Harbor boats in plan 05-08, Shrine credit and awake state in plan 05-09), both registered in `DebugOverlay.bind_run` after the Squad sections and read-only.
 
 ## Environment Availability
 

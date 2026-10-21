@@ -1,17 +1,17 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 5
+current_phase: 05
 current_phase_name: Castle Center & Economy Depth
-status: planning
-stopped_at: Phase 5 context gathered
-last_updated: "2026-10-21T07:13:16.845Z"
+status: executing
+stopped_at: Phase 5 planned (12 plans, 11 waves)
+last_updated: "2026-10-21T09:48:55.982Z"
 last_activity: 2026-10-21
-last_activity_desc: Phase 04 complete, transitioned to Phase 5
-state_head: fab94852dee633d2dfa49ebc731bb0f5781246b6
+last_activity_desc: Phase 5 planned: 12 plans in 11 waves, checker passed after 2 revisions
+state_head: f8d42b6c5d83098cb741cebb2123f8ef46d78268
 progress:
   total_phases: 13
   completed_phases: 4
-  total_plans: 87
+  total_plans: 99
   completed_plans: 87
   percent: 31
 ---
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-10-21)
 
 ## Current Position
 
-Phase: 5 — Castle Center & Economy Depth
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-10-21 — Phase 04 complete, transitioned to Phase 5
+Phase: 05 (Castle Center & Economy Depth) — READY TO EXECUTE
+Plan: 0 of 12 (05-01 stat stack first; 05-04 and 05-05 share wave 4; one chain otherwise)
+Status: Ready to execute
+Last activity: 2026-10-21 — Phase 5 planned: research (P1 to P8 premise corrections, full_idle baseline 4385f569…), 12 plans / 11 waves, two scoped haiku checkers, 8 issues → 1 → 0 over two revisions; gates: requirements 9/9, decisions 15/15, gap analysis 24/24
 
 Progress: [███░░░░░░░] 31%
 
@@ -377,6 +377,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-21T07:13:16.015Z
+Last session: 2026-10-21T09:49:47Z
 Stopped at: Phase 5 context gathered
 Resume file: .planning/phases/05-castle-center-economy-depth/05-CONTEXT.md
