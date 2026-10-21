@@ -81,6 +81,9 @@ void NativeStructures::rebuild(
 				units_sorted_ = false;
 			}
 			unit_ids_.push_back(id);
+			// The scan answers a Vector3i (32-bit components), so a result carries the id narrowed;
+			// find_unit compares the full 64-bit id. Unit ids start at 1 and grow by one, so a run
+			// would need 2^31 spawns before the two could differ (IN-15, second bullet).
 			insert(unit_positions[slot], unit_radii[slot], KIND_UNIT, static_cast<int32_t>(id));
 			unit_count_++;
 		}

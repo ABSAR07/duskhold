@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <cstdint>
+#include <limits>
 #include <vector>
 
 #include <godot_cpp/core/class_db.hpp>
@@ -66,6 +67,11 @@ void NativeGrid::set_layout(
 	blocked_.clear();
 	owner_.clear();
 	if (!armed || width <= 0 || height <= 0) {
+		return;
+	}
+	// A cell that cannot divide (zero, negative, NaN, infinite) or a grid whose cell count does not
+	// fit the 32-bit mask size the GDScript arrays are bound by (width * height cannot overflow).
+	if (!(cell > 0.0) || !std::isfinite(cell) || width > std::numeric_limits<int32_t>::max() / height) {
 		return;
 	}
 	width_ = width;

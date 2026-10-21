@@ -124,20 +124,39 @@ inline int64_t clampi(int64_t x, int64_t min, int64_t max) {
 	return x < min ? min : (x > max ? max : x);
 }
 
+// Whether `x` converts to int64 without undefined behaviour: [-2^63, 2^63) (a NaN is not).
+inline bool fits_int64(double x) {
+	return x >= -9223372036854775808.0 && x < 9223372036854775808.0;
+}
+
+// The engine converts with a plain C++ cast, which on x86-64 answers INT64_MIN (the "integer
+// indefinite" value) for a NaN and for every value outside the int64 range. The cast is undefined
+// behaviour in C++ there, so the mirrors answer that value explicitly: the same bytes as the
+// engine on this platform, defined everywhere (IN-15).
+constexpr int64_t INT64_OUT_OF_RANGE = INT64_MIN;
+
 // core/variant/variant_utility.cpp VariantUtilityFunctions::floori: int64_t(Math::floor(x)).
-// Like the engine, an argument outside the int64 range (or a NaN) is converted by the hardware.
 inline int64_t floori(double x) {
+	if (!fits_int64(x)) {
+		return INT64_OUT_OF_RANGE;
+	}
 	return static_cast<int64_t>(std::floor(x));
 }
 
 // core/variant/variant_utility.cpp VariantUtilityFunctions::ceili: int64_t(Math::ceil(x)).
 inline int64_t ceili(double x) {
+	if (!fits_int64(x)) {
+		return INT64_OUT_OF_RANGE;
+	}
 	return static_cast<int64_t>(std::ceil(x));
 }
 
 // core/variant/variant_utility.cpp VariantUtilityFunctions::roundi: int64_t(Math::round(x)),
 // Math::round being std::round (halves round away from zero).
 inline int64_t roundi(double x) {
+	if (!fits_int64(x)) {
+		return INT64_OUT_OF_RANGE;
+	}
 	return static_cast<int64_t>(std::round(x));
 }
 

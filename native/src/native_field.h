@@ -47,7 +47,8 @@ protected:
 
 public:
 	// NavGrid._armed, _origin, _cell, _width and _height. A layout that cannot size a grid (a
-	// non-positive width or height, or an armed flag with no cells) leaves the grid unarmed.
+	// non-positive width or height, an armed flag with no cells, a cell that is not a positive
+	// finite number, or more cells than a 32-bit count holds) leaves the grid unarmed.
 	void set_layout(bool armed, const Vector2 &origin, double cell, int64_t width, int64_t height);
 	// NavGrid._blocked and _owner after a rebuild; marks the grid ready (NavGrid.is_ready is
 	// armed and rebuilt at least once). Arrays whose size is not width * height are refused: the
