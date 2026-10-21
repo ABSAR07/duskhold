@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 05
 current_phase_name: Castle Center & Economy Depth
 status: executing
-stopped_at: Completed 05-03-PLAN.md
-last_updated: "2026-10-21T13:58:11.086Z"
+stopped_at: Completed 05-04-PLAN.md
+last_updated: "2026-10-21T15:38:21.105Z"
 last_activity: 2026-10-21
 last_activity_desc: Phase 05 execution started
-state_head: 9bdc5fc2897ac81cb018fef85d626e26f5da690a
+state_head: 989238204517088c39fbca3b855c87b5a912fc39
 progress:
   total_phases: 13
   completed_phases: 4
   total_plans: 99
-  completed_plans: 90
+  completed_plans: 91
   percent: 31
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-21)
 ## Current Position
 
 Phase: 05 (Castle Center & Economy Depth) — EXECUTING
-Plan: 4 of 12
+Plan: 5 of 12
 Status: Ready to execute
 Last activity: 2026-10-21 — Phase 05 execution started
 
@@ -149,6 +149,7 @@ Progress: [███░░░░░░░] 31%
 | Phase 05 P01 | 65 min | 2 tasks | 36 files |
 | Phase 05 P02 | 75 min | 2 tasks | 57 files |
 | Phase 05 P03 | 57 min | 2 tasks | 25 files |
+| Phase 05 P04 | 78 min | 2 tasks | 58 files |
 
 ## Accumulated Context
 
@@ -349,6 +350,9 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-03: castle label reads next-tier health, arrow and gold through the stat stack; Picks line is generic (any plot with picks)
 - [Phase 05]: 05-03: ChoiceValidation also rejects a card with no name or no modifiers; CastleValidation does not repeat checks MapConfig already owns (second castle plot, unknown building, bad radius)
 - [Phase 05]: 05-03: tiers III and IV of castle_center carry four cards each, so tests that bought them without a card now pick one (Headsman's Edge, Iron Discipline)
+- [Phase 05]: 05-04: a mouse highlight on the castle cards is sticky (pointing off every card keeps it) so a click or point then a hold buys that card; a press is consumed only when it lands on a card
+- [Phase 05]: 05-04: card icons are first-party CC0 SVGs under assets/first_party/card_icons/ logged in ASSETS.md prose; the key tile is the logged Kenney keyboard_1 to keyboard_4; cards widened to 3.4 m so the numbers line fits
+- [Phase 05]: 05-04: the keep swaps to castle_center_t2/t3/t4 (composed from the seven Castle Kit GLBs) on the castle plot's building_built, the hurt-only bar moves with it; the tier IV roof tip is cropped at the default camera
 
 ### Pending Todos
 
@@ -386,6 +390,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-21T13:58:08.731Z
-Stopped at: Completed 05-03-PLAN.md
+Last session: 2026-10-21T15:38:20.036Z
+Stopped at: Completed 05-04-PLAN.md
 Resume file: None
