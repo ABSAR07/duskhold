@@ -246,11 +246,15 @@ func _finish() -> void:
 		print(line)
 	var out: String = _args["out"]
 	var made: Error = DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(out))
-	var file: FileAccess = FileAccess.open("%s/%s" % [out, OUT_FILE], FileAccess.WRITE)
-	if made != OK or file == null:
+	var file: FileAccess = null
+	if made == OK:
+		file = FileAccess.open("%s/%s" % [out, OUT_FILE], FileAccess.WRITE)
+	var stored: bool = file != null
+	if file != null:
+		for line: String in _lines:
+			stored = file.store_line(line) and stored
+		file.close()
+	if not stored:
 		printerr("VIEW_ABLATION_FAILED reason=cannot_write_output out=%s" % out)
 		quit(EXIT_FAILED)
 		return
-	for line: String in _lines:
-		file.store_line(line)
-	file.close()

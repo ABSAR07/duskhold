@@ -151,17 +151,23 @@ func _read_run(path: String) -> Dictionary:
 	return {}
 
 
-## Writes report.json and report.md into `folder`.
+## Writes report.json and report.md into `folder`, one file at a time; false when a file cannot be
+## opened or its text cannot be stored.
 func _write(folder: String, report: Dictionary) -> bool:
-	var json: FileAccess = FileAccess.open("%s/%s" % [folder, REPORT_JSON], FileAccess.WRITE)
-	var markdown: FileAccess = FileAccess.open("%s/%s" % [folder, REPORT_MD], FileAccess.WRITE)
-	if json == null or markdown == null:
+	var json_text: String = JSON.stringify(report, "  ", false) + "\n"
+	if not _write_file("%s/%s" % [folder, REPORT_JSON], json_text):
 		return false
-	json.store_string(JSON.stringify(report, "  ", false) + "\n")
-	markdown.store_string(FrameReport.markdown(report))
-	json.close()
-	markdown.close()
-	return true
+	return _write_file("%s/%s" % [folder, REPORT_MD], FrameReport.markdown(report))
+
+
+## Opens `path`, stores `text`, closes it again. False when the open or the store failed.
+func _write_file(path: String, text: String) -> bool:
+	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
+	if file == null:
+		return false
+	var stored: bool = file.store_string(text)
+	file.close()
+	return stored
 
 
 func _fail(message: String) -> int:

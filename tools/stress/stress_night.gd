@@ -345,8 +345,11 @@ func _finish() -> int:
 	if file == null:
 		printerr("STRESS_FAILED reason=cannot_write file=%s" % path)
 		return EXIT_FAILED
-	file.store_string(JSON.stringify(_run_data(), "", false) + "\n")
+	var stored: bool = file.store_string(JSON.stringify(_run_data(), "", false) + "\n")
 	file.close()
+	if not stored:
+		printerr("STRESS_FAILED reason=cannot_write file=%s" % path)
+		return EXIT_FAILED
 	var summary: Dictionary = FrameReport.summarise(_run_data())
 	print(
 		(
