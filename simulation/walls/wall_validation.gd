@@ -258,7 +258,8 @@ static func _points_ok(label: String, run: WallRunDef, out: PackedStringArray) -
 ## cell centre within half_thickness + that radius of an intact segment, so a gap leaves
 ## width - 2 * (half_thickness + radius) of open centre line, and a cell centre is only guaranteed
 ## to fall inside it when that is at least one cell wide. 0 when the cell size is not usable (the
-## nav tuning ranges report it).
+## nav tuning ranges report it). The radius is NavGrid.largest_radius_of, which leaves the king's
+## larger body out (see its note, review IN-04).
 static func _grid_gap(map: MapConfig) -> float:
 	var cell: float = NavGrid.tuning_of(map).cell_size
 	var radius: float = NavGrid.largest_radius_of(map)

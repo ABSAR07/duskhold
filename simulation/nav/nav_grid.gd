@@ -12,7 +12,8 @@ extends RefCounted
 ## allocated before the first rebuild(), and a map with no wall never calls it.
 ##
 ## A cell is blocked when its centre lies within the segment's half thickness plus `inflate` (the
-## largest ground agent radius on the map) of an intact segment. With cells wider than that band a
+## largest radius among the map's enemies and units; the king is not counted, see
+## largest_radius_of) of an intact segment. With cells wider than that band a
 ## straight wall could fall between two columns of centres and leak, so a cell is also blocked
 ## when the move from its centre to a neighbour's would cut a segment's centre line (RESEARCH F5:
 ## no route may leak through a wall at any angle or offset). The flow field never steps diagonally
@@ -285,7 +286,12 @@ static func _key_of(point: Vector2) -> int:
 
 
 ## The largest radius among the map's enemies and units; DEFAULT_INFLATE when it names none.
-## WallValidation reads it to size the narrowest routable gap.
+## WallValidation reads it to size the narrowest routable gap. The king is deliberately not in it:
+## Pathing.walk_step steers the bot king (body_radius 0.6, data/king/king.tres) over this same grid,
+## and the grid keeps clear only the 0.5 m of the largest unit, so a gap sized for that radius may
+## be 0.1 m tighter than the king needs on each side. The shipped gaps (4 m) leave far more room;
+## the king's radius would have to reach NavGrid and WallValidation through MapConfig to count
+## (review IN-04, documented rather than changed because a larger inflate moves the wall goldens).
 static func largest_radius_of(map: MapConfig) -> float:
 	var largest: float = 0.0
 	if map == null:
