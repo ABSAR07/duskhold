@@ -149,16 +149,31 @@ static func _int_error(
 		out.append("nav tuning %s is %d, expected %d to %d" % [field, value, low, high])
 
 
-## The wall building must be a plain ladder of health: no income, no attack, no squad.
+## The wall building must be a plain ladder of health: at least one tier, every tier with health
+## above zero (a segment with no health never counts as built, review WR-04), and no income, no
+## attack, no squad.
 static func _building_errors(map: MapConfig, spot: BuildSpotDef) -> PackedStringArray:
 	var out: PackedStringArray = PackedStringArray()
 	for building_def: BuildingDef in map.buildings:
 		if building_def == null or building_def.id != spot.building_id:
 			continue
+		if building_def.tiers.is_empty():
+			out.append(
+				"wall plot '%s' uses building '%s' which has no tiers" % [spot.id, building_def.id]
+			)
+			return out
 		for index: int in range(building_def.tiers.size()):
 			var tier: BuildingTierDef = building_def.tiers[index]
 			if tier == null:
 				continue
+			if tier.max_health <= 0:
+				out.append(
+					(
+						"wall plot '%s' uses building '%s' whose tier %d has no health"
+						% [spot.id, building_def.id, index + 1]
+					)
+				)
+				return out
 			if tier.dawn_income > 0 or tier.attack_damage > 0 or tier.squad_size > 0:
 				(
 					out
