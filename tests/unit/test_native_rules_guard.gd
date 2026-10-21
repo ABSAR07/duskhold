@@ -31,6 +31,12 @@ const FORBIDDEN_CODE: Array[Array] = [
 	],
 	["fused multiply-add call", BEGIN + "(std::)?fma[fl]?\\s*\\(", "float r = std::fma(a, b, c);"],
 	[
+		"std min, max or clamp (use gd::minf, gd::maxf, gd::clampf, gd::mini, gd::maxi)",
+		# Not after "::", "." or ">" except as "std::": numeric_limits<T>::min() and a method are fine.
+		"(?<![A-Za-z0-9_:.>])(std::)?(max|min|clamp|fmax|fmin)\\s*[(<]",
+		"double m = std::max(a, b);",
+	],
+	[
 		"SIMD intrinsic",
 		"_mm\\d*_f?n?m(add|sub)|#\\s*include\\s*<(immintrin|x86intrin|intrin)\\.h>",
 		"__m128 r = _mm_fmadd_ps(a, b, c);",

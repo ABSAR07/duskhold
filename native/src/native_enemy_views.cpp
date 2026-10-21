@@ -199,7 +199,7 @@ int64_t NativeEnemyViews::fill(
 	if (!ready() || previous.size() != total || current.size() != total) {
 		return 0;
 	}
-	const int64_t archetypes = std::min(static_cast<int64_t>(lifts_.size()), static_cast<int64_t>(BATCH_BARS));
+	const int64_t archetypes = gd::mini(static_cast<int64_t>(lifts_.size()), static_cast<int64_t>(BATCH_BARS));
 	const real_t weight = static_cast<real_t>(blend);
 	const int64_t *id_at = ids.ptr();
 	const Vector2 *previous_at = previous.ptr();
