@@ -1,15 +1,17 @@
 extends GutTest
-## ECON-03, ECON-04, D-12, D-13: the economy data contract. The Gold Mine's, the Mill's and the
-## Field's numbers and their plots are pinned here and nowhere else (the behaviour tests set their
-## own on a deep copy). D-12 fixes the step and the floor: each paying dawn pays 1 less, down to a
-## floor of 1, never 0. The Mine's cost 4, first payout 3 and health 20, the Mill's and the Field's
-## numbers are the planner's starting numbers; plan 05-11 refits them with the bots, and does it by
+## ECON-03 to ECON-05, D-11 to D-13: the economy data contract. The Gold Mine's, the Mill's, the
+## Field's and the Fishing Harbor's numbers, their plots and the pond are pinned here and nowhere
+## else (the behaviour tests set their own on a deep copy). D-12 fixes the step and the floor: each
+## paying dawn pays 1 less, down to a floor of 1, never 0. The Mine's cost 4, first payout 3 and
+## health 20, the Mill's, the Field's and the Harbor's numbers are the planner's starting numbers;
+## plan 05-11 refits them with the bots, and does it by
 ## editing this file in the same commit (a deliberate retune, never a silent one). The .tres
 ## files store IncomeCurve as its integer, so the enum order is pinned too.
 
 const MINE_PATH := "res://data/buildings/gold_mine.tres"
 const MILL_PATH := "res://data/buildings/mill.tres"
 const FIELD_PATH := "res://data/buildings/field.tres"
+const HARBOR_PATH := "res://data/buildings/fishing_harbor.tres"
 const MAP_PATH := "res://data/maps/prototype_map.tres"
 const CATALOG_PATH := "res://presentation/buildings/building_view_catalog.tres"
 const FLAT_BUILDING_PATHS: Array[String] = [
@@ -43,6 +45,16 @@ const FIELD_INCOME: int = 1
 const FIELD_HEALTH: int = 8
 const FIELD_BODY_RADIUS: float = 1.2
 const FIELD_PLOTS: Array[StringName] = [&"field_1", &"field_2", &"field_3"]
+## The Fishing Harbor (D-12, ECON-05): two BOATS tiers; the second needs castle tier II (D-03).
+const HARBOR_COSTS: Array[int] = [3, 6]
+const HARBOR_CAPS: Array[int] = [3, 5]
+const HARBOR_BOAT_GOLD: Array[int] = [1, 1]
+const HARBOR_HEALTHS: Array[int] = [18, 24]
+const HARBOR_CASTLE_TIERS: Array[int] = [0, 2]
+const HARBOR_BODY_RADIUS: float = 1.5
+## The visual-only pond (D-11): at the south edge of the built-up area, the Harbor on its shore.
+const POND_CENTER := Vector2(0.0, 30.0)
+const POND_RADIUS: float = 8.0
 
 
 func _mine() -> BuildingDef:
@@ -192,3 +204,50 @@ func test_the_catalog_has_models_for_the_mill_tiers_and_the_field() -> void:
 	assert_null(catalog.find(&"mill", 4), "and there is no Mill tier IV")
 	assert_not_null(catalog.find(&"field", 1), "the Field has a model")
 	assert_null(catalog.find(&"field", 2), "and no second tier")
+
+
+func test_the_fishing_harbor_has_two_boats_tiers_gated_at_castle_two() -> void:
+	var harbor: BuildingDef = load(HARBOR_PATH)
+	assert_eq(harbor.id, &"fishing_harbor", "the id")
+	assert_eq(harbor.display_name, "Fishing Harbor", "the name")
+	assert_eq(harbor.max_tier(), 2, "two tiers")
+	assert_eq(harbor.income_curve, BuildingDef.IncomeCurve.BOATS, "BOATS")
+	assert_eq(harbor.body_radius, HARBOR_BODY_RADIUS, "its footprint")
+	for index: int in range(HARBOR_COSTS.size()):
+		var tier: BuildingTierDef = harbor.tier_def(index + 1)
+		assert_eq(tier.cost, HARBOR_COSTS[index], "tier %d cost" % (index + 1))
+		assert_eq(tier.boat_cap, HARBOR_CAPS[index], "tier %d boat cap" % (index + 1))
+		assert_eq(tier.boat_income, HARBOR_BOAT_GOLD[index], "tier %d gold per boat" % (index + 1))
+		assert_eq(tier.max_health, HARBOR_HEALTHS[index], "tier %d health" % (index + 1))
+		assert_eq(
+			tier.requires_castle_tier, HARBOR_CASTLE_TIERS[index], "tier %d gate" % (index + 1)
+		)
+		assert_eq(tier.dawn_income, 0, "a Harbor pays through its boats only")
+		assert_eq(tier.income_step, 0, "and has no decline")
+		assert_true(harbor.pays_income(index + 1), "tier %d pays" % (index + 1))
+
+
+func test_the_map_lists_the_harbor_its_plot_and_the_pond() -> void:
+	var map: MapConfig = load(MAP_PATH)
+	var listed: bool = false
+	for building_def: BuildingDef in map.buildings:
+		listed = listed or building_def.id == &"fishing_harbor"
+	assert_true(listed, "the building is in the map's list")
+	var plot: BuildSpotDef = null
+	for spot: BuildSpotDef in map.spots:
+		if spot.id == &"harbor_1":
+			plot = spot
+	assert_not_null(plot, "the plot exists")
+	if plot != null:
+		assert_eq(plot.building_id, &"fishing_harbor", "it takes the Harbor")
+		assert_eq(plot.position, Vector3(0.0, 0.0, 20.5), "at (0, 0, 20.5)")
+		assert_eq(plot.requires_spot, &"", "and is never locked")
+	assert_eq(map.pond_center, POND_CENTER, "the pond is centred at (0, 30)")
+	assert_eq(map.pond_radius, POND_RADIUS, "with radius 8")
+
+
+func test_the_catalog_has_models_for_both_harbor_tiers() -> void:
+	var catalog: BuildingViewCatalog = load(CATALOG_PATH)
+	assert_not_null(catalog.find(&"fishing_harbor", 1), "tier I has a model")
+	assert_not_null(catalog.find(&"fishing_harbor", 2), "tier II has a model")
+	assert_null(catalog.find(&"fishing_harbor", 3), "and there is no tier III")

@@ -1,9 +1,10 @@
 extends GutTest
-## ECON-03, D-15, DEV-03: the debug overlay's Economy section. It lists the castle's tier with the
-## names of the cards picked there, and one row per standing declining building (the Gold Mine) with
-## the dawns it has paid and what it pays next. Every row builder is a pure read: collecting the
-## rows changes no simulation value and emits no event. The Mine's numbers are set on a deep copy
-## (first payout 3, step 1, floor 1) so a later fit of the shipped numbers cannot break this test.
+## ECON-03, ECON-05, D-15, DEV-03: the debug overlay's Economy section. It lists the castle's tier
+## with the names of the cards picked there, one row per standing declining building (the Gold Mine)
+## with the dawns it has paid and what it pays next, and one row per standing Fishing Harbor with
+## its boats and cap. Every row builder is a pure read: collecting the rows changes no simulation
+## value and emits no event. The Mine's and the Harbor's numbers are set on a deep copy so a later
+## fit of the shipped numbers cannot break this test.
 
 const OVERLAY_SCENE := "res://ui/overlay/debug_overlay.tscn"
 const FIXTURE := "res://tests/fixtures/fixture_map_one_night.tres"
@@ -15,6 +16,8 @@ const STEP: int = 1
 const FLOOR: int = 1
 const RICH_GOLD: int = 100
 const NO_MINE_ROW := "gold_mine_1"
+const HARBOR: StringName = &"harbor_1"
+const BOAT_CAP: int = 3
 
 var _tuning: LoopTuning
 
@@ -36,6 +39,9 @@ func _context() -> RunContext:
 			tier.dawn_income = START
 			tier.income_step = STEP
 			tier.income_floor = FLOOR
+		if building_def.id == &"fishing_harbor":
+			building_def.tier_def(1).boat_cap = BOAT_CAP
+			building_def.tier_def(1).boat_income = 1
 	return RunContext.new(map, _tuning)
 
 
@@ -55,6 +61,11 @@ func _dawn(ctx: RunContext) -> void:
 	assert_eq(ctx.commands.submit(StartNightIntent.new()), CommandProcessor.OK, "night started")
 	ctx.run_manager.tick(_tuning.placeholder_night_seconds + 0.1)
 	assert_eq(ctx.run_manager.get_phase(), RunManager.RunPhase.DAWN, "dawn reached")
+
+
+func _dawn_to_day(ctx: RunContext) -> void:
+	ctx.run_manager.tick(_tuning.dawn_seconds + 0.1)
+	assert_eq(ctx.run_manager.get_phase(), RunManager.RunPhase.DAY, "day again")
 
 
 func test_the_section_title_is_economy() -> void:
@@ -166,3 +177,25 @@ func test_the_real_overlay_lists_economy_after_stats() -> void:
 	assert_gt(text.find("Economy"), text.find("Stats"), "after the Stats section")
 	assert_true(text.contains("castle: tier 1, picks none"), "with the castle row")
 	assert_true(text.contains("gold_mine_1: paid 0, next 3"), "and the Mine row")
+
+
+func test_there_is_no_harbor_row_until_the_harbor_stands() -> void:
+	var rows: Array = EconomyOverlaySections.economy_rows(_context())
+	assert_null(_value(rows, HARBOR), "an empty plot has no row")
+
+
+func test_the_harbor_row_reads_no_boats_the_day_it_is_bought() -> void:
+	var ctx: RunContext = _context()
+	_buy(ctx, HARBOR)
+	var rows: Array = EconomyOverlaySections.economy_rows(ctx)
+	assert_eq(_value(rows, HARBOR), "boats 0 of %d" % BOAT_CAP, "harbor_1: boats 0 of 3")
+
+
+func test_the_harbor_row_counts_the_boats_dawn_by_dawn() -> void:
+	var ctx: RunContext = _context()
+	_buy(ctx, HARBOR)
+	_dawn(ctx)
+	_dawn_to_day(ctx)
+	_dawn(ctx)
+	var rows: Array = EconomyOverlaySections.economy_rows(ctx)
+	assert_eq(_value(rows, HARBOR), "boats 2 of %d" % BOAT_CAP, "harbor_1: boats 2 of 3")

@@ -4,7 +4,7 @@ extends GutTest
 
 const SCRIPT_PATH := "res://tools/screenshot.sh"
 const LIST_OPEN := "ALL_SHOTS=("
-const EXPECTED_SHOT_COUNT: int = 40
+const EXPECTED_SHOT_COUNT: int = 41
 const PHASE_1_SHOT_COUNT: int = 15
 
 
@@ -32,15 +32,15 @@ func _bash_shots() -> Array[StringName]:
 
 func test_the_wrapper_lists_the_scenarios_in_the_same_order() -> void:
 	var bash_shots: Array[StringName] = _bash_shots()
-	assert_eq(bash_shots.size(), EXPECTED_SHOT_COUNT, "the wrapper lists forty shots")
+	assert_eq(bash_shots.size(), EXPECTED_SHOT_COUNT, "the wrapper lists forty-one shots")
 	assert_eq(bash_shots, ShotScenarios.ALL_SHOTS, "bash and GDScript lists are identical")
 
 
-func test_there_are_forty_distinct_shots() -> void:
+func test_there_are_forty_one_distinct_shots() -> void:
 	var seen: Dictionary = {}
 	for shot: StringName in ShotScenarios.ALL_SHOTS:
 		seen[shot] = true
-	assert_eq(ShotScenarios.ALL_SHOTS.size(), EXPECTED_SHOT_COUNT, "forty shots")
+	assert_eq(ShotScenarios.ALL_SHOTS.size(), EXPECTED_SHOT_COUNT, "forty-one shots")
 	assert_eq(seen.size(), EXPECTED_SHOT_COUNT, "no name is listed twice")
 
 
@@ -115,7 +115,7 @@ func test_the_shots_come_in_four_blocks_phase_1_then_3_then_4_then_5() -> void:
 	assert_eq(phase_3, ShotScenarios.ARMY_SHOTS, "they follow the first fifteen in order")
 	assert_eq(ShotCrowdScenarios.CROWD_SHOTS.size(), 4, "four Phase 4 shots")
 	assert_eq(phase_4, ShotCrowdScenarios.CROWD_SHOTS, "they follow in order")
-	assert_eq(ShotEconomyScenarios.ECONOMY_SHOTS.size(), 3, "three Phase 5 shots so far")
+	assert_eq(ShotEconomyScenarios.ECONOMY_SHOTS.size(), 4, "four Phase 5 shots so far")
 	assert_eq(phase_5, ShotEconomyScenarios.ECONOMY_SHOTS, "they close the list in order")
 	for shot: StringName in ShotScenarios.ARMY_SHOTS:
 		assert_true(ShotArmyScenarios.handles(shot), "%s has a Phase 3 scene" % shot)
@@ -219,8 +219,10 @@ func test_the_crowd_stress_night_king_outlasts_the_surge_and_the_shipped_king_is
 
 
 func test_the_economy_shots_are_listed_and_handled_by_the_economy_scenes() -> void:
-	var wanted: Array[StringName] = [&"castle_cards", &"castle_tier_four", &"field_locked"]
-	assert_eq(ShotEconomyScenarios.ECONOMY_SHOTS, wanted, "the cards, the keep, then the lock")
+	var wanted: Array[StringName] = [
+		&"castle_cards", &"castle_tier_four", &"field_locked", &"harbor_pond"
+	]
+	assert_eq(ShotEconomyScenarios.ECONOMY_SHOTS, wanted, "the cards, the keep, the lock, the pond")
 	for shot: StringName in wanted:
 		assert_true(ShotScenarios.ALL_SHOTS.has(shot), "%s is in ALL_SHOTS" % shot)
 		assert_true(_bash_shots().has(shot), "and the wrapper lists it")
@@ -266,8 +268,9 @@ func test_the_economy_shots_run_with_the_shipped_king() -> void:
 
 func test_the_field_locked_shot_stages_a_deep_copy_with_the_mill_unbuilt() -> void:
 	var shot: StringName = &"field_locked"
-	assert_eq(ShotScenarios.ALL_SHOTS.back(), shot, "it closes the list")
-	assert_eq(ShotEconomyScenarios.ECONOMY_SHOTS.back(), shot, "and the Phase 5 block")
+	var listed: Array[StringName] = ShotScenarios.ALL_SHOTS
+	assert_eq(listed[listed.size() - 2], shot, "it is second last, the pond shot follows")
+	assert_eq(ShotEconomyScenarios.ECONOMY_SHOTS[2], shot, "the third of the Phase 5 block")
 	var map: MapConfig = ShotScenarios.map_for(shot)
 	var shipped: MapConfig = load(ShotScenarios.MAP_DATA_PATH)
 	assert_ne(map, shipped, "a deep copy, never the shared resource")
@@ -279,3 +282,18 @@ func test_the_field_locked_shot_stages_a_deep_copy_with_the_mill_unbuilt() -> vo
 	assert_not_null(field_two, "the shot's Field is on the map")
 	if field_two != null:
 		assert_eq(field_two.requires_spot, &"mill_1", "and is locked behind the Mill")
+
+
+func test_the_harbor_pond_shot_closes_the_list_on_a_waveless_deep_copy_with_the_harbor_unbuilt(
+) -> void:
+	var shot: StringName = &"harbor_pond"
+	assert_eq(ShotScenarios.ALL_SHOTS.back(), shot, "it closes the list")
+	assert_eq(ShotEconomyScenarios.ECONOMY_SHOTS.back(), shot, "and the Phase 5 block")
+	assert_true(_bash_shots().has(shot), "the wrapper lists it")
+	var map: MapConfig = ShotScenarios.map_for(shot)
+	var shipped: MapConfig = load(ShotScenarios.MAP_DATA_PATH)
+	assert_ne(map, shipped, "a deep copy, never the shared resource")
+	assert_eq(map.nights.size(), 0, "waveless, so each night ends on its timer")
+	assert_gt(shipped.nights.size(), 0, "and the shipped nights are untouched")
+	assert_eq(map.pond_radius, shipped.pond_radius, "the pond is kept")
+	assert_eq(map.starting_gold, ShotEconomyScenarios.SHOT_GOLD, "with the shot gold")

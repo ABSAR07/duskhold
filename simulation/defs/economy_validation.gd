@@ -11,6 +11,12 @@ extends RefCounted
 
 ## The largest value any curve field may hold. Keeps every payout well inside an int.
 const MAX_CURVE_VALUE: int = 1000
+## The most boats a Fishing Harbor tier may hold (ECON-05): keeps the boat views and payout small.
+const MAX_BOAT_CAP: int = 20
+## The largest pond radius in metres (D-11); the water disc is a mesh sized from it.
+const MAX_POND_RADIUS: float = 30.0
+## The clear water kept between the pond's edge and every spawn-to-castle road segment, in metres.
+const POND_ROAD_CLEARANCE: float = 10.0
 
 
 ## Every curve problem of `map`, in building and tier order; empty when the data is well formed. A
