@@ -1,18 +1,14 @@
 ---
-status: testing
+status: complete
 phase: 04-crowd-scale-battles-walls
 source: [04-01-SUMMARY.md, 04-02-SUMMARY.md, 04-03-SUMMARY.md, 04-04-SUMMARY.md, 04-05-SUMMARY.md, 04-06-SUMMARY.md, 04-07-SUMMARY.md, 04-08-SUMMARY.md, 04-09-SUMMARY.md, 04-10-SUMMARY.md, 04-11-SUMMARY.md, 04-VERIFICATION.md, 04-PLAYTEST-GATE.md]
 started: 2026-10-16T21:07:26Z
-updated: 2026-10-20T16:44:46Z
+updated: 2026-10-21T04:26:00Z
 ---
 
 ## Current Test
 
-number: 14
-name: The stress night feels smooth and the crowd reads, now on the native step (UAT test 5)
-expected: |
-  After bash tools/native_build.sh in Git Bash, run the stress night from the editor binary in PowerShell: & ".\.tools\godot\4.7.2-stable\Godot_v4.7.2-stable_win64.exe" --path . res://tools/stress/stress_night.tscn -- --duration=30 (04-28 human-check 2; the step AND the arrows, enemies, bars, puffs and units are native now) Expected: 300 enemies, 50 footmen, 20 towers and the arrows are legible as a crowd and the frame time feels smooth, or the owner says where it still hurts. Claude measured about 256 fps at the median and a 5.37 ms p95 against the 8.0 ms budget (it was 142 fps and 10.95 ms before the view port) (Why human: Smoothness and crowd legibility are perceptual; the measurement is committed and is the closed gap, how it feels on the owner's machine is the owner's call)
-awaiting: user response
+[testing complete]
 
 ## Tests
 
@@ -53,7 +49,8 @@ requirement: PLAT-01
 test: Run the stress night in the editor binary (& .\.tools\godot\4.7.2-stable\Godot_v4.7.2-stable_win64.exe --path . res://tools/stress/stress_night.tscn -- --duration=30) and watch 300 enemies, 50 footmen, 20 towers and the arrows (04-PLAYTEST-GATE.md 'What to judge' 5)
 expected: On the owner's machine the crowd, arrows and towers are legible and the frame time is tolerable, or the owner says where it hurts; Claude measured about 43 fps at the median and a 37.04 ms p95
 why_human: Smoothness and crowd legibility are perceptual; the measurement is in 04-FRAME-REPORT.md and is the failed gap, but how bad it feels on the real machine is the owner's call
-result: issue
+result: pass
+superseded_note: "superseded: gap G-04-5 resolved by the native simulation port (04-14 to 04-23) and the view-layer port (04-24 to 04-28); re-check test 14 passed on 2026-10-21 (FRAME_REPORT_OK p95_ms=5.37 budget_ms=8.0 within=true, about 256 fps; the orchestrator's live overlay run read 512 fps); owner approved the supersede 2026-10-21"
 reported: "Claude, measured not felt: the stress night with 300 enemies, 50 units and 239 arrows in view runs at 43 fps median with a p95 frame time of 37.04 ms (04-FRAME-REPORT.md), so it is not smooth on the dev machine; the crowd itself reads as a crowd (screenshots/crowd_stress_night.png, one flat purple). Same root cause as the VERIFICATION.md gap for success criterion 3 (PLAT-01): one gap plan, not two."
 severity: major
 
@@ -62,7 +59,8 @@ requirement: ENMY-04
 test: Press F3 at night (stress night or a prototype night with walls): look at the flow-field arrows, blocked-cell crosses, enemy paths, magenta stuck enemies, and the Walls, Field and Crowd sections (screenshots overlay_field_gate, overlay_paths)
 expected: The field and paths are readable, the panel does not hide what matters, and the sections answer 'where are they going and who is stuck'; this is the 'paths are visible in the debug overlay' clause of criterion 2
 why_human: The wiring and numbers are tested (test_debug_overlay_crowd_sections 12/12 re-run by me; FlowFieldGizmo and EnemyPathGizmo added by CrowdOverlaySections and NightOverlaySections), legibility of arrows and layout is by eye (the overlay panel covers the right part of the wall by design)
-result: issue
+result: pass
+superseded_note: "superseded: gap G-04-6 resolved by 04-13-PLAN.md (overlay panel below the night banner, offset_top 104, pinned by test_overlay_banner_layout); re-check test 15 passed on 2026-10-21 (live 1280x720 probe: banner [371,45 538x50] and panel [706,104 562x510] do not overlap, live rows); owner approved the supersede 2026-10-21"
 reported: "Claude, from screenshots/overlay_field_gate.png: the field arrows, the orange wall crosses, the queue at the gate and the Walls / Field / Crowd sections all read, but at 1280x720 the night banner '300 enemies left' runs under the overlay's right column and its last word is hidden."
 severity: cosmetic
 
@@ -108,57 +106,70 @@ requirement: PLAT-01
 test: If a GTX 970-class machine is ever available, run bash tools/stress.sh --runs=3 --duration=20 on it; otherwise accept the written projection
 expected: The budget transfers to at most 16.7 ms per frame under RESEARCH A1 (GPU about 3 to 4 times slower, GDScript step about 1.3 to 1.6 times slower); the committed projection is the opposite: 30 to 37 fps at the median and a 48 to 59 ms p95, because the step is CPU-bound
 why_human: Plan 04-09 truth 5 is a backstop-tier truth: no GTX 970 exists here, presence and wiring never qualify, and no wired held-out test can stand in for hardware; I abstain (insufficient_spec). It is moot while the dev-machine budget itself is missed
-result: blocked
-blocked_by: physical-device
-reason: "No GTX 970-class machine is available; the transfer stays the RESEARCH A1 scaling assumption (3 to 4x GPU, 1.3 to 1.6x CPU) recorded in 04-FRAME-REPORT.md."
+result: skipped
+reason: "Deferred follow-up: no GTX 970-class machine exists here; the RESEARCH A1 projection in 04-FRAME-REPORT.md (p95 about 7.0 to 8.6 ms after the view-layer port) stands and PLAT-01 is re-verified on real campaign battles in Phase 13 (owner decision 2026-10-21, 'Defer to Phase 13')"
 
 ### 13. The 25 assumptions made for the owner, and the Phase 5 fix list
 requirement: BLDG-10, ENMY-04, PLAT-01
 test: Read the 25 assumptions in 04-PLAYTEST-GATE.md (view caps, enemy look, baked unit meshes, wall numbers and geometry, targets behind walls dropped, pathing tunables, D-07 and D-09 numbers, stress-night settings, the bots' wall placement, edge cases); change any; list the readability, tier-look, gate and squad fixes that must land before Phase 5
 expected: Each assumption confirmed or changed; anything listed becomes a gap plan through /gsd-verify-work 4. Note review IN-03: UnitViews.MAX_VIEWS is 256, below the 50-per-squad times several squads the simulation can field; assumption 1 states the cap
 why_human: Nothing in the packet was confirmed with the owner
-result: issue
+result: pass
+superseded_note: "superseded: gap G-04-7 resolved by 04-12-PLAN.md (a default melee enemy breaks the wall segment in front of its king, unit or building target; EnemyDef.drops_blocked_targets keeps the old rule for later roster entries); re-check test 16 passed on 2026-10-21 (four pinned suites, goldens and gate unchanged, breach capture); the other 24 assumptions, the prices, caps and looks stay signed off; owner approved the supersede 2026-10-21"
 reported: "Owner 2026-10-19: assumption 8 changes. A melee enemy whose target (a tower or other building, a unit, the king) is behind a wall must break through the wall to reach it, not drop the target and march on the castle; only some enemy types introduced in later phases go for the castle directly. Ranged enemies shooting over walls stays. All other 24 assumptions, the wall prices (2 / 4 / 6), the draw caps and the looks are signed off as they are; nothing else must land before Phase 5."
 severity: major
 
 ### 14. The stress night feels smooth and the crowd reads, now on the native step (UAT test 5)
 expected: After bash tools/native_build.sh in Git Bash, run the stress night from the editor binary in PowerShell: & ".\.tools\godot\4.7.2-stable\Godot_v4.7.2-stable_win64.exe" --path . res://tools/stress/stress_night.tscn -- --duration=30 (04-28 human-check 2; the step AND the arrows, enemies, bars, puffs and units are native now) Expected: 300 enemies, 50 footmen, 20 towers and the arrows are legible as a crowd and the frame time feels smooth, or the owner says where it still hurts. Claude measured about 256 fps at the median and a 5.37 ms p95 against the 8.0 ms budget (it was 142 fps and 10.95 ms before the view port) (Why human: Smoothness and crowd legibility are perceptual; the measurement is committed and is the closed gap, how it feels on the owner's machine is the owner's call)
-result: [pending]
+result: pass
+note: "Owner's call 2026-10-21: 'Pass on the numbers' (plain-language checkpoint, recommended option)."
+evidence: "FRAME_REPORT_OK runs=3 median_run=2 p95_ms=5.37 budget_ms=8.0 within=true enemies=300 units=50 arrows=237 (04-28, real window, 2026-10-20); p50 3.70 ms; the orchestrator's live 1280x720 overlay run on 2026-10-21 read FPS 512 with 239 arrows in flight, 160 of 300 enemies spawned at 4 s; screenshots/crowd_stress_night.png identical to the pre-port capture."
 
 ### 15. The debug overlay sits below the night banner at 720p (UAT test 6, plan 04-13)
 expected: Press F3 on a night (the stress night or a prototype night with walls) in a 1280x720-based window and read the night banner ('Night 8 of 8 - 300 enemies left'), the fast-forward label and the last overlay row; look at the re-captured shots overlay_on, overlay_paths and overlay_field_gate (re-taken by 04-28) and the CI Linux fallback-font overlay_field_gate.png Expected: The banner reads whole above the panel, nothing that matters is hidden, the last row is on screen, and overlay_paths shows a night. In a live window the panel's Phase, Enemies and Drawn rows follow the night (see the stale-panel note in warnings) (Why human: Layout adequacy and legibility are by eye; the y-only layout test (test_overlay_banner_layout 4/4 re-run by me, panel offset_top 104.0 in ui/overlay/debug_overlay.tscn line 19) pins the geometry but not the look)
-result: [pending]
+result: pass
+note: "Self-verified by the orchestrator 2026-10-21 in a real 1280x720 window (scratch overlay_probe.gd on the unchanged stress night; F3 sent as an InputEventAction)."
+evidence: "UAT p15 banner=[P: (371.0, 45.0), S: (538.0, 50.0)] panel=[P: (706.0, 104.0), S: (562.0, 510.0)] overlap=false overlay_visible=true; banner_text 'Night 1 of 1 — 300 enemies left' reads whole above the panel; live rows Phase: NIGHT, Night: 1, Enemies: 160, Drawn enemies: 160, Drawn units: 50 (50 rows, last row on screen), so the Phase DAY / Enemies 0 text in the fast-forwarded overlay_field_gate.png capture is a harness timing artefact, not a live defect; test_overlay_banner_layout 4/4 (verifier re-run) pins offset_top 104."
 
 ### 16. Melee enemies chew through a wall to reach a tower, unit or the king (UAT test 13, plan 04-12)
 expected: Play a run on build/windows/Duskhold.exe with a wall bought in front of a tower (04-28 human-check 1) and watch a night: a grunt whose tower, unit or king is behind a standing wall should attack the segment in front of it until it breaks and then walk on to the target; ranged enemies still shoot over; a grunt in a gap mouth walks through Expected: The rule reads as the owner meant it on 2026-10-19 (melee breaks through to its target; only later enemy types go castle-first), or the owner names a change; the wall-break rebuild hitch stays accepted (UAT test 10, 11.61 ms mean per rebuild after this round) (Why human: The rule is pinned (test_wall_break_to_target, test_melee_breaks_to_target, test_los_targets, test_enemy_wall_flags_contract) and the four replays did not move, but whether it looks right in play is the owner's judgement)
-result: [pending]
+result: pass
+note: "Owner's call 2026-10-21: 'Pass, the rule reads right' (recommended option)."
+evidence: "Rule pinned by test_wall_break_to_target, test_melee_breaks_to_target, test_los_targets and test_enemy_wall_flags_contract (all in the 2076-test suite green on 2026-10-20 locally and on CI); the four replay goldens and the gate digest unchanged since the 04-12 rule change; screenshots/walls_night_breach.png (04-28 re-capture, identical to the pre-port capture) shows the breach."
 
 ### 17. The owner's re-check packet and fresh export after the view-loop port
 expected: Open the dated update at the top of 04-PLAYTEST-GATE.md ('Update after the gap plans 04-12 to 04-28 (2026-10-20T15:51Z)') and launch build/windows/Duskhold.exe (exported 2026-10-20 at HEAD a482e3f, with libduskhold_sim.windows.x86_64.dll and Duskhold.pck beside it; the executor's launch check exited 0 in about 4 s) Expected: The build launches and plays a full run, the packet names UAT tests 5, 6 and 13 and the native build step, and the numbers it quotes (p95 5.37 ms, 256 fps) match 04-FRAME-REPORT.md (Why human: It is a hand-off to the owner; the packet and the export exist (read and listed by me) but the owner's own launch on the owner's machine is the check, and the export launch itself was not re-run by me)
-result: [pending]
+result: pass
+note: "Self-verified by the orchestrator 2026-10-21 (owner delegation: observable checks are run by Claude; the owner's own play is folded into test 16)."
+evidence: "build/windows/Duskhold.exe, Duskhold.pck and libduskhold_sim.windows.x86_64.dll dated 2026-10-20 20:49 local; 'timeout 90 build/windows/Duskhold.exe --headless --quit-after 120' exited 0 in about 4 s on 2026-10-21; 04-PLAYTEST-GATE.md opens with '## Update after the gap plans 04-12 to 04-28 (2026-10-20T15:51Z)', names UAT tests 5, 6 and 13 and 'bash tools/native_build.sh', and its FRAME_REPORT_OK line (p95_ms=5.37 budget_ms=8.0 within=true) is byte-identical to 04-FRAME-REPORT.md's."
 
 ### 18. GTX 970 transfer of the dev-machine budget (insufficient_spec, backstop tier; UAT test 12 blocked by hardware)
 expected: If a GTX 970-class machine is ever available, run bash tools/stress.sh --runs=3 --duration=20 on it; otherwise accept the written projection Expected: The RESEARCH A1 projection recorded in 04-FRAME-REPORT.md after the view-layer port: p50 about 4.8 to 5.9 ms and p95 about 7.0 to 8.6 ms on a GTX 970-class machine (the pre-port projections were 14.2 to 17.5 ms and 48 to 59 ms at the p95); PLAT-01 is re-verified on real campaign battles in Phase 13 whatever this reads (Why human: A backstop-tier truth: no GTX 970 exists here, presence and wiring never qualify, and no wired held-out test can stand in for hardware; I abstain (insufficient_spec))
-result: [pending]
+result: skipped
+reason: "Deferred follow-up: no GTX 970-class machine exists here; the RESEARCH A1 projection in 04-FRAME-REPORT.md (p95 about 7.0 to 8.6 ms after the view-layer port) stands and PLAT-01 is re-verified on real campaign battles in Phase 13 (owner decision 2026-10-21, 'Defer to Phase 13')"
 
 ### 19. The view-layer port draws the night as before (by-eye screenshot comparison)
 expected: Compare the arrows, the enemy crowd with its hit flashes and hurt-only bars, the death puffs and the friendly units and their bars in a night on the exported build (or the crowd_stress_night and walls_night_breach captures) with what the owner saw at UAT tests 5 and 13; the coverage items with human_judgment true in the SUMMARYs of 04-25, 04-26 and 04-27 record the executors' own comparison Expected: Nothing is missing, doubled, recoloured, mis-sized or popping; the arrows arc from the tower to the target as before; flashes last 0.15 s; puffs fade over 0.6 s; bars show only on hurt enemies and units (Why human: The view fills are pinned byte-for-byte on the batch mirrors (test_projectile_fill_pins 4/4, test_enemy_fill_pins 5/5, test_unit_fill_pins 4/4, SHA-256 over the instance buffers, computed on the GDScript before any native code, never edited) and the goldens did not move, so any difference could only be in how the buffer is drawn, which only an eye can judge. I read crowd_stress_night.png and overlay_field_gate.png and saw the purple crowd, pink flashes, red hurt-only bars, yellow arrows and blue units as described)
-result: [pending]
+result: pass
+note: "Self-verified by the orchestrator 2026-10-21 with the Read tool on the PNG pairs."
+evidence: "crowd_stress_night.png before the port (build/shots_before_04-25, 2026-10-20 14:33) and after it (screenshots/, 20:50 after 04-28): identical frame, 300 enemies, the arrows at the same places, hurt-only bars on the same enemies, the king and both squads the same; walls_night_breach.png before (build/shots_before_04-26) and after: identical, the breached segment, rubble, the two grunts and the king the same; the executors' own pairs for hud_day_squads and hud_night_squad_down (04-27) read identical too. The pins (test_projectile_fill_pins 4/4, test_enemy_fill_pins 5/5, test_unit_fill_pins 4/4) hash the batch mirrors byte for byte."
 
 ## Summary
 
 total: 19
-passed: 9
-issues: 3
-pending: 6
-skipped: 0
-blocked: 1
+passed: 17
+issues: 0
+pending: 0
+skipped: 2
+blocked: 0
 
 ## Gaps
 
 - gap_id: G-04-5
   truth: "On the owner's machine the crowd, arrows and towers are legible and the frame time is tolerable, or the owner says where it hurts; Claude measured about 43 fps at the median and a 37.04 ms p95"
-  status: failed
+  status: resolved        # was: failed
+  resolved_by: "04-14-PLAN.md to 04-23-PLAN.md (the native simulation port) and 04-24-PLAN.md to 04-28-PLAN.md (the view-layer port and the re-measurement: FRAME_REPORT_OK p95_ms=5.37 budget_ms=8.0 within=true)"
+  resolved_at: 2026-10-21
   reason: "User reported: Claude, measured not felt: the stress night with 300 enemies, 50 units and 239 arrows in view runs at 43 fps median with a p95 frame time of 37.04 ms (04-FRAME-REPORT.md), so it is not smooth on the dev machine; the crowd itself reads as a crowd (screenshots/crowd_stress_night.png, one flat purple). Same root cause as the VERIFICATION.md gap for success criterion 3 (PLAT-01): one gap plan, not two."
   severity: major
   test: 5
@@ -184,7 +195,9 @@ blocked: 1
   note: "Same root cause as 04-VERIFICATION.md's gap for ROADMAP success criterion 3 (PLAT-01); plan it once. Owner route 2026-10-19 (test 11): GDExtension (C++) for the enemy and wall step, profiling first"
 - gap_id: G-04-6
   truth: "The field and paths are readable, the panel does not hide what matters, and the sections answer 'where are they going and who is stuck'; this is the 'paths are visible in the debug overlay' clause of criterion 2"
-  status: failed
+  status: resolved        # was: failed
+  resolved_by: "04-13-PLAN.md"
+  resolved_at: 2026-10-21
   reason: "User reported: Claude, from screenshots/overlay_field_gate.png: the field arrows, the orange wall crosses, the queue at the gate and the Walls / Field / Crowd sections all read, but at 1280x720 the night banner '300 enemies left' runs under the overlay's right column and its last word is hidden."
   severity: cosmetic
   test: 6
@@ -205,7 +218,9 @@ blocked: 1
   debug_session: .planning/debug/overlay-hides-night-banner-720p.md
 - gap_id: G-04-7
   truth: "Each assumption confirmed or changed; anything listed becomes a gap plan through /gsd-verify-work 4. Note review IN-03: UnitViews.MAX_VIEWS is 256, below the 50-per-squad times several squads the simulation can field; assumption 1 states the cap"
-  status: failed
+  status: resolved        # was: failed
+  resolved_by: "04-12-PLAN.md"
+  resolved_at: 2026-10-21
   reason: "User reported: Owner 2026-10-19: assumption 8 changes. A melee enemy whose target (a tower or other building, a unit, the king) is behind a wall must break through the wall to reach it, not drop the target and march on the castle; only some enemy types introduced in later phases go for the castle directly. Ranged enemies shooting over walls stays. All other 24 assumptions, the wall prices (2 / 4 / 6), the draw caps and the looks are signed off as they are; nothing else must land before Phase 5."
   severity: major
   test: 13
@@ -230,3 +245,12 @@ blocked: 1
   note: "Rule change to 04-06's target rule (RESEARCH Open Question 3, packet assumption 8): melee enemies break the blocking wall to reach a blocked target; the walls golden and test_wall_behaviour pin the old rule and will move (a D-14 regeneration with its report)"
 
 > Round 2 (2026-10-20T16:44:46Z, after gap round 2, plans 04-24 to 04-28): tests 14 to 19 are the six owner items of 04-VERIFICATION.md verified 2026-10-20T16:41:25Z (status human_needed, 0 gaps, 4 of 4 criteria, PLAT-01 met at median-run p95 5.37 ms against 8.0). Tests 5, 6 and 13 stay as round-1 history and are superseded in substance by 14, 15 and 16; the gap rows G-04-5, G-04-6 and G-04-7 are reconciled at /gsd-verify-work 4.
+
+## Deferred Follow-Ups
+
+- test: 12
+  idea: "Deferred follow-up: no GTX 970-class machine exists here; the RESEARCH A1 projection in 04-FRAME-REPORT.md (p95 about 7.0 to 8.6 ms after the view-layer port) stands and PLAT-01 is re-verified on real campaign battles in Phase 13 (owner decision 2026-10-21, 'Defer to Phase 13')"
+  deferred_at: 2026-10-21
+- test: 18
+  idea: "Deferred follow-up: no GTX 970-class machine exists here; the RESEARCH A1 projection in 04-FRAME-REPORT.md (p95 about 7.0 to 8.6 ms after the view-layer port) stands and PLAT-01 is re-verified on real campaign battles in Phase 13 (owner decision 2026-10-21, 'Defer to Phase 13')"
+  deferred_at: 2026-10-21
