@@ -21,6 +21,7 @@ var _night: NightSim
 var _king: KingState
 var _castle: CastleState
 var _squads: SquadSystem
+var _income: IncomeState
 var _phase: RunPhase = RunPhase.DAY
 var _elapsed: float = 0.0
 var _phase_elapsed: float = 0.0
@@ -36,7 +37,8 @@ func _init(
 	night: NightSim = null,
 	king: KingState = null,
 	castle: CastleState = null,
-	squads: SquadSystem = null
+	squads: SquadSystem = null,
+	income: IncomeState = null
 ) -> void:
 	_events = events
 	_economy = economy
@@ -46,6 +48,7 @@ func _init(
 	_king = king
 	_castle = castle
 	_squads = squads
+	_income = income
 
 
 func get_phase() -> RunPhase:
@@ -195,13 +198,23 @@ func _enter_day() -> void:
 
 
 ## Pays the dawn income exactly once per DAWN entry. Each standing House pays its current tier's
-## income (ECON-02); a building rebuilt this dawn pays nothing (LOOP-05): BuildingSystem leaves it
-## out of the income it reports. The castle's base income is paid every dawn regardless of what
-## stands (G-02-1) and is listed last under MapConfig.CASTLE_PAYOUT_KEY, so the total always equals
-## the sum of per_spot and the coin can fly from the castle. Nothing here or at day start resets or
-## rebases gold, so unspent gold carries over (ECON-07).
+## income (ECON-02); a building rebuilt this dawn pays nothing (LOOP-05): BuildingSystem and
+## IncomeState both leave it out. FLAT curves come from BuildingSystem alone and every other curve
+## (the Gold Mine's decline) from IncomeState alone, and the two are merged by walking the plots in
+## MapConfig order, so per_spot lists every paying plot in map order whichever system pays it. The
+## castle's base income is paid every dawn regardless of what stands (G-02-1) and is listed last
+## under MapConfig.CASTLE_PAYOUT_KEY, so the total always equals the sum of per_spot and the coin
+## can fly from the castle. Nothing here or at day start resets or rebases gold, so unspent gold
+## carries over (ECON-07).
 func _apply_dawn_payout() -> void:
-	var per_spot: Dictionary = _buildings.dawn_income_by_spot()
+	var flat: Dictionary = _buildings.dawn_income_by_spot()
+	var other: Dictionary = _income.dawn_payouts() if _income != null else {}
+	var per_spot: Dictionary = {}
+	for spot_id: StringName in _buildings.spot_ids():
+		if other.has(spot_id):
+			per_spot[spot_id] = other[spot_id]
+		elif flat.has(spot_id):
+			per_spot[spot_id] = flat[spot_id]
 	var base_income: int = _castle.base_income() if _castle != null else 0
 	if base_income > 0:
 		per_spot[MapConfig.CASTLE_PAYOUT_KEY] = base_income

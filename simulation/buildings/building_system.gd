@@ -84,7 +84,9 @@ func next_action_cost(spot_id: StringName) -> int:
 ## What each standing building pays at dawn: spot_id -> gold, in MapConfig order, listing only
 ## spots whose current tier pays more than 0. A wall plot never pays, and neither does the castle
 ## plot (CastleState pays the castle's base income). A destroyed building pays nothing, and neither
-## does one rebuilt this dawn (LOOP-05). Pure: it never mutates anything.
+## does one rebuilt this dawn (LOOP-05). Only FLAT curves are listed: every other income curve
+## (the Gold Mine's decline) is paid by IncomeState alone, so nothing is paid twice. Pure: it never
+## mutates anything.
 func dawn_income_by_spot() -> Dictionary:
 	var income: Dictionary = {}
 	for spot_id: StringName in _order:
@@ -94,7 +96,7 @@ func dawn_income_by_spot() -> Dictionary:
 		if not _is_plain(_spots[spot_id] as BuildSpotDef):
 			continue
 		var building_def: BuildingDef = _defs.get(instance.building_id) as BuildingDef
-		if building_def == null:
+		if building_def == null or building_def.income_curve != BuildingDef.IncomeCurve.FLAT:
 			continue
 		var tier_def: BuildingTierDef = building_def.tier_def(instance.tier)
 		if tier_def != null and tier_def.dawn_income > 0:

@@ -29,6 +29,10 @@ const TUNING_PATH := "res://data/tuning/nav_tuning.tres"
 const FOOTMAN_PATH := "res://data/units/footman.tres"
 const HOUSE_PATH := "res://data/buildings/house.tres"
 const WALL_PLOTS: Array[StringName] = [&"wall_west", &"wall_east", &"wall_north", &"wall_ring"]
+## The plots Phase 5 added to the prototype map after these pins were computed. The pinned worlds
+## are the Phase 4 map, so they stay empty here: a new building would add a target to the index and
+## move every pin without any structure code having changed.
+const PHASE_FIVE_PLOTS: Array[StringName] = [&"gold_mine_1"]
 const UNIT_COUNT: int = 60
 const SPREAD: float = 70.0
 const TIE_UNITS: int = 40
@@ -126,6 +130,8 @@ static func build_world(world: String) -> Dictionary:
 	var buildings: BuildingSystem = BuildingSystem.new(map, events)
 	var walls: WallSystem = WallSystem.new(map, buildings, events)
 	for spot_id: StringName in buildings.spot_ids():
+		if PHASE_FIVE_PLOTS.has(spot_id):
+			continue
 		if world == "walled" or not WALL_PLOTS.has(spot_id):
 			buildings.apply_next_tier(spot_id)
 	var units: UnitSystem = UnitSystem.new(events)

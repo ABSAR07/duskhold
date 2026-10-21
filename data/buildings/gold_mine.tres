@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="BuildingDef" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://simulation/defs/building_tier_def.gd" id="1_tier"]
+[ext_resource type="Script" path="res://simulation/defs/building_def.gd" id="2_def"]
+
+[sub_resource type="Resource" id="Resource_tier1"]
+script = ExtResource("1_tier")
+cost = 4
+dawn_income = 3
+max_health = 20
+income_step = 1
+income_floor = 1
+
+[resource]
+script = ExtResource("2_def")
+id = &"gold_mine"
+display_name = "Gold Mine"
+body_radius = 1.5
+income_curve = 1
+tiers = Array[ExtResource("1_tier")]([SubResource("Resource_tier1")])

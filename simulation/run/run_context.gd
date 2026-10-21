@@ -14,6 +14,8 @@ var buildings: BuildingSystem
 ## The cards picked at branching tiers and the arming of their modifiers (BLDG-05).
 var choices: ChoiceLedger
 var walls: WallSystem
+## The per-plot state of every non-flat income curve: the Gold Mine's decline (ECON-03).
+var income: IncomeState
 var squads: SquadSystem
 var castle: CastleState
 var king: KingState
@@ -47,6 +49,7 @@ func _init(
 	buildings = BuildingSystem.new(map_config, events, stat_stack)
 	choices = ChoiceLedger.new(map_config, buildings, events, stat_stack)
 	walls = WallSystem.new(map_config, buildings, events, stat_stack)
+	income = IncomeState.new(map_config, buildings, events, stat_stack)
 	castle = CastleState.new(map_config, events, stat_stack)
 	king = KingState.new(
 		def, Vector2(map_config.king_spawn.x, map_config.king_spawn.z), events, tuning, stat_stack
@@ -55,7 +58,9 @@ func _init(
 	night = NightSim.new(
 		map_config, events, king, run_seed, castle, buildings, squads, walls, stat_stack
 	)
-	run_manager = RunManager.new(events, economy, buildings, tuning, night, king, castle, squads)
+	run_manager = RunManager.new(
+		events, economy, buildings, tuning, night, king, castle, squads, income
+	)
 	commands = CommandProcessor.new(
 		economy, buildings, run_manager, events, king, squads, map_config
 	)

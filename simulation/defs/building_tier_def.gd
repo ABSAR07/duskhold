@@ -27,6 +27,13 @@ extends Resource
 ## The castle tier this tier needs before it can be bought (D-03, BLDG-09). 0 means none. Checked
 ## only on a map that has a castle plot; a castle exactly at this tier is enough.
 @export var requires_castle_tier: int = 0
+## Gold a DECLINING building (the Gold Mine only) pays less at each later dawn it pays. For such a
+## building dawn_income is the first payout. 0 on every other curve; MapConfig.validate() reports a
+## value set where the curve does not use it.
+@export var income_step: int = 0
+## The least a DECLINING building ever pays at a dawn it stands, never 0 (D-12). 0 on every other
+## curve, like income_step.
+@export var income_floor: int = 0
 
 
 ## One-line effect text shown next to the cost, e.g. "+2 gold at dawn".

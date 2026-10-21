@@ -13,9 +13,11 @@ const MAX_TIER_TEXT := "Max tier"
 ## when the price is payable), and always true when nothing is left to buy. `picks` lists the
 ## display names of the cards picked at this plot in pick order joined with " · " (empty for a plot
 ## with none). The castle plot's `effect` reads its numbers through the stat stack, so the label
-## shows what the castle will be, not the raw tier values. A next tier locked behind the castle or
-## another plot (D-03, D-10) reads "Needs Castle II" / "Needs a Mill" in `status_line` with cost 0
-## and `affordable` true, so no price and no red coins show.
+## shows what the castle will be, not the raw tier values. A declining building (the Gold Mine)
+## says how its payout falls before it is built and, once built, what it pays at the next dawn. A
+## next tier locked behind the castle or another plot (D-03, D-10) reads "Needs Castle II" /
+## "Needs a Mill" in `status_line` with cost 0 and `affordable` true, so no price and no red coins
+## show.
 static func describe(ctx: RunContext, spot_id: StringName, coins_paid: int) -> Dictionary:
 	var content: Dictionary = {
 		"title": "",
@@ -38,6 +40,8 @@ static func describe(ctx: RunContext, spot_id: StringName, coins_paid: int) -> D
 		content["title"] = building_def.tier_label(tier)
 		if run != null:
 			content["effect"] = _wall_effect(run, building_def.tier_def(tier))
+		elif building_def.income_curve == BuildingDef.IncomeCurve.DECLINING and ctx.income != null:
+			content["effect"] = "Next dawn: %d gold" % ctx.income.next_payout(spot_id)
 		content["max_tier"] = true
 		content["affordable"] = true
 		content["status_line"] = MAX_TIER_TEXT
@@ -48,7 +52,7 @@ static func describe(ctx: RunContext, spot_id: StringName, coins_paid: int) -> D
 	elif ctx.buildings.get_spot(spot_id).is_castle:
 		content["effect"] = _castle_effect(ctx, next_tier)
 	else:
-		content["effect"] = next_tier.effect_line()
+		content["effect"] = building_def.tier_effect_line(tier + 1)
 	var locked_line: String = _locked_line(ctx, spot_id, next_tier)
 	if not locked_line.is_empty():
 		content["status_line"] = locked_line
