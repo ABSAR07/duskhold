@@ -261,11 +261,17 @@ jobs:
         run: python tools/bootstrap.py --godot --templates --yes --platform linux
       # Both libraries: the import pass of the Windows preset on Linux loads the .gdextension (the
       # .so), and the export packs the .dll next to Duskhold.exe. The stamps ride along.
-      - name: Download the native libraries
+      # Two downloads by exact name (not a native-* pattern): only the two libraries of this run may
+      # land in the folder the export packs.
+      - name: Download the native Linux library
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          pattern: native-*
-          merge-multiple: true
+          name: native-linux
+          path: addons/duskhold_sim/bin
+      - name: Download the native Windows library
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: native-windows
           path: addons/duskhold_sim/bin
       - name: Export Windows build
         run: bash tools/export.sh
