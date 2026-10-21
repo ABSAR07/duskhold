@@ -137,8 +137,6 @@ private:
 	std::vector<duskhold::MirrorLayout> layouts_;
 	std::vector<uint8_t> mirror_ready_;
 	std::vector<int64_t> counts_;
-	// The mirror pointers a frame took for writing; null until a batch's first instance.
-	std::vector<float *> buffers_;
 	PackedFloat32Array bar_mirror_;
 	duskhold::MirrorLayout bar_layout_;
 	bool bar_ready_ = false;

@@ -54,7 +54,6 @@ void NativeUnitViews::configure(int64_t max_views, double bar_height, int64_t ty
 	layouts_.clear();
 	mirror_ready_.clear();
 	counts_.clear();
-	buffers_.clear();
 	bar_count_ = 0;
 	max_views_ = 0;
 	type_count_ = 0;
@@ -69,7 +68,6 @@ void NativeUnitViews::configure(int64_t max_views, double bar_height, int64_t ty
 	layouts_.assign(types, duskhold::MirrorLayout());
 	mirror_ready_.assign(types, 0);
 	counts_.assign(types, 0);
-	buffers_.assign(types, nullptr);
 	drawn_ids_.assign(static_cast<size_t>(max_views), 0);
 	drawn_origins_.assign(static_cast<size_t>(max_views), Vector3(0.0f, 0.0f, 0.0f));
 	configured_ = true;
@@ -187,7 +185,6 @@ int64_t NativeUnitViews::fill(
 	// CrowdBatch.begin() for every batch: no instance is held until one is written.
 	for (size_t batch = 0; batch < counts_.size(); batch++) {
 		counts_[batch] = 0;
-		buffers_[batch] = nullptr;
 	}
 	bar_count_ = 0;
 	drawn_ = 0;
@@ -204,6 +201,9 @@ int64_t NativeUnitViews::fill(
 	const int64_t defs = batch_of_def.size();
 	// A mirror is taken for writing only when its first instance is written, so a frame that draws
 	// nothing into a batch never copies the mirror that batch still shares (review IN-08).
+	// The mirror pointers of this frame only, null until a batch's first instance: they are
+	// locals because a later set_mirror or configure replaces the arrays they point into.
+	std::vector<float *> buffers(counts_.size(), nullptr);
 	float *bar_buffer = nullptr;
 	const Color no_tint = Color(1.0f, 1.0f, 1.0f, 1.0f);
 	const Color no_custom = Color(0.0f, 0.0f, 0.0f, 0.0f);
@@ -226,10 +226,10 @@ int64_t NativeUnitViews::fill(
 		if (counts_[type] >= layouts_[type].capacity) {
 			continue;
 		}
-		if (buffers_[type] == nullptr) {
-			buffers_[type] = mirrors_[type].ptrw();
+		if (buffers[type] == nullptr) {
+			buffers[type] = mirrors_[type].ptrw();
 		}
-		duskhold::write_origin(buffers_[type], layouts_[type], counts_[type], origin, no_custom, no_tint);
+		duskhold::write_origin(buffers[type], layouts_[type], counts_[type], origin, no_custom, no_tint);
 		counts_[type]++;
 		const int64_t unit_id = id_at[slot];
 		drawn_ids_[static_cast<size_t>(drawn_)] = static_cast<int32_t>(unit_id);
