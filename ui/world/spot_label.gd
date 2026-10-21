@@ -2,6 +2,7 @@ class_name SpotLabel
 extends Node3D
 ## World-space label floating above the focused build spot (D-07). Shows the next tier's name,
 ## its cost as coin icons (filling as coins land, red when unaffordable) and its one-line effect.
+## A plot with cards picked (the castle) also lists them under the coins on a Picks line.
 ## Visible only for the single focused spot and only while building is allowed (by day). A denied
 ## press shakes it with a brief red outline flash; hold_denied is also the Phase 8 SFX hook (D-08).
 ## The label scales with camera distance so it keeps the on-screen size approved at UAT.
@@ -37,6 +38,7 @@ var _flash_tween: Tween
 
 @onready var _title: Label3D = %Title
 @onready var _effect: Label3D = %Effect
+@onready var _picks: Label3D = %Picks
 @onready var _coins: Node3D = %Coins
 @onready var _status: Label3D = %Status
 
@@ -52,6 +54,7 @@ func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
 	_hold.hold_denied.connect(_on_hold_denied)
 	ctx.events.gold_changed.connect(_on_gold_changed)
 	ctx.events.building_built.connect(_on_building_built)
+	ctx.events.choice_picked.connect(_on_choice_picked)
 	ctx.events.phase_changed.connect(_on_phase_changed)
 	_focused = _hold.get_focused_spot()
 	_refresh()
@@ -76,6 +79,8 @@ func _refresh() -> void:
 	_title.text = content["title"]
 	_title.modulate = tint
 	_effect.text = content["effect"]
+	_picks.text = content["picks"]
+	_picks.visible = not _picks.text.is_empty()
 	_status.text = content["status_line"]
 	_show_coins(content["cost"], content["paid"], content["affordable"])
 
@@ -179,6 +184,12 @@ func _on_gold_changed(_new_amount: int, _delta: int) -> void:
 
 
 func _on_building_built(_spot_id: StringName, _building_id: StringName, _new_tier: int) -> void:
+	_refresh()
+
+
+## The pick is announced right after the building_built of its purchase, so the Picks line needs
+## its own refresh.
+func _on_choice_picked(_spot_id: StringName, _tier: int, _choice_id: StringName) -> void:
 	_refresh()
 
 

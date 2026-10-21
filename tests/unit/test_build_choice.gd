@@ -13,6 +13,7 @@ const ROYAL: StringName = &"royal_training"
 const COMMANDER: StringName = &"commander"
 const MASONS: StringName = &"masons"
 const PROSPERITY: StringName = &"prosperity"
+const HEADSMANS_EDGE: StringName = &"headsmans_edge"
 const GRANTED_GOLD: int = 100
 
 var _ctx: RunContext
@@ -71,7 +72,7 @@ func _buy_tier_two(card: StringName) -> void:
 func test_the_tier_two_cards_are_the_four_abilities_in_the_authored_order() -> void:
 	assert_eq(_card_ids(2), [ROYAL, COMMANDER, MASONS, PROSPERITY] as Array[StringName], "order")
 	assert_true(_card_ids(1).is_empty(), "tier I carries no cards")
-	assert_true(_card_ids(3).is_empty(), "nor does tier III yet (plan 05-03)")
+	assert_eq(_card_ids(3).size(), 4, "tier III offers four of its own (plan 05-03)")
 
 
 func test_with_the_gold_a_branching_tier_asks_for_a_card() -> void:
@@ -168,16 +169,21 @@ func test_a_tier_two_card_offered_at_tier_three_is_a_bad_choice() -> void:
 	_buy_tier_two(ROYAL)
 	assert_eq(_ctx.commands.validate_build(CASTLE, ROYAL), CommandProcessor.BAD_CHOICE, "once")
 	assert_eq(_ctx.commands.validate_build(CASTLE, COMMANDER), CommandProcessor.BAD_CHOICE, "any")
-	assert_eq(_ctx.commands.validate_build(CASTLE), CommandProcessor.OK, "tier III is plain")
+	assert_eq(_ctx.commands.validate_build(CASTLE), CommandProcessor.CHOICE_REQUIRED, "needs one")
+	assert_eq(_ctx.commands.validate_build(CASTLE, HEADSMANS_EDGE), CommandProcessor.OK, "its own")
 
 
-func test_a_plain_tier_announces_no_pick_and_the_first_pick_stays_locked() -> void:
+func test_a_later_pick_adds_to_the_first_and_never_replaces_it() -> void:
 	_buy_tier_two(MASONS)
 	_log.clear()
-	assert_eq(_ctx.commands.submit(BuildIntent.new(CASTLE)), CommandProcessor.OK, "tier III")
-	assert_eq(_log, ["built castle_plot 3"], "a building_built and no choice_picked")
-	assert_eq(_ctx.choices.all_picks(), [MASONS] as Array[StringName], "the pick is unchanged")
-	assert_true(_ctx.stat_stack.has_source(MASONS), "and still armed")
+	var result: StringName = _ctx.commands.submit(BuildIntent.new(CASTLE, HEADSMANS_EDGE))
+	assert_eq(result, CommandProcessor.OK, "tier III")
+	assert_eq(_log, ["built castle_plot 3", "picked castle_plot 3 headsmans_edge"], "both lines")
+	assert_eq(
+		_ctx.choices.all_picks(), [MASONS, HEADSMANS_EDGE] as Array[StringName], "in pick order"
+	)
+	assert_true(_ctx.stat_stack.has_source(MASONS), "the first stays armed")
+	assert_true(_ctx.stat_stack.has_source(HEADSMANS_EDGE), "and the second joins it")
 
 
 func test_the_pick_is_one_line_of_the_replay_digest() -> void:

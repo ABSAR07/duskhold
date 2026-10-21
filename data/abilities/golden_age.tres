@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="ChoiceDef" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://simulation/defs/choice_def.gd" id="1_choice"]
+[ext_resource type="Script" path="res://simulation/stats/stat_modifier_def.gd" id="2_mod"]
+
+[sub_resource type="Resource" id="Resource_income"]
+script = ExtResource("2_mod")
+stat = &"castle.base_income"
+value = 2
+
+[sub_resource type="Resource" id="Resource_shrine"]
+script = ExtResource("2_mod")
+stat = &"shrine.damage"
+bucket = 1
+value = 25
+
+[resource]
+script = ExtResource("1_choice")
+id = &"golden_age"
+display_name = "Golden Age"
+flavour = "Trade flourishes and the shrines burn brighter."
+modifiers = Array[ExtResource("2_mod")]([SubResource("Resource_income"), SubResource("Resource_shrine")])

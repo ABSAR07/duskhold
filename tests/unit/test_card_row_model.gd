@@ -65,11 +65,16 @@ func test_an_unknown_spot_has_no_cards() -> void:
 	assert_true(CardRowModel.cards(_ctx, &"nowhere", -1).is_empty(), "unknown")
 
 
-func test_a_castle_past_its_card_tier_has_no_cards() -> void:
+func test_each_castle_tier_shows_its_own_four_cards_and_the_top_shows_none() -> void:
 	assert_eq(_ctx.commands.submit(BuildIntent.new(CASTLE, &"masons")), CommandProcessor.OK)
-	assert_true(CardRowModel.cards(_ctx, CASTLE, -1).is_empty(), "tier III offers none yet")
-	assert_eq(_ctx.commands.submit(BuildIntent.new(CASTLE)), CommandProcessor.OK, "tier III")
-	assert_eq(_ctx.commands.submit(BuildIntent.new(CASTLE)), CommandProcessor.OK, "tier IV")
+	var third: Array[Dictionary] = CardRowModel.cards(_ctx, CASTLE, -1)
+	assert_eq(third.size(), 4, "tier III offers four")
+	assert_eq(third[0]["id"], &"headsmans_edge", "its own first card")
+	assert_eq(_ctx.commands.submit(BuildIntent.new(CASTLE, &"engineers")), CommandProcessor.OK)
+	var fourth: Array[Dictionary] = CardRowModel.cards(_ctx, CASTLE, -1)
+	assert_eq(fourth.size(), 4, "tier IV offers four")
+	assert_eq(fourth[0]["id"], &"iron_discipline", "its own first card")
+	assert_eq(_ctx.commands.submit(BuildIntent.new(CASTLE, &"golden_age")), CommandProcessor.OK)
 	assert_true(CardRowModel.cards(_ctx, CASTLE, -1).is_empty(), "tier IV is the top")
 
 

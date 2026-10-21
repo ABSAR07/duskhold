@@ -17,3 +17,14 @@ extends Resource
 @export var icon: Texture2D
 ## What the card does, as stat modifiers (flat, percent and multiplier buckets, META-08).
 @export var modifiers: Array[StatModifierDef] = []
+
+
+## The card's numbers line, generated from its modifiers so the text can never drift from what the
+## StatStack applies (D-07): each modifier's effect_text() in list order, joined with ", ", e.g.
+## "+25% king health, +1 king damage". Empty for a card with no modifiers.
+func effect_line() -> String:
+	var parts: PackedStringArray = PackedStringArray()
+	for modifier: StatModifierDef in modifiers:
+		if modifier != null:
+			parts.append(modifier.effect_text())
+	return ", ".join(parts)

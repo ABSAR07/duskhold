@@ -139,7 +139,7 @@ func test_holding_with_a_highlighted_card_buys_the_castle_tier_with_that_card() 
 	assert_eq(_ctx.choices.picks_of(CASTLE), [&"commander"] as Array[StringName], "recorded")
 
 
-func test_after_the_purchase_the_cards_are_gone_and_the_highlight_is_reset() -> void:
+func test_after_the_purchase_the_next_tiers_cards_show_and_the_highlight_is_reset() -> void:
 	await _setup()
 	await _arrive_with_gold()
 	await _tap(&"group_3")
@@ -149,8 +149,8 @@ func test_after_the_purchase_the_cards_are_gone_and_the_highlight_is_reset() -> 
 	assert_true(await E2eSupport.wait_until(self, bought, seconds), "bought")
 	Input.action_release(&"action_build")
 	await wait_process_frames(3)
-	assert_false(_picker.is_showing(), "tier III offers no cards")
-	assert_eq(_row.card_count(), 0, "no row")
+	assert_true(_picker.is_showing(), "tier III offers its own cards (the gold still covers it)")
+	assert_eq(_row.card_name(0), "Headsman's Edge", "the tier III row, not the tier II one")
 	assert_eq(_picker.highlighted_index(), -1, "and nothing stays highlighted")
 
 

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="BuildingDef" load_steps=12 format=3]
+[gd_resource type="Resource" script_class="BuildingDef" load_steps=20 format=3]
 
 [ext_resource type="Script" path="res://simulation/defs/building_tier_def.gd" id="1_tier"]
 [ext_resource type="Script" path="res://simulation/defs/building_def.gd" id="2_def"]
@@ -7,6 +7,14 @@
 [ext_resource type="Resource" path="res://data/abilities/commander.tres" id="5_commander"]
 [ext_resource type="Resource" path="res://data/abilities/masons.tres" id="6_masons"]
 [ext_resource type="Resource" path="res://data/abilities/prosperity.tres" id="7_prosperity"]
+[ext_resource type="Resource" path="res://data/abilities/headsmans_edge.tres" id="8_headsman"]
+[ext_resource type="Resource" path="res://data/abilities/engineers.tres" id="9_engineers"]
+[ext_resource type="Resource" path="res://data/abilities/war_horns.tres" id="10_horns"]
+[ext_resource type="Resource" path="res://data/abilities/warded_mail.tres" id="11_mail"]
+[ext_resource type="Resource" path="res://data/abilities/iron_discipline.tres" id="12_iron"]
+[ext_resource type="Resource" path="res://data/abilities/arrow_storm.tres" id="13_storm"]
+[ext_resource type="Resource" path="res://data/abilities/master_builders.tres" id="14_builders"]
+[ext_resource type="Resource" path="res://data/abilities/golden_age.tres" id="15_golden"]
 
 [sub_resource type="Resource" id="Resource_tier1"]
 script = ExtResource("1_tier")
@@ -32,6 +40,7 @@ attack_damage = 4
 max_health = 140
 attack_interval = 1.5
 projectile_speed = 27.0
+choices = Array[ExtResource("3_choice")]([ExtResource("8_headsman"), ExtResource("9_engineers"), ExtResource("10_horns"), ExtResource("11_mail")])
 
 [sub_resource type="Resource" id="Resource_tier4"]
 script = ExtResource("1_tier")
@@ -42,6 +51,7 @@ attack_damage = 5
 max_health = 200
 attack_interval = 1.5
 projectile_speed = 27.0
+choices = Array[ExtResource("3_choice")]([ExtResource("12_iron"), ExtResource("13_storm"), ExtResource("14_builders"), ExtResource("15_golden")])
 
 [resource]
 script = ExtResource("2_def")

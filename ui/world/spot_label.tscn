@@ -36,3 +36,12 @@ billboard = 1
 no_depth_test = true
 font_size = 34
 outline_size = 12
+
+[node name="Picks" type="Label3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.9, 0)
+pixel_size = 0.01
+billboard = 1
+no_depth_test = true
+font_size = 30
+outline_size = 12

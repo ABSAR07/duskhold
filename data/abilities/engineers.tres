@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="ChoiceDef" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://simulation/defs/choice_def.gd" id="1_choice"]
+[ext_resource type="Script" path="res://simulation/stats/stat_modifier_def.gd" id="2_mod"]
+
+[sub_resource type="Resource" id="Resource_damage"]
+script = ExtResource("2_mod")
+stat = &"tower.damage"
+bucket = 1
+value = 25
+
+[sub_resource type="Resource" id="Resource_range"]
+script = ExtResource("2_mod")
+stat = &"tower.range"
+bucket = 1
+value = 15
+
+[resource]
+script = ExtResource("1_choice")
+id = &"engineers"
+display_name = "Engineers"
+flavour = "Sharper bolts and better sight lines for every tower."
+modifiers = Array[ExtResource("2_mod")]([SubResource("Resource_damage"), SubResource("Resource_range")])

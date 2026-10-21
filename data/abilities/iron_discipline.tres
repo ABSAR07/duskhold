@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="ChoiceDef" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://simulation/defs/choice_def.gd" id="1_choice"]
+[ext_resource type="Script" path="res://simulation/stats/stat_modifier_def.gd" id="2_mod"]
+
+[sub_resource type="Resource" id="Resource_damage"]
+script = ExtResource("2_mod")
+stat = &"unit.attack_damage"
+bucket = 2
+value = 150
+
+[sub_resource type="Resource" id="Resource_health"]
+script = ExtResource("2_mod")
+stat = &"unit.max_health"
+bucket = 2
+value = 130
+
+[resource]
+script = ExtResource("1_choice")
+id = &"iron_discipline"
+display_name = "Iron Discipline"
+flavour = "Soldiers who hold the line hit harder and last longer."
+modifiers = Array[ExtResource("2_mod")]([SubResource("Resource_damage"), SubResource("Resource_health")])

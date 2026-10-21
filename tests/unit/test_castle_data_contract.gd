@@ -61,13 +61,13 @@ func test_tier_one_carries_no_number_the_map_already_owns() -> void:
 	assert_true(tier.choices.is_empty(), "and no cards")
 
 
-func test_only_tier_two_offers_cards_for_now_and_they_are_the_four_abilities() -> void:
+func test_tier_two_offers_the_four_abilities_and_tiers_three_and_four_four_more_each() -> void:
 	var ids: Array[StringName] = []
 	for card: ChoiceDef in _def().tier_def(2).choices:
 		ids.append(card.id)
 	assert_eq(ids, TIER_TWO_CARDS, "four cards in the authored order")
-	assert_true(_def().tier_def(3).choices.is_empty(), "tier III: plan 05-03")
-	assert_true(_def().tier_def(4).choices.is_empty(), "tier IV: plan 05-03")
+	assert_eq(_def().tier_def(3).choices.size(), 4, "tier III offers four (test_ability_data)")
+	assert_eq(_def().tier_def(4).choices.size(), 4, "tier IV offers four (test_ability_data)")
 
 
 func test_every_card_is_valid_data() -> void:

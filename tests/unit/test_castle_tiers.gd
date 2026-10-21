@@ -137,10 +137,10 @@ func test_buying_tier_two_gives_the_castle_the_tier_two_numbers() -> void:
 func test_tiers_three_and_four_raise_the_numbers_again() -> void:
 	var ctx: RunContext = _context()
 	_buy(ctx, COMMANDER)
-	_buy(ctx)
+	_buy(ctx, &"headsmans_edge")
 	assert_eq(ctx.castle.get_max_health(), _tier(3).max_health, "tier III health")
 	assert_eq(ctx.castle.arrow_damage(), _tier(3).attack_damage, "tier III arrow")
-	_buy(ctx)
+	_buy(ctx, &"iron_discipline")
 	assert_eq(ctx.castle.tier(), 4, "tier IV")
 	assert_eq(ctx.castle.get_max_health(), _tier(4).max_health, "tier IV health")
 	assert_eq(ctx.castle.arrow_damage(), _tier(4).attack_damage, "tier IV arrow")
