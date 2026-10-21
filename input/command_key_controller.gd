@@ -17,6 +17,11 @@ extends Node
 ## a patrol, and the cancel key cancels an armed command or clears the selection. None of them
 ## moves the king or touches move_left.
 ##
+## The digit keys 1 to 4 are shared with the choice cards (D-05): while the cards show above the
+## castle (CardPicker.is_showing) a press of 1 to 4 picks a card and recalls no control group, with
+## or without Ctrl; 5 to 9 and 0 are never handed over. The presses are still read every frame, so
+## the edge state stays right, and CardPicker reads the same presses: one key does one thing.
+##
 ## The gamepad shares its D-pad buttons between a bare verb and the point verb of the LB layer, so
 ## one D-pad press makes two actions just-pressed together. PadChords resolves that pair from the LB
 ## layer and the Start group mode before anything acts; a lone action is a keyboard key and keeps
@@ -88,6 +93,7 @@ var _selection: SelectionModel
 var _pointer: SelectionController
 var _strip: SquadStrip
 var _cursor: PadCursorController
+var _cards: CardPicker
 var _was_pressed: Dictionary = {}
 ## True from the keyboard patrol key going down until it comes up again.
 var _patrol_key_held: bool = false
@@ -103,6 +109,7 @@ func bind_run(ctx: RunContext, map_root: MapRoot) -> void:
 	_pointer = map_root.get_node_or_null("SelectionController") as SelectionController
 	_strip = map_root.find_child("SquadStrip", true, false) as SquadStrip
 	_cursor = map_root.get_node_or_null("PadCursorController") as PadCursorController
+	_cards = map_root.get_cards()
 
 
 func _process(_delta: float) -> void:
@@ -122,8 +129,13 @@ func _process(_delta: float) -> void:
 	if _pressed_now(CANCEL_ACTION):
 		_cancel()
 	for action: StringName in GROUP_ACTIONS:
-		if _pressed_now(action):
+		if _pressed_now(action) and not _is_card_key(action):
 			_group_key(GROUP_ACTIONS[action])
+
+
+## True for a digit key 1 to 4 while the choice cards show: it picks a card, not a group (D-05).
+func _is_card_key(action: StringName) -> bool:
+	return _cards != null and _cards.is_showing() and CardPicker.DIGIT_ACTIONS.has(action)
 
 
 ## The chord actions that went down this frame, whether the engine reports the edge or the level.
