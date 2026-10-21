@@ -97,11 +97,9 @@ protected:
 	static void _bind_methods();
 
 public:
-	// enemy_index.gd CELL, REACH_MARGIN, KEY_OFFSET and KEY_STRIDE.
+	// enemy_index.gd CELL and REACH_MARGIN; its _key is gd::cell_key (cell_key.h).
 	static constexpr double GRID_CELL = 8.0;
 	static constexpr double GRID_REACH_MARGIN = 0.01;
-	static constexpr int64_t GRID_KEY_OFFSET = static_cast<int64_t>(1) << 19;
-	static constexpr int64_t GRID_KEY_STRIDE = static_cast<int64_t>(1) << 20;
 	// enemy_system.gd ARRIVE_EPSILON and SEPARATION_CELL_SLACK.
 	static constexpr double ARRIVE_EPSILON = 0.001;
 	static constexpr double SEPARATION_CELL_SLACK = 0.001;

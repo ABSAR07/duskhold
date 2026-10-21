@@ -7,28 +7,12 @@
 
 #include <godot_cpp/core/class_db.hpp>
 
+#include "cell_key.h"
 #include "gd_math.h"
 
 using namespace godot;
 
 namespace {
-
-// GDScript int arithmetic wraps on overflow; the port does the same in unsigned arithmetic so a
-// pathological coordinate cannot be undefined behaviour and aliases to the same key as before.
-int64_t wrap_add(int64_t a, int64_t b) {
-	return static_cast<int64_t>(static_cast<uint64_t>(a) + static_cast<uint64_t>(b));
-}
-
-int64_t wrap_mul(int64_t a, int64_t b) {
-	return static_cast<int64_t>(static_cast<uint64_t>(a) * static_cast<uint64_t>(b));
-}
-
-// enemy_index.gd _key.
-int64_t grid_key(int64_t cell_x, int64_t cell_y) {
-	return wrap_add(
-			wrap_mul(wrap_add(cell_x, NativeEnemies::GRID_KEY_OFFSET), NativeEnemies::GRID_KEY_STRIDE),
-			wrap_add(cell_y, NativeEnemies::GRID_KEY_OFFSET));
-}
 
 // A block of cells wider than this many cells per side is never walked: every living enemy is
 // listed instead, a superset the caller narrows with its own exact test.
@@ -237,7 +221,7 @@ void NativeEnemies::rebuild_grid() {
 		if (rec.health > 0) {
 			const int64_t cell_x = gd::floori(static_cast<double>(rec.position.x) / GRID_CELL);
 			const int64_t cell_y = gd::floori(static_cast<double>(rec.position.y) / GRID_CELL);
-			grid_.emplace_back(grid_key(cell_x, cell_y), rec.id);
+			grid_.emplace_back(gd::cell_key(cell_x, cell_y), rec.id);
 		}
 	}
 	std::sort(grid_.begin(), grid_.end());
@@ -259,8 +243,8 @@ void NativeEnemies::collect_within(const Vector2 &pos, double reach, std::vector
 	const int64_t cell_x = gd::floori(static_cast<double>(pos.x) / GRID_CELL);
 	const int64_t cell_y = gd::floori(static_cast<double>(pos.y) / GRID_CELL);
 	found.clear();
-	const int64_t block = wrap_add(wrap_mul(2, span), 1);
-	if (span < 0 || span > MAX_REACH_CELLS || wrap_mul(block, block) > grid_cells_) {
+	const int64_t block = gd::wrap_add(gd::wrap_mul(2, span), 1);
+	if (span < 0 || span > MAX_REACH_CELLS || gd::wrap_mul(block, block) > grid_cells_) {
 		// A reach wider than the field: every occupied cell, an exact superset of the block.
 		for (const auto &entry : grid_) {
 			found.push_back(entry.second);
@@ -268,8 +252,8 @@ void NativeEnemies::collect_within(const Vector2 &pos, double reach, std::vector
 	} else {
 		for (int64_t offset_x = -span; offset_x <= span; offset_x++) {
 			for (int64_t offset_y = -span; offset_y <= span; offset_y++) {
-				const int64_t key = grid_key(
-						wrap_add(cell_x, offset_x), wrap_add(cell_y, offset_y));
+				const int64_t key = gd::cell_key(
+						gd::wrap_add(cell_x, offset_x), gd::wrap_add(cell_y, offset_y));
 				auto entry = std::lower_bound(
 						grid_.begin(), grid_.end(), std::make_pair(key, static_cast<int64_t>(INT64_MIN)));
 				for (; entry != grid_.end() && entry->first == key; ++entry) {

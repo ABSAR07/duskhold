@@ -99,11 +99,9 @@ public:
 	Vector3i scan_through_walls(const Vector2 &pos, double aggro_range) const;
 
 private:
-	// structure_index.gd CELL, REACH_MARGIN, KEY_OFFSET and KEY_STRIDE.
+	// structure_index.gd CELL and REACH_MARGIN; its _key is gd::cell_key (cell_key.h).
 	static constexpr double CELL = 12.0;
 	static constexpr double REACH_MARGIN = 0.01;
-	static constexpr int64_t KEY_OFFSET = static_cast<int64_t>(1) << 19;
-	static constexpr int64_t KEY_STRIDE = static_cast<int64_t>(1) << 20;
 
 	void insert(const Vector2 &centre, double radius, int32_t kind, int32_t id);
 	Vector3i scan(

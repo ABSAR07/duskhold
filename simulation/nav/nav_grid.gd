@@ -27,8 +27,6 @@ const DEFAULT_INFLATE: float = 0.5
 ## passes exactly through a joint is caught by the crossing test (float rounding on the joint).
 const JOINT_EXTENSION: float = 0.02
 const CENTIMETRES: float = 100.0
-const KEY_OFFSET: int = 1 << 19
-const KEY_STRIDE: int = 1 << 20
 ## Forward neighbours of the crossing test: east, south, south-east, south-west (dx, dz).
 const FORWARD_DX: Array[int] = [1, 0, 1, -1]
 const FORWARD_DZ: Array[int] = [0, 1, 1, 1]
@@ -283,9 +281,7 @@ func _joints_of(walls: WallSystem) -> Dictionary:
 
 
 static func _key_of(point: Vector2) -> int:
-	var cell_x: int = roundi(point.x * CENTIMETRES) + KEY_OFFSET
-	var cell_y: int = roundi(point.y * CENTIMETRES) + KEY_OFFSET
-	return cell_x * KEY_STRIDE + cell_y
+	return CellKey.pack(roundi(point.x * CENTIMETRES), roundi(point.y * CENTIMETRES))
 
 
 ## The largest radius among the map's enemies and units; DEFAULT_INFLATE when it names none.

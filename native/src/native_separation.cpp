@@ -5,6 +5,7 @@
 #include <utility>
 #include <vector>
 
+#include "cell_key.h"
 #include "gd_math.h"
 
 using namespace godot;
@@ -18,25 +19,8 @@ namespace duskhold {
 
 namespace {
 
-// separation.gd MIN_CELL, KEY_OFFSET and KEY_STRIDE.
+// separation.gd MIN_CELL; its _cell_key is gd::cell_key (cell_key.h).
 constexpr double MIN_CELL = 0.001;
-constexpr int64_t KEY_OFFSET = static_cast<int64_t>(1) << 19;
-constexpr int64_t KEY_STRIDE = static_cast<int64_t>(1) << 20;
-
-// GDScript int arithmetic wraps on overflow; the port does the same in unsigned arithmetic so a
-// pathological coordinate cannot be undefined behaviour and aliases to the same key as before.
-int64_t wrap_add(int64_t a, int64_t b) {
-	return static_cast<int64_t>(static_cast<uint64_t>(a) + static_cast<uint64_t>(b));
-}
-
-int64_t wrap_mul(int64_t a, int64_t b) {
-	return static_cast<int64_t>(static_cast<uint64_t>(a) * static_cast<uint64_t>(b));
-}
-
-// separation.gd _cell_key.
-int64_t cell_key(int64_t cell_x, int64_t cell_y) {
-	return wrap_add(wrap_mul(wrap_add(cell_x, KEY_OFFSET), KEY_STRIDE), wrap_add(cell_y, KEY_OFFSET));
-}
 
 PackedVector2Array zero_displacements(int64_t count) {
 	PackedVector2Array result;
@@ -132,8 +116,8 @@ PackedVector2Array separation_displacements_bucketed(
 	// work grow with the square of 1 / cell (review WR-11). A block that holds at least as many
 	// cells as there are circles is never cheaper than the pairwise pass, which answers the same
 	// bits (the cell decides the work, never an answer), so the pairwise pass answers instead.
-	const int64_t side = wrap_add(wrap_mul(2, span), 1);
-	if (span >= count || side >= count || wrap_mul(side, side) >= count) {
+	const int64_t side = gd::wrap_add(gd::wrap_mul(2, span), 1);
+	if (span >= count || side >= count || gd::wrap_mul(side, side) >= count) {
 		return separation_displacements(positions, radii, ids);
 	}
 	Vector2 *out = result.ptrw();
@@ -149,7 +133,7 @@ PackedVector2Array separation_displacements_bucketed(
 		const size_t slot = static_cast<size_t>(index);
 		cell_x[slot] = gd::floori(static_cast<double>(pos[index].x) / edge);
 		cell_y[slot] = gd::floori(static_cast<double>(pos[index].y) / edge);
-		cells.emplace_back(cell_key(cell_x[slot], cell_y[slot]), index);
+		cells.emplace_back(gd::cell_key(cell_x[slot], cell_y[slot]), index);
 	}
 	std::sort(cells.begin(), cells.end());
 
@@ -160,7 +144,7 @@ PackedVector2Array separation_displacements_bucketed(
 		partners.clear();
 		for (int64_t offset_x = -span; offset_x <= span; offset_x++) {
 			for (int64_t offset_y = -span; offset_y <= span; offset_y++) {
-				const int64_t key = cell_key(wrap_add(cell_x[slot], offset_x), wrap_add(cell_y[slot], offset_y));
+				const int64_t key = gd::cell_key(gd::wrap_add(cell_x[slot], offset_x), gd::wrap_add(cell_y[slot], offset_y));
 				auto bucket = std::lower_bound(
 						cells.begin(), cells.end(), std::make_pair(key, static_cast<int64_t>(INT64_MIN)));
 				for (; bucket != cells.end() && bucket->first == key; ++bucket) {

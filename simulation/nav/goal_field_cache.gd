@@ -11,9 +11,6 @@ extends RefCounted
 ## rebuilt. The entries sit in an insertion-order Array and are searched in that order; no
 ## Dictionary is iterated. Pure RefCounted code under simulation/ (DR-1 to DR-10).
 
-const KEY_OFFSET: int = 1 << 19
-const KEY_STRIDE: int = 1 << 20
-
 var _grid: NavGrid
 var _tuning: NavTuning
 var _entries: Array[Entry] = []
@@ -31,9 +28,7 @@ func _init(grid: NavGrid, tuning: NavTuning) -> void:
 
 ## The key of the goal-quantum square holding `goal`: goals with one key share a field.
 static func key_of(goal: Vector2, quantum: float) -> int:
-	var cell_x: int = floori(goal.x / quantum) + KEY_OFFSET
-	var cell_y: int = floori(goal.y / quantum) + KEY_OFFSET
-	return cell_x * KEY_STRIDE + cell_y
+	return CellKey.pack(floori(goal.x / quantum), floori(goal.y / quantum))
 
 
 ## How many fields the cache holds.

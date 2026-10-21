@@ -8,6 +8,7 @@
 
 #include <godot_cpp/core/class_db.hpp>
 
+#include "cell_key.h"
 #include "gd_math.h"
 
 using namespace godot;
@@ -17,28 +18,11 @@ namespace {
 // wall_solids.gd MAX_PASSES and REACH_MARGIN.
 constexpr int MAX_PASSES = 3;
 constexpr double REACH_MARGIN = 0.01;
-// wall_system.gd BUCKET_CELL, KEY_OFFSET and KEY_STRIDE.
+// wall_system.gd BUCKET_CELL; its _key is gd::cell_key (cell_key.h).
 constexpr double BUCKET_CELL = 4.0;
-constexpr int64_t KEY_OFFSET = static_cast<int64_t>(1) << 19;
-constexpr int64_t KEY_STRIDE = static_cast<int64_t>(1) << 20;
 // A query whose cell range holds more cells than this would never return in the GDScript; only
 // then is the range cut to the cells that can hold a segment.
 constexpr uint64_t MAX_WALKED_CELLS = static_cast<uint64_t>(1) << 22;
-
-// GDScript int arithmetic wraps on overflow; the port does the same in unsigned arithmetic so a
-// pathological coordinate cannot be undefined behaviour and aliases to the same key as before.
-int64_t wrap_add(int64_t a, int64_t b) {
-	return static_cast<int64_t>(static_cast<uint64_t>(a) + static_cast<uint64_t>(b));
-}
-
-int64_t wrap_mul(int64_t a, int64_t b) {
-	return static_cast<int64_t>(static_cast<uint64_t>(a) * static_cast<uint64_t>(b));
-}
-
-// wall_system.gd _key.
-int64_t cell_key(int64_t cell_x, int64_t cell_y) {
-	return wrap_add(wrap_mul(wrap_add(cell_x, KEY_OFFSET), KEY_STRIDE), wrap_add(cell_y, KEY_OFFSET));
-}
 
 // wall_solids.gd _closest_on: `squared` is a GDScript float (the real_t length_squared widened),
 // t is computed in double from the real_t dot, and `along * t` narrows t to real_t.
@@ -133,7 +117,7 @@ void NativeWalls::setup(
 		}
 		for (int64_t cell_x = low_x;; cell_x++) {
 			for (int64_t cell_y = low_y;; cell_y++) {
-				buckets_[cell_key(cell_x, cell_y)].push_back(static_cast<int32_t>(segment));
+				buckets_[gd::cell_key(cell_x, cell_y)].push_back(static_cast<int32_t>(segment));
 				if (cell_y == high_y) {
 					break;
 				}
@@ -236,7 +220,7 @@ void NativeWalls::near_segments(const Vector2 &pos, double reach, std::vector<in
 	}
 	for (int64_t cell_x = low_x;; cell_x++) {
 		for (int64_t cell_y = low_y;; cell_y++) {
-			const auto bucket = buckets_.find(cell_key(cell_x, cell_y));
+			const auto bucket = buckets_.find(gd::cell_key(cell_x, cell_y));
 			if (bucket != buckets_.end()) {
 				out.insert(out.end(), bucket->second.begin(), bucket->second.end());
 			}

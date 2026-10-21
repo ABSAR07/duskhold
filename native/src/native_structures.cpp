@@ -8,21 +8,12 @@
 
 #include <godot_cpp/core/class_db.hpp>
 
+#include "cell_key.h"
 #include "gd_math.h"
 
 using namespace godot;
 
 namespace {
-
-// GDScript int arithmetic wraps on overflow; the port does the same in unsigned arithmetic so a
-// pathological coordinate cannot be undefined behaviour and aliases to the same key as before.
-int64_t wrap_add(int64_t a, int64_t b) {
-	return static_cast<int64_t>(static_cast<uint64_t>(a) + static_cast<uint64_t>(b));
-}
-
-int64_t wrap_mul(int64_t a, int64_t b) {
-	return static_cast<int64_t>(static_cast<uint64_t>(a) * static_cast<uint64_t>(b));
-}
 
 // A block of cells wider than this many cells per side is never walked: every candidate is tested.
 constexpr double MAX_REACH_CELLS = 1.0e6;
@@ -118,8 +109,7 @@ void NativeStructures::insert(const Vector2 &centre, double radius, int32_t kind
 	largest_radius_ = gd::maxf(largest_radius_, radius);
 	const int64_t cell_x = gd::floori(static_cast<double>(centre.x) / CELL);
 	const int64_t cell_y = gd::floori(static_cast<double>(centre.y) / CELL);
-	const int64_t key = wrap_add(
-			wrap_mul(wrap_add(cell_x, KEY_OFFSET), KEY_STRIDE), wrap_add(cell_y, KEY_OFFSET));
+	const int64_t key = gd::cell_key(cell_x, cell_y);
 	cells_[key].push_back(index);
 }
 
@@ -212,9 +202,7 @@ void NativeStructures::gather(const Vector2 &pos, double aggro_range) const {
 	const int64_t cell_y = gd::floori(static_cast<double>(pos.y) / CELL);
 	for (int64_t offset_x = -reach_cells; offset_x <= reach_cells; offset_x++) {
 		for (int64_t offset_y = -reach_cells; offset_y <= reach_cells; offset_y++) {
-			const int64_t key = wrap_add(
-					wrap_mul(wrap_add(wrap_add(cell_x, offset_x), KEY_OFFSET), KEY_STRIDE),
-					wrap_add(wrap_add(cell_y, offset_y), KEY_OFFSET));
+			const int64_t key = gd::cell_key(gd::wrap_add(cell_x, offset_x), gd::wrap_add(cell_y, offset_y));
 			const auto bucket = cells_.find(key);
 			if (bucket != cells_.end()) {
 				scratch_.insert(scratch_.end(), bucket->second.begin(), bucket->second.end());
