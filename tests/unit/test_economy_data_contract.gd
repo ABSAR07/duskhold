@@ -1,12 +1,15 @@
 extends GutTest
-## ECON-03, D-12: the economy data contract. The Gold Mine's numbers and its plot are pinned here
-## and nowhere else (the behaviour tests set their own on a deep copy). D-12 fixes the step and the
-## floor: each paying dawn pays 1 less, down to a floor of 1, never 0. The cost 4, first payout 3
-## and health 20 are the planner's starting numbers; plan 05-11 refits cost and first payout with
-## the bots, and does it by editing this file in the same commit (a deliberate retune, never a
-## silent one). The .tres files store IncomeCurve as its integer, so the enum order is pinned too.
+## ECON-03, ECON-04, D-12, D-13: the economy data contract. The Gold Mine's, the Mill's and the
+## Field's numbers and their plots are pinned here and nowhere else (the behaviour tests set their
+## own on a deep copy). D-12 fixes the step and the floor: each paying dawn pays 1 less, down to a
+## floor of 1, never 0. The Mine's cost 4, first payout 3 and health 20, the Mill's and the Field's
+## numbers are the planner's starting numbers; plan 05-11 refits them with the bots, and does it by
+## editing this file in the same commit (a deliberate retune, never a silent one). The .tres
+## files store IncomeCurve as its integer, so the enum order is pinned too.
 
 const MINE_PATH := "res://data/buildings/gold_mine.tres"
+const MILL_PATH := "res://data/buildings/mill.tres"
+const FIELD_PATH := "res://data/buildings/field.tres"
 const MAP_PATH := "res://data/maps/prototype_map.tres"
 const CATALOG_PATH := "res://presentation/buildings/building_view_catalog.tres"
 const FLAT_BUILDING_PATHS: Array[String] = [
@@ -16,6 +19,8 @@ const FLAT_BUILDING_PATHS: Array[String] = [
 	"res://data/buildings/archery_range.tres",
 	"res://data/buildings/wall.tres",
 	"res://data/buildings/castle_center.tres",
+	"res://data/buildings/mill.tres",
+	"res://data/buildings/field.tres",
 ]
 const COST: int = 4
 const FIRST_PAYOUT: int = 3
@@ -24,6 +29,20 @@ const FLOOR: int = 1
 const MAX_HEALTH: int = 20
 const BODY_RADIUS: float = 1.5
 const EFFECT_LINE := "Pays 3 gold, then 1 less each dawn, never below 1"
+## The Mill (D-12, D-13): three FLAT tiers; the last needs the castle at tier II (D-03), the first
+## shipped top tier to be gated.
+const MILL_COSTS: Array[int] = [3, 4, 6]
+const MILL_INCOMES: Array[int] = [1, 2, 3]
+const MILL_HEALTHS: Array[int] = [15, 20, 25]
+const MILL_CASTLE_TIERS: Array[int] = [0, 0, 2]
+const MILL_BODY_RADIUS: float = 1.5
+## The Field (D-10): one FLAT tier. The cost is 2, not 1, because the cheapest shipped hold must
+## last at least 0.5 s (UAT G-01-4, test_loop_tuning_contract) and a 1 gold hold lasts 0.25 s.
+const FIELD_COST: int = 2
+const FIELD_INCOME: int = 1
+const FIELD_HEALTH: int = 8
+const FIELD_BODY_RADIUS: float = 1.2
+const FIELD_PLOTS: Array[StringName] = [&"field_1", &"field_2", &"field_3"]
 
 
 func _mine() -> BuildingDef:
@@ -102,3 +121,74 @@ func test_the_catalog_has_a_model_for_the_mine() -> void:
 	var catalog: BuildingViewCatalog = load(CATALOG_PATH)
 	assert_not_null(catalog.find(&"gold_mine", 1), "tier I has a model")
 	assert_null(catalog.find(&"gold_mine", 2), "and there is no tier II")
+
+
+func test_the_mill_has_three_flat_tiers_that_pay_per_tier() -> void:
+	var mill: BuildingDef = load(MILL_PATH)
+	assert_eq(mill.id, &"mill", "the id")
+	assert_eq(mill.display_name, "Mill", "the name")
+	assert_eq(mill.max_tier(), 3, "three tiers")
+	assert_eq(mill.income_curve, BuildingDef.IncomeCurve.FLAT, "FLAT")
+	assert_eq(mill.body_radius, MILL_BODY_RADIUS, "its footprint")
+	for index: int in range(MILL_COSTS.size()):
+		var tier: BuildingTierDef = mill.tier_def(index + 1)
+		assert_eq(tier.cost, MILL_COSTS[index], "tier %d cost" % (index + 1))
+		assert_eq(tier.dawn_income, MILL_INCOMES[index], "tier %d payout" % (index + 1))
+		assert_eq(tier.max_health, MILL_HEALTHS[index], "tier %d health" % (index + 1))
+		assert_eq(tier.requires_castle_tier, MILL_CASTLE_TIERS[index], "tier %d gate" % (index + 1))
+		assert_eq(tier.attack_damage, 0, "a Mill does not shoot")
+		assert_true(mill.pays_income(index + 1), "tier %d pays" % (index + 1))
+
+
+func test_only_the_top_mill_tier_needs_the_castle() -> void:
+	var mill: BuildingDef = load(MILL_PATH)
+	assert_eq(
+		mill.tier_def(mill.max_tier()).requires_castle_tier, 2, "the last tier needs castle II"
+	)
+	for index: int in range(1, mill.max_tier()):
+		assert_eq(mill.tier_def(index).requires_castle_tier, 0, "tier %d is always buyable" % index)
+
+
+func test_the_field_has_one_flat_tier_paying_one_gold() -> void:
+	var field: BuildingDef = load(FIELD_PATH)
+	assert_eq(field.id, &"field", "the id")
+	assert_eq(field.display_name, "Field", "the name")
+	assert_eq(field.max_tier(), 1, "one tier")
+	assert_eq(field.income_curve, BuildingDef.IncomeCurve.FLAT, "FLAT")
+	assert_eq(field.body_radius, FIELD_BODY_RADIUS, "its footprint")
+	var tier: BuildingTierDef = field.tier_def(1)
+	assert_eq(tier.cost, FIELD_COST, "cost")
+	assert_eq(tier.dawn_income, FIELD_INCOME, "pays a flat gold")
+	assert_eq(tier.max_health, FIELD_HEALTH, "health")
+	assert_eq(tier.requires_castle_tier, 0, "a Field needs no castle tier, only the Mill")
+
+
+func test_the_map_lists_the_mill_the_fields_and_their_plots() -> void:
+	var map: MapConfig = load(MAP_PATH)
+	var listed: Array[StringName] = []
+	for building_def: BuildingDef in map.buildings:
+		listed.append(building_def.id)
+	assert_true(listed.has(&"mill") and listed.has(&"field"), "both are in the map's list")
+	for field_id: StringName in FIELD_PLOTS:
+		var plot: BuildSpotDef = null
+		for spot: BuildSpotDef in map.spots:
+			if spot.id == field_id:
+				plot = spot
+		assert_not_null(plot, "%s exists" % field_id)
+		if plot != null:
+			assert_eq(plot.building_id, &"field", "%s takes the Field" % field_id)
+			assert_eq(plot.requires_spot, &"mill_1", "%s needs the Mill's plot" % field_id)
+			assert_eq(plot.requires_spot_tier, 1, "at tier 1 or more")
+	for spot: BuildSpotDef in map.spots:
+		if spot.id == &"mill_1":
+			assert_eq(spot.building_id, &"mill", "mill_1 takes the Mill")
+			assert_eq(spot.requires_spot, &"", "and is never locked itself")
+
+
+func test_the_catalog_has_models_for_the_mill_tiers_and_the_field() -> void:
+	var catalog: BuildingViewCatalog = load(CATALOG_PATH)
+	for tier: int in range(1, 4):
+		assert_not_null(catalog.find(&"mill", tier), "Mill tier %d has a model" % tier)
+	assert_null(catalog.find(&"mill", 4), "and there is no Mill tier IV")
+	assert_not_null(catalog.find(&"field", 1), "the Field has a model")
+	assert_null(catalog.find(&"field", 2), "and no second tier")
