@@ -1,43 +1,43 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 04
-current_phase_name: Crowd-Scale Battles & Walls
-status: verifying
-stopped_at: "Phase 04 re-verified after gap round 2: human_needed (04-UAT.md tests 14 to 19 await the owner)"
-last_updated: "2026-10-20T15:53:17.686Z"
-last_activity: 2026-10-20
-last_activity_desc: Phase 04 gap round 2 closed out (validation, security, review, re-verification human_needed); next /gsd-verify-work 4
-state_head: 2f34b899532c2110bb9c7882bc89a80574469648
+current_phase: 5
+current_phase_name: Castle Center & Economy Depth
+status: planning
+stopped_at: Phase 04 complete, ready to plan Phase 5
+last_updated: "2026-10-21T02:28:26.123Z"
+last_activity: 2026-10-21
+last_activity_desc: Phase 04 complete, transitioned to Phase 5
+state_head: dfb383de0a1d27828a9626006f89453ac3de867e
 progress:
   total_phases: 13
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 87
   completed_plans: 87
-  percent: 23
+  percent: 31
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-10-15)
+See: .planning/PROJECT.md (updated 2026-10-21)
 
 **Core value:** The day/night build-then-defend loop must feel as tight and satisfying as Thronefall's, with meaningful gold trade-offs by day and readable, tense defense by night. It must be fun on a single map with zero meta-progression.
-**Current focus:** Phase 04 — Crowd-Scale Battles & Walls
+**Current focus:** Phase 5 — Castle Center & Economy Depth
 
 ## Current Position
 
-Phase: 04 (Crowd-Scale Battles & Walls) — VERIFYING
-Plan: 28 of 28
-Status: 04-VERIFICATION.md 2026-10-20T16:41Z human_needed (4/4 criteria, 154/155 truths, 0 gaps; PLAT-01 VERIFIED at median-run p95 5.37 ms against 8.0); 04-UAT.md extended with tests 14 to 19 (status testing); next: /gsd-verify-work 4 (owner re-judges UAT tests 14 to 16 and 19, launches the fresh export per 17); then /gsd-code-review 4 --fix --all for the 33 open findings
-Last activity: 2026-10-20 — Gap round 2 close-out: 04-VALIDATION.md extended (61 rows, nyquist_compliant true), 04-SECURITY.md extended (77 threats closed, threats_open 0), 04-REVIEW.md round-2 review (0 critical, 13 warnings, 20 info; CR-01, IN-07, IN-08 fixed; ledger 33 of 36 open), regression gate 99 of 99 prior-phase scripts green, verifier human_needed with 0 gaps
+Phase: 5 — Castle Center & Economy Depth
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-10-21 — Phase 04 complete, transitioned to Phase 5
 
-Progress: [██░░░░░░░░] 23%
+Progress: [███░░░░░░░] 31%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 59
+- Total plans completed: 87
 - Average duration: -
 - Total execution time: 0.0 hours
 
@@ -48,6 +48,7 @@ Progress: [██░░░░░░░░] 23%
 | 01 | 18 | - | - |
 | 02 | 22 | - | - |
 | 03 | 19 | - | - |
+| 04 | 28 | - | - |
 
 **Recent Trend:**
 - Last 5 plans: -
@@ -338,6 +339,7 @@ Recent decisions affecting current work:
 - [Phase 04]: 04-27: UnitSystem.read_view() (UnitReadView) is a change-counted packed read refilled only after an id, position or def writer; squad_of (caller-less) gave up its slot so UnitSystem stays at 20 public methods — Review IN-07's recommended fix; one implementation, the GDScript per-unit loop deleted; pins computed on the GDScript first, units bench 273.88 us to 30.16 us (9.1x, bar 2.0)
 - [Phase 04]: 04-27: the view-layer round (plans 04-24 to 04-27) pushed once; CI run 39445109146 green on every job for e0ecde0 with the four replays and the gate on GCC and MSVC and the CI export launched; no fix cycle — Option A for CI (both native libraries built from source); goldens byte-identical, no digest moved
 - [Phase 04]: 04-28: the stress night after the view-layer port is MET (median-run p95 5.37 ms against the unchanged 8.0 ms, runs 5.00/5.37/5.56); G-04-5 and criterion 3 closed by measurement, PLAT-01 complete; the three view loops now cost 0.22 ms of the frame (3.80 ms before) — FRAME_REPORT_OK within=true, committed view ablation, nothing lowered; GTX 970 transfer stays a projection (test 12), Phase 13 re-verifies
+- [Phase 04]: Phase 4 closed 2026-10-21: UAT 17 of 19 pass (rows 5, 6 and 13 superseded by the passing re-checks 14 to 16 with the owner's approval; 12 and 18 deferred to Phase 13, no GTX 970 here), 04-VERIFICATION.md passed (4 of 4 criteria, 154 of 155 truths, 0 gaps), PLAT-01 met at median-run p95 5.37 ms against 8.0 (37.04 ms before the two native rounds); validation nyquist-compliant, 77 threats closed; 33 review findings open (0 critical) for /gsd-code-review 4 --fix --all
 
 ### Pending Todos
 
@@ -352,12 +354,9 @@ None yet.
 - [Phase 3]: No open code-review finding remains (ledger 0 of 16 open after review-fix pass 2, commits db5e138 IN-10 and 2471438 IN-11). The stale-route re-run of /gsd-execute-phase 3 on 2026-10-15 re-audited validation and security, found the fifth review clean (0 findings over the three pass-2 files) and the fourth verification report `passed` (2026-10-15T19:51:19Z); nothing is stale and no re-verification is pending
 - [Phase 3]: The owner skipped the full Phase 3 gate playtest (two or three 8-night runs on both devices) and passed test 24 on feel from shorter sessions; balance, slam, regeneration and the pad layout may be revisited later (03-PLAYTEST-GATE.md assumptions 1 to 15)
 - [Phase 3]: The HUD draws Xbox glyph tiles for every pad; a DualShock shows A/B/X/Y labels (read as Cross/Circle/Square/Triangle at the UAT) — a PlayStation tile set is a possible later polish item
-- [Phase 4]: Research flag: validate MultiMesh + NavigationServer3D avoidance vs flow fields empirically on Godot 4.7; decide GTX 970-class measurement method
 - [Phase 6/8]: Night readability under hundreds of units needs automated screenshot review throughout the content phases
 - [Phase 11]: Boss-night difficulty cliffs; tune with seeded simulated playthroughs plus owner playtest
 - [Phase 13]: SmartScreen/AV behavior of unsigned export only known after clean-machine test
-- [Phase 4] PLAT-01 frame budget missed (04-09): median p95 37.04 ms against 8.0 ms; see 04-FRAME-REPORT.md and .planning/debug/stress-night-step-over-budget.md. Owner route 2026-10-19: GDExtension (plans 04-14 to 04-21, 04-22, 04-23); 04-16 needs the owner's choice of where CI gets the native binaries
-- [Phase 4] Code review 04-REVIEW.md (2026-10-16): 0 critical, 7 warning, 6 info, all 13 open in 04-REVIEW-DISPOSITION.md (WR-01 3 m gap routability, WR-02 tangency epsilon, WR-03 off-grid is_sealed, WR-04 wall tier health validation, WR-05 stress.sh arithmetic, WR-06 wall-bot balance proof, WR-07 wall-clock bound in test_wall_tracer_scene; IN-01 hot-path allocation wins); fix through /gsd-code-review 4 --fix
 
 - [Phase 4] After gap round 2 (2026-10-20): PLAT-01 is met by measurement (p95 5.37 ms) but three items stay open for the next passes: (1) 04-REVIEW.md round-2 review leaves 33 findings open, none critical, incl. new WR-12 (the native stamp's source half is taken at install time, not at build start), WR-13 (tools/native_stamp_probe.sh is run by nothing: not CI, test.sh or prepush_check.sh) and IN-17 (tools/_common.sh carries a raw CR byte and raw newlines inside quoted strings at lines 92-94 and 135; git now classifies the file as binary, no eol normalisation; works on both CI platforms) — route: /gsd-code-review 4 --fix --all; (2) REQUIREMENTS.md still lists BLDG-10 and ENMY-04 unchecked after the c962bb7 revert although their evidence is complete (only PLAT-01 was re-marked by 04-28) — phase.complete at the UAT close-out marks them; (3) screenshots/overlay_field_gate.png shows the panel text Phase DAY / Enemies 0 / Drawn 0 while a crowd is drawn (read by the verifier as a capture-harness timing artefact, 0.25 s panel refresh vs fast-forward; not proven) — noted on UAT test 15 for the owner.
 
@@ -378,6 +377,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-20T15:53:16.155Z
-Stopped at: Phase 04 re-verified after gap round 2 (human_needed); awaiting /gsd-verify-work 4
+Last session: 2026-10-21T02:30:08Z
+Stopped at: Phase 4 complete (UAT 17 of 19 pass, verification passed, PLAT-01 met), ready to plan Phase 5
 Resume file: None

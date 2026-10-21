@@ -27,7 +27,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation & Day Loop** - Godot project with headless test/lint/CI/screenshot/debug tooling, plus a playable day of riding, building, upgrading, and earning gold on the prototype map (completed 2026-10-03)
 - [x] **Phase 2: Night Defense & Playtest Gate** - Telegraphed nights, combat, king knockout, dawn rebuild and income, win/loss, and seeded replays; ends in a human playtest gate (completed 2026-10-08)
 - [x] **Phase 3: King Combat & Troops** - Barracks and Archery Range squads with hold/follow hotkeys, king active ability, full HUD, keyboard + gamepad (completed 2026-10-15)
-- [ ] **Phase 4: Crowd-Scale Battles & Walls** - Walls and barricades, jam-free pathing, and hundreds of units/enemies/projectiles at 60 fps
+- [x] **Phase 4: Crowd-Scale Battles & Walls** - Walls and barricades, jam-free pathing, and hundreds of units/enemies/projectiles at 60 fps (completed 2026-10-21)
 - [ ] **Phase 5: Castle Center & Economy Depth** - Branching choice-card upgrades, castle tiers with run-wide abilities, stat-modifier order, four new income curves
 - [ ] **Phase 6: Enemy Roster & Tower Specializations** - Eight enemy roles (incl. flyers and siege) paired with 4+4 tower specializations that answer them
 - [ ] **Phase 7: Army Variety & Heroes** - Four melee and four ranged unit choices, four heroes, and unit counter roles
@@ -254,7 +254,7 @@ Plans:
   3. A scripted stress night with hundreds of units, enemies, and projectiles on screen holds 60 fps on GTX 970-class hardware, or within a documented equivalent frame-time budget on the dev machine.
   4. Nights from Phases 1–3 play the same after the switch to batched simulation and rendering. All existing headless loop and combat tests still pass.
 
-**Plans**: 28/28 plans executed (04-12 to 04-23 closed the 2026-10-19 UAT gaps G-04-5, G-04-6 and G-04-7; 04-24 to 04-28 are the second gap round for the 04-VERIFICATION.md gap for success criterion 3, PLAT-01, planned 2026-10-20)
+**Plans**: 28/28 plans complete (04-12 to 04-23 closed the 2026-10-19 UAT gaps G-04-5, G-04-6 and G-04-7; 04-24 to 04-28 are the second gap round for the 04-VERIFICATION.md gap for success criterion 3, PLAT-01, planned 2026-10-20)
 
 Plans:
 **Wave 1**
@@ -494,7 +494,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 1. Foundation & Day Loop | 18/18 | Complete    | 2026-10-03 |
 | 2. Night Defense & Playtest Gate | 22/22 | Complete    | 2026-10-08 |
 | 3. King Combat & Troops | 19/19 | Complete    | 2026-10-15 |
-| 4. Crowd-Scale Battles & Walls | 28/28 | In Progress|  |
+| 4. Crowd-Scale Battles & Walls | 28/28 | Complete    | 2026-10-21 |
 | 5. Castle Center & Economy Depth | 0/TBD | Not started | - |
 | 6. Enemy Roster & Tower Specializations | 0/TBD | Not started | - |
 | 7. Army Variety & Heroes | 0/TBD | Not started | - |

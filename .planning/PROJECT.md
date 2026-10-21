@@ -24,6 +24,9 @@ The day/night build-then-defend loop must feel as tight and satisfying as Throne
 - ✓ Barracks and Archery Range squads that guard their post, commit to targets, trickle back from their building at night and are restored at dawn; RTS-style selection (click, drag box, Ctrl, strip slot, pad cycling), numbered control groups, and hold / follow / rally / move / attack-move / patrol orders with Shift (pad RT) queuing — Phase 3 (Hero's Quarter and the per-building unit choices follow later)
 - ✓ The king's weapon active ability (sword slam on Q / pad X, 9 s cooldown shown on the HUD) and health regeneration after 1 s without damage — Phase 3
 - ✓ Every in-run action on keyboard and mouse or on gamepad (D-pad verbs with an LB layer, right-stick ground cursor), prompts that follow the active device, and the in-run HUD (gold, night counter, king widget, squad strip, command hints) with a clear centre; the owner signed off on keyboard and mouse and a DualShock 4 (2026-10-15) — Phase 3 (gamepad parity shipped, declared unsupported 2026-10-16)
+- ✓ Walls and barricades bought at wall-run plots (tiers at 2 / 4 / 6 gold): integer-centimetre segments that block, take damage, sink to rubble and are restored at dawn; enemies break through to their target or go around without gridlock, squads and the king get round them, and the gate stress crosses 300 enemies with none stuck — Phase 4
+- ✓ Crowd-scale nights: hundreds of enemies, units, arrows, bars and death puffs drawn through GPU-instanced batches from a flow field with wall-aware routing and a stuck tracker, with the debug overlay reading the field, the walls and the crowd — Phase 4
+- ✓ Performance budget (PLAT-01) met on the dev machine: the simulation step and the per-frame view fills run in a C++ GDExtension built from source on CI for Linux and Windows, byte-identical to the GDScript they replaced (pins first, goldens unchanged); the stress night (300 enemies, 50 units, about 240 arrows) measures a median-run p95 of 5.37 ms against the 8.0 ms budget (owner sign-off 2026-10-21; the GTX 970-class transfer stays a projection, re-verified on real campaign battles in Phase 13) — Phase 4
 
 ### Active
 
@@ -35,7 +38,7 @@ Full, testable list with REQ-IDs: `.planning/REQUIREMENTS.md`. Summary:
 **Economy & building**
 - [ ] Single currency (gold); economic buildings (House, Gold Mine, Mill + Fields, Fishing Harbor, Shrine) pay at dawn with distinct income curves
 - [ ] Full-depth branching upgrades (pick 1-of-N per tier) for Castle Center, Towers, and military buildings
-- [ ] Walls/barricades and multiple tower specializations
+- [ ] Multiple tower specializations (walls and barricades shipped in Phase 4)
 - [ ] Blacksmith and Royal Forge multi-day research with global buffs
 
 **Military**
@@ -133,6 +136,10 @@ Full, testable list with REQ-IDs: `.planning/REQUIREMENTS.md`. Summary:
 | Gamepad layout: D-pad verbs with an LB layer for move / attack-move / patrol on a 900 px/s right-stick cursor, R3 select all, LB+R3 select type, Start group mode, RT queue, B cancel; Xbox glyph tiles for every pad | RESEARCH A11; chosen by Claude pending a real pad | ✓ Good — passed on a DualShock 4 (UAT test 23, 2026-10-15), unsupported from 2026-10-16 |
 | Long refusal toasts (526 and 540 px at Body 22) accepted below the clear centre; UI-SPEC toast bound amended (D-29) | Owner decision at UAT test 22 (2026-10-14): readable copy beats the estimated width | ✓ Good — WINDOWS.md entry 4 waived |
 | Gamepad dropped as a requirement; shipped pad code kept but unsupported (HUD stops offering pad prompts, no pad parity in later phases) | Owner decision 2026-10-16: pad parity doubled the input and prompt work of every feature for a device the project no longer targets; removal is risk without benefit | — Recorded 2026-10-16 |
+| PLAT-01 route: a C++ GDExtension for the simulation step and then the per-frame view fills, pins-first and byte-identical, with the 8.0 ms p95 budget kept | Owner decisions 2026-10-19 and 2026-10-20 after two honest misses (p95 37.04 ms, then 10.95 ms); a documented higher budget and a GDScript-only optimisation were rejected on the numbers | ✓ Good — p95 5.37 ms on 2026-10-20 with every golden unchanged; CI builds both native libraries from the pinned sources (option A), nothing binary committed |
+| A default melee enemy breaks the wall segment in front of its target (tower, unit or king) instead of dropping the target and marching on the castle; later roster entries may go castle-first | Owner rule change at UAT test 13 (2026-10-19) | ✓ Good — shipped in 04-12 with the replay goldens unchanged; re-judged pass at UAT test 16 (2026-10-21) |
+| Goldens mean 'same outcomes, not digests' (D-14): a digest move is a stop rule that needs an owner checkpoint, never a silent re-pin | Owner reading at UAT test 8 (2026-10-19) | ✓ Good — zero re-pins across 28 plans and two native rounds |
+| The wall-break rebuild hitch (about 12 ms per field rebuild) accepted for now; count-based time slicing is the named alternative | Owner decision at UAT test 10 (2026-10-19), revisit later | — Pending (revisit when a playtest feels it) |
 
 ## Evolution
 
@@ -152,4 +159,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-16 after the gamepad decision*
+*Last updated: 2026-10-21 after Phase 4*
