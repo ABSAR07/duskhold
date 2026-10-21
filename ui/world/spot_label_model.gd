@@ -13,7 +13,9 @@ const MAX_TIER_TEXT := "Max tier"
 ## when the price is payable), and always true when nothing is left to buy. `picks` lists the
 ## display names of the cards picked at this plot in pick order joined with " · " (empty for a plot
 ## with none). The castle plot's `effect` reads its numbers through the stat stack, so the label
-## shows what the castle will be, not the raw tier values.
+## shows what the castle will be, not the raw tier values. A next tier locked behind the castle or
+## another plot (D-03, D-10) reads "Needs Castle II" / "Needs a Mill" in `status_line` with cost 0
+## and `affordable` true, so no price and no red coins show.
 static func describe(ctx: RunContext, spot_id: StringName, coins_paid: int) -> Dictionary:
 	var content: Dictionary = {
 		"title": "",
@@ -41,16 +43,39 @@ static func describe(ctx: RunContext, spot_id: StringName, coins_paid: int) -> D
 		content["status_line"] = MAX_TIER_TEXT
 		return content
 	content["title"] = building_def.tier_label(tier + 1)
-	content["cost"] = next_tier.cost
-	content["paid"] = clampi(coins_paid, 0, next_tier.cost)
 	if run != null:
 		content["effect"] = _wall_effect(run, next_tier)
 	elif ctx.buildings.get_spot(spot_id).is_castle:
 		content["effect"] = _castle_effect(ctx, next_tier)
 	else:
 		content["effect"] = next_tier.effect_line()
+	var locked_line: String = _locked_line(ctx, spot_id, next_tier)
+	if not locked_line.is_empty():
+		content["status_line"] = locked_line
+		content["affordable"] = true
+		return content
+	content["cost"] = next_tier.cost
+	content["paid"] = clampi(coins_paid, 0, next_tier.cost)
 	content["affordable"] = ctx.economy.can_afford(next_tier.cost) or coins_paid > 0
 	return content
+
+
+## "Needs Castle II" or "Needs a Mill" while the next purchase is locked behind the castle or behind
+## another plot (D-03, D-10), else "". A locked plot shows no price (cost 0, so no coins) and is
+## never red: it is not dear, it is closed. Read from the same gate the hold uses, so the label and
+## the denied bump can never disagree.
+static func _locked_line(ctx: RunContext, spot_id: StringName, tier: BuildingTierDef) -> String:
+	var reason: StringName = ctx.commands.validate_build(spot_id)
+	if reason == CommandProcessor.CASTLE_TIER:
+		var numerals: Array[String] = BuildingDef.ROMAN_NUMERALS
+		var needed: int = clampi(tier.requires_castle_tier, 1, numerals.size())
+		return "Needs Castle %s" % numerals[needed - 1]
+	if reason == CommandProcessor.NEEDS_SPOT:
+		var required: BuildingDef = ctx.buildings.get_building_def_for_spot(
+			ctx.buildings.get_spot(spot_id).requires_spot
+		)
+		return "Needs a %s" % (required.display_name if required != null else "building")
+	return ""
 
 
 ## "12 segments, 30 health each": what a wall plot's run is at the given tier. The segment count

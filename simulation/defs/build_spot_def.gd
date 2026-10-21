@@ -15,3 +15,9 @@ extends Resource
 ## the dawn payout). The castle stands from the start, is never a target and never pays per-spot
 ## income; CastleState owns its health and numbers.
 @export var is_castle: bool = false
+## The plot that must stand before this plot can be built on (D-10, BLDG-09); empty means none. It
+## applies to this plot's first build only: once built, the plot never depends on it again, so a
+## destroyed required building does not relock it.
+@export var requires_spot: StringName = &""
+## The tier the required plot must have reached (1 or more); read only when requires_spot is set.
+@export var requires_spot_tier: int = 1

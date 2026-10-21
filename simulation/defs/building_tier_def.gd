@@ -24,6 +24,9 @@ extends Resource
 ## the pick lasts the run. Empty means no branching, a plain upgrade. Any building tier may carry
 ## cards; the castle's tier II is the first user.
 @export var choices: Array[ChoiceDef] = []
+## The castle tier this tier needs before it can be bought (D-03, BLDG-09). 0 means none. Checked
+## only on a map that has a castle plot; a castle exactly at this tier is enough.
+@export var requires_castle_tier: int = 0
 
 
 ## One-line effect text shown next to the cost, e.g. "+2 gold at dawn".

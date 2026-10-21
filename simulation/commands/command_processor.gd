@@ -23,6 +23,10 @@ const QUEUE_CLOSED := &"queue_closed"
 const CHOICE_REQUIRED := &"choice_required"
 ## The card is not one of the next tier's cards, or the tier offers none (BLDG-05).
 const BAD_CHOICE := &"bad_choice"
+## The tier being bought needs a higher castle tier than stands (D-03, BLDG-09).
+const CASTLE_TIER := &"castle_tier"
+## The plot's first build needs another plot built to a tier first (D-10, BLDG-09).
+const NEEDS_SPOT := &"needs_spot"
 
 var _economy: Economy
 var _buildings: BuildingSystem
@@ -62,9 +66,12 @@ func _init(
 
 ## Read-only check of whether a build or upgrade on `spot_id`, bought with the card `choice_id`
 ## (empty for none), would be accepted right now.
-## Check order: NOT_DAY, UNKNOWN_SPOT, MAX_TIER, CANNOT_AFFORD, CHOICE_REQUIRED, BAD_CHOICE.
-## Affordability comes before the choice on purpose: the cards only show when the tier is affordable
-## (D-05), so a player without the gold sees the price, not a pick prompt.
+## Check order: NOT_DAY, UNKNOWN_SPOT, MAX_TIER, CASTLE_TIER or NEEDS_SPOT, CANNOT_AFFORD,
+## CHOICE_REQUIRED, BAD_CHOICE.
+## A locked tier or plot is refused before the price is looked at, so a locked tier the player
+## cannot afford reads as locked, not as dear (D-03, D-10). The requirement check is skipped without
+## a map. Affordability comes before the choice on purpose: the cards only show when the tier is
+## affordable (D-05), so a player without the gold sees the price, not a pick prompt.
 func validate_build(spot_id: StringName, choice_id: StringName = &"") -> StringName:
 	if not _run_manager.is_build_allowed():
 		return NOT_DAY
@@ -73,6 +80,10 @@ func validate_build(spot_id: StringName, choice_id: StringName = &"") -> StringN
 	var cost: int = _buildings.next_action_cost(spot_id)
 	if cost < 0:
 		return MAX_TIER
+	if _map != null:
+		var locked: StringName = BuildRequirements.rejection(_map, _buildings, spot_id)
+		if locked != OK:
+			return locked
 	if not _economy.can_afford(cost):
 		return CANNOT_AFFORD
 	return _choice_rejection(spot_id, choice_id)

@@ -1,0 +1,79 @@
+[gd_resource type="Resource" script_class="MapConfig" load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://simulation/defs/map_config.gd" id="1_map"]
+[ext_resource type="Script" path="res://simulation/defs/build_spot_def.gd" id="2_spot"]
+[ext_resource type="Script" path="res://simulation/defs/building_def.gd" id="3_bdef"]
+[ext_resource type="Script" path="res://simulation/defs/building_tier_def.gd" id="4_tier"]
+[ext_resource type="Resource" path="res://data/buildings/house.tres" id="5_house"]
+[ext_resource type="Resource" path="res://data/buildings/castle_center.tres" id="6_castle"]
+
+[sub_resource type="Resource" id="Resource_tower_tier1"]
+script = ExtResource("4_tier")
+cost = 4
+attack_range = 9.0
+attack_damage = 3
+max_health = 50
+attack_interval = 0.9
+projectile_speed = 18.0
+
+[sub_resource type="Resource" id="Resource_tower_tier2"]
+script = ExtResource("4_tier")
+cost = 6
+attack_range = 10.5
+attack_damage = 6
+max_health = 70
+attack_interval = 0.7
+projectile_speed = 20.0
+requires_castle_tier = 2
+
+[sub_resource type="Resource" id="Resource_tower"]
+script = ExtResource("3_bdef")
+id = &"tower"
+display_name = "Tower"
+body_radius = 1.0
+tiers = Array[ExtResource("4_tier")]([SubResource("Resource_tower_tier1"), SubResource("Resource_tower_tier2")])
+
+[sub_resource type="Resource" id="Resource_tower_1"]
+script = ExtResource("2_spot")
+id = &"tower_1"
+position = Vector3(-10, 0, 0)
+building_id = &"tower"
+
+[sub_resource type="Resource" id="Resource_house_a"]
+script = ExtResource("2_spot")
+id = &"house_a"
+position = Vector3(8, 0, 8)
+building_id = &"house"
+
+[sub_resource type="Resource" id="Resource_house_b"]
+script = ExtResource("2_spot")
+id = &"house_b"
+position = Vector3(12, 0, 8)
+building_id = &"house"
+requires_spot = &"house_a"
+requires_spot_tier = 1
+
+[sub_resource type="Resource" id="Resource_castle_plot"]
+script = ExtResource("2_spot")
+id = &"castle_plot"
+position = Vector3(0, 0, 5)
+building_id = &"castle_center"
+is_castle = true
+
+[resource]
+script = ExtResource("1_map")
+id = &"fixture_gate"
+display_name = "Fixture Gate"
+is_sandbox = true
+starting_gold = 80
+base_dawn_income = 1
+king_spawn = Vector3(0, 0, 7)
+castle_position = Vector3(0, 0, 0)
+buildings = Array[ExtResource("3_bdef")]([SubResource("Resource_tower"), ExtResource("5_house"), ExtResource("6_castle")])
+spots = Array[ExtResource("2_spot")]([SubResource("Resource_tower_1"), SubResource("Resource_house_a"), SubResource("Resource_house_b"), SubResource("Resource_castle_plot")])
+castle_max_health = 70
+castle_radius = 3.5
+castle_attack_damage = 2
+castle_attack_range = 22.0
+castle_attack_interval = 1.5
+castle_projectile_speed = 27.0
