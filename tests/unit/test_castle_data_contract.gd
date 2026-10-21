@@ -76,7 +76,7 @@ func test_every_card_is_valid_data() -> void:
 		assert_false(seen.has(card.id), "%s is unique" % card.id)
 		seen[card.id] = true
 		assert_lte(card.flavour.length(), MAX_FLAVOUR_CHARACTERS, "%s flavour length" % card.id)
-		assert_null(card.icon, "%s has no icon yet (plan 05-04)" % card.id)
+		assert_not_null(card.icon, "%s has its icon (test_card_icons)" % card.id)
 		var stack: StatStack = StatStack.new()
 		assert_true(
 			stack.add_source(card.id, card.modifiers), "%s is accepted by the stack" % card.id

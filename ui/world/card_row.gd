@@ -12,17 +12,23 @@ extends Node3D
 
 ## Height of the row's centre above the shown spot, clear of the spot label.
 const ROW_HEIGHT: float = 7.6
-const CARD_SIZE := Vector2(2.4, 3.2)
+const CARD_SIZE := Vector2(3.4, 3.2)
 const CARD_GAP: float = 0.3
 ## How far the highlighted card rises.
 const RAISE: float = 0.35
 const ICON_SLOT_SIZE: float = 0.9
-const ICON_HEIGHT: float = 1.0
-const ICON_PIXELS: float = 0.9
-const NUMBERS_HEIGHT: float = -1.25
+const ICON_HEIGHT: float = 1.05
+const ICON_PIXELS: float = 0.8
+const NAME_HEIGHT: float = 0.5
+const FLAVOUR_HEIGHT: float = 0.05
+const NUMBERS_HEIGHT: float = -0.85
+## The key tile of card n (the Kenney tile of the digit key that picks it) and where it sits.
+const KEY_TILE_PATH := GlyphResolver.KEYBOARD_DIR + "keyboard_%d.png"
+const KEY_TILE_SIZE: float = 0.5
+const KEY_TILE_POSITION := Vector3(-1.45, 1.35, 0.03)
 ## Where the rectangle of a card behind the camera is parked: far outside any viewport.
 const OFFSCREEN: float = 1.0e9
-const TEXT_WIDTH_PIXELS: float = 220.0
+const TEXT_WIDTH_PIXELS: float = 320.0
 const TEXT_PIXEL_SIZE: float = 0.01
 const CARD_COLOR := Color(0.14, 0.16, 0.22, 0.94)
 const CARD_HIGHLIGHT_COLOR := Color(0.36, 0.4, 0.56, 1.0)
@@ -40,6 +46,7 @@ var _faces: Array[MeshInstance3D] = []
 var _names: Array[Label3D] = []
 var _flavours: Array[Label3D] = []
 var _numbers: Array[Label3D] = []
+var _icons: Array[Texture2D] = []
 var _effect_lines: Array[String] = []
 var _signature: String = ""
 
@@ -101,8 +108,10 @@ func numbers_text(index: int) -> String:
 
 ## The icon texture drawn on the card at `index`; null for a card with no icon and for an index that
 ## addresses no drawn card.
-func icon_of(_index: int) -> Texture2D:
-	return null
+func icon_of(index: int) -> Texture2D:
+	if not visible or index < 0 or index >= _icons.size():
+		return null
+	return _icons[index]
 
 
 ## The screen rectangle of each drawn card, in card order, as the camera sees the row now: the
@@ -171,6 +180,7 @@ func _clear_cards() -> void:
 	_names.clear()
 	_flavours.clear()
 	_numbers.clear()
+	_icons.clear()
 	_effect_lines.clear()
 
 
@@ -184,8 +194,11 @@ func _build_cards(content: Array[Dictionary]) -> void:
 		add_child(card)
 		_cards.append(card)
 		_faces.append(_add_face(card))
-		_add_icon(card, content[index]["icon"] as Texture2D)
-		_names.append(_add_name(card, content[index]["name"] as String, index + 1))
+		var icon: Texture2D = content[index]["icon"] as Texture2D
+		_icons.append(icon)
+		_add_icon(card, icon)
+		_add_key_tile(card, content[index]["key_hint"] as int)
+		_names.append(_add_name(card, content[index]["name"] as String))
 		_flavours.append(_add_flavour(card, content[index]["flavour"] as String))
 		_numbers.append(_add_numbers(card))
 		_effect_lines.append(content[index]["effect_line"] as String)
@@ -223,25 +236,42 @@ func _add_icon(card: Node3D, icon: Texture2D) -> void:
 	sprite.texture = icon
 	sprite.shaded = false
 	sprite.no_depth_test = true
+	sprite.render_priority = 2
 	sprite.pixel_size = ICON_PIXELS / float(maxi(icon.get_width(), 1))
 	sprite.position = Vector3(0.0, ICON_HEIGHT, 0.02)
 	card.add_child(sprite)
 
 
-func _add_name(card: Node3D, text: String, key: int) -> Label3D:
-	var label: Label3D = _make_label(text, 34, TEXT_COLOR, Vector3(0.0, 0.45, 0.03))
+## The key that picks the card, as the Kenney Input Prompts tile of that digit, in the card's top
+## left corner (D-05). A digit with no tile file draws nothing.
+func _add_key_tile(card: Node3D, key: int) -> void:
+	var path: String = KEY_TILE_PATH % key
+	if not ResourceLoader.exists(path):
+		return
+	var texture: Texture2D = load(path) as Texture2D
+	if texture == null:
+		return
+	var tile: Sprite3D = Sprite3D.new()
+	tile.name = "KeyTile"
+	tile.texture = texture
+	tile.shaded = false
+	tile.no_depth_test = true
+	tile.render_priority = 2
+	tile.pixel_size = KEY_TILE_SIZE / float(maxi(texture.get_width(), 1))
+	tile.position = KEY_TILE_POSITION
+	card.add_child(tile)
+
+
+func _add_name(card: Node3D, text: String) -> Label3D:
+	var label: Label3D = _make_label(text, 32, TEXT_COLOR, Vector3(0.0, NAME_HEIGHT, 0.03))
 	label.name = "Name"
 	label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	card.add_child(label)
-	var hint: Label3D = _make_label(str(key), 30, FLAVOUR_COLOR, Vector3(-1.0, 1.38, 0.03))
-	hint.name = "Key"
-	hint.autowrap_mode = TextServer.AUTOWRAP_OFF
-	card.add_child(hint)
 	return label
 
 
 func _add_flavour(card: Node3D, text: String) -> Label3D:
-	var label: Label3D = _make_label(text, 24, FLAVOUR_COLOR, Vector3(0.0, -0.6, 0.03))
+	var label: Label3D = _make_label(text, 22, FLAVOUR_COLOR, Vector3(0.0, FLAVOUR_HEIGHT, 0.03))
 	label.name = "Flavour"
 	label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	card.add_child(label)
@@ -250,7 +280,7 @@ func _add_flavour(card: Node3D, text: String) -> Label3D:
 
 ## The numbers line: empty until the card is highlighted (see _restyle).
 func _add_numbers(card: Node3D) -> Label3D:
-	var label: Label3D = _make_label("", 26, NUMBERS_COLOR, Vector3(0.0, NUMBERS_HEIGHT, 0.03))
+	var label: Label3D = _make_label("", 24, NUMBERS_COLOR, Vector3(0.0, NUMBERS_HEIGHT, 0.03))
 	label.name = "Numbers"
 	label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	card.add_child(label)

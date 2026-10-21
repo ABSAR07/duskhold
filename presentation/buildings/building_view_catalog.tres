@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="BuildingViewCatalog" load_steps=26 format=3]
+[gd_resource type="Resource" script_class="BuildingViewCatalog" load_steps=32 format=3]
 
 [ext_resource type="Script" path="res://presentation/buildings/building_view_catalog.gd" id="1_catalog"]
 [ext_resource type="Script" path="res://presentation/buildings/building_view_entry.gd" id="2_entry"]
@@ -14,6 +14,9 @@
 [ext_resource type="PackedScene" path="res://presentation/buildings/models/archery_range_t1.tscn" id="12_archery_range_t1"]
 [ext_resource type="PackedScene" path="res://presentation/buildings/models/archery_range_t2.tscn" id="13_archery_range_t2"]
 [ext_resource type="PackedScene" path="res://presentation/buildings/models/archery_range_t3.tscn" id="14_archery_range_t3"]
+[ext_resource type="PackedScene" path="res://presentation/buildings/models/castle_center_t2.tscn" id="15_castle_center_t2"]
+[ext_resource type="PackedScene" path="res://presentation/buildings/models/castle_center_t3.tscn" id="16_castle_center_t3"]
+[ext_resource type="PackedScene" path="res://presentation/buildings/models/castle_center_t4.tscn" id="17_castle_center_t4"]
 
 [sub_resource type="Resource" id="Resource_house_t1"]
 script = ExtResource("2_entry")
@@ -81,7 +84,25 @@ building_id = &"archery_range"
 tier = 3
 scene = ExtResource("14_archery_range_t3")
 
+[sub_resource type="Resource" id="Resource_castle_center_t2"]
+script = ExtResource("2_entry")
+building_id = &"castle_center"
+tier = 2
+scene = ExtResource("15_castle_center_t2")
+
+[sub_resource type="Resource" id="Resource_castle_center_t3"]
+script = ExtResource("2_entry")
+building_id = &"castle_center"
+tier = 3
+scene = ExtResource("16_castle_center_t3")
+
+[sub_resource type="Resource" id="Resource_castle_center_t4"]
+script = ExtResource("2_entry")
+building_id = &"castle_center"
+tier = 4
+scene = ExtResource("17_castle_center_t4")
+
 [resource]
 script = ExtResource("1_catalog")
-entries = Array[ExtResource("2_entry")]([SubResource("Resource_house_t1"), SubResource("Resource_house_t2"), SubResource("Resource_house_t3"), SubResource("Resource_tower_t1"), SubResource("Resource_tower_t2"), SubResource("Resource_barracks_t1"), SubResource("Resource_barracks_t2"), SubResource("Resource_barracks_t3"), SubResource("Resource_archery_range_t1"), SubResource("Resource_archery_range_t2"), SubResource("Resource_archery_range_t3")])
+entries = Array[ExtResource("2_entry")]([SubResource("Resource_house_t1"), SubResource("Resource_house_t2"), SubResource("Resource_house_t3"), SubResource("Resource_tower_t1"), SubResource("Resource_tower_t2"), SubResource("Resource_barracks_t1"), SubResource("Resource_barracks_t2"), SubResource("Resource_barracks_t3"), SubResource("Resource_archery_range_t1"), SubResource("Resource_archery_range_t2"), SubResource("Resource_archery_range_t3"), SubResource("Resource_castle_center_t2"), SubResource("Resource_castle_center_t3"), SubResource("Resource_castle_center_t4")])
 castle_scene = ExtResource("8_castle_center")

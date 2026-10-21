@@ -49,7 +49,10 @@ func test_every_shot_has_a_map_copy_with_the_shot_gold() -> void:
 		var map: MapConfig = ShotScenarios.map_for(shot)
 		assert_not_null(map, "shot %s has a map" % shot)
 		if map != null:
-			assert_eq(map.starting_gold, ShotScenarios.SHOT_STARTING_GOLD, "gold for %s" % shot)
+			var wanted: int = ShotScenarios.SHOT_STARTING_GOLD
+			if ShotEconomyScenarios.handles(shot):
+				wanted = ShotEconomyScenarios.SHOT_GOLD
+			assert_eq(map.starting_gold, wanted, "gold for %s" % shot)
 
 
 func test_the_copies_are_deep_and_never_touch_the_shipped_map() -> void:

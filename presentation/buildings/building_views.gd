@@ -194,12 +194,38 @@ func _marker_color(spot_id: StringName, building_id: StringName) -> Color:
 
 ## A wall plot gets no model, no stand-in and no bar: WallViews draws its segments, and the plot
 ## marker stays so the king can find the plot (RESEARCH Pitfall 5).
-## The castle plot gets neither: the keep stays the landmark (plan 05-04 swaps its model per tier).
+## The castle plot gets neither: the keep stays the landmark, and each tier bought swaps its model.
 func _on_building_built(spot_id: StringName, building_id: StringName, new_tier: int) -> void:
 	var spot: BuildSpotDef = _ctx.buildings.get_spot(spot_id)
-	if spot.wall_run != null or spot.is_castle:
+	if spot.is_castle:
+		_swap_castle_keep(building_id, new_tier)
+		return
+	if spot.wall_run != null:
 		return
 	_place_building(spot_id, building_id, new_tier)
+
+
+## The keep grows with the castle's tier: the catalog scene for `building_id` at `new_tier` takes
+## the old keep's place and its hurt-only bar, and the old keep is freed. A tier the catalog has no
+## scene for (or a keep that has already fallen) leaves the current keep standing.
+func _swap_castle_keep(building_id: StringName, new_tier: int) -> void:
+	if catalog == null or _castle_view == null or _castle_rubble != null:
+		return
+	var model: Node3D = _instance_model(catalog.find(building_id, new_tier))
+	if model == null:
+		return
+	var old_keep: Node3D = _castle_view
+	var at: Vector3 = old_keep.position
+	remove_child(old_keep)
+	model.name = "CastleCenter"
+	add_child(model)
+	model.position = at
+	old_keep.remove_child(_castle_bar)
+	model.add_child(_castle_bar)
+	_castle_bar.height_offset = maxf(CASTLE_BAR_HEIGHT, _top_of(model) + BUILDING_BAR_CLEARANCE)
+	_castle_bar.position.y = _castle_bar.height_offset
+	_castle_view = model
+	old_keep.queue_free()
 
 
 ## Dawn (LOOP-04): the rubble of every rebuilt building is replaced by its model at the tier it had,

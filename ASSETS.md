@@ -81,6 +81,21 @@ asset" redistribution it forbids. The owner also accepts this risk (2026-10-01).
   primitive added in `presentation/king/king_model.tscn`. `character-male-a` (footman) and `character-female-a`
   (archer) are the unit puppets in `presentation/units/unit_views.gd`; the sword and bow are code-built primitives.
 
+## First-party assets
+
+Files made for this project itself, not downloaded from anywhere. They are not in the third-party table above
+and not in `assets/attribution.json` (those list only what came from someone else); they are dedicated to the
+public domain so the repository and every build stay clean to reuse.
+
+- **Choice card icons** (plan 05-04, created 2026-10-21): the twelve flat vector icons on the castle's ability
+  cards (crown and sword, banner, trowel and brick, coin stack, axe, gear and arrow, horn, mail shirt, shield and
+  spear, arrow volley, tower and hammer, sun over coins). Original works drawn for this project, one SVG per card
+  id, at `assets/first_party/card_icons/`. Licence: CC0-1.0 (public domain dedication, the same terms as the
+  Kenney packs), author: the Duskhold project. No third-party art and no Thronefall art was used; the shapes are
+  plain polygons and paths written directly as SVG text. The Phase 8 art pass may replace them.
+- The key tiles drawn on the cards (keys 1 to 4) are the already-logged Kenney Input Prompts files, so they need
+  no new entry.
+
 ## How to add an asset
 
 1. Put the files in a new folder `assets/third_party/<pack_id>/`. Never nest one pack folder inside another.

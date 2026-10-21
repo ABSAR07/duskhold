@@ -89,6 +89,9 @@ const WALLS_DAY := &"walls_day"
 const WALLS_NIGHT_BREACH := &"walls_night_breach"
 const OVERLAY_FIELD_GATE := &"overlay_field_gate"
 const CROWD_STRESS_NIGHT := &"crowd_stress_night"
+## The Phase 5 shots (plan 05-04 on); their scenes live in ShotEconomyScenarios.
+const CASTLE_CARDS := &"castle_cards"
+const CASTLE_TIER_FOUR := &"castle_tier_four"
 const ARMY_SHOTS: Array[StringName] = [
 	HUD_DAY_SQUADS,
 	HUD_NIGHT_SQUAD_DOWN,
@@ -146,7 +149,9 @@ const ALL_SHOTS: Array[StringName] = [
 	WALLS_DAY,
 	WALLS_NIGHT_BREACH,
 	OVERLAY_FIELD_GATE,
-	CROWD_STRESS_NIGHT
+	CROWD_STRESS_NIGHT,
+	CASTLE_CARDS,
+	CASTLE_TIER_FOUR
 ]
 
 
@@ -164,6 +169,8 @@ static func needs_timed_night(shot_name: StringName) -> bool:
 static func map_for(shot_name: StringName) -> MapConfig:
 	if ShotCrowdScenarios.handles(shot_name):
 		return ShotCrowdScenarios.map_for(shot_name)
+	if ShotEconomyScenarios.handles(shot_name):
+		return ShotEconomyScenarios.map_for(shot_name)
 	var shipped: MapConfig = load(MAP_DATA_PATH)
 	var config: MapConfig = shipped.duplicate_deep(Resource.DEEP_DUPLICATE_ALL)
 	config.starting_gold = SHOT_STARTING_GOLD
@@ -197,6 +204,8 @@ static func run(shot_name: StringName, runner: Node, map_root: MapRoot) -> bool:
 		return await ShotArmyScenarios.run(shot_name, runner, map_root)
 	if ShotCrowdScenarios.handles(shot_name):
 		return await ShotCrowdScenarios.run(shot_name, runner, map_root)
+	if ShotEconomyScenarios.handles(shot_name):
+		return await ShotEconomyScenarios.run(shot_name, runner, map_root)
 	match shot_name:
 		DAY_OVERVIEW:
 			return await _day_overview(runner, map_root)

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+<rect x="10" y="62" width="78" height="52" fill="#2a2d3a"/>
+<rect x="12" y="64" width="34" height="14" fill="#c9764a"/>
+<rect x="12" y="74" width="34" height="4" fill="#8f4a2a"/>
+<rect x="50" y="64" width="36" height="14" fill="#c9764a"/>
+<rect x="50" y="74" width="36" height="4" fill="#8f4a2a"/>
+<rect x="12" y="80" width="16" height="14" fill="#c9764a"/>
+<rect x="12" y="90" width="16" height="4" fill="#8f4a2a"/>
+<rect x="32" y="80" width="36" height="14" fill="#c9764a"/>
+<rect x="32" y="90" width="36" height="4" fill="#8f4a2a"/>
+<rect x="72" y="80" width="14" height="14" fill="#c9764a"/>
+<rect x="72" y="90" width="14" height="4" fill="#8f4a2a"/>
+<rect x="12" y="96" width="34" height="14" fill="#c9764a"/>
+<rect x="12" y="106" width="34" height="4" fill="#8f4a2a"/>
+<rect x="50" y="96" width="36" height="14" fill="#c9764a"/>
+<rect x="50" y="106" width="36" height="4" fill="#8f4a2a"/>
+<line x1="110" y1="14" x2="90" y2="44" stroke="#8a5a2f" stroke-width="9" stroke-linecap="round"/>
+<polygon points="90.0,44.0 78.0,68.0 52.0,56.0 66.0,36.0" fill="#d4dbe8"/>
+<polygon points="90.0,44.0 78.0,68.0 70.0,64.0" fill="#8b95aa"/>
+</svg>
