@@ -65,6 +65,21 @@ if [ "${FIX}" -eq 1 ]; then
 fi
 
 status=0
+
+# A raw carriage return inside a shell script survives line-ending normalisation only by luck and
+# turns a quoted tr -d into a no-op when an editor strips it (review IN-17): spell it as a backslash r.
+cr_files=""
+for script in tools/*.sh; do
+  if [ "$(tr -cd '\r' <"${script}" | wc -c)" -gt 0 ]; then
+    cr_files="${cr_files}${script}"$'\n'
+  fi
+done
+if [ -n "${cr_files}" ]; then
+  echo "raw carriage return in a shell script (write backslash r instead):" >&2
+  printf '%s' "${cr_files}" | sed 's/^/  /' >&2
+  status=1
+fi
+
 "${GDFORMAT}" --check "${targets[@]}" || status=1
 "${GDLINT}" "${targets[@]}" || status=1
 exit "${status}"

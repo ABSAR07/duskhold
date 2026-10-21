@@ -141,7 +141,8 @@ duskhold_require_native() {
   if [ -n "${lib}" ] && [ -f "${lib}" ]; then
     expected="$(duskhold_native_stamp_for "${lib}")" || expected=""
   fi
-  if [ -z "${expected}" ] || [ ! -f "${stamp_file}" ]     || [ "$(tr -d '' <"${stamp_file}")" != "${expected}" ]; then
+  if [ -z "${expected}" ] || [ ! -f "${stamp_file}" ] \
+    || [ "$(tr -d '\r' <"${stamp_file}")" != "${expected}" ]; then
     echo "native library missing or stale: run bash tools/native_build.sh" >&2
     return 3
   fi
