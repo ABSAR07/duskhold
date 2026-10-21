@@ -1,19 +1,27 @@
 class_name ShotEconomyScenarios
 extends RefCounted
-## The Phase 5 scenes of `tools/screenshot.sh` (plans 05-04 and 05-07): the four ability cards above
-## the castle with card 2 raised, the tier IV keep with its three picks on the label, and a Field
-## beside the unbuilt Mill reading "Needs a Mill". They follow the
-## rules of ShotScenarios: every scene reaches its state through the command intents and the
-## Input Map, never by writing simulation state. Later Phase 5 plans append their shots here.
+## The Phase 5 scenes of `tools/screenshot.sh` (plans 05-04, 05-07 and 05-08): the four ability
+## cards above the castle with card 2 raised, the tier IV keep with its three picks on the label, a
+## Field beside the unbuilt Mill reading "Needs a Mill", and the Fishing Harbor on its pond with
+## three boats. They follow the rules of ShotScenarios: every scene reaches its state through the
+## command intents and the Input Map, never by writing simulation state. Later Phase 5 plans
+## append their shots here.
 
 const CASTLE: StringName = &"castle_plot"
 ## field_locked: the Field the king stands beside; the Mill plot (mill_1) lies 5 m north of it.
 const LOCKED_FIELD: StringName = &"field_2"
 const LOCKED_LINE := "Needs a Mill"
+## harbor_pond: the Harbor, the dawns that give it boats and where the king stands on its shore.
+const POND_HARBOR: StringName = &"harbor_1"
+const POND_DAWNS: int = 3
+## A timed night and its dawn take a few hundred steps; this bounds the loop if one never ends.
+const POND_NIGHT_TICKS: int = 4000
+const POND_STAND_OFFSET := Vector3(-2.5, 0.0, 6.5)
 const ECONOMY_SHOTS: Array[StringName] = [
 	ShotScenarios.CASTLE_CARDS,
 	ShotScenarios.CASTLE_TIER_FOUR,
 	ShotScenarios.FIELD_LOCKED,
+	ShotScenarios.HARBOR_POND,
 ]
 ## The gold the Phase 5 shots start with: enough for all three castle upgrades (6 + 10 + 16).
 const SHOT_GOLD: int = 60
@@ -40,10 +48,13 @@ static func handles(shot_name: StringName) -> bool:
 
 ## The map copy a Phase 5 shot runs on: a deep copy of the shipped map (DR-12, never the shared
 ## resource) with the shot gold. Every other field, the nights included, stays as shipped.
-static func map_for(_shot_name: StringName) -> MapConfig:
+static func map_for(shot_name: StringName) -> MapConfig:
 	var shipped: MapConfig = load(ShotScenarios.MAP_DATA_PATH)
 	var config: MapConfig = shipped.duplicate_deep(Resource.DEEP_DUPLICATE_ALL)
 	config.starting_gold = SHOT_GOLD
+	if shot_name == ShotScenarios.HARBOR_POND:
+		var no_nights: Array[NightDef] = []
+		config.nights = no_nights
 	return config
 
 
@@ -55,6 +66,8 @@ static func run(shot_name: StringName, runner: Node, map_root: MapRoot) -> bool:
 			return await _castle_tier_four(runner, map_root)
 		ShotScenarios.FIELD_LOCKED:
 			return await _field_locked(runner, map_root)
+		ShotScenarios.HARBOR_POND:
+			return await _harbor_pond(runner, map_root)
 	printerr("unknown economy shot %s" % shot_name)
 	return false
 
@@ -119,4 +132,39 @@ static func _field_locked(runner: Node, map_root: MapRoot) -> bool:
 	var ready: bool = status != null and status.visible and status.text == LOCKED_LINE
 	if not ready:
 		printerr("the Field label does not read '%s'" % LOCKED_LINE)
+	return ready
+
+
+## By day with a Fishing Harbor built and three boats on the pond: the Harbor is bought through its
+## command, then three timed nights are run the way a replay runs them (the loop steps the
+## simulation, nothing writes its state), each dawn giving the Harbor one boat. The king stands on
+## the shore and the camera is zoomed out so the whole pond and its dock are in the frame.
+static func _harbor_pond(runner: Node, map_root: MapRoot) -> bool:
+	var ctx: RunContext = map_root.get_context()
+	if not ShotScenarios._submit_ok(ctx, BuildIntent.new(POND_HARBOR)):
+		return false
+	for _dawn: int in range(POND_DAWNS):
+		if not ShotScenarios._submit_ok(ctx, StartNightIntent.new()):
+			return false
+		var ticks: int = 0
+		while ctx.run_manager.get_phase() != RunManager.RunPhase.DAY and ticks < POND_NIGHT_TICKS:
+			ctx.step()
+			ticks += 1
+	var plot: Vector3 = ctx.buildings.get_spot(POND_HARBOR).position
+	map_root.get_king().global_position = plot + POND_STAND_OFFSET
+	Input.action_press(&"zoom_out")
+	await ShotScenarios._wait(runner, ZOOM_OUT_S)
+	Input.action_release(&"zoom_out")
+	await ShotScenarios._wait(runner, ShotScenarios.CAMERA_SETTLE_S)
+	var pond: PondView = map_root.get_node("PondView") as PondView
+	var ready: bool = (
+		ctx.run_manager.get_phase() == RunManager.RunPhase.DAY
+		and pond != null
+		and pond.has_pond()
+		and pond.boat_count(POND_HARBOR) == POND_DAWNS
+	)
+	if not ready:
+		printerr(
+			"the pond does not show %d boats (%s)" % [POND_DAWNS, ShotScenarios._state_line(ctx)]
+		)
 	return ready

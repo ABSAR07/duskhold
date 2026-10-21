@@ -1,13 +1,21 @@
 class_name EconomyValidation
 extends RefCounted
-## What MapConfig.validate() says about income-curve data (T-05-13, ECON-03, D-12): one readable
-## string per problem, so bad curve numbers are reported instead of armed. A DECLINING building
-## (the Gold Mine) needs, on every tier, an income_step and an income_floor of 1 or more (a payout
-## that never falls, or one that falls to 0, breaks D-12), a first payout (dawn_income) that is not
-## below its floor, and no curve value above MAX_CURVE_VALUE. A building whose curve does not use
-## the step and the floor must leave both at 0: a value there is a field set on the wrong curve.
-## Plans 05-08 and 05-09 extend this for the Harbor's boats and the Shrine's wake data. Pure: it
-## reads the map and never mutates it.
+## What MapConfig.validate() says about income-curve and pond data (T-05-13, T-05-16, ECON-03,
+## ECON-05, D-11, D-12): one readable string per problem, so bad numbers are reported instead of
+## armed.
+##
+## A DECLINING building (the Gold Mine) needs, on every tier, an income_step and an income_floor of
+## 1 or more (a payout that never falls, or one that falls to 0, breaks D-12), a first payout
+## (dawn_income) that is not below its floor, and no curve value above MAX_CURVE_VALUE. A BOATS
+## building (the Fishing Harbor) needs, on every tier, a boat_cap of 1 to MAX_BOAT_CAP and a
+## boat_income of 1 to MAX_CURVE_VALUE. A building whose curve does not use a field must leave it at
+## 0: a value there is a field set on the wrong curve.
+##
+## The pond (D-11) is visual only, but its numbers size a mesh and its place must stay clear of the
+## play: a centre and radius that are finite, a radius of 0 to MAX_POND_RADIUS (0 means no pond), no
+## plot and no spawn point inside the water, and every spawn-to-castle road segment at least
+## pond_radius + POND_ROAD_CLEARANCE metres from the centre. Plan 05-09 extends this for the
+## Shrine's wake data. Pure: it reads the map and never mutates it.
 
 ## The largest value any curve field may hold. Keeps every payout well inside an int.
 const MAX_CURVE_VALUE: int = 1000
@@ -19,8 +27,8 @@ const MAX_POND_RADIUS: float = 30.0
 const POND_ROAD_CLEARANCE: float = 10.0
 
 
-## Every curve problem of `map`, in building and tier order; empty when the data is well formed. A
-## null building or tier is skipped: the other helpers report those.
+## Every curve and pond problem of `map`, in building and tier order and then the pond's; empty when
+## the data is well formed. A null building or tier is skipped: the other helpers report those.
 static func problems(map: MapConfig) -> Array[String]:
 	var out: Array[String] = []
 	for building_def: BuildingDef in map.buildings:
@@ -33,8 +41,10 @@ static func problems(map: MapConfig) -> Array[String]:
 			var place: String = "building '%s' tier %d" % [building_def.id, index + 1]
 			if building_def.income_curve == BuildingDef.IncomeCurve.DECLINING:
 				_check_declining(place, tier, out)
-			else:
-				_check_unused(building_def, place, tier, out)
+			elif building_def.income_curve == BuildingDef.IncomeCurve.BOATS:
+				_check_boats(place, tier, out)
+			_check_unused(building_def, place, tier, out)
+	_check_pond(map, out)
 	return out
 
 
@@ -58,12 +68,28 @@ static func _check_declining(place: String, tier: BuildingTierDef, out: Array[St
 		)
 
 
-## A tier of a building whose curve does not decline: income_step and income_floor stay 0.
+## A boats tier: a cap of 1..MAX_BOAT_CAP and gold per boat of 1..MAX_CURVE_VALUE.
+static func _check_boats(place: String, tier: BuildingTierDef, out: Array[String]) -> void:
+	if tier.boat_cap < 1 or tier.boat_cap > MAX_BOAT_CAP:
+		out.append("%s boat_cap is %d, expected 1 to %d" % [place, tier.boat_cap, MAX_BOAT_CAP])
+	if tier.boat_income < 1 or tier.boat_income > MAX_CURVE_VALUE:
+		out.append(
+			"%s boat_income is %d, expected 1 to %d" % [place, tier.boat_income, MAX_CURVE_VALUE]
+		)
+
+
+## The fields a tier's curve does not use must stay 0: income_step and income_floor belong to
+## DECLINING, boat_cap and boat_income to BOATS.
 static func _check_unused(
 	building_def: BuildingDef, place: String, tier: BuildingTierDef, out: Array[String]
 ) -> void:
 	var curve: String = BuildingDef.IncomeCurve.keys()[building_def.income_curve]
-	for field: String in ["income_step", "income_floor"]:
+	var unused: Array[String] = []
+	if building_def.income_curve != BuildingDef.IncomeCurve.DECLINING:
+		unused.append_array(["income_step", "income_floor"])
+	if building_def.income_curve != BuildingDef.IncomeCurve.BOATS:
+		unused.append_array(["boat_cap", "boat_income"])
+	for field: String in unused:
 		var value: int = tier.get(field)
 		if value != 0:
 			out.append(
@@ -72,3 +98,48 @@ static func _check_unused(
 					% [place, field, value, curve]
 				)
 			)
+
+
+## The pond: finite numbers, a radius within 0..MAX_POND_RADIUS, nothing inside the water and every
+## road clear of it. A radius of 0 means no pond, so only a centre that is not finite is reported.
+static func _check_pond(map: MapConfig, out: Array[String]) -> void:
+	var centre: Vector2 = map.pond_center
+	var radius: float = map.pond_radius
+	var finite_centre: bool = is_finite(centre.x) and is_finite(centre.y)
+	if not finite_centre:
+		out.append("pond_center is not finite (%s)" % centre)
+	if not is_finite(radius):
+		out.append("pond_radius is not finite (%s)" % radius)
+		return
+	if radius < 0.0:
+		out.append("pond_radius is negative (%s)" % radius)
+		return
+	if radius > MAX_POND_RADIUS:
+		out.append("pond_radius is %s, expected at most %s" % [radius, MAX_POND_RADIUS])
+	if radius == 0.0 or not finite_centre:
+		return
+	for spot: BuildSpotDef in map.spots:
+		if spot != null and _ground(spot.position).distance_to(centre) < radius:
+			out.append("pond contains plot '%s'" % spot.id)
+	for spawn_point: SpawnPointDef in map.spawn_points:
+		if spawn_point != null and _ground(spawn_point.position).distance_to(centre) < radius:
+			out.append("pond contains spawn point '%s'" % spawn_point.id)
+	var wanted: float = radius + POND_ROAD_CLEARANCE
+	var castle: Vector2 = _ground(map.castle_position)
+	for spawn_point: SpawnPointDef in map.spawn_points:
+		if spawn_point == null:
+			continue
+		var start: Vector2 = _ground(spawn_point.position)
+		var nearest: Vector2 = Geometry2D.get_closest_point_to_segment(centre, start, castle)
+		var apart: float = nearest.distance_to(centre)
+		if apart < wanted:
+			out.append(
+				(
+					"pond is %.1f m from the road from spawn point '%s', expected at least %.1f"
+					% [apart, spawn_point.id, wanted]
+				)
+			)
+
+
+static func _ground(point: Vector3) -> Vector2:
+	return Vector2(point.x, point.z)

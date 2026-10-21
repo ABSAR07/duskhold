@@ -26,9 +26,11 @@ const BOAT_ANGLE_STEP: float = 2.399963
 ## A second Harbor on the same pond starts its boats a little round the ring from the first.
 const SLOT_ANGLE_OFFSET: float = 1.0
 const BOAT_Y: float = 0.1
-const HULL_SIZE := Vector3(1.5, 0.3, 0.6)
+const HULL_SIZE := Vector3(1.9, 0.35, 0.8)
+## A pale deck plate on the hull, so a boat reads from the high camera as well as from the side.
+const DECK_SIZE := Vector3(1.5, 0.06, 0.5)
 const MAST_SIZE := Vector3(0.06, 1.1, 0.06)
-const SAIL_SIZE := Vector2(0.8, 0.8)
+const SAIL_SIZE := Vector2(1.0, 1.0)
 const HULL_COLOR := Color(0.5, 0.32, 0.16)
 const MAST_COLOR := Color(0.3, 0.2, 0.1)
 const SAIL_COLOR := Color(0.96, 0.94, 0.86)
@@ -42,6 +44,7 @@ var _boats: Dictionary = {}
 ## Harbor plot ids in MapConfig order; the index is the slot.
 var _slots: Array[StringName] = []
 var _hull_mesh: BoxMesh
+var _deck_mesh: BoxMesh
 var _mast_mesh: BoxMesh
 var _sail_mesh: QuadMesh
 var _hull_material: StandardMaterial3D
@@ -145,6 +148,8 @@ func _add_water() -> void:
 func _make_shared_resources() -> void:
 	_hull_mesh = BoxMesh.new()
 	_hull_mesh.size = HULL_SIZE
+	_deck_mesh = BoxMesh.new()
+	_deck_mesh.size = DECK_SIZE
 	_mast_mesh = BoxMesh.new()
 	_mast_mesh.size = MAST_SIZE
 	_sail_mesh = QuadMesh.new()
@@ -171,6 +176,12 @@ func _make_boat() -> Node3D:
 	hull.material_override = _hull_material
 	hull.position = Vector3(0.0, HULL_SIZE.y * 0.5, 0.0)
 	boat.add_child(hull)
+	var deck: MeshInstance3D = MeshInstance3D.new()
+	deck.name = "Deck"
+	deck.mesh = _deck_mesh
+	deck.material_override = _sail_material
+	deck.position = Vector3(0.0, HULL_SIZE.y + DECK_SIZE.y * 0.5, 0.0)
+	boat.add_child(deck)
 	var mast: MeshInstance3D = MeshInstance3D.new()
 	mast.name = "Mast"
 	mast.mesh = _mast_mesh

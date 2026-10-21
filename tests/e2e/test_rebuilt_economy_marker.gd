@@ -3,7 +3,7 @@ extends GutTest
 ## pays income, whatever its curve. A Gold Mine that fell in the night and was rebuilt at dawn wears
 ## the mark (it pays nothing that morning and makes no progress), a House rebuilt the same dawn
 ## wears one too, and a wall plot never does. The marker asks the building (pays_income), not the
-## raw dawn_income field, so a curve that pays nothing at its tier is not marked. The marks fade
+## raw dawn_income field, so a boats building with no dawn_income is marked too. The marks fade
 ## when the day starts. The scene runs on the waveless prototype map with a short night, so the
 ## test controls what falls.
 
@@ -139,12 +139,15 @@ func test_a_wall_plot_and_a_tower_are_never_marked() -> void:
 func test_the_marker_asks_the_building_not_the_raw_income_field() -> void:
 	for building_def: BuildingDef in _map.buildings:
 		if building_def.id == &"gold_mine":
-			# A BOATS building pays per boat, which the Harbor's own plan adds: until then it pays
-			# nothing at its tier, whatever dawn_income says, so a rebuilt one is not marked.
+			# A BOATS building pays per boat, whatever dawn_income says: this one pays through its
+			# boats alone (dawn_income 0), so a marker reading the raw field would miss it.
 			building_def.income_curve = BuildingDef.IncomeCurve.BOATS
 			# The decline fields do not belong to this curve (validate() would report them).
 			building_def.tier_def(1).income_step = 0
 			building_def.tier_def(1).income_floor = 0
+			building_def.tier_def(1).dawn_income = 0
+			building_def.tier_def(1).boat_cap = 1
+			building_def.tier_def(1).boat_income = 1
 	await _start()
 	await _night([MINE, HOUSE], [MINE, HOUSE])
 	var marker: DawnNoIncomeMarker = _marker()
@@ -154,4 +157,8 @@ func test_the_marker_asks_the_building_not_the_raw_income_field() -> void:
 
 	assert_true(await _to_dawn(), "dawn")
 
-	assert_eq(marker.marked_spots(), [HOUSE] as Array[StringName], "the House only")
+	assert_eq(
+		marker.marked_spots(),
+		[HOUSE, MINE] as Array[StringName],
+		"the House and the boats building, which pays per boat though its dawn_income is 0"
+	)

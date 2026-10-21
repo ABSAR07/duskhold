@@ -93,6 +93,7 @@ const CROWD_STRESS_NIGHT := &"crowd_stress_night"
 const CASTLE_CARDS := &"castle_cards"
 const CASTLE_TIER_FOUR := &"castle_tier_four"
 const FIELD_LOCKED := &"field_locked"
+const HARBOR_POND := &"harbor_pond"
 const ARMY_SHOTS: Array[StringName] = [
 	HUD_DAY_SQUADS,
 	HUD_NIGHT_SQUAD_DOWN,
@@ -153,7 +154,8 @@ const ALL_SHOTS: Array[StringName] = [
 	CROWD_STRESS_NIGHT,
 	CASTLE_CARDS,
 	CASTLE_TIER_FOUR,
-	FIELD_LOCKED
+	FIELD_LOCKED,
+	HARBOR_POND
 ]
 
 
