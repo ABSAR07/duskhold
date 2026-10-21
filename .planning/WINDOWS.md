@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 7
+open_count: 8
 waived_count: 1
 fixed_count: 0
-total_count: 8
-last_updated: 2026-10-19T19:56:39.750Z
+total_count: 9
+last_updated: 2026-10-21T12:44:06.822Z
 ---
 
 # Broken Windows Ledger
@@ -23,6 +23,7 @@ last_updated: 2026-10-19T19:56:39.750Z
 | 6 | 04 | deviation | .planning/phases/04-crowd-scale-battles-walls/04-FRAME-REPORT.md |  | Wall-break rebuild measured at 11.74 ms mean and 13.22 ms max (5494 cells); break-frame estimate 34.14 ms is above 16.7 ms so count-based time slicing is named as an open point for the owner (04-PLAYTEST-GATE via plan 04-11) | open |  | 2026-10-16T11:50:17.587Z |  |
 | 7 | 04 | deviation | tools/replay/playtest_strategies.gd |  | 04-10: the wall-buying bots reach their wall entries only in the last days (21 tier I walls over 20 runs, 0 segments broken) because the plan's first order broke the Phase 2 bar; D-15 ladder moved entries later, owner to judge wall prices at the gate | open |  | 2026-10-16T19:21:08.878Z |  |
 | 8 | 04 | unmet-truth | .planning/phases/04-crowd-scale-battles-walls/04-FRAME-REPORT.md |  | PLAT-01 / ROADMAP criterion 3: stress night p95 10.95 ms vs 8.0 ms budget on the native step (plan 04-21) | open |  | 2026-10-19T19:56:39.750Z |  |
+| 9 | 05 | stub | ui/world/card_row.gd |  | Card icon slot draws empty (ChoiceDef.icon null) until plan 05-04 adds the twelve icons | open |  | 2026-10-21T12:44:06.822Z |  |
 
 ````json
 [
@@ -127,6 +128,19 @@ last_updated: 2026-10-19T19:56:39.750Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-10-19T19:56:39.750Z",
+    "resolved_at": null,
+    "milestone": null
+  },
+  {
+    "id": 9,
+    "kind": "stub",
+    "phase": "05",
+    "file": "ui/world/card_row.gd",
+    "line": null,
+    "description": "Card icon slot draws empty (ChoiceDef.icon null) until plan 05-04 adds the twelve icons",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-21T12:44:06.822Z",
     "resolved_at": null,
     "milestone": null
   }

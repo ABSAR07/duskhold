@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 05
 current_phase_name: Castle Center & Economy Depth
 status: executing
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-10-21T11:14:22.759Z"
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-10-21T12:45:42.953Z"
 last_activity: 2026-10-21
 last_activity_desc: Phase 05 execution started
-state_head: 48c4438230cfa48e9ab6268e6b16a11b7eae6025
+state_head: a44121ff5d709c5cf81cc677ebdd175bede4a0cf
 progress:
   total_phases: 13
   completed_phases: 4
   total_plans: 99
-  completed_plans: 88
+  completed_plans: 89
   percent: 31
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-21)
 ## Current Position
 
 Phase: 05 (Castle Center & Economy Depth) — EXECUTING
-Plan: 2 of 12
+Plan: 3 of 12
 Status: Ready to execute
 Last activity: 2026-10-21 — Phase 05 execution started
 
@@ -147,6 +147,7 @@ Progress: [███░░░░░░░] 31%
 | Phase 04 P27 | 63 min | 2 tasks | 13 files |
 | Phase 04 P28 | 14 min | 2 tasks | 2 files |
 | Phase 05 P01 | 65 min | 2 tasks | 36 files |
+| Phase 05 P02 | 75 min | 2 tasks | 57 files |
 
 ## Accumulated Context
 
@@ -342,6 +343,8 @@ Recent decisions affecting current work:
 - [Phase 04]: 04-28: the stress night after the view-layer port is MET (median-run p95 5.37 ms against the unchanged 8.0 ms, runs 5.00/5.37/5.56); G-04-5 and criterion 3 closed by measurement, PLAT-01 complete; the three view loops now cost 0.22 ms of the frame (3.80 ms before) — FRAME_REPORT_OK within=true, committed view ablation, nothing lowered; GTX 970 transfer stays a projection (test 12), Phase 13 re-verifies
 - [Phase 04]: Phase 4 closed 2026-10-21: UAT 17 of 19 pass (rows 5, 6 and 13 superseded by the passing re-checks 14 to 16 with the owner's approval; 12 and 18 deferred to Phase 13, no GTX 970 here), 04-VERIFICATION.md passed (4 of 4 criteria, 154 of 155 truths, 0 gaps), PLAT-01 met at median-run p95 5.37 ms against 8.0 (37.04 ms before the two native rounds); validation nyquist-compliant, 77 threats closed; 33 review findings open (0 critical) for /gsd-code-review 4 --fix --all. /gsd-code-review 4 --fix --all ran 2026-10-21: 27 of the 33 fixed in 27 atomic commits (10f12a0 to abdcc85; suite 2088 tests green, goldens and pins unchanged), 6 skipped and recorded in 04-REVIEW-DISPOSITION.md (WR-02, WR-03 need a golden re-pin the owner has not approved; IN-03 owner-scoped out; IN-02, IN-11, IN-12 follow-ups)
 - [Phase 05]: StatStack (META-08): flat/percent/multiplier buckets with one half-up rounding, percent sum clamped -90..1000 when read, sorted id lists via StatIds.sorted (StringName.sort is not alphabetical); all consumers read through RunContext.stat_stack, identity while empty (smoke, army, walls, full_idle digests unchanged)
+- [Phase 05]: 05-02: castle plot is castle_plot (castle is the payout key) appended as spot 15 at (0, 0, 4.2); BuildingSystem stands it silently at tier I and its instance carries the tier only (health_of and max_health_of read 0), CastleState owns the castle's health; tier I of castle_center carries only a never-charged cost and the map's castle fields stay its numbers
+- [Phase 05]: 05-02: validate_build order is NOT_DAY, UNKNOWN_SPOT, MAX_TIER, CANNOT_AFFORD, CHOICE_REQUIRED, BAD_CHOICE; no card is pre-highlighted so a hold with no highlight is refused with choice_required; digits 1 to 4 (with or without Ctrl) pick cards and recall no group while the cards show, 5 to 9 and 0 never; the card row is 2.4 x 3.2 m at 7.6 m above the plot after the first real-window look
 
 ### Pending Todos
 
@@ -379,6 +382,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-21T11:14:21.712Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-10-21T12:45:41.249Z
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None
