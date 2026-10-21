@@ -359,12 +359,12 @@ Plans:
      - a Shrine, which activates after enough nearby enemy deaths, then attacks, pays, and strengthens other active Shrines
   4. Bonuses from building upgrades and castle abilities combine in one fixed, documented order. Automated tests verify single-modifier and combined-modifier cases.
 
-**Plans**: 0/12 plans complete (planned 2026-10-21: 12 plans in 11 waves, one chain with 05-04 and 05-05 side by side; research P1 to P8 and the one approved golden step folded in)
+**Plans**: 1/12 plans executed (planned 2026-10-21: 12 plans in 11 waves, one chain with 05-04 and 05-05 side by side; research P1 to P8 and the one approved golden step folded in)
 
 Plans:
 
 **Wave 1**
-- [ ] 05-01: Tracer — the StatStack (flat, percent, multiplier buckets, one half-up rounding) with docs/STAT_MODIFIERS.md and the single- and combined-modifier tests; every modifiable stat read through it with identity values, smoke, army, walls and full_idle byte-identical; Stats overlay (META-08, D-15)
+- [x] 05-01: Tracer — the StatStack (flat, percent, multiplier buckets, one half-up rounding) with docs/STAT_MODIFIERS.md and the single- and combined-modifier tests; every modifiable stat read through it with identity values, smoke, army, walls and full_idle byte-identical; Stats overlay (META-08, D-15)
 
 **Wave 2** *(blocked on 05-01)*
 - [ ] 05-02: Castle tracer — the castle plot and its four tiers, BuildIntent choice_id, choice_picked and the ChoiceLedger, the world-space card row picked with keys 1 to 4 and the digit hand-over from control groups (BLDG-08, BLDG-05, UI-02, D-01, D-05, D-06)
@@ -396,6 +396,7 @@ Plans:
 
 **Wave 11** *(blocked on 05-11)*
 - [ ] 05-12: Phase gate — the full local pass with all 44 shots, push and green CI, a launch-checked export and 05-PLAYTEST-GATE.md for the owner's feel check
+
 **UI hint**: yes
 
 ### Phase 6: Enemy Roster & Tower Specializations
@@ -531,7 +532,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 2. Night Defense & Playtest Gate | 22/22 | Complete    | 2026-10-08 |
 | 3. King Combat & Troops | 19/19 | Complete    | 2026-10-15 |
 | 4. Crowd-Scale Battles & Walls | 28/28 | Complete    | 2026-10-21 |
-| 5. Castle Center & Economy Depth | 0/TBD | Not started | - |
+| 5. Castle Center & Economy Depth | 1/12 | In Progress|  |
 | 6. Enemy Roster & Tower Specializations | 0/TBD | Not started | - |
 | 7. Army Variety & Heroes | 0/TBD | Not started | - |
 | 8. Art, Readability & Sound | 0/TBD | Not started | - |

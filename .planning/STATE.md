@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 05
 current_phase_name: Castle Center & Economy Depth
 status: executing
-stopped_at: Phase 5 planned (12 plans, 11 waves)
-last_updated: "2026-10-21T10:01:48.078Z"
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-10-21T11:14:22.759Z"
 last_activity: 2026-10-21
 last_activity_desc: Phase 05 execution started
-state_head: 2c0cc5f9a67e8ec194c080e9b995f2c0ec72ea9b
+state_head: 48c4438230cfa48e9ab6268e6b16a11b7eae6025
 progress:
   total_phases: 13
   completed_phases: 4
   total_plans: 99
-  completed_plans: 87
+  completed_plans: 88
   percent: 31
 ---
 
@@ -28,8 +28,8 @@ See: .planning/PROJECT.md (updated 2026-10-21)
 ## Current Position
 
 Phase: 05 (Castle Center & Economy Depth) — EXECUTING
-Plan: 1 of 12
-Status: Executing Phase 05
+Plan: 2 of 12
+Status: Ready to execute
 Last activity: 2026-10-21 — Phase 05 execution started
 
 Progress: [███░░░░░░░] 31%
@@ -146,6 +146,7 @@ Progress: [███░░░░░░░] 31%
 | Phase 04 P26 | 51 min | 2 tasks | 14 files |
 | Phase 04 P27 | 63 min | 2 tasks | 13 files |
 | Phase 04 P28 | 14 min | 2 tasks | 2 files |
+| Phase 05 P01 | 65 min | 2 tasks | 36 files |
 
 ## Accumulated Context
 
@@ -340,6 +341,7 @@ Recent decisions affecting current work:
 - [Phase 04]: 04-27: the view-layer round (plans 04-24 to 04-27) pushed once; CI run 39445109146 green on every job for e0ecde0 with the four replays and the gate on GCC and MSVC and the CI export launched; no fix cycle — Option A for CI (both native libraries built from source); goldens byte-identical, no digest moved
 - [Phase 04]: 04-28: the stress night after the view-layer port is MET (median-run p95 5.37 ms against the unchanged 8.0 ms, runs 5.00/5.37/5.56); G-04-5 and criterion 3 closed by measurement, PLAT-01 complete; the three view loops now cost 0.22 ms of the frame (3.80 ms before) — FRAME_REPORT_OK within=true, committed view ablation, nothing lowered; GTX 970 transfer stays a projection (test 12), Phase 13 re-verifies
 - [Phase 04]: Phase 4 closed 2026-10-21: UAT 17 of 19 pass (rows 5, 6 and 13 superseded by the passing re-checks 14 to 16 with the owner's approval; 12 and 18 deferred to Phase 13, no GTX 970 here), 04-VERIFICATION.md passed (4 of 4 criteria, 154 of 155 truths, 0 gaps), PLAT-01 met at median-run p95 5.37 ms against 8.0 (37.04 ms before the two native rounds); validation nyquist-compliant, 77 threats closed; 33 review findings open (0 critical) for /gsd-code-review 4 --fix --all. /gsd-code-review 4 --fix --all ran 2026-10-21: 27 of the 33 fixed in 27 atomic commits (10f12a0 to abdcc85; suite 2088 tests green, goldens and pins unchanged), 6 skipped and recorded in 04-REVIEW-DISPOSITION.md (WR-02, WR-03 need a golden re-pin the owner has not approved; IN-03 owner-scoped out; IN-02, IN-11, IN-12 follow-ups)
+- [Phase 05]: StatStack (META-08): flat/percent/multiplier buckets with one half-up rounding, percent sum clamped -90..1000 when read, sorted id lists via StatIds.sorted (StringName.sort is not alphabetical); all consumers read through RunContext.stat_stack, identity while empty (smoke, army, walls, full_idle digests unchanged)
 
 ### Pending Todos
 
@@ -377,6 +379,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-21T09:49:47Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-castle-center-economy-depth/05-CONTEXT.md
+Last session: 2026-10-21T11:14:21.712Z
+Stopped at: Completed 05-01-PLAN.md
+Resume file: None

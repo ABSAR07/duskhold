@@ -93,7 +93,7 @@ Requirements for the initial release (5-map campaign). Each maps to exactly one 
 - [ ] **META-05**: Each completed run awards XP based on its score toward a persistent player level
 - [ ] **META-06**: Leveling up unlocks weapons, perks, perk slots, and heroes on a front-loaded curve that unlocks all v1 content within the campaign
 - [ ] **META-07**: Map select shows each map's lock state and best score
-- [ ] **META-08**: Stat bonuses from perks, mutators, upgrades, castle abilities, and research combine in a fixed, documented order that automated tests verify
+- [x] **META-08**: Stat bonuses from perks, mutators, upgrades, castle abilities, and research combine in a fixed, documented order that automated tests verify
 - [ ] **META-09**: Campaign progress (level, XP, unlocks, best scores) and settings persist between sessions, and saves carry a schema version so older saves migrate after updates
 
 ### Input
@@ -242,7 +242,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | META-05 | Phase 10 | Pending |
 | META-06 | Phase 10 | Pending |
 | META-07 | Phase 9 | Pending |
-| META-08 | Phase 5 | Pending |
+| META-08 | Phase 5 | Complete |
 | META-09 | Phase 9 | Pending |
 | INPT-01 | Phase 3 | Complete |
 | INPT-02 | Phase 3 | Complete |
