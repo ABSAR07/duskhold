@@ -38,4 +38,5 @@ const ALL: Array[String] = [
 	"wall_segment_broken",
 	"walls_restored",
 	"choice_picked",
+	"harbor_boats_changed",
 ]

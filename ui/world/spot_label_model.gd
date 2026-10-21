@@ -15,9 +15,10 @@ const MAX_TIER_TEXT := "Max tier"
 ## with none). The castle plot's `effect` reads its numbers through the stat stack, so the label
 ## shows what the castle will be, not the raw tier values. A declining building (the Gold Mine)
 ## says how its payout falls before it is built and, once built, what it pays at the next dawn. A
-## next tier locked behind the castle or another plot (D-03, D-10) reads "Needs Castle II" /
-## "Needs a Mill" in `status_line` with cost 0 and `affordable` true, so no price and no red coins
-## show.
+## Fishing Harbor at its top tier reads its boats and the next dawn's gold ("Boats 2 of 5, next
+## dawn 3 gold"). A next tier locked behind the castle or another plot (D-03, D-10) reads "Needs
+## Castle II" / "Needs a Mill" in `status_line` with cost 0 and `affordable` true, so no price and
+## no red coins show.
 static func describe(ctx: RunContext, spot_id: StringName, coins_paid: int) -> Dictionary:
 	var content: Dictionary = {
 		"title": "",
@@ -42,6 +43,15 @@ static func describe(ctx: RunContext, spot_id: StringName, coins_paid: int) -> D
 			content["effect"] = _wall_effect(run, building_def.tier_def(tier))
 		elif building_def.income_curve == BuildingDef.IncomeCurve.DECLINING and ctx.income != null:
 			content["effect"] = "Next dawn: %d gold" % ctx.income.next_payout(spot_id)
+		elif building_def.income_curve == BuildingDef.IncomeCurve.BOATS and ctx.income != null:
+			content["effect"] = (
+				"Boats %d of %d, next dawn %d gold"
+				% [
+					ctx.income.boats_of(spot_id),
+					building_def.tier_def(tier).boat_cap,
+					ctx.income.next_payout(spot_id)
+				]
+			)
 		content["max_tier"] = true
 		content["affordable"] = true
 		content["status_line"] = MAX_TIER_TEXT

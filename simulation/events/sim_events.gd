@@ -85,3 +85,7 @@ signal squad_ordered(squad_id: StringName, verb: StringName, queued: bool, point
 ## A building tier with cards was bought with the card `choice_id` (BLDG-05). Emitted right after
 ## the building_built of the same purchase; the pick lasts the run.
 signal choice_picked(spot_id: StringName, tier: int, choice_id: StringName)
+## A Fishing Harbor gained a boat at dawn and now has `boats` (ECON-05). Emitted only when the
+## count changes, never for a Harbor at its cap, a fallen one or one rebuilt this dawn; the boat
+## views follow it and the replay digest records it.
+signal harbor_boats_changed(spot_id: StringName, boats: int)

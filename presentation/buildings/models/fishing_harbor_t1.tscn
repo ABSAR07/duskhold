@@ -1,0 +1,73 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_fantasy_town_kit/models/wall-window-small.glb" id="1_wall_window_small"]
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_fantasy_town_kit/models/wall-door.glb" id="2_wall_door"]
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_fantasy_town_kit/models/wall.glb" id="3_wall"]
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_fantasy_town_kit/models/roof-gable.glb" id="4_roof_gable"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_deck"]
+size = Vector3(1.4, 0.14, 3.0)
+
+[sub_resource type="BoxMesh" id="BoxMesh_post"]
+size = Vector3(0.18, 0.7, 0.18)
+
+[sub_resource type="BoxMesh" id="BoxMesh_crate"]
+size = Vector3(0.45, 0.4, 0.45)
+
+[sub_resource type="StandardMaterial3D" id="Material_wood"]
+albedo_color = Color(0.5, 0.34, 0.18, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Material_post"]
+albedo_color = Color(0.32, 0.21, 0.11, 1)
+roughness = 0.9
+
+[node name="FishingHarborT1" type="Node3D"]
+
+[node name="Hut" type="Node3D" parent="."]
+transform = Transform3D(1.4, 0, 0, 0, 1.4, 0, 0, 0, 1.4, 0, 0, -0.2)
+
+[node name="WallE" parent="Hut" instance=ExtResource("1_wall_window_small")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="WallS" parent="Hut" instance=ExtResource("2_wall_door")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 0, 0, 0)
+
+[node name="WallW" parent="Hut" instance=ExtResource("1_wall_window_small")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
+
+[node name="WallN" parent="Hut" instance=ExtResource("3_wall")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 0, 0, 0)
+
+[node name="Roof" parent="Hut" instance=ExtResource("4_roof_gable")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="Deck" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 2.1)
+mesh = SubResource("BoxMesh_deck")
+surface_material_override/0 = SubResource("Material_wood")
+
+[node name="PostNearL" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.65, 0.35, 1.1)
+mesh = SubResource("BoxMesh_post")
+surface_material_override/0 = SubResource("Material_post")
+
+[node name="PostNearR" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.65, 0.35, 1.1)
+mesh = SubResource("BoxMesh_post")
+surface_material_override/0 = SubResource("Material_post")
+
+[node name="PostFarL" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.65, 0.35, 3.4)
+mesh = SubResource("BoxMesh_post")
+surface_material_override/0 = SubResource("Material_post")
+
+[node name="PostFarR" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.65, 0.35, 3.4)
+mesh = SubResource("BoxMesh_post")
+surface_material_override/0 = SubResource("Material_post")
+
+[node name="Crate" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.95, 0, 0.31, 0, 1, 0, -0.31, 0, 0.95, 0.35, 0.47, 1.2)
+mesh = SubResource("BoxMesh_crate")
+surface_material_override/0 = SubResource("Material_wood")

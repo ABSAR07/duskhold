@@ -41,6 +41,7 @@ const HANDLED: Array[String] = [
 	"wall_segment_broken",
 	"walls_restored",
 	"choice_picked",
+	"harbor_boats_changed",
 ]
 ## Written in place of an empty id so every token is non-empty.
 const EMPTY_TOKEN := "-"
@@ -86,6 +87,7 @@ static func attach(ctx: RunContext) -> SimRecorder:
 	events.wall_segment_broken.connect(recorder._on_wall_segment_broken)
 	events.walls_restored.connect(recorder._on_walls_restored)
 	events.choice_picked.connect(recorder._on_choice_picked)
+	events.harbor_boats_changed.connect(recorder._on_harbor_boats_changed)
 	return recorder
 
 
@@ -232,6 +234,10 @@ func _on_walls_restored(spot_ids: Array) -> void:
 
 func _on_choice_picked(spot_id: StringName, tier: int, choice_id: StringName) -> void:
 	_record("choice_picked", [spot_id, tier, choice_id])
+
+
+func _on_harbor_boats_changed(spot_id: StringName, boats: int) -> void:
+	_record("harbor_boats_changed", [spot_id, boats])
 
 
 func _on_run_ended(outcome: StringName) -> void:

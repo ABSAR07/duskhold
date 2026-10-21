@@ -34,6 +34,12 @@ extends Resource
 ## The least a DECLINING building ever pays at a dawn it stands, never 0 (D-12). 0 on every other
 ## curve, like income_step.
 @export var income_floor: int = 0
+## Most boats a BOATS building (the Fishing Harbor only) holds at this tier (D-12, ECON-05). It
+## gains one boat at every dawn it stands, up to this cap. 0 on every other curve;
+## MapConfig.validate() reports a value set where the curve does not use it.
+@export var boat_cap: int = 0
+## Gold each boat pays at dawn at this tier (Fishing Harbor only). 0 on every other curve.
+@export var boat_income: int = 0
 
 
 ## One-line effect text shown next to the cost, e.g. "+2 gold at dawn".

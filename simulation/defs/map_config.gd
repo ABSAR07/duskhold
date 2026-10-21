@@ -63,6 +63,12 @@ const CASTLE_PAYOUT_KEY: StringName = &"castle"
 ## Half the side of the square ground in metres. Squad command points outside it are refused
 ## (RESEARCH A8); the shipped ground is 180 m wide.
 @export var ground_half_extent: float = DEFAULT_GROUND_HALF_EXTENT
+## The visual-only pond (D-11): its centre on the ground plane (x, z) in metres and its radius.
+## A radius of 0 means no pond. PondView draws it and EconomyValidation checks it; nothing under
+## simulation/nav, the plots, the flow field, the wall routes or the enemy step reads either field,
+## so the pond never blocks, slows or reroutes anyone.
+@export var pond_center: Vector2 = Vector2.ZERO
+@export var pond_radius: float = 0.0
 ## Pathing tunables (cell size, goal-field cache). Null means NavTuning.new() defaults; the
 ## prototype map references data/tuning/nav_tuning.tres.
 @export var nav_tuning: NavTuning

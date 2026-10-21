@@ -1,9 +1,9 @@
 class_name IncomeState
 extends RefCounted
-## The per-plot economy state of every income curve that is not flat (D-12, D-14, ECON-03): so far
-## the Gold Mine's decline. A sibling of BuildingSystem, which is at the public-method cap, in the
-## style of WallSystem: it reads BuildingSystem's public getters and never calls it back to change
-## anything. The Harbor's boats and the Shrine's credit join it in their own plans.
+## The per-plot economy state of every income curve that is not flat (D-12, D-14, ECON-03,
+## ECON-05): the Gold Mine's decline and the Fishing Harbor's boats. A sibling of BuildingSystem,
+## which is at the public-method cap, in the style of WallSystem: it reads BuildingSystem's public
+## getters and never calls it back to change anything. The Shrine's credit joins it in its own plan.
 ##
 ## IncomeState is the only payer of every non-FLAT curve, and BuildingSystem.dawn_income_by_spot()
 ## the only payer of FLAT ones, so a building is paid by exactly one of them (Pitfall 4). RunManager
@@ -12,19 +12,30 @@ extends RefCounted
 ## A DECLINING building pays maxi(income_floor, dawn_income - income_step * paid_dawns), integers
 ## only (DR-7). paid_dawns advances by 1 after a dawn the building stood and was not rebuilt, and
 ## only while that dawn's payout was above the floor, so it stops at the first count whose payout is
-## the floor and never grows without bound. A building that fell and was rebuilt this dawn pays
-## nothing and makes no progress (D-14, LOOP-05): it loses nothing it accumulated, it only skips
-## the morning. Detached from the scene tree and the clock; no randomness (DR-1 to DR-10).
+## the floor and never grows without bound.
+##
+## A BOATS building gains one boat at every dawn it stands and was not rebuilt, up to the boat_cap
+## of its current tier, and then pays boats * boat_income. It emits harbor_boats_changed only when
+## the count changes, so the boat views redraw on news and a Harbor at its cap is silent. An upgrade
+## raises the cap and keeps the boats it has; the boats stay when the Harbor falls.
+##
+## A building that fell and was rebuilt this dawn pays nothing and makes no progress (D-14,
+## LOOP-05): it loses nothing it accumulated, it only skips the morning. Detached from the scene
+## tree and the clock; no randomness (DR-1 to DR-10).
 
 var _buildings: BuildingSystem
+var _events: SimEvents
 ## Plot id -> dawns paid so far; a plot appears here the first time it pays.
 var _paid: Dictionary = {}
+## Plot id -> boats the Harbor has; a plot appears here the first time it gains a boat.
+var _boats: Dictionary = {}
 
 
 func _init(
-	_map: MapConfig, buildings: BuildingSystem, _events: SimEvents, _stat_stack: StatStack = null
+	_map: MapConfig, buildings: BuildingSystem, events: SimEvents, _stat_stack: StatStack = null
 ) -> void:
 	_buildings = buildings
+	_events = events
 
 
 ## What every standing non-flat building pays at this dawn: spot_id -> gold, in MapConfig order,
@@ -34,16 +45,20 @@ func _init(
 func dawn_payouts() -> Dictionary:
 	var payouts: Dictionary = {}
 	for spot_id: StringName in _buildings.spot_ids():
-		var tier_def: BuildingTierDef = _declining_tier_of(spot_id)
+		var building_def: BuildingDef = _buildings.get_building_def_for_spot(spot_id)
+		if building_def == null or building_def.income_curve == BuildingDef.IncomeCurve.FLAT:
+			continue
+		var tier_def: BuildingTierDef = building_def.tier_def(_buildings.current_tier(spot_id))
 		if tier_def == null:
 			continue
 		var instance: BuildingInstance = _buildings.get_instance(spot_id)
 		if instance.destroyed or instance.rebuilt_this_dawn:
 			continue
-		var amount: int = _amount(tier_def, mine_paid_dawns(spot_id))
-		# Bad data (a step below 1) never lowers the payout, so it never counts either.
-		if amount > tier_def.income_floor and tier_def.income_step > 0:
-			_paid[spot_id] = mine_paid_dawns(spot_id) + 1
+		var amount: int = 0
+		if building_def.income_curve == BuildingDef.IncomeCurve.DECLINING:
+			amount = _pay_declining(spot_id, tier_def)
+		elif building_def.income_curve == BuildingDef.IncomeCurve.BOATS:
+			amount = _pay_boats(spot_id, tier_def)
 		if amount > 0:
 			payouts[spot_id] = amount
 	return payouts
@@ -55,24 +70,51 @@ func mine_paid_dawns(spot_id: StringName) -> int:
 	return int(_paid.get(spot_id, 0))
 
 
+## Boats the Harbor on this plot has; 0 for a Harbor that has not yet seen a dawn standing, for an
+## empty plot and for a plot that is not a BOATS one. They stay when the Harbor falls and when it is
+## upgraded (D-14).
+func boats_of(spot_id: StringName) -> int:
+	return int(_boats.get(spot_id, 0))
+
+
 ## What the plot would pay at the next dawn it stands and is not rebuilt; 0 for an empty plot, a
-## plot whose building does not decline, and a tier with no declining data. Pure: it changes
-## nothing.
+## plot whose building is neither declining nor a Harbor, and a tier with no data for its curve.
+## For a Harbor that is the boat it would gain, up to the cap, times the gold per boat. Pure: it
+## changes nothing.
 func next_payout(spot_id: StringName) -> int:
-	var tier_def: BuildingTierDef = _declining_tier_of(spot_id)
+	var building_def: BuildingDef = _buildings.get_building_def_for_spot(spot_id)
+	if building_def == null:
+		return 0
+	var tier_def: BuildingTierDef = building_def.tier_def(_buildings.current_tier(spot_id))
 	if tier_def == null:
 		return 0
-	return _amount(tier_def, mine_paid_dawns(spot_id))
+	if building_def.income_curve == BuildingDef.IncomeCurve.DECLINING:
+		return _amount(tier_def, mine_paid_dawns(spot_id))
+	if building_def.income_curve == BuildingDef.IncomeCurve.BOATS:
+		return mini(boats_of(spot_id) + 1, tier_def.boat_cap) * tier_def.boat_income
+	return 0
+
+
+## The Mine's payout this dawn, advancing its paid count while it is above the floor.
+func _pay_declining(spot_id: StringName, tier_def: BuildingTierDef) -> int:
+	var amount: int = _amount(tier_def, mine_paid_dawns(spot_id))
+	# Bad data (a step below 1) never lowers the payout, so it never counts either.
+	if amount > tier_def.income_floor and tier_def.income_step > 0:
+		_paid[spot_id] = mine_paid_dawns(spot_id) + 1
+	return amount
+
+
+## The Harbor's payout this dawn: it gains a boat first, up to the tier's cap, announcing the new
+## count only when it changed, and every boat it then has pays.
+func _pay_boats(spot_id: StringName, tier_def: BuildingTierDef) -> int:
+	var before: int = boats_of(spot_id)
+	var after: int = maxi(before, mini(before + 1, tier_def.boat_cap))
+	if after != before:
+		_boats[spot_id] = after
+		_events.harbor_boats_changed.emit(spot_id, after)
+	return after * tier_def.boat_income
 
 
 ## The payout after `paid` earlier paying dawns, never below the floor.
 func _amount(tier_def: BuildingTierDef, paid: int) -> int:
 	return maxi(tier_def.income_floor, tier_def.dawn_income - tier_def.income_step * paid)
-
-
-## The current tier of the plot's building when it is built and its curve is DECLINING, else null.
-func _declining_tier_of(spot_id: StringName) -> BuildingTierDef:
-	var building_def: BuildingDef = _buildings.get_building_def_for_spot(spot_id)
-	if building_def == null or building_def.income_curve != BuildingDef.IncomeCurve.DECLINING:
-		return null
-	return building_def.tier_def(_buildings.current_tier(spot_id))

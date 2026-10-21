@@ -5,8 +5,9 @@ extends Resource
 ## How a building's dawn income is paid (D-12, ECON-03). FLAT pays its tier's dawn_income every dawn
 ## it stands (BuildingSystem.dawn_income_by_spot). Every other curve is paid by IncomeState, which
 ## keeps the per-plot state it needs: DECLINING (the Gold Mine) pays less at each dawn it pays,
-## BOATS (the Fishing Harbor) and AWAKENED (the Shrine) are filled in by their own plans. A curve is
-## paid by exactly one of the two, so nothing is ever paid twice.
+## BOATS (the Fishing Harbor) gains one paying boat per dawn up to its tier's cap, AWAKENED (the
+## Shrine) is filled in by its own plan. A curve is paid by exactly one of the two, so nothing is
+## ever paid twice.
 enum IncomeCurve { FLAT, DECLINING, BOATS, AWAKENED }
 
 const ROMAN_NUMERALS: Array[String] = ["I", "II", "III", "IV", "V"]
@@ -46,18 +47,21 @@ func tier_label(tier: int) -> String:
 
 ## True when the building pays gold at dawn at that 1-based tier, whatever its curve: the
 ## crossed-coin marker (LOOP-05, D-14) asks this, so a rebuilt Mine is marked like a rebuilt House.
-## BOATS pays nothing until the Harbor's own plan adds its per-boat field.
+## A BOATS building pays when its tier names gold per boat.
 func pays_income(tier: int) -> bool:
 	var tier_data: BuildingTierDef = tier_def(tier)
-	if tier_data == null or income_curve == IncomeCurve.BOATS:
+	if tier_data == null:
 		return false
+	if income_curve == IncomeCurve.BOATS:
+		return tier_data.boat_income > 0
 	return tier_data.dawn_income > 0
 
 
 ## What the player reads for that 1-based tier next to its cost, aware of the income curve. A
 ## DECLINING building says how its payout falls ("Pays 3 gold, then 1 less each dawn, never below
-## 1", read from the tier's dawn_income, income_step and income_floor); every other curve falls back
-## to the tier's own effect line. Empty for a tier the building does not have.
+## 1", read from the tier's dawn_income, income_step and income_floor); a BOATS building says how
+## its boats grow ("+1 boat each dawn, up to 3, 1 gold each"); every other curve falls back to the
+## tier's own effect line. Empty for a tier the building does not have.
 func tier_effect_line(tier: int) -> String:
 	var tier_data: BuildingTierDef = tier_def(tier)
 	if tier_data == null:
@@ -66,5 +70,10 @@ func tier_effect_line(tier: int) -> String:
 		return (
 			"Pays %d gold, then %d less each dawn, never below %d"
 			% [tier_data.dawn_income, tier_data.income_step, tier_data.income_floor]
+		)
+	if income_curve == IncomeCurve.BOATS:
+		return (
+			"+1 boat each dawn, up to %d, %d gold each"
+			% [tier_data.boat_cap, tier_data.boat_income]
 		)
 	return tier_data.effect_line()

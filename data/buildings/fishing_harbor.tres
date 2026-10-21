@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="BuildingDef" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://simulation/defs/building_tier_def.gd" id="1_tier"]
+[ext_resource type="Script" path="res://simulation/defs/building_def.gd" id="2_def"]
+
+[sub_resource type="Resource" id="Resource_tier1"]
+script = ExtResource("1_tier")
+cost = 3
+max_health = 18
+boat_cap = 3
+boat_income = 1
+
+[sub_resource type="Resource" id="Resource_tier2"]
+script = ExtResource("1_tier")
+cost = 6
+max_health = 24
+requires_castle_tier = 2
+boat_cap = 5
+boat_income = 1
+
+[resource]
+script = ExtResource("2_def")
+id = &"fishing_harbor"
+display_name = "Fishing Harbor"
+body_radius = 1.5
+income_curve = 2
+tiers = Array[ExtResource("1_tier")]([SubResource("Resource_tier1"), SubResource("Resource_tier2")])

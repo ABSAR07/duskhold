@@ -4,8 +4,8 @@ extends GutTest
 ## spots (the 22 plus the castle plot). After plan 05-02 it had 15 spots: the fourteen Phase 4 plots
 ## and castle_plot appended after them (so no PendingHits building index moves). Plan 05-06
 ## appended gold_mine_1 as spot 16 (index 15). Plan 05-07 appended mill_1 and field_1 to field_3 as
-## spots 17 to 20 (index 16 to 19). Plans 05-08 and 05-09 add their plots and raise the numbers
-## below, this file being the single place they change.
+## spots 17 to 20 (index 16 to 19). Plan 05-08 appended harbor_1 as spot 21 (index 20). Plan 05-09
+## adds its plots and raises the numbers below, this file being the single place they change.
 ##
 ## It also carries the generic geometry rules every plot Phase 5 adds must pass (D-09, P3): at least
 ## 12 m from every spawn-to-castle road segment (a grunt notices a building within 6 m, a skirmisher
@@ -17,16 +17,19 @@ extends GutTest
 const PROTOTYPE := "res://data/maps/prototype_map.tres"
 const TUNING := "res://data/tuning/loop_tuning.tres"
 const CASTLE: StringName = &"castle_plot"
-const SPOT_COUNT: int = 20
-const BUILDABLE_PLOT_COUNT: int = 19
+const SPOT_COUNT: int = 21
+const BUILDABLE_PLOT_COUNT: int = 20
 const CASTLE_PLOT_INDEX: int = 14
 ## The plots Phase 5 appends after the castle plot, in spot order (index 15 on).
 const PHASE_FIVE_PLOT_IDS: Array[StringName] = [
-	&"gold_mine_1", &"mill_1", &"field_1", &"field_2", &"field_3"
+	&"gold_mine_1", &"mill_1", &"field_1", &"field_2", &"field_3", &"harbor_1"
 ]
 const FIRST_PHASE_FIVE_INDEX: int = 15
 const MINE: StringName = &"gold_mine_1"
 const MINE_AT := Vector3(-30.0, 0.0, 30.0)
+const HARBOR: StringName = &"harbor_1"
+const HARBOR_INDEX: int = 20
+const HARBOR_AT := Vector3(0.0, 0.0, 20.5)
 const MILL: StringName = &"mill_1"
 const MILL_INDEX: int = 16
 const FIELDS: Array[StringName] = [&"field_1", &"field_2", &"field_3"]
@@ -120,9 +123,11 @@ func _phase_five_spots(map: MapConfig) -> Array[BuildSpotDef]:
 	return found
 
 
-func test_the_map_has_twenty_spots() -> void:
+func test_the_map_has_twenty_one_spots() -> void:
 	assert_eq(
-		_map().spots.size(), SPOT_COUNT, "14 Phase 4 plots, castle plot, Gold Mine, Mill, 3 Fields"
+		_map().spots.size(),
+		SPOT_COUNT,
+		"14 Phase 4 plots, castle plot, Mine, Mill, 3 Fields, Harbor"
 	)
 
 
@@ -195,6 +200,15 @@ func test_the_gold_mine_is_spot_sixteen_where_the_plan_puts_it() -> void:
 	assert_eq(mine.building_id, &"gold_mine", "it takes the Gold Mine")
 	assert_eq(mine.position, MINE_AT, "at (-30, 0, 30)")
 	assert_null(mine.wall_run, "and is no wall plot")
+
+
+func test_the_harbor_is_spot_twenty_one_on_the_north_shore_of_the_pond() -> void:
+	var harbor: BuildSpotDef = _map().spots[HARBOR_INDEX]
+	assert_eq(harbor.id, HARBOR, "index 20")
+	assert_eq(harbor.building_id, &"fishing_harbor", "it takes the Fishing Harbor")
+	assert_eq(harbor.position, HARBOR_AT, "at (0, 0, 20.5)")
+	assert_null(harbor.wall_run, "and is no wall plot")
+	assert_eq(harbor.requires_spot, &"", "it needs no other plot")
 
 
 func test_every_phase_five_plot_is_twelve_metres_from_every_road() -> void:
