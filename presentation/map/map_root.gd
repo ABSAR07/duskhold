@@ -27,6 +27,10 @@ func _ready() -> void:
 		push_error(
 			"NativeSim missing: the native library did not load; run bash tools/native_build.sh"
 		)
+		# A player sees a dialog, not only a log line (a no-op without a window); quit() is deferred,
+		# so _process must not run once more with no run context (review WR-08).
+		OS.alert("The native simulation library did not load.\nReinstall the game.", "Duskhold")
+		set_process(false)
 		get_tree().quit(1)
 		return
 	_run_seed = fixed_run_seed
