@@ -1,0 +1,101 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_fantasy_town_kit/models/wall-door.glb" id="1_wall_door"]
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_fantasy_town_kit/models/wall-window-small.glb" id="2_wall_window_small"]
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_fantasy_town_kit/models/wall.glb" id="3_wall"]
+[ext_resource type="PackedScene" path="res://assets/third_party/kenney_fantasy_town_kit/models/roof-gable.glb" id="4_roof_gable"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_arm"]
+size = Vector3(0.16, 0.7, 0.04)
+
+[sub_resource type="BoxMesh" id="BoxMesh_hub"]
+size = Vector3(0.22, 0.22, 0.12)
+
+[sub_resource type="StandardMaterial3D" id="Material_sail"]
+albedo_color = Color(0.92, 0.88, 0.76, 1)
+
+[sub_resource type="StandardMaterial3D" id="Material_hub"]
+albedo_color = Color(0.32, 0.2, 0.1, 1)
+
+[node name="MillT3" type="Node3D"]
+
+[node name="Model" type="Node3D" parent="."]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)
+
+[node name="S0E" parent="Model" instance=ExtResource("1_wall_door")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="S0W" parent="Model" instance=ExtResource("2_wall_window_small")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
+
+[node name="S0N" parent="Model" instance=ExtResource("3_wall")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 0, 0, 0)
+
+[node name="S0S" parent="Model" instance=ExtResource("3_wall")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 0, 0, 0)
+
+[node name="S1E" parent="Model" instance=ExtResource("2_wall_window_small")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="S1W" parent="Model" instance=ExtResource("2_wall_window_small")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 1, 0)
+
+[node name="S1N" parent="Model" instance=ExtResource("3_wall")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 0, 1, 0)
+
+[node name="S1S" parent="Model" instance=ExtResource("3_wall")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 0, 1, 0)
+
+[node name="S2E" parent="Model" instance=ExtResource("2_wall_window_small")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+
+[node name="S2W" parent="Model" instance=ExtResource("2_wall_window_small")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 2, 0)
+
+[node name="S2N" parent="Model" instance=ExtResource("3_wall")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 0, 2, 0)
+
+[node name="S2S" parent="Model" instance=ExtResource("3_wall")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 0, 2, 0)
+
+[node name="Roof" parent="Model" instance=ExtResource("4_roof_gable")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+
+[node name="Sails" type="Node3D" parent="Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.1, 0.62)
+
+[node name="Hub" type="MeshInstance3D" parent="Model/Sails"]
+mesh = SubResource("BoxMesh_hub")
+surface_material_override/0 = SubResource("Material_hub")
+
+[node name="Arm1" type="Node3D" parent="Model/Sails"]
+transform = Transform3D(0.9272, 0.3746, 0, -0.3746, 0.9272, 0, 0, 0, 1, 0, 0, 0.02)
+
+[node name="Sail" type="MeshInstance3D" parent="Model/Sails/Arm1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.42, 0)
+mesh = SubResource("BoxMesh_arm")
+surface_material_override/0 = SubResource("Material_sail")
+
+[node name="Arm2" type="Node3D" parent="Model/Sails"]
+transform = Transform3D(-0.3746, 0.9272, 0, -0.9272, -0.3746, 0, 0, 0, 1, 0, 0, 0.02)
+
+[node name="Sail" type="MeshInstance3D" parent="Model/Sails/Arm2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.42, 0)
+mesh = SubResource("BoxMesh_arm")
+surface_material_override/0 = SubResource("Material_sail")
+
+[node name="Arm3" type="Node3D" parent="Model/Sails"]
+transform = Transform3D(-0.9272, -0.3746, 0, 0.3746, -0.9272, 0, 0, 0, 1, 0, 0, 0.02)
+
+[node name="Sail" type="MeshInstance3D" parent="Model/Sails/Arm3"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.42, 0)
+mesh = SubResource("BoxMesh_arm")
+surface_material_override/0 = SubResource("Material_sail")
+
+[node name="Arm4" type="Node3D" parent="Model/Sails"]
+transform = Transform3D(0.3746, -0.9272, 0, 0.9272, 0.3746, 0, 0, 0, 1, 0, 0, 0.02)
+
+[node name="Sail" type="MeshInstance3D" parent="Model/Sails/Arm4"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.42, 0)
+mesh = SubResource("BoxMesh_arm")
+surface_material_override/0 = SubResource("Material_sail")

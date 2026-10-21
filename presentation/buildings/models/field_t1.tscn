@@ -1,0 +1,81 @@
+[gd_scene load_steps=5 format=3]
+
+[sub_resource type="BoxMesh" id="BoxMesh_soil"]
+size = Vector3(3, 0.1, 3)
+
+[sub_resource type="StandardMaterial3D" id="Material_soil"]
+albedo_color = Color(0.36, 0.24, 0.12, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_crop"]
+size = Vector3(0.28, 0.24, 0.28)
+
+[sub_resource type="StandardMaterial3D" id="Material_crop"]
+albedo_color = Color(0.93, 0.76, 0.2, 1)
+roughness = 0.8
+
+[node name="FieldT1" type="Node3D"]
+
+[node name="Soil" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+mesh = SubResource("BoxMesh_soil")
+surface_material_override/0 = SubResource("Material_soil")
+
+[node name="Crop00" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0.22, -0.9)
+mesh = SubResource("BoxMesh_crop")
+surface_material_override/0 = SubResource("Material_crop")
+
+[node name="Crop01" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.33, 0.22, -0.9)
+mesh = SubResource("BoxMesh_crop")
+surface_material_override/0 = SubResource("Material_crop")
+
+[node name="Crop02" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.33, 0.22, -0.9)
+mesh = SubResource("BoxMesh_crop")
+surface_material_override/0 = SubResource("Material_crop")
+
+[node name="Crop03" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0.22, -0.9)
+mesh = SubResource("BoxMesh_crop")
+surface_material_override/0 = SubResource("Material_crop")
+
+[node name="Crop10" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0.22, 0)
+mesh = SubResource("BoxMesh_crop")
+surface_material_override/0 = SubResource("Material_crop")
+
+[node name="Crop11" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.33, 0.22, 0)
+mesh = SubResource("BoxMesh_crop")
+surface_material_override/0 = SubResource("Material_crop")
+
+[node name="Crop12" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.33, 0.22, 0)
+mesh = SubResource("BoxMesh_crop")
+surface_material_override/0 = SubResource("Material_crop")
+
+[node name="Crop13" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0.22, 0)
+mesh = SubResource("BoxMesh_crop")
+surface_material_override/0 = SubResource("Material_crop")
+
+[node name="Crop20" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0.22, 0.9)
+mesh = SubResource("BoxMesh_crop")
+surface_material_override/0 = SubResource("Material_crop")
+
+[node name="Crop21" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.33, 0.22, 0.9)
+mesh = SubResource("BoxMesh_crop")
+surface_material_override/0 = SubResource("Material_crop")
+
+[node name="Crop22" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.33, 0.22, 0.9)
+mesh = SubResource("BoxMesh_crop")
+surface_material_override/0 = SubResource("Material_crop")
+
+[node name="Crop23" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0.22, 0.9)
+mesh = SubResource("BoxMesh_crop")
+surface_material_override/0 = SubResource("Material_crop")

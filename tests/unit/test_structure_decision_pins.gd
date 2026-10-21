@@ -32,7 +32,9 @@ const WALL_PLOTS: Array[StringName] = [&"wall_west", &"wall_east", &"wall_north"
 ## The plots Phase 5 added to the prototype map after these pins were computed. The pinned worlds
 ## are the Phase 4 map, so they stay empty here: a new building would add a target to the index and
 ## move every pin without any structure code having changed.
-const PHASE_FIVE_PLOTS: Array[StringName] = [&"gold_mine_1"]
+const PHASE_FIVE_PLOTS: Array[StringName] = [
+	&"gold_mine_1", &"mill_1", &"field_1", &"field_2", &"field_3"
+]
 const UNIT_COUNT: int = 60
 const SPREAD: float = 70.0
 const TIE_UNITS: int = 40

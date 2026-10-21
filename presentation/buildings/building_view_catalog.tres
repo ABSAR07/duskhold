@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="BuildingViewCatalog" load_steps=34 format=3]
+[gd_resource type="Resource" script_class="BuildingViewCatalog" load_steps=42 format=3]
 
 [ext_resource type="Script" path="res://presentation/buildings/building_view_catalog.gd" id="1_catalog"]
 [ext_resource type="Script" path="res://presentation/buildings/building_view_entry.gd" id="2_entry"]
@@ -18,6 +18,10 @@
 [ext_resource type="PackedScene" path="res://presentation/buildings/models/castle_center_t3.tscn" id="16_castle_center_t3"]
 [ext_resource type="PackedScene" path="res://presentation/buildings/models/castle_center_t4.tscn" id="17_castle_center_t4"]
 [ext_resource type="PackedScene" path="res://presentation/buildings/models/gold_mine_t1.tscn" id="18_gold_mine_t1"]
+[ext_resource type="PackedScene" path="res://presentation/buildings/models/mill_t1.tscn" id="19_mill_t1"]
+[ext_resource type="PackedScene" path="res://presentation/buildings/models/mill_t2.tscn" id="20_mill_t2"]
+[ext_resource type="PackedScene" path="res://presentation/buildings/models/mill_t3.tscn" id="21_mill_t3"]
+[ext_resource type="PackedScene" path="res://presentation/buildings/models/field_t1.tscn" id="22_field_t1"]
 
 [sub_resource type="Resource" id="Resource_house_t1"]
 script = ExtResource("2_entry")
@@ -109,7 +113,31 @@ building_id = &"gold_mine"
 tier = 1
 scene = ExtResource("18_gold_mine_t1")
 
+[sub_resource type="Resource" id="Resource_mill_t1"]
+script = ExtResource("2_entry")
+building_id = &"mill"
+tier = 1
+scene = ExtResource("19_mill_t1")
+
+[sub_resource type="Resource" id="Resource_mill_t2"]
+script = ExtResource("2_entry")
+building_id = &"mill"
+tier = 2
+scene = ExtResource("20_mill_t2")
+
+[sub_resource type="Resource" id="Resource_mill_t3"]
+script = ExtResource("2_entry")
+building_id = &"mill"
+tier = 3
+scene = ExtResource("21_mill_t3")
+
+[sub_resource type="Resource" id="Resource_field_t1"]
+script = ExtResource("2_entry")
+building_id = &"field"
+tier = 1
+scene = ExtResource("22_field_t1")
+
 [resource]
 script = ExtResource("1_catalog")
-entries = Array[ExtResource("2_entry")]([SubResource("Resource_house_t1"), SubResource("Resource_house_t2"), SubResource("Resource_house_t3"), SubResource("Resource_tower_t1"), SubResource("Resource_tower_t2"), SubResource("Resource_barracks_t1"), SubResource("Resource_barracks_t2"), SubResource("Resource_barracks_t3"), SubResource("Resource_archery_range_t1"), SubResource("Resource_archery_range_t2"), SubResource("Resource_archery_range_t3"), SubResource("Resource_castle_center_t2"), SubResource("Resource_castle_center_t3"), SubResource("Resource_castle_center_t4"), SubResource("Resource_gold_mine_t1")])
+entries = Array[ExtResource("2_entry")]([SubResource("Resource_house_t1"), SubResource("Resource_house_t2"), SubResource("Resource_house_t3"), SubResource("Resource_tower_t1"), SubResource("Resource_tower_t2"), SubResource("Resource_barracks_t1"), SubResource("Resource_barracks_t2"), SubResource("Resource_barracks_t3"), SubResource("Resource_archery_range_t1"), SubResource("Resource_archery_range_t2"), SubResource("Resource_archery_range_t3"), SubResource("Resource_castle_center_t2"), SubResource("Resource_castle_center_t3"), SubResource("Resource_castle_center_t4"), SubResource("Resource_gold_mine_t1"), SubResource("Resource_mill_t1"), SubResource("Resource_mill_t2"), SubResource("Resource_mill_t3"), SubResource("Resource_field_t1")])
 castle_scene = ExtResource("8_castle_center")

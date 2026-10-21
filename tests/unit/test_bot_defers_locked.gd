@@ -2,7 +2,9 @@ extends GutTest
 ## Pitfall 1, BLDG-09: a bot whose next entry is locked (castle_tier or needs_spot) defers that
 ## entry and keeps buying the later ones, retrying the deferred entries on every think, so a gate
 ## never stalls a whole build order. An unaffordable entry still waits in place, as it always did.
-## The shipped data has no gated tier in this plan, so no shipped strategy ever defers.
+## The shipped data gates only the Mill's third tier and the three Fields (plan 05-07), and no
+## shipped build order buys any of them yet, so no shipped strategy ever defers (plan 05-11 changes
+## this).
 
 const FIXTURE := "res://tests/fixtures/fixture_map_gate.tres"
 const TUNING := "res://data/tuning/loop_tuning.tres"
@@ -109,11 +111,31 @@ func test_an_entry_that_became_max_tier_is_dropped_from_the_deferred_list() -> v
 
 func test_a_shipped_strategy_on_the_shipped_map_never_defers() -> void:
 	var shipped: MapConfig = E2eSupport.shipped_prototype_map()
-	for building_def: BuildingDef in shipped.buildings:
-		for index: int in range(building_def.tiers.size()):
-			var tier: BuildingTierDef = building_def.tiers[index]
-			assert_eq(
-				tier.requires_castle_tier, 0, "%s tier %d is ungated" % [building_def.id, index + 1]
-			)
-	for spot: BuildSpotDef in shipped.spots:
-		assert_eq(spot.requires_spot, &"", "%s needs no other plot" % spot.id)
+	for strategy: StringName in PlaytestStrategies.NAMES:
+		var bought: Dictionary = {}
+		for spot_id: StringName in PlaytestStrategies.make(strategy).build_order:
+			var tier_number: int = int(bought.get(spot_id, 0)) + 1
+			bought[spot_id] = tier_number
+			var spot: BuildSpotDef = _shipped_spot(shipped, spot_id)
+			assert_not_null(spot, "%s: %s is on the map" % [strategy, spot_id])
+			if spot == null:
+				continue
+			assert_eq(spot.requires_spot, &"", "%s: %s needs no other plot" % [strategy, spot_id])
+			var tier: BuildingTierDef = _shipped_tier(shipped, spot, tier_number)
+			if tier != null:
+				var note: String = "%s: %s tier %d is ungated" % [strategy, spot_id, tier_number]
+				assert_eq(tier.requires_castle_tier, 0, note)
+
+
+func _shipped_spot(map: MapConfig, spot_id: StringName) -> BuildSpotDef:
+	for spot: BuildSpotDef in map.spots:
+		if spot.id == spot_id:
+			return spot
+	return null
+
+
+func _shipped_tier(map: MapConfig, spot: BuildSpotDef, tier_number: int) -> BuildingTierDef:
+	for building_def: BuildingDef in map.buildings:
+		if building_def.id == spot.building_id:
+			return building_def.tier_def(tier_number)
+	return null

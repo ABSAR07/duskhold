@@ -10,7 +10,9 @@ const TOWER_SPOT_COUNT: int = 3
 const HOUSE_TIER_COUNT: int = 3
 const TOWER_TIER_COUNT: int = 2
 ## The economic plots Phase 5 appends after the castle plot; they field no unit.
-const ECONOMIC_PLOT_IDS: Array[StringName] = [&"gold_mine_1"]
+const ECONOMIC_PLOT_IDS: Array[StringName] = [
+	&"gold_mine_1", &"mill_1", &"field_1", &"field_2", &"field_3"
+]
 const MIN_RIDE_S: float = 12.0
 const MAX_RIDE_S: float = 18.0
 
@@ -86,8 +88,8 @@ func test_the_first_eight_spots_are_unchanged_and_military_plots_come_after() ->
 	assert_gt(map.spots.size(), original.size(), "military plots were appended")
 	for index: int in range(original.size(), map.spots.size()):
 		# D-06 (plan 04-05): the wall plots follow the military ones and field no unit; the castle
-		# plot (plan 05-02) and the economic plots of Phase 5 (the Gold Mine, plan 05-06) follow
-		# and field none either.
+		# plot (plan 05-02) and the economic plots of Phase 5 (the Gold Mine, plan 05-06; the Mill and
+		# Fields, plan 05-07) follow and field none either.
 		if map.spots[index].wall_run != null or map.spots[index].is_castle:
 			continue
 		if ECONOMIC_PLOT_IDS.has(map.spots[index].id):

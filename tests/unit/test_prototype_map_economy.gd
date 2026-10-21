@@ -3,26 +3,38 @@ extends GutTest
 ## place. The castle plot is infrastructure: the map ends the phase with 22 buildable plots and 23
 ## spots (the 22 plus the castle plot). After plan 05-02 it had 15 spots: the fourteen Phase 4 plots
 ## and castle_plot appended after them (so no PendingHits building index moves). Plan 05-06
-## appended gold_mine_1 as spot 16 (index 15). Plans 05-07 to 05-09 add their plots and raise the
-## numbers below, this file being the single place they change.
+## appended gold_mine_1 as spot 16 (index 15). Plan 05-07 appended mill_1 and field_1 to field_3 as
+## spots 17 to 20 (index 16 to 19). Plans 05-08 and 05-09 add their plots and raise the numbers
+## below, this file being the single place they change.
 ##
 ## It also carries the generic geometry rules every plot Phase 5 adds must pass (D-09, P3): at least
 ## 12 m from every spawn-to-castle road segment (a grunt notices a building within 6 m, a skirmisher
 ## within 9 m), 3 m from every wall run and outside every authored gap, and inside the nav content
 ## box so NavGrid keeps its layout. Plans 05-07 to 05-09 only append their plot ids to
-## PHASE_FIVE_PLOT_IDS and the rules then cover them.
+## PHASE_FIVE_PLOT_IDS and the rules then cover them. The Mill and its Fields (D-10) also pin their
+## own adjacency: each Field 4 to 8 m from the Mill and every new plot 5 m from every other plot.
 
 const PROTOTYPE := "res://data/maps/prototype_map.tres"
 const TUNING := "res://data/tuning/loop_tuning.tres"
 const CASTLE: StringName = &"castle_plot"
-const SPOT_COUNT: int = 16
-const BUILDABLE_PLOT_COUNT: int = 15
+const SPOT_COUNT: int = 20
+const BUILDABLE_PLOT_COUNT: int = 19
 const CASTLE_PLOT_INDEX: int = 14
 ## The plots Phase 5 appends after the castle plot, in spot order (index 15 on).
-const PHASE_FIVE_PLOT_IDS: Array[StringName] = [&"gold_mine_1"]
+const PHASE_FIVE_PLOT_IDS: Array[StringName] = [
+	&"gold_mine_1", &"mill_1", &"field_1", &"field_2", &"field_3"
+]
 const FIRST_PHASE_FIVE_INDEX: int = 15
 const MINE: StringName = &"gold_mine_1"
 const MINE_AT := Vector3(-30.0, 0.0, 30.0)
+const MILL: StringName = &"mill_1"
+const MILL_INDEX: int = 16
+const FIELDS: Array[StringName] = [&"field_1", &"field_2", &"field_3"]
+const FIELD_MIN_FROM_MILL_M: float = 4.0
+const FIELD_MAX_FROM_MILL_M: float = 8.0
+## Two plots closer than the king's interaction radius would compete for his focus (2.5 m); 5 m
+## keeps a clear margin between any two plots of this plan.
+const MIN_PLOT_SPACING_M: float = 5.0
 ## The generic geometry rules (RESEARCH E5, P3).
 const MIN_ROAD_CLEARANCE_M: float = 12.0
 const MIN_WALL_RUN_CLEARANCE_M: float = 3.0
@@ -108,8 +120,10 @@ func _phase_five_spots(map: MapConfig) -> Array[BuildSpotDef]:
 	return found
 
 
-func test_the_map_has_sixteen_spots() -> void:
-	assert_eq(_map().spots.size(), SPOT_COUNT, "14 Phase 4 plots, the castle plot, the Gold Mine")
+func test_the_map_has_twenty_spots() -> void:
+	assert_eq(
+		_map().spots.size(), SPOT_COUNT, "14 Phase 4 plots, castle plot, Gold Mine, Mill, 3 Fields"
+	)
 
 
 func test_exactly_one_spot_is_the_castle_plot_and_it_follows_the_phase_four_plots() -> void:
@@ -121,12 +135,12 @@ func test_exactly_one_spot_is_the_castle_plot_and_it_follows_the_phase_four_plot
 	assert_eq(map.spots[CASTLE_PLOT_INDEX].building_id, &"castle_center", "buys the castle")
 
 
-func test_fifteen_buildable_plots_besides_the_castle() -> void:
+func test_nineteen_buildable_plots_besides_the_castle() -> void:
 	var buildable: int = 0
 	for spot: BuildSpotDef in _map().spots:
 		if not spot.is_castle:
 			buildable += 1
-	assert_eq(buildable, BUILDABLE_PLOT_COUNT, "the 14 Phase 4 plots and the Gold Mine")
+	assert_eq(buildable, BUILDABLE_PLOT_COUNT, "14 Phase 4 plots, Gold Mine, Mill, 3 Fields")
 
 
 func test_the_shipped_map_validates_clean() -> void:
@@ -224,3 +238,47 @@ func test_the_geometry_rules_catch_a_plot_on_a_road() -> void:
 	var on_road: Vector2 = Vector2(-30.0, 11.0)
 	assert_lt(_road_distance(map, on_road), MIN_ROAD_CLEARANCE_M, "a plot on the west road fails")
 	assert_gte(_road_distance(map, _ground(MINE_AT)), MIN_ROAD_CLEARANCE_M, "the Mine passes")
+
+
+func test_the_mill_and_its_three_fields_are_spots_seventeen_to_twenty() -> void:
+	var map: MapConfig = _map()
+	var mill: BuildSpotDef = map.spots[MILL_INDEX]
+	assert_eq(mill.id, MILL, "mill_1 is index 16")
+	assert_eq(mill.building_id, &"mill", "it takes the Mill")
+	assert_eq(mill.position, Vector3(30.0, 0.0, 28.0), "at (30, 0, 28)")
+	assert_eq(mill.requires_spot, &"", "and needs nothing itself")
+	for offset: int in range(FIELDS.size()):
+		var field: BuildSpotDef = map.spots[MILL_INDEX + 1 + offset]
+		assert_eq(field.id, FIELDS[offset], "index %d is %s" % [MILL_INDEX + 1 + offset, field.id])
+		assert_eq(field.building_id, &"field", "%s takes the Field" % field.id)
+
+
+func test_every_field_needs_the_mill_at_tier_one_from_day_one() -> void:
+	var map: MapConfig = _map()
+	for field_id: StringName in FIELDS:
+		var field: BuildSpotDef = _spot(map, field_id)
+		assert_eq(field.requires_spot, MILL, "%s needs mill_1" % field_id)
+		assert_eq(field.requires_spot_tier, 1, "%s needs it at tier 1 or more" % field_id)
+
+
+func test_each_field_is_four_to_eight_metres_from_the_mill() -> void:
+	var map: MapConfig = _map()
+	var mill: Vector2 = _ground(_spot(map, MILL).position)
+	for field_id: StringName in FIELDS:
+		var apart: float = _ground(_spot(map, field_id).position).distance_to(mill)
+		assert_gte(apart, FIELD_MIN_FROM_MILL_M, "%s is %.2f m from the Mill" % [field_id, apart])
+		assert_lte(apart, FIELD_MAX_FROM_MILL_M, "%s is %.2f m from the Mill" % [field_id, apart])
+
+
+func test_the_mill_and_the_fields_stand_five_metres_from_every_other_plot() -> void:
+	var map: MapConfig = _map()
+	var mine: Array[StringName] = [MILL] as Array[StringName]
+	mine.append_array(FIELDS)
+	for spot_id: StringName in mine:
+		var here: Vector2 = _ground(_spot(map, spot_id).position)
+		for other: BuildSpotDef in map.spots:
+			if other.id == spot_id or other.wall_run != null:
+				continue
+			var apart: float = here.distance_to(_ground(other.position))
+			var note: String = "%s is %.2f m from %s" % [spot_id, apart, other.id]
+			assert_gte(apart, MIN_PLOT_SPACING_M, note)
