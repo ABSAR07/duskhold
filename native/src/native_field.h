@@ -10,6 +10,7 @@
 #include <godot_cpp/variant/packed_int32_array.hpp>
 #include <godot_cpp/variant/vector2.hpp>
 
+#include "gd_math.h"
 #include "native_walls.h"
 
 namespace godot {
@@ -90,7 +91,7 @@ protected:
 public:
 	// flow_field.gd INF_COST, STEP_ORTHOGONAL, STEP_DIAGONAL, WALL_PENALTY and
 	// MIN_DIRECTION_LENGTH: the algorithm constants live here now, not in the GDScript.
-	static constexpr int64_t INF_COST = static_cast<int64_t>(1) << 30;
+	static constexpr int64_t INF_COST = gd::FIELD_INF_COST;
 
 	// FlowField.build's hand-over: the finished costs and the live grid they were built over.
 	// Starts a new generation, so every cell's direction is computed again on its next read.

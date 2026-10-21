@@ -12,6 +12,7 @@
 #include <godot_cpp/variant/packed_vector2_array.hpp>
 #include <godot_cpp/variant/vector2.hpp>
 
+#include "gd_math.h"
 #include "native_field.h"
 
 namespace godot {
@@ -45,7 +46,7 @@ public:
 	static constexpr int32_t UNIT_CENTIMETRES = 0;
 	static constexpr int32_t UNIT_FIELD_COST = 1;
 	// flow_field.gd STEP_ORTHOGONAL, the field's cost of a step to a neighbour cell.
-	static constexpr int64_t STEP_ORTHOGONAL = 10;
+	static constexpr int64_t STEP_ORTHOGONAL = gd::FIELD_STEP_ORTHOGONAL;
 
 	// stuck_tracker.gd _init: the three thresholds from NavTuning (stuck_seconds, stuck_progress_m)
 	// and NavTuning.cell_size, and the castle's ground position. Forgets everything.

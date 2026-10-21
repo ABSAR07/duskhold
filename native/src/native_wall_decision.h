@@ -8,6 +8,7 @@
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/variant/packed_int32_array.hpp>
 
+#include "gd_math.h"
 #include "native_walls.h"
 
 namespace godot {
@@ -38,7 +39,7 @@ protected:
 
 public:
 	// SimClock.MAX_TICKS (1 << 30): the time that stands for never.
-	static constexpr int64_t MAX_TICKS = static_cast<int64_t>(1) << 30;
+	static constexpr int64_t MAX_TICKS = gd::SIM_MAX_TICKS;
 
 	// WallDecision._init's hand-over: the wall mirror (null: every health reads 0), the cadence in
 	// ticks (at least 1), the neighbour span (at least 0), the hysteresis in ticks, the notice

@@ -141,6 +141,20 @@ inline int64_t roundi(double x) {
 	return static_cast<int64_t>(std::round(x));
 }
 
+// GDScript int arithmetic wraps on overflow; the port does the same in unsigned arithmetic so a
+// pathological coordinate cannot be undefined behaviour and aliases to the same key as before.
+inline int64_t wrap_add(int64_t a, int64_t b) {
+	return static_cast<int64_t>(static_cast<uint64_t>(a) + static_cast<uint64_t>(b));
+}
+
+inline int64_t wrap_mul(int64_t a, int64_t b) {
+	return static_cast<int64_t>(static_cast<uint64_t>(a) * static_cast<uint64_t>(b));
+}
+
+inline int64_t wrap_neg(int64_t a) {
+	return static_cast<int64_t>(static_cast<uint64_t>(0) - static_cast<uint64_t>(a));
+}
+
 // core/math/math_funcs.h Math::posmod: the remainder takes the sign of the divisor. A zero divisor
 // answers 0 (the engine reports an error and returns 0).
 inline int64_t posmod(int64_t x, int64_t y) {
@@ -306,6 +320,13 @@ constexpr double SIM_STEP = 1.0 / 30.0;
 constexpr double SIM_TICK_ROUNDING_SLACK = 0.0001;
 // SimClock.MAX_TICKS (1 << 30).
 constexpr int64_t SIM_MAX_TICKS = static_cast<int64_t>(1) << 30;
+
+// flow_field.gd INF_COST (the cost of a cell the field never reached; the same 1 << 30 as
+// SIM_MAX_TICKS) and STEP_ORTHOGONAL (the field's cost of a step to an orthogonal neighbour, the
+// divisor of detour_ticks and of the stuck tracker's progress threshold). Defined once here; the
+// classes that name them (NativeField, NativeStuck) alias these.
+constexpr int64_t FIELD_INF_COST = static_cast<int64_t>(1) << 30;
+constexpr int64_t FIELD_STEP_ORTHOGONAL = 10;
 
 // SimClock._whole_ticks: 0 for NaN, else clampi(ceili(minf(steps, float(MAX_TICKS)) - slack), 1,
 // MAX_TICKS).

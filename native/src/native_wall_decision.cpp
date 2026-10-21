@@ -8,23 +8,6 @@
 
 using namespace godot;
 
-namespace {
-
-// GDScript int arithmetic wraps on overflow; the port does the same in unsigned arithmetic.
-int64_t wrap_add(int64_t a, int64_t b) {
-	return static_cast<int64_t>(static_cast<uint64_t>(a) + static_cast<uint64_t>(b));
-}
-
-int64_t wrap_mul(int64_t a, int64_t b) {
-	return static_cast<int64_t>(static_cast<uint64_t>(a) * static_cast<uint64_t>(b));
-}
-
-int64_t wrap_neg(int64_t a) {
-	return static_cast<int64_t>(static_cast<uint64_t>(0) - static_cast<uint64_t>(a));
-}
-
-} // namespace
-
 void NativeWallDecision::_bind_methods() {
 	ClassDB::bind_method(
 			D_METHOD(
@@ -81,7 +64,7 @@ void NativeWallDecision::setup(
 
 // wall_decision.gd _first_due: posmod(-tick, cadence).
 int64_t NativeWallDecision::first_due() const {
-	return gd::posmod(wrap_neg(tick_), cadence_);
+	return gd::posmod(gd::wrap_neg(tick_), cadence_);
 }
 
 // wall_decision.gd begin_tick: forgets the sums of the segments due on this tick.
@@ -102,14 +85,14 @@ void NativeWallDecision::add_attacker(int64_t segment, int64_t per_300) {
 		return;
 	}
 	const size_t at = static_cast<size_t>(segment);
-	const int64_t low = gd::maxi(wrap_add(segment, wrap_neg(span_)), run_first_[at]);
-	const int64_t high = gd::mini(wrap_add(segment, span_), run_last_[at]);
+	const int64_t low = gd::maxi(gd::wrap_add(segment, gd::wrap_neg(span_)), run_first_[at]);
+	const int64_t high = gd::mini(gd::wrap_add(segment, span_), run_last_[at]);
 	for (int64_t near = low; near <= high; near++) {
 		if (near < 0 || near >= size) {
 			continue;
 		}
-		if (wrap_add(tick_, near) % cadence_ == 0) {
-			sums_[static_cast<size_t>(near)] = wrap_add(sums_[static_cast<size_t>(near)], per_300);
+		if (gd::wrap_add(tick_, near) % cadence_ == 0) {
+			sums_[static_cast<size_t>(near)] = gd::wrap_add(sums_[static_cast<size_t>(near)], per_300);
 		}
 	}
 }
@@ -151,7 +134,7 @@ double NativeWallDecision::notice_range() const {
 
 // wall_decision.gd damage_per_300: attack_damage * 300 / maxi(interval_ticks, 1), integer division.
 int64_t NativeWallDecision::damage_per_300(int64_t attack_damage, int64_t interval_ticks) {
-	return wrap_mul(attack_damage, 300) / gd::maxi(interval_ticks, 1);
+	return gd::wrap_mul(attack_damage, 300) / gd::maxi(interval_ticks, 1);
 }
 
 // wall_decision.gd ttd_ticks: rounded up; never when nothing deals damage.
@@ -160,7 +143,7 @@ int64_t NativeWallDecision::ttd_ticks(int64_t health, int64_t sum_per_300) {
 		return MAX_TICKS;
 	}
 	const int64_t numerator =
-			wrap_add(wrap_add(wrap_mul(gd::maxi(health, 0), 300), sum_per_300), -1);
+			gd::wrap_add(gd::wrap_add(gd::wrap_mul(gd::maxi(health, 0), 300), sum_per_300), -1);
 	return gd::mini(numerator / sum_per_300, MAX_TICKS);
 }
 
@@ -170,7 +153,7 @@ int64_t NativeWallDecision::walk_ticks(int64_t distance_cm, int64_t speed_cm_per
 		return MAX_TICKS;
 	}
 	const int64_t numerator =
-			wrap_add(wrap_add(wrap_mul(gd::maxi(distance_cm, 0), 30), speed_cm_per_s), -1);
+			gd::wrap_add(gd::wrap_add(gd::wrap_mul(gd::maxi(distance_cm, 0), 30), speed_cm_per_s), -1);
 	return gd::mini(numerator / speed_cm_per_s, MAX_TICKS);
 }
 
@@ -179,7 +162,7 @@ bool NativeWallDecision::should_break(int64_t ttd, int64_t straight_ticks, int64
 	if (detour_ticks >= MAX_TICKS) {
 		return true;
 	}
-	return gd::mini(wrap_add(ttd, straight_ticks), MAX_TICKS) < detour_ticks;
+	return gd::mini(gd::wrap_add(ttd, straight_ticks), MAX_TICKS) < detour_ticks;
 }
 
 // wall_decision.gd keep_breaking: until the detour wins by more than the hysteresis.
@@ -188,6 +171,6 @@ bool NativeWallDecision::keep_breaking(
 	if (detour_ticks >= MAX_TICKS) {
 		return true;
 	}
-	return !(wrap_add(detour_ticks, hysteresis) <
-			gd::mini(wrap_add(ttd, straight_ticks), MAX_TICKS));
+	return !(gd::wrap_add(detour_ticks, hysteresis) <
+			gd::mini(gd::wrap_add(ttd, straight_ticks), MAX_TICKS));
 }

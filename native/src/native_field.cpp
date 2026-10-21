@@ -7,6 +7,7 @@
 #include <godot_cpp/core/class_db.hpp>
 
 #include "gd_math.h"
+#include "native_wall_decision.h"
 
 using namespace godot;
 
@@ -28,30 +29,10 @@ constexpr float DIAGONAL_UNIT_F = static_cast<float>(DIAGONAL_UNIT);
 constexpr float UNIT_X[8] = { 1.0f, -1.0f, 0.0f, 0.0f, DIAGONAL_UNIT_F, -DIAGONAL_UNIT_F, DIAGONAL_UNIT_F, -DIAGONAL_UNIT_F };
 constexpr float UNIT_Y[8] = { 0.0f, 0.0f, 1.0f, -1.0f, DIAGONAL_UNIT_F, DIAGONAL_UNIT_F, -DIAGONAL_UNIT_F, -DIAGONAL_UNIT_F };
 // flow_field.gd STEP_ORTHOGONAL, the divisor of detour_ticks.
-constexpr int64_t STEP_ORTHOGONAL = 10;
+constexpr int64_t STEP_ORTHOGONAL = gd::FIELD_STEP_ORTHOGONAL;
 // pathing.gd PROBE_STEPS: cells an enemy pressed into a wall's blocked band is stepped back, at
 // most, to read its route.
 constexpr int PROBE_STEPS = 3;
-
-// GDScript int arithmetic wraps on overflow; the port does the same in unsigned arithmetic so a
-// pathological coordinate cannot be undefined behaviour.
-int64_t wrap_add(int64_t a, int64_t b) {
-	return static_cast<int64_t>(static_cast<uint64_t>(a) + static_cast<uint64_t>(b));
-}
-
-int64_t wrap_mul(int64_t a, int64_t b) {
-	return static_cast<int64_t>(static_cast<uint64_t>(a) * static_cast<uint64_t>(b));
-}
-
-// wall_decision.gd walk_ticks: ticks needed to walk `distance_cm` at `speed_cm_per_s`, rounded up;
-// MAX_TICKS when the speed is not positive, never more than MAX_TICKS.
-int64_t walk_ticks(int64_t distance_cm, int64_t speed_cm_per_s) {
-	if (speed_cm_per_s <= 0) {
-		return gd::SIM_MAX_TICKS;
-	}
-	const int64_t scaled = wrap_add(wrap_add(wrap_mul(gd::maxi(distance_cm, 0), 30), speed_cm_per_s), -1);
-	return gd::mini(scaled / speed_cm_per_s, gd::SIM_MAX_TICKS);
-}
 
 } // namespace
 
@@ -406,15 +387,15 @@ int64_t NativeRoute::detour_ticks(const Vector2 &pos, int64_t speed_cm_per_s) co
 	if (cost >= NativeField::INF_COST) {
 		return gd::SIM_MAX_TICKS;
 	}
-	const int64_t distance_cm = wrap_mul(cost, gd::roundi(tuning_cell_size_ * 100.0)) / STEP_ORTHOGONAL;
-	return walk_ticks(
-			wrap_add(distance_cm, gd::roundi(static_cast<double>(gd::distance_to(pos, probe)) * 100.0)),
+	const int64_t distance_cm = gd::wrap_mul(cost, gd::roundi(tuning_cell_size_ * 100.0)) / STEP_ORTHOGONAL;
+	return NativeWallDecision::walk_ticks(
+			gd::wrap_add(distance_cm, gd::roundi(static_cast<double>(gd::distance_to(pos, probe)) * 100.0)),
 			speed_cm_per_s);
 }
 
 // pathing.gd straight_ticks.
 int64_t NativeRoute::straight_ticks(const Vector2 &pos, int64_t speed_cm_per_s) const {
-	return walk_ticks(castle_distance_cm(pos), speed_cm_per_s);
+	return NativeWallDecision::walk_ticks(castle_distance_cm(pos), speed_cm_per_s);
 }
 
 // pathing.gd march_step: the field direction, or the exact straight step of
