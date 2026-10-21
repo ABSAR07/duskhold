@@ -99,6 +99,12 @@ func numbers_text(index: int) -> String:
 	return _numbers[index].text
 
 
+## The icon texture drawn on the card at `index`; null for a card with no icon and for an index that
+## addresses no drawn card.
+func icon_of(_index: int) -> Texture2D:
+	return null
+
+
 ## The screen rectangle of each drawn card, in card order, as the camera sees the row now: the
 ## bounding box of the card's four corners projected with Camera3D.unproject_position (a raised card
 ## is projected where it is drawn). Empty while the row is hidden. A corner behind the camera sends

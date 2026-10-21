@@ -4,7 +4,7 @@ extends GutTest
 
 const SCRIPT_PATH := "res://tools/screenshot.sh"
 const LIST_OPEN := "ALL_SHOTS=("
-const EXPECTED_SHOT_COUNT: int = 37
+const EXPECTED_SHOT_COUNT: int = 39
 const PHASE_1_SHOT_COUNT: int = 15
 
 
@@ -32,15 +32,15 @@ func _bash_shots() -> Array[StringName]:
 
 func test_the_wrapper_lists_the_scenarios_in_the_same_order() -> void:
 	var bash_shots: Array[StringName] = _bash_shots()
-	assert_eq(bash_shots.size(), EXPECTED_SHOT_COUNT, "the wrapper lists thirty-seven shots")
+	assert_eq(bash_shots.size(), EXPECTED_SHOT_COUNT, "the wrapper lists thirty-nine shots")
 	assert_eq(bash_shots, ShotScenarios.ALL_SHOTS, "bash and GDScript lists are identical")
 
 
-func test_there_are_thirty_seven_distinct_shots() -> void:
+func test_there_are_thirty_nine_distinct_shots() -> void:
 	var seen: Dictionary = {}
 	for shot: StringName in ShotScenarios.ALL_SHOTS:
 		seen[shot] = true
-	assert_eq(ShotScenarios.ALL_SHOTS.size(), EXPECTED_SHOT_COUNT, "thirty-seven shots")
+	assert_eq(ShotScenarios.ALL_SHOTS.size(), EXPECTED_SHOT_COUNT, "thirty-nine shots")
 	assert_eq(seen.size(), EXPECTED_SHOT_COUNT, "no name is listed twice")
 
 
@@ -96,18 +96,24 @@ func test_each_shot_gets_the_map_its_scene_needs() -> void:
 		assert_eq(map.castle_max_health, shipped.castle_max_health, "%s: the shipped castle" % shot)
 
 
-func test_the_shots_come_in_three_blocks_phase_1_then_phase_3_then_phase_4() -> void:
+func test_the_shots_come_in_four_blocks_phase_1_then_3_then_4_then_5() -> void:
 	var army_end: int = PHASE_1_SHOT_COUNT + ShotScenarios.ARMY_SHOTS.size()
+	var crowd_end: int = army_end + ShotCrowdScenarios.CROWD_SHOTS.size()
 	var phase_3: Array[StringName] = []
 	for index: int in range(PHASE_1_SHOT_COUNT, army_end):
 		phase_3.append(ShotScenarios.ALL_SHOTS[index])
 	var phase_4: Array[StringName] = []
-	for index: int in range(army_end, EXPECTED_SHOT_COUNT):
+	for index: int in range(army_end, crowd_end):
 		phase_4.append(ShotScenarios.ALL_SHOTS[index])
+	var phase_5: Array[StringName] = []
+	for index: int in range(crowd_end, EXPECTED_SHOT_COUNT):
+		phase_5.append(ShotScenarios.ALL_SHOTS[index])
 	assert_eq(ShotScenarios.ARMY_SHOTS.size(), 18, "eighteen Phase 3 shots")
 	assert_eq(phase_3, ShotScenarios.ARMY_SHOTS, "they follow the first fifteen in order")
 	assert_eq(ShotCrowdScenarios.CROWD_SHOTS.size(), 4, "four Phase 4 shots")
-	assert_eq(phase_4, ShotCrowdScenarios.CROWD_SHOTS, "they close the list in order")
+	assert_eq(phase_4, ShotCrowdScenarios.CROWD_SHOTS, "they follow in order")
+	assert_eq(ShotEconomyScenarios.ECONOMY_SHOTS.size(), 2, "two Phase 5 shots")
+	assert_eq(phase_5, ShotEconomyScenarios.ECONOMY_SHOTS, "they close the list in order")
 	for shot: StringName in ShotScenarios.ARMY_SHOTS:
 		assert_true(ShotArmyScenarios.handles(shot), "%s has a Phase 3 scene" % shot)
 		var prefix_ok: bool = String(shot).begins_with("hud_") or String(shot).begins_with("cmd_")
@@ -167,9 +173,8 @@ func test_the_king_copies_of_the_hurt_shots_hold_their_health() -> void:
 
 func test_the_field_gate_shot_runs_on_the_stress_map() -> void:
 	var shot: StringName = &"overlay_field_gate"
-	assert_eq(
-		ShotScenarios.ALL_SHOTS[ShotScenarios.ALL_SHOTS.size() - 2], shot, "it is second last"
-	)
+	var crowd_end: int = ShotScenarios.ALL_SHOTS.find(&"crowd_stress_night")
+	assert_eq(ShotScenarios.ALL_SHOTS[crowd_end - 1], shot, "it is second last of Phase 4")
 	var crowd: Array[StringName] = ShotCrowdScenarios.CROWD_SHOTS
 	assert_eq(crowd.find(shot), 2, "the third Phase 4 shot")
 	assert_true(ShotCrowdScenarios.handles(shot), "the crowd scenes handle it")
@@ -182,9 +187,14 @@ func test_the_field_gate_shot_runs_on_the_stress_map() -> void:
 	assert_ne(map.spots[0].wall_run, shipped.spots[0].wall_run, "its wall run is copied too")
 
 
-func test_the_crowd_stress_night_shot_closes_the_list_and_runs_on_the_stress_map() -> void:
+func test_the_crowd_stress_night_shot_closes_phase_4_and_runs_on_the_stress_map() -> void:
 	var shot: StringName = &"crowd_stress_night"
-	assert_eq(ShotScenarios.ALL_SHOTS[ShotScenarios.ALL_SHOTS.size() - 1], shot, "it is last")
+	var after: int = ShotScenarios.ALL_SHOTS.find(shot) + 1
+	assert_eq(
+		after + ShotEconomyScenarios.ECONOMY_SHOTS.size(),
+		ShotScenarios.ALL_SHOTS.size(),
+		"only the Phase 5 shots follow it"
+	)
 	var crowd: Array[StringName] = ShotCrowdScenarios.CROWD_SHOTS
 	assert_eq(crowd.find(shot), 3, "the fourth Phase 4 shot")
 	assert_true(ShotCrowdScenarios.handles(shot), "the crowd scenes handle it")
@@ -203,3 +213,49 @@ func test_the_crowd_stress_night_king_outlasts_the_surge_and_the_shipped_king_is
 	assert_eq(shot_king.max_health, ShotCrowdScenarios.STRESS_NIGHT_KING_HEALTH, "a long pool")
 	assert_eq(shipped.max_health, 50, "the shipped king keeps 50")
 	assert_eq(ShotScenarios.king_def_for(&"overlay_field_gate").max_health, 50, "other shots too")
+
+
+func test_the_two_economy_shots_are_listed_and_handled_by_the_economy_scenes() -> void:
+	var wanted: Array[StringName] = [&"castle_cards", &"castle_tier_four"]
+	assert_eq(ShotEconomyScenarios.ECONOMY_SHOTS, wanted, "castle_cards then castle_tier_four")
+	for shot: StringName in wanted:
+		assert_true(ShotScenarios.ALL_SHOTS.has(shot), "%s is in ALL_SHOTS" % shot)
+		assert_true(_bash_shots().has(shot), "and the wrapper lists it")
+		assert_true(ShotEconomyScenarios.handles(shot), "%s has a Phase 5 scene" % shot)
+		assert_false(ShotCrowdScenarios.handles(shot), "and is not a Phase 4 shot")
+		assert_false(ShotArmyScenarios.handles(shot), "or a Phase 3 shot")
+	assert_false(
+		ShotEconomyScenarios.handles(ShotScenarios.DAY_OVERVIEW), "day_overview is not one"
+	)
+
+
+func _castle_building(map: MapConfig) -> BuildingDef:
+	for building: BuildingDef in map.buildings:
+		if building.id == &"castle_center":
+			return building
+	return null
+
+
+func test_the_economy_shots_get_deep_copies_that_never_touch_the_shipped_map() -> void:
+	var shipped: MapConfig = load(ShotScenarios.MAP_DATA_PATH)
+	var shipped_gold: int = shipped.starting_gold
+	var shipped_castle: BuildingDef = _castle_building(shipped)
+	var shipped_cards: Array[ChoiceDef] = shipped_castle.tier_def(2).choices
+	for shot: StringName in ShotEconomyScenarios.ECONOMY_SHOTS:
+		var map: MapConfig = ShotScenarios.map_for(shot)
+		assert_not_null(map, "%s has a map" % shot)
+		assert_ne(map, shipped, "a copy, not the shipped resource")
+		assert_eq(map.starting_gold, ShotEconomyScenarios.SHOT_GOLD, "the shot gold for %s" % shot)
+		assert_eq(map.spots.size(), shipped.spots.size(), "%s keeps every plot" % shot)
+		assert_ne(_castle_building(map), shipped_castle, "the castle def is copied too")
+		map.starting_gold = 1
+		assert_eq(shipped.starting_gold, shipped_gold, "so an edit never reaches the shipped map")
+		assert_eq(shipped_castle.tier_def(2).choices, shipped_cards, "nor its cards")
+
+
+func test_the_economy_shots_run_with_the_shipped_king() -> void:
+	for shot: StringName in ShotEconomyScenarios.ECONOMY_SHOTS:
+		var def: KingDef = ShotScenarios.king_def_for(shot)
+		var shipped: KingDef = load(ShotScenarios.KING_DATA_PATH)
+		assert_eq(def.max_health, shipped.max_health, "%s: the shipped health" % shot)
+		assert_ne(def, shipped, "%s: a copy" % shot)
