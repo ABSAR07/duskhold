@@ -39,6 +39,9 @@ var night_orders: Array[Dictionary] = []
 var slam_min_enemies: int = 0
 
 var _cursor: int = 0
+## Entries deferred because a requirement locked them (castle_tier, needs_spot), in the order they
+## were deferred; retried at the start of every build think.
+var _pending: Array[StringName] = []
 ## The goal fields the king walks round walls on, a cache of the bot's own so it never spends the
 ## squads' build budget (ENMY-04).
 var _king_goals: GoalFieldCache
@@ -108,8 +111,12 @@ func _slam(ctx: RunContext) -> void:
 
 
 ## Builds the next entries of build_order while they are accepted. An entry that can never be
-## built (max tier, unknown spot) is skipped; an unaffordable one waits for a later think.
+## built (max tier, unknown spot) is skipped; an unaffordable one waits for a later think. An entry
+## locked behind the castle or another plot (castle_tier, needs_spot) is deferred, not waited for:
+## it moves to the pending list and the later entries are still bought, so a gate never stalls the
+## whole order (Pitfall 1). Every think retries the pending entries first, in their original order.
 func _build(ctx: RunContext) -> void:
+	_retry_pending(ctx)
 	while _cursor < build_order.size():
 		var spot_id: StringName = build_order[_cursor]
 		var reason: StringName = ctx.commands.validate_build(spot_id)
@@ -118,8 +125,25 @@ func _build(ctx: RunContext) -> void:
 			_cursor += 1
 		elif reason == CommandProcessor.MAX_TIER or reason == CommandProcessor.UNKNOWN_SPOT:
 			_cursor += 1
+		elif reason == CommandProcessor.CASTLE_TIER or reason == CommandProcessor.NEEDS_SPOT:
+			_pending.append(spot_id)
+			_cursor += 1
 		else:
 			return
+
+
+## Retries the deferred entries in the order they were deferred: one that is accepted now is
+## submitted and dropped, one that can never be built (max tier, unknown spot) is dropped, and one
+## that is still locked or unaffordable stays for the next think.
+func _retry_pending(ctx: RunContext) -> void:
+	var still_pending: Array[StringName] = []
+	for spot_id: StringName in _pending:
+		var reason: StringName = ctx.commands.validate_build(spot_id)
+		if reason == CommandProcessor.OK:
+			ctx.commands.submit(BuildIntent.new(spot_id))
+		elif reason != CommandProcessor.MAX_TIER and reason != CommandProcessor.UNKNOWN_SPOT:
+			still_pending.append(spot_id)
+	_pending = still_pending
 
 
 ## Once per day: among the not yet built entries, the first entry of each unbuilt tower plot keeps
