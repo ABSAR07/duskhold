@@ -89,3 +89,7 @@ signal choice_picked(spot_id: StringName, tier: int, choice_id: StringName)
 ## count changes, never for a Harbor at its cap, a fallen one or one rebuilt this dawn; the boat
 ## views follow it and the replay digest records it.
 signal harbor_boats_changed(spot_id: StringName, boats: int)
+## A Shrine woke for good (ECON-06, D-12): the enemies that died within its wake radius reached its
+## threshold. Emitted once per Shrine per run, never when it falls, and never again afterwards; the
+## glow follows it and the replay digest records it.
+signal shrine_woke(spot_id: StringName)

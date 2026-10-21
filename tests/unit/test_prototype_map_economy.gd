@@ -5,7 +5,9 @@ extends GutTest
 ## and castle_plot appended after them (so no PendingHits building index moves). Plan 05-06
 ## appended gold_mine_1 as spot 16 (index 15). Plan 05-07 appended mill_1 and field_1 to field_3 as
 ## spots 17 to 20 (index 16 to 19). Plan 05-08 appended harbor_1 as spot 21 (index 20). Plan 05-09
-## adds its plots and raises the numbers below, this file being the single place they change.
+## appended shrine_west and shrine_east as spots 22 and 23 (index 21 and 22) and raised the numbers
+## below to the end-of-phase 23 spots and 22 buildable plots; this file is the single place they
+## change. It is at the 20-test cap, so the Shrine plots' own rules live in test_shrine_plots.
 ##
 ## It also carries the generic geometry rules every plot Phase 5 adds must pass (D-09, P3): at least
 ## 12 m from every spawn-to-castle road segment (a grunt notices a building within 6 m, a skirmisher
@@ -17,12 +19,19 @@ extends GutTest
 const PROTOTYPE := "res://data/maps/prototype_map.tres"
 const TUNING := "res://data/tuning/loop_tuning.tres"
 const CASTLE: StringName = &"castle_plot"
-const SPOT_COUNT: int = 21
-const BUILDABLE_PLOT_COUNT: int = 20
+const SPOT_COUNT: int = 23
+const BUILDABLE_PLOT_COUNT: int = 22
 const CASTLE_PLOT_INDEX: int = 14
 ## The plots Phase 5 appends after the castle plot, in spot order (index 15 on).
 const PHASE_FIVE_PLOT_IDS: Array[StringName] = [
-	&"gold_mine_1", &"mill_1", &"field_1", &"field_2", &"field_3", &"harbor_1"
+	&"gold_mine_1",
+	&"mill_1",
+	&"field_1",
+	&"field_2",
+	&"field_3",
+	&"harbor_1",
+	&"shrine_west",
+	&"shrine_east",
 ]
 const FIRST_PHASE_FIVE_INDEX: int = 15
 const MINE: StringName = &"gold_mine_1"
@@ -123,11 +132,11 @@ func _phase_five_spots(map: MapConfig) -> Array[BuildSpotDef]:
 	return found
 
 
-func test_the_map_has_twenty_one_spots() -> void:
+func test_the_map_has_twenty_three_spots() -> void:
 	assert_eq(
 		_map().spots.size(),
 		SPOT_COUNT,
-		"14 Phase 4 plots, castle plot, Mine, Mill, 3 Fields, Harbor"
+		"14 Phase 4 plots, castle plot, Mine, Mill, 3 Fields, Harbor, 2 Shrines"
 	)
 
 
@@ -140,12 +149,13 @@ func test_exactly_one_spot_is_the_castle_plot_and_it_follows_the_phase_four_plot
 	assert_eq(map.spots[CASTLE_PLOT_INDEX].building_id, &"castle_center", "buys the castle")
 
 
-func test_nineteen_buildable_plots_besides_the_castle() -> void:
+func test_twenty_two_buildable_plots_besides_the_castle() -> void:
 	var buildable: int = 0
 	for spot: BuildSpotDef in _map().spots:
 		if not spot.is_castle:
 			buildable += 1
-	assert_eq(buildable, BUILDABLE_PLOT_COUNT, "14 Phase 4 plots, Gold Mine, Mill, 3 Fields")
+	var note: String = "14 Phase 4 plots, Gold Mine, Mill, 3 Fields, Harbor, 2 Shrines"
+	assert_eq(buildable, BUILDABLE_PLOT_COUNT, note)
 
 
 func test_the_shipped_map_validates_clean() -> void:

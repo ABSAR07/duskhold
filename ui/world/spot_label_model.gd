@@ -16,7 +16,8 @@ const MAX_TIER_TEXT := "Max tier"
 ## shows what the castle will be, not the raw tier values. A declining building (the Gold Mine)
 ## says how its payout falls before it is built and, once built, what it pays at the next dawn. A
 ## Fishing Harbor at its top tier reads its boats and the next dawn's gold ("Boats 2 of 5, next
-## dawn 3 gold"). A next tier locked behind the castle or another plot (D-03, D-10) reads "Needs
+## dawn 3 gold"). A Shrine reads "Asleep: 30 of 100 enemy health" until it wakes, then "Awake". A
+## next tier locked behind the castle or another plot (D-03, D-10) reads "Needs
 ## Castle II" / "Needs a Mill" in `status_line` with cost 0 and `affordable` true, so no price and
 ## no red coins show.
 static func describe(ctx: RunContext, spot_id: StringName, coins_paid: int) -> Dictionary:
@@ -52,6 +53,8 @@ static func describe(ctx: RunContext, spot_id: StringName, coins_paid: int) -> D
 					ctx.income.next_payout(spot_id)
 				]
 			)
+		elif building_def.income_curve == BuildingDef.IncomeCurve.AWAKENED and ctx.income != null:
+			content["effect"] = _shrine_effect(ctx, spot_id, building_def.tier_def(tier))
 		content["max_tier"] = true
 		content["affordable"] = true
 		content["status_line"] = MAX_TIER_TEXT
@@ -109,6 +112,15 @@ static func _castle_effect(ctx: RunContext, tier: BuildingTierDef) -> String:
 	var arrow: int = stack.int_value(&"castle.arrow_damage", tier.attack_damage)
 	var income: int = maxi(stack.int_value(&"castle.base_income", tier.dawn_income), 0)
 	return "Health %d · Arrow %d · %d gold at dawn" % [health, arrow, income]
+
+
+## "Asleep: 30 of 100 enemy health" while the Shrine is dormant, "Awake" once it has woken.
+static func _shrine_effect(ctx: RunContext, spot_id: StringName, tier: BuildingTierDef) -> String:
+	if ctx.income.is_awake(spot_id):
+		return "Awake"
+	return (
+		"Asleep: %d of %d enemy health" % [ctx.income.kill_credit(spot_id), tier.wake_threshold_hp]
+	)
 
 
 ## The names of the cards picked at the plot in pick order, joined with " · ". A card the map no

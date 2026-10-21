@@ -51,11 +51,12 @@ static func _value_text(ctx: RunContext, stat: StringName) -> String:
 	return text
 
 
-## The current tier of the first standing building that attacks, in plot order; null when none.
+## The current tier of the first standing building that attacks through the tower stats (a Shrine
+## reads shrine.damage, so it is not one), in plot order; null when none.
 static func _first_standing_attacker_tier(ctx: RunContext) -> BuildingTierDef:
 	for spot_id: StringName in ctx.buildings.standing_spot_ids():
 		var building: BuildingDef = ctx.buildings.get_building_def_for_spot(spot_id)
-		if building == null:
+		if building == null or building.damage_stat != TOWER_DAMAGE:
 			continue
 		var tier: BuildingTierDef = building.tier_def(ctx.buildings.current_tier(spot_id))
 		if tier != null and tier.attack_damage > 0:

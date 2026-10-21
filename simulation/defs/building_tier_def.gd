@@ -40,6 +40,16 @@ extends Resource
 @export var boat_cap: int = 0
 ## Gold each boat pays at dawn at this tier (Fishing Harbor only). 0 on every other curve.
 @export var boat_income: int = 0
+## Radius in metres around an AWAKENED building (the Shrine only) inside which an enemy death
+## counts toward its wake (D-12, ECON-06). A death exactly this far away counts. 0.0 on every other
+## curve; MapConfig.validate() reports a value set where the curve does not use it.
+@export var wake_radius: float = 0.0
+## Total max health of the enemies that must die within wake_radius before the Shrine wakes for
+## good (D-12). Reaching exactly this total wakes it. 0 on every other curve.
+@export var wake_threshold_hp: int = 0
+## Percent of attack damage every awake Shrine gains for each OTHER awake Shrine (D-12, D-15), a
+## percent-bucket stat modifier on shrine.damage. 0 on every other curve.
+@export var synergy_percent: int = 0
 
 
 ## One-line effect text shown next to the cost, e.g. "+2 gold at dawn".

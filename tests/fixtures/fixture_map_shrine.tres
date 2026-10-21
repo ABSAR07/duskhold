@@ -1,0 +1,104 @@
+[gd_resource type="Resource" script_class="MapConfig" load_steps=20 format=3]
+
+[ext_resource type="Script" path="res://simulation/defs/map_config.gd" id="1_map"]
+[ext_resource type="Script" path="res://simulation/defs/build_spot_def.gd" id="2_spot"]
+[ext_resource type="Script" path="res://simulation/defs/building_def.gd" id="3_bdef"]
+[ext_resource type="Script" path="res://simulation/defs/building_tier_def.gd" id="4_tier"]
+[ext_resource type="Script" path="res://simulation/defs/spawn_point_def.gd" id="5_spawn"]
+[ext_resource type="Script" path="res://simulation/defs/spawn_group_def.gd" id="6_group"]
+[ext_resource type="Script" path="res://simulation/defs/night_def.gd" id="7_night"]
+[ext_resource type="Script" path="res://simulation/defs/enemy_def.gd" id="8_enemy"]
+[ext_resource type="Resource" path="res://data/buildings/tower.tres" id="9_tower"]
+[ext_resource type="Resource" path="res://data/enemies/grunt.tres" id="10_grunt"]
+
+[sub_resource type="Resource" id="Resource_shrine_tier1"]
+script = ExtResource("4_tier")
+cost = 3
+dawn_income = 1
+attack_range = 9.0
+attack_damage = 3
+max_health = 30
+attack_interval = 1.1
+projectile_speed = 20.0
+wake_radius = 18.0
+wake_threshold_hp = 100
+synergy_percent = 20
+
+[sub_resource type="Resource" id="Resource_shrine"]
+script = ExtResource("3_bdef")
+id = &"shrine"
+display_name = "Shrine"
+body_radius = 1.2
+income_curve = 3
+damage_stat = &"shrine.damage"
+range_stat = &"shrine.range"
+tiers = Array[ExtResource("4_tier")]([SubResource("Resource_shrine_tier1")])
+
+[sub_resource type="Resource" id="Resource_tower_1"]
+script = ExtResource("2_spot")
+id = &"tower_1"
+position = Vector3(-12, 0, 4)
+building_id = &"tower"
+
+[sub_resource type="Resource" id="Resource_tower_2"]
+script = ExtResource("2_spot")
+id = &"tower_2"
+position = Vector3(-12, 0, -4)
+building_id = &"tower"
+
+[sub_resource type="Resource" id="Resource_shrine_1"]
+script = ExtResource("2_spot")
+id = &"shrine_1"
+position = Vector3(-14, 0, 8)
+building_id = &"shrine"
+
+[sub_resource type="Resource" id="Resource_west"]
+script = ExtResource("5_spawn")
+id = &"west"
+display_name = "West"
+position = Vector3(-40, 0, 0)
+scatter_radius = 1.0
+
+[sub_resource type="Resource" id="Resource_group_1"]
+script = ExtResource("6_group")
+spawn_point_id = &"west"
+enemy_id = &"grunt"
+count = 36
+start_delay_seconds = 0.5
+interval_seconds = 0.8
+
+[sub_resource type="Resource" id="Resource_group_2"]
+script = ExtResource("6_group")
+spawn_point_id = &"west"
+enemy_id = &"grunt"
+count = 10
+start_delay_seconds = 0.5
+interval_seconds = 0.8
+
+[sub_resource type="Resource" id="Resource_night_1"]
+script = ExtResource("7_night")
+groups = Array[ExtResource("6_group")]([SubResource("Resource_group_1")])
+
+[sub_resource type="Resource" id="Resource_night_2"]
+script = ExtResource("7_night")
+groups = Array[ExtResource("6_group")]([SubResource("Resource_group_2")])
+
+[resource]
+script = ExtResource("1_map")
+id = &"fixture_shrine"
+display_name = "Fixture Shrine"
+is_sandbox = true
+starting_gold = 40
+king_spawn = Vector3(0, 0, 7)
+castle_position = Vector3(0, 0, 0)
+buildings = Array[ExtResource("3_bdef")]([SubResource("Resource_shrine"), ExtResource("9_tower")])
+spots = Array[ExtResource("2_spot")]([SubResource("Resource_tower_1"), SubResource("Resource_tower_2"), SubResource("Resource_shrine_1")])
+enemies = Array[ExtResource("8_enemy")]([ExtResource("10_grunt")])
+spawn_points = Array[ExtResource("5_spawn")]([SubResource("Resource_west")])
+nights = Array[ExtResource("7_night")]([SubResource("Resource_night_1"), SubResource("Resource_night_2")])
+castle_max_health = 200
+castle_radius = 3.5
+castle_attack_damage = 2
+castle_attack_range = 22.0
+castle_attack_interval = 1.5
+castle_projectile_speed = 27.0

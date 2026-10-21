@@ -11,7 +11,14 @@ const HOUSE_TIER_COUNT: int = 3
 const TOWER_TIER_COUNT: int = 2
 ## The economic plots Phase 5 appends after the castle plot; they field no unit.
 const ECONOMIC_PLOT_IDS: Array[StringName] = [
-	&"gold_mine_1", &"mill_1", &"field_1", &"field_2", &"field_3", &"harbor_1"
+	&"gold_mine_1",
+	&"mill_1",
+	&"field_1",
+	&"field_2",
+	&"field_3",
+	&"harbor_1",
+	&"shrine_west",
+	&"shrine_east"
 ]
 const MIN_RIDE_S: float = 12.0
 const MAX_RIDE_S: float = 18.0

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="MapConfig" load_steps=91 format=3]
+[gd_resource type="Resource" script_class="MapConfig" load_steps=94 format=3]
 
 [ext_resource type="Script" path="res://simulation/defs/map_config.gd" id="1_map"]
 [ext_resource type="Script" path="res://simulation/defs/build_spot_def.gd" id="2_spot"]
@@ -24,6 +24,7 @@
 [ext_resource type="Resource" path="res://data/buildings/mill.tres" id="22_mill"]
 [ext_resource type="Resource" path="res://data/buildings/field.tres" id="23_field"]
 [ext_resource type="Resource" path="res://data/buildings/fishing_harbor.tres" id="24_harbor"]
+[ext_resource type="Resource" path="res://data/buildings/shrine.tres" id="25_shrine"]
 
 [sub_resource type="Resource" id="Resource_house_1"]
 script = ExtResource("2_spot")
@@ -189,6 +190,18 @@ script = ExtResource("2_spot")
 id = &"harbor_1"
 position = Vector3(0, 0, 20.5)
 building_id = &"fishing_harbor"
+
+[sub_resource type="Resource" id="Resource_shrine_west"]
+script = ExtResource("2_spot")
+id = &"shrine_west"
+position = Vector3(-46, 0, 30)
+building_id = &"shrine"
+
+[sub_resource type="Resource" id="Resource_shrine_east"]
+script = ExtResource("2_spot")
+id = &"shrine_east"
+position = Vector3(46, 0, 30)
+building_id = &"shrine"
 
 [sub_resource type="Resource" id="Resource_spawn_west"]
 script = ExtResource("6_spawn")
@@ -484,8 +497,8 @@ starting_gold = 4
 base_dawn_income = 1
 king_spawn = Vector3(0, 0, 7)
 castle_position = Vector3(0, 0, 0)
-buildings = Array[ExtResource("3_bdef")]([ExtResource("4_house"), ExtResource("5_tower"), ExtResource("14_barracks"), ExtResource("16_archery"), ExtResource("18_wall"), ExtResource("20_castle"), ExtResource("21_mine"), ExtResource("22_mill"), ExtResource("23_field"), ExtResource("24_harbor")])
-spots = Array[ExtResource("2_spot")]([SubResource("Resource_house_1"), SubResource("Resource_house_2"), SubResource("Resource_house_3"), SubResource("Resource_house_4"), SubResource("Resource_house_5"), SubResource("Resource_tower_1"), SubResource("Resource_tower_2"), SubResource("Resource_tower_3"), SubResource("Resource_barracks_1"), SubResource("Resource_archery_1"), SubResource("Resource_wall_west"), SubResource("Resource_wall_east"), SubResource("Resource_wall_north"), SubResource("Resource_wall_ring"), SubResource("Resource_castle_plot"), SubResource("Resource_gold_mine_1"), SubResource("Resource_mill_1"), SubResource("Resource_field_1"), SubResource("Resource_field_2"), SubResource("Resource_field_3"), SubResource("Resource_harbor_1")])
+buildings = Array[ExtResource("3_bdef")]([ExtResource("4_house"), ExtResource("5_tower"), ExtResource("14_barracks"), ExtResource("16_archery"), ExtResource("18_wall"), ExtResource("20_castle"), ExtResource("21_mine"), ExtResource("22_mill"), ExtResource("23_field"), ExtResource("24_harbor"), ExtResource("25_shrine")])
+spots = Array[ExtResource("2_spot")]([SubResource("Resource_house_1"), SubResource("Resource_house_2"), SubResource("Resource_house_3"), SubResource("Resource_house_4"), SubResource("Resource_house_5"), SubResource("Resource_tower_1"), SubResource("Resource_tower_2"), SubResource("Resource_tower_3"), SubResource("Resource_barracks_1"), SubResource("Resource_archery_1"), SubResource("Resource_wall_west"), SubResource("Resource_wall_east"), SubResource("Resource_wall_north"), SubResource("Resource_wall_ring"), SubResource("Resource_castle_plot"), SubResource("Resource_gold_mine_1"), SubResource("Resource_mill_1"), SubResource("Resource_field_1"), SubResource("Resource_field_2"), SubResource("Resource_field_3"), SubResource("Resource_harbor_1"), SubResource("Resource_shrine_west"), SubResource("Resource_shrine_east")])
 enemies = Array[ExtResource("9_enemy")]([ExtResource("10_grunt"), ExtResource("11_ranged")])
 units = Array[ExtResource("12_unit")]([ExtResource("13_footman"), ExtResource("15_archer")])
 spawn_points = Array[ExtResource("6_spawn")]([SubResource("Resource_spawn_west"), SubResource("Resource_spawn_east"), SubResource("Resource_spawn_north")])
