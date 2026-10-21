@@ -29,6 +29,12 @@ for arg in "$@"; do
       case "${DURATION}" in
         ''|*[!0-9]*) echo "usage: --duration must be a whole number of seconds (5..120)" >&2; exit 64 ;;
       esac
+      # Bound the length, then read it as decimal: bash arithmetic takes 08 and 09 as bad octal.
+      if [ "${#DURATION}" -gt 4 ]; then
+        echo "usage: --duration must be between 5 and 120" >&2
+        exit 64
+      fi
+      DURATION=$((10#${DURATION}))
       if [ "${DURATION}" -lt 5 ] || [ "${DURATION}" -gt 120 ]; then
         echo "usage: --duration must be between 5 and 120" >&2
         exit 64
@@ -50,7 +56,20 @@ duskhold_require_native || exit 3
 STRESS_DIR="${DUSKHOLD_ROOT}/build/stress"
 IMPORT_LOG="${STRESS_DIR}/import.log"
 STRESS_LOG="${STRESS_DIR}/stress.log"
-TIMEOUT_S=$((WARMUP + DURATION + ${STRESS_EXTRA_TIMEOUT_S:-120}))
+# The environment value is validated before it meets bash arithmetic, which would evaluate an
+# expression such as 'a[$(cmd)]' (whole seconds only, up to four digits, read as decimal).
+EXTRA_TIMEOUT_S="${STRESS_EXTRA_TIMEOUT_S:-120}"
+case "${EXTRA_TIMEOUT_S}" in
+  ''|*[!0-9]*)
+    echo "usage: STRESS_EXTRA_TIMEOUT_S must be a whole number of seconds" >&2
+    exit 64
+    ;;
+esac
+if [ "${#EXTRA_TIMEOUT_S}" -gt 4 ]; then
+  echo "usage: STRESS_EXTRA_TIMEOUT_S must be at most 9999" >&2
+  exit 64
+fi
+TIMEOUT_S=$((WARMUP + DURATION + 10#${EXTRA_TIMEOUT_S}))
 
 mkdir -p "${STRESS_DIR}"
 rm -f "${STRESS_LOG}" "${STRESS_DIR}"/run_*.json "${STRESS_DIR}/report.json" "${STRESS_DIR}/report.md"
