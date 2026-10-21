@@ -29,7 +29,8 @@ extends SceneTree
 ##   bash tools/godot.sh --headless --path . -s res://tools/stress/step_bench.gd -- \
 ##       --map=stress --enemies=300 --warmup=300 --steps=300
 ## Arguments (everything after `--`; anything else is a usage error):
-##   --enemies=<1..1000>   grunts to spawn (stress map: the total over its four groups); default 300
+##   --enemies=<1..1000>   grunts to spawn (stress map: the total over its four groups, so a
+##                         multiple of 4); default 300
 ##   --steps=<1..600>      timed steps; default 30
 ##   --rebuilds=<0..64>    wall-break rebuilds to time after the steps; default 0 (none); a usage
 ##                         error with --map=stress
@@ -102,6 +103,11 @@ static func parse_args(args: PackedStringArray) -> Dictionary:
 			return parsed
 	if parsed["map"] == MAP_STRESS and int(parsed["rebuilds"]) > 0:
 		parsed["error"] = "--rebuilds is not available with --map=stress"
+	elif parsed["map"] == MAP_STRESS and int(parsed["enemies"]) % STRESS_GROUPS != 0:
+		parsed["error"] = (
+			"--enemies must be a multiple of %d with --map=stress, got %d"
+			% [STRESS_GROUPS, int(parsed["enemies"])]
+		)
 	return parsed
 
 

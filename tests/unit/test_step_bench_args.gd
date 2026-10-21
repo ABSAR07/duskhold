@@ -68,6 +68,17 @@ func test_an_unknown_map_is_refused_with_a_one_line_error() -> void:
 		assert_false(error.contains(NEWLINE), "%s gives a one-line reason" % arg)
 
 
+func test_the_stress_map_needs_an_enemy_total_that_its_four_groups_share() -> void:
+	for total: String in ["1", "3", "10", "301"]:
+		var error: String = _error_of(["--map=stress", "--enemies=" + total])
+		assert_ne(error, "", "%s enemies do not split over four groups" % total)
+		assert_false(error.contains(NEWLINE), "%s gives a one-line reason" % total)
+	assert_ne(_error_of(["--enemies=10", "--map=stress"]), "", "in either order")
+	assert_eq(_error_of(["--map=stress", "--enemies=4"]), "", "a multiple of four passes")
+	assert_eq(_error_of(["--map=stress", "--enemies=300"]), "", "so does the default")
+	assert_eq(_error_of(["--map=prototype", "--enemies=10"]), "", "the prototype takes any total")
+
+
 func test_rebuilds_with_the_stress_map_are_refused_in_either_order() -> void:
 	assert_ne(_error_of(["--map=stress", "--rebuilds=4"]), "", "stress then rebuilds")
 	assert_ne(_error_of(["--rebuilds=4", "--map=stress"]), "", "rebuilds then stress")
