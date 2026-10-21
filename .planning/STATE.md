@@ -4,10 +4,10 @@ current_phase: 05
 current_phase_name: Castle Center & Economy Depth
 status: executing
 stopped_at: Phase 5 planned (12 plans, 11 waves)
-last_updated: "2026-10-21T09:48:55.982Z"
+last_updated: "2026-10-21T10:01:48.078Z"
 last_activity: 2026-10-21
-last_activity_desc: Phase 5 planned: 12 plans in 11 waves, checker passed after 2 revisions
-state_head: f8d42b6c5d83098cb741cebb2123f8ef46d78268
+last_activity_desc: Phase 05 execution started
+state_head: 2c0cc5f9a67e8ec194c080e9b995f2c0ec72ea9b
 progress:
   total_phases: 13
   completed_phases: 4
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-21)
 
 **Core value:** The day/night build-then-defend loop must feel as tight and satisfying as Thronefall's, with meaningful gold trade-offs by day and readable, tense defense by night. It must be fun on a single map with zero meta-progression.
-**Current focus:** Phase 5 — Castle Center & Economy Depth
+**Current focus:** Phase 05 — Castle Center & Economy Depth
 
 ## Current Position
 
-Phase: 05 (Castle Center & Economy Depth) — READY TO EXECUTE
-Plan: 0 of 12 (05-01 stat stack first; 05-04 and 05-05 share wave 4; one chain otherwise)
-Status: Ready to execute
-Last activity: 2026-10-21 — Phase 5 planned: research (P1 to P8 premise corrections, full_idle baseline 4385f569…), 12 plans / 11 waves, two scoped haiku checkers, 8 issues → 1 → 0 over two revisions; gates: requirements 9/9, decisions 15/15, gap analysis 24/24
+Phase: 05 (Castle Center & Economy Depth) — EXECUTING
+Plan: 1 of 12
+Status: Executing Phase 05
+Last activity: 2026-10-21 — Phase 05 execution started
 
 Progress: [███░░░░░░░] 31%
 
