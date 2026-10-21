@@ -130,7 +130,8 @@ func native() -> NativeWalls:
 ## The segments whose solid could reach a circle of radius `reach` metres around `pos`, ascending,
 ## standing or not: a superset for the caller to narrow with its own exact test. Read-only. The 4 m
 ## bucket grid behind it (a performance parameter, never data: it changes how many segments are
-## looked at, never which ones are solid) lives in native/src/native_walls.cpp.
+## looked at, never which ones are solid) lives in native/src/native_walls.cpp. Test-only: the
+## native solids ask their own mirror, nothing in the game calls this (IN-10).
 func segments_near(pos: Vector2, reach: float) -> PackedInt32Array:
 	return _native.segments_near(pos, reach)
 

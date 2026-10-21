@@ -150,7 +150,7 @@ func test_a_map_with_no_wall_plot_builds_no_field() -> void:
 	assert_null(pathing.castle_field(), "no field")
 	assert_eq(pathing.field_version(), 0, "never rebuilt")
 	assert_eq(pathing.grid().allocated_cells(), 0, "and the grid allocated nothing")
-	assert_false(pathing.is_sealed(Vector2(5.0, 5.0)), "nothing is sealed")
+	assert_false(pathing.route().is_sealed(Vector2(5.0, 5.0)), "nothing is sealed")
 
 
 func test_an_unbought_run_builds_no_field_either() -> void:

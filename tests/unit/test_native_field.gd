@@ -206,13 +206,19 @@ func test_the_ticks_agree_with_walk_ticks_for_every_speed() -> void:
 	for pos: Vector2 in points:
 		for speed: int in [-5, 0, 1, 300, 320, 100000]:
 			assert_eq(
-				pathing.straight_ticks(pos, speed),
-				WallDecision.walk_ticks(pathing.castle_distance_cm(pos), speed),
+				pathing.route().straight_ticks(pos, speed),
+				WallDecision.walk_ticks(pathing.route().castle_distance_cm(pos), speed),
 				"straight at %s speed %d" % [pos, speed]
 			)
-		assert_eq(pathing.detour_ticks(pos, 0), SimClock.MAX_TICKS, "a zero speed never arrives")
-	assert_lt(pathing.detour_ticks(Vector2(-25.0, 0.0), 300), SimClock.MAX_TICKS, "a route exists")
-	assert_eq(pathing.detour_ticks(Vector2(900.0, -700.0), 300), SimClock.MAX_TICKS, "outside")
+		assert_eq(
+			pathing.route().detour_ticks(pos, 0), SimClock.MAX_TICKS, "a zero speed never arrives"
+		)
+	assert_lt(
+		pathing.route().detour_ticks(Vector2(-25.0, 0.0), 300), SimClock.MAX_TICKS, "a route exists"
+	)
+	assert_eq(
+		pathing.route().detour_ticks(Vector2(900.0, -700.0), 300), SimClock.MAX_TICKS, "outside"
+	)
 
 
 func test_march_without_a_field_is_the_straight_step() -> void:
@@ -224,13 +230,15 @@ func test_march_without_a_field_is_the_straight_step() -> void:
 	assert_null(pathing.castle_field(), "no wall stands, no field")
 	for pos: Vector2 in [Vector2(-25.0, 0.0), Vector2(0.0, 0.0), Vector2(7.5, -3.25)]:
 		for reach: float in [-1.0, 0.0, 0.107, 1.0, 1000.0]:
-			assert_eq(pathing.march_step(pos, reach), EnemySystem.desired_step(pos, CASTLE, reach))
-	assert_false(pathing.is_sealed(Vector2(-25.0, 0.0)), "and nothing is sealed")
+			assert_eq(
+				pathing.route().march_step(pos, reach), EnemySystem.desired_step(pos, CASTLE, reach)
+			)
+	assert_false(pathing.route().is_sealed(Vector2(-25.0, 0.0)), "and nothing is sealed")
 
 
 func test_a_pathing_without_walls_or_map_still_answers() -> void:
 	var pathing: Pathing = Pathing.new(MapConfig.new(), null)
 	pathing.refresh()
-	assert_false(pathing.is_sealed(Vector2(1.0, 1.0)), "not sealed")
-	assert_eq(pathing.castle_cost_at(Vector2(1.0, 1.0)), FlowField.INF_COST, "no cost")
-	assert_eq(pathing.detour_ticks(Vector2(1.0, 1.0), 300), SimClock.MAX_TICKS, "no detour")
+	assert_false(pathing.route().is_sealed(Vector2(1.0, 1.0)), "not sealed")
+	assert_eq(pathing.route().castle_cost_at(Vector2(1.0, 1.0)), FlowField.INF_COST, "no cost")
+	assert_eq(pathing.route().detour_ticks(Vector2(1.0, 1.0), 300), SimClock.MAX_TICKS, "no detour")

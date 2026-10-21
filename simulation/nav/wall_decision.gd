@@ -14,8 +14,10 @@ extends RefCounted
 ##
 ## The per-tick state (the sums, the published times, the staggered cadence) runs in C++ (PLAT-01,
 ## plan 04-23, native/src/native_wall_decision.cpp) and the instance methods below delegate. The
-## static rules stay here for the GDScript callers that spawn an enemy or draw the overlay; their
-## native twins are proven equal on a grid of inputs by tests/unit/test_native_structures.gd.
+## static rules ttd_ticks, walk_ticks, should_break and keep_breaking stay here only as the GDScript
+## oracle of their native twins, which tests/unit/test_native_structures.gd and the structure
+## decision pins prove equal on a grid of inputs; no game code calls them (IN-10). Only
+## damage_per_300 is called, by EnemySystem when it spawns an enemy.
 
 var _hysteresis: int = 0
 var _notice: float = 0.0

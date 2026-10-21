@@ -173,18 +173,20 @@ func test_with_a_field_progress_is_the_route_cost_so_a_cell_of_progress_counts()
 	ctx.commands.submit(BuildIntent.new(RUN))
 	ctx.step()
 	var pathing: Pathing = ctx.night.get_pathing()
-	assert_lt(pathing.castle_cost_at(FIELD_SPOT), FlowField.INF_COST, "the field reaches the spot")
+	assert_lt(
+		pathing.route().castle_cost_at(FIELD_SPOT), FlowField.INF_COST, "the field reaches the spot"
+	)
 	var tracker: StuckTracker = StuckTracker.new(load(TUNING), 2.0)
 	_enemies.put(1, FIELD_SPOT)
 	_enemies.put(2, FIELD_SPOT + Vector2(0.0, -6.0))
 	for step: int in range(STUCK_TICKS):
 		tracker.update(step, _enemies, pathing)
 	assert_eq(tracker.stuck_ids(), PackedInt64Array([1, 2]), "held in place, both are flagged")
-	var before: int = pathing.castle_cost_at(FIELD_SPOT)
+	var before: int = pathing.route().castle_cost_at(FIELD_SPOT)
 	var nearer: Vector2 = FIELD_SPOT + Vector2(4.0, 0.0)
 	_enemies.put(1, nearer)
 	tracker.update(STUCK_TICKS, _enemies, pathing)
-	assert_lt(pathing.castle_cost_at(nearer), before, "nearer the castle by route")
+	assert_lt(pathing.route().castle_cost_at(nearer), before, "nearer the castle by route")
 	assert_false(tracker.is_stuck(1), "two cells of progress reset the streak")
 	assert_true(tracker.is_stuck(2), "the other is still held")
 

@@ -226,7 +226,7 @@ func test_the_reads_cover_costs_directions_and_sealed_enemies() -> void:
 				unreached += 1
 			if field.direction_at(pos) != Vector2.ZERO:
 				steered += 1
-			if pathing.is_sealed(pos):
+			if pathing.route().is_sealed(pos):
 				sealed += 1
 		assert_gt(reached, 100, "%s: many points are reached" % world)
 		assert_gt(unreached, 100, "%s: and many are not" % world)
@@ -271,7 +271,7 @@ func test_a_stale_field_reads_the_live_grid_the_first_time_a_cell_is_asked() -> 
 func _count_sealed(pathing: Pathing, points: PackedVector2Array) -> int:
 	var sealed: int = 0
 	for pos: Vector2 in points:
-		if pathing.is_sealed(pos):
+		if pathing.route().is_sealed(pos):
 			sealed += 1
 	return sealed
 
@@ -443,12 +443,12 @@ static func _route_bytes(pathing: Pathing, points: PackedVector2Array) -> Packed
 	var numbers: PackedInt64Array = PackedInt64Array()
 	var steps: PackedVector2Array = PackedVector2Array()
 	for pos: Vector2 in points:
-		numbers.append(1 if pathing.is_sealed(pos) else 0)
-		numbers.append(pathing.castle_cost_at(pos))
-		numbers.append(pathing.castle_distance_cm(pos))
+		numbers.append(1 if pathing.route().is_sealed(pos) else 0)
+		numbers.append(pathing.route().castle_cost_at(pos))
+		numbers.append(pathing.route().castle_distance_cm(pos))
 		for speed: int in SPEEDS:
-			numbers.append(pathing.detour_ticks(pos, speed))
-			numbers.append(pathing.straight_ticks(pos, speed))
+			numbers.append(pathing.route().detour_ticks(pos, speed))
+			numbers.append(pathing.route().straight_ticks(pos, speed))
 		for reach: float in REACHES:
-			steps.append(pathing.march_step(pos, reach))
+			steps.append(pathing.route().march_step(pos, reach))
 	return numbers.to_byte_array() + steps.to_byte_array()

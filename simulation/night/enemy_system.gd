@@ -196,7 +196,8 @@ func step(
 ## Ids of the enemies whose grid cell lies within `reach` of `pos`'s cell, ascending: a superset of
 ## the living enemies within `reach` metres, for the caller to narrow with its own exact test. Dead
 ## enemies that have not been removed yet may be listed. Read-only; the grid is rebuilt first when
-## the field changed since the last query.
+## the field changed since the last query. Test-only: the native step asks its own mirror, nothing
+## in the game calls this (IN-10).
 func living_within(pos: Vector2, reach: float) -> PackedInt64Array:
 	return _native.living_within(pos, reach)
 
@@ -298,8 +299,7 @@ func _refresh_defs() -> void:
 
 
 ## Hands the native step the wall mirror, the castle route, the decision and the structure
-## snapshot of this step (null for what a caller without pathing does not have). The route lives
-## in Pathing's private member: the facade is at its 20-method cap, so it gets no accessor.
+## snapshot of this step (null for what a caller without pathing does not have).
 func _hand_over_world(pathing: Pathing) -> void:
 	var walls: NativeWalls = null
 	var route: NativeRoute = null
@@ -307,7 +307,7 @@ func _hand_over_world(pathing: Pathing) -> void:
 	if pathing != null:
 		if pathing.walls() != null:
 			walls = pathing.walls().native()
-		route = pathing._route
+		route = pathing.route()
 		decision = pathing.decision().native()
 	_native.set_world(walls, route, decision, _structures.native())
 

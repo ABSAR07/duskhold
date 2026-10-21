@@ -12,7 +12,7 @@ extends RefCounted
 ## The castle routing (is_sealed with its probe off a blocking wall, castle_cost_at,
 ## castle_distance_cm, detour_ticks, straight_ticks and march_step) runs in C++ through one
 ## NativeRoute (PLAT-01, plan 04-18, native/src/native_field.cpp), which refresh() keeps pointed at
-## the castle field; the methods below keep their signatures and delegate.
+## the castle field and route() hands out; the facade no longer repeats its six methods (IN-10).
 
 var _map: MapConfig
 var _walls: WallSystem
@@ -94,19 +94,6 @@ func castle_field() -> FlowField:
 	return _castle_field
 
 
-## True while walls stand and no route is known from `pos` to the castle: the castle field is
-## missing (an unarmed grid, or not refreshed yet) or the cell of `pos` is walled off from it. A
-## sealed enemy attacks the segment in its way instead of walking round.
-func is_sealed(pos: Vector2) -> bool:
-	return _route.is_sealed(pos)
-
-
-## The cost of the route from `pos` to the castle (10 per cell, 14 per diagonal); FlowField.INF_COST
-## when there is none or no field exists.
-func castle_cost_at(pos: Vector2) -> int:
-	return _route.castle_cost_at(pos)
-
-
 ## The per-segment time to destruction and the break-or-detour rule (D-07, D-08).
 func decision() -> WallDecision:
 	return _decision
@@ -117,28 +104,10 @@ func stuck() -> StuckTracker:
 	return _stuck
 
 
-## The straight distance from `pos` to the castle's centre in whole centimetres.
-func castle_distance_cm(pos: Vector2) -> int:
-	return _route.castle_distance_cm(pos)
-
-
-## Ticks an enemy at `pos` needs to walk the castle field's route to the castle at
-## `speed_cm_per_s`, rounded up; SimClock.MAX_TICKS when there is no route (sealed, or no field).
-func detour_ticks(pos: Vector2, speed_cm_per_s: int) -> int:
-	return _route.detour_ticks(pos, speed_cm_per_s)
-
-
-## Ticks an enemy at `pos` needs to walk the straight line to the castle's centre at
-## `speed_cm_per_s`, rounded up.
-func straight_ticks(pos: Vector2, speed_cm_per_s: int) -> int:
-	return _route.straight_ticks(pos, speed_cm_per_s)
-
-
-## The step of an enemy at `pos` marching on the castle round the walls, `max_distance` long: the
-## field direction, or the exact straight step of EnemySystem.desired_step when there is no field
-## or no direction there.
-func march_step(pos: Vector2, max_distance: float) -> Vector2:
-	return _route.march_step(pos, max_distance)
+## The castle routing in C++: is_sealed, castle_cost_at, castle_distance_cm, detour_ticks,
+## straight_ticks and march_step. The native enemy step reads it directly; so do the tests.
+func route() -> NativeRoute:
+	return _route
 
 
 ## The step of a unit or the bot king at `pos` walking to `goal`, `max_distance` long, for a circle
