@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 05
 current_phase_name: Castle Center & Economy Depth
 status: executing
-stopped_at: Completed 05-09-PLAN.md
-last_updated: "2026-10-22T00:10:33.096Z"
+stopped_at: Completed 05-10-PLAN.md
+last_updated: "2026-10-22T01:21:28.459Z"
 last_activity: 2026-10-21
 last_activity_desc: Phase 05 execution started
-state_head: 2b04a5e2931f10b130e102fc30558803ec5a5ca1
+state_head: 1ddaf9c05757e19dc61cdf800f1466c0203e4292
 progress:
   total_phases: 13
   completed_phases: 4
   total_plans: 99
-  completed_plans: 96
+  completed_plans: 97
   percent: 31
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-21)
 ## Current Position
 
 Phase: 05 (Castle Center & Economy Depth) — EXECUTING
-Plan: 10 of 12
+Plan: 11 of 12
 Status: Ready to execute
 Last activity: 2026-10-21 — Phase 05 execution started
 
@@ -155,6 +155,7 @@ Progress: [███░░░░░░░] 31%
 | Phase 05 P07 | 90 min | 2 tasks | 24 files |
 | Phase 05 P08 | 105 min | 2 tasks | 36 files |
 | Phase 05 P09 | 85 min | 2 tasks | 47 files |
+| Phase 05 P10 | 45min | 2 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -368,6 +369,8 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-09: a Shrine credit counts a death exactly at wake_radius (<=) and wakes at a credit exactly equal to the threshold (>=), from any killer and while the Shrine lies in rubble; the towers loop skips a dormant Shrine before any target query and a TowerSystem with no IncomeState keeps it silent
 - [Phase 05]: 05-09: shrine_synergy is one PERCENT source on shrine.damage (synergy_percent x (n - 1)) replaced when the awake count changes, updated once per enemy_died after every Shrine is credited; BuildingDef.damage_stat and range_stat name the stats an attack reads and EconomyValidation requires an integer and a float stat id
 - [Phase 05]: 05-09: the Shrine fixture needed the plot at (-14, 0, 8), a second tower plot and 36 grunts at 0.8 s: at the planned (-16, 0, 6) the grunts destroyed the dormant Shrine before it woke; the shipped plots sit 12.5 m from the roads, so plan 05-11 must check how often a 9 m reach actually fires
+- [Phase 05]: Economy replay golden (D-08) lives on a frozen inline-copy fixture; the Mine falls once via a west road in night 1 and a north-west road carries nights 2 and 3
+- [Phase 05]: Task 2 pins the Mine's next payout through next_payout() and not a paid-dawns count, because mine_paid_dawns stops counting at the floor
 
 ### Pending Todos
 
@@ -405,6 +408,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-22T00:10:31.361Z
-Stopped at: Completed 05-09-PLAN.md
+Last session: 2026-10-22T01:21:27.495Z
+Stopped at: Completed 05-10-PLAN.md
 Resume file: None
