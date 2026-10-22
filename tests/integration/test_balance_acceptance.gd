@@ -44,6 +44,32 @@ extends GutTest
 ## shipped orders win 8 of 10 each and lose exactly the twins seeds (3 and 9; 1 and 9), with a
 ## squad_value_ratio of 0.888 for the army bot. No night count, wall cost or other data moved.
 ## greedy economy, no_build and towers_first are unchanged.
+##
+## Plan 05-11 (D-03, D-08, BLDG-09, Phase 5) put the castle gate in the shipped data (the last tier
+## of House, Tower, Barracks, Archery Range and Wall needs castle II; Mill III and Harbor II already
+## did) and made the bots play the new day. The names moved: the Phase 4 orders are now
+## balanced_no_castle and army_balanced_no_castle (unchanged orders, they never buy the castle and
+## so measure what the gate costs), and balanced and army_balanced are the castle-aware orders,
+## which buy the Fishing Harbor, the castle with one card pick per tier, the Gold Mine, the Mill and
+## its Fields and the Shrines (05-BALANCE-REPORT.md has the search log). Measured on seeds 1 to 10,
+## old value to new value:
+##   - balanced (now castle-aware): 8 of 10 won (seeds 3 and 9 lost) before and after; seed 3 is
+##     now lost on night 7 (night 8 before), seed 9 still on night 3, so BALANCED_FIRST_LOSS_NIGHT
+##     stays 3. The first castle upgrade is bought on day 6 at the earliest (D-01: never before
+##     day 2).
+##   - army_balanced: 8 of 10 won (seeds 1 and 9 lost) before and after, squad_value_ratio 0.888
+##     before and after: the squad build cannot afford the castle in an eight-night run (it earns
+##     about 15 gold), so only its new Harbor and Mine entries differ from the Phase 4 order.
+##   - balanced_no_castle: 8 of 10 won became 3 of 10 (seeds 2, 4, 5, 6, 8, 9 and 10 lost): without
+##     castle II the Phase 4 order can no longer upgrade a tower, which is what the gate costs a bot
+##     that ignores the castle. army_balanced_no_castle is unchanged (8 of 10, seeds 1 and 9)
+##     because its order reaches Tower II only after the gold has run out.
+##   - balanced_no_walls: 8 of 10 won became 4 of 10 (seeds 1, 3, 4, 6, 9 and 10 lost), the same
+##     gate cost on the Phase 3 order; army_balanced_no_walls is unchanged (8 of 10, ratio 0.915).
+##   - greedy economy (loss nights 3 to 5), no_build (one night survived) and towers_first (loses
+##     on nights 7 and 8, 6 or 7 nights survived) keep their pins.
+## No night count, castle number, card or economy number moved: the order lever of the D-15 ladder
+## was enough, so BALANCED_MIN_WINS 7 and BALANCED_MAX_WINS 8 stand.
 
 const SEEDS: Array[int] = [1, 2, 3]
 ## The balanced bot is measured on ten seeds (owner decision 2026-10-07: it loses 2 or 3 of 10).
@@ -71,13 +97,26 @@ const SQUAD_VALUE_BAR: float = 0.8  # provisional, owner-set (confirmed 2026-10-
 const BALANCED_LOST_SEEDS: Array[int] = [3, 9]
 const BALANCED_FIRST_LOSS_NIGHT: int = 3
 ## Plan 04-10: the balanced bot with the wall runs loses the same two seeds, and the army bot with
-## them the same two as without (the army twin's lost seeds are pinned beside its win count).
+## them the same two as without (the army twin's lost seeds are pinned beside its win count). Plan
+## 05-11: the castle-aware balanced bot still loses exactly seeds 3 and 9.
 const BALANCED_WALLS_LOST_SEEDS: Array[int] = [3, 9]
 const ARMY_BALANCED_LOST_SEEDS: Array[int] = [1, 9]
 const ARMY_BALANCED_WALLS_LOST_SEEDS: Array[int] = [1, 9]
+## Plan 05-11: what the castle gate costs the bots that never buy the castle, as measured on seeds
+## 1 to 10. The Phase 4 balanced order (balanced_no_castle) wins 3 and loses these seven seeds; the
+## Phase 3 order (balanced_no_walls) wins 4 and loses these six.
+const BALANCED_NO_CASTLE_LOST_SEEDS: Array[int] = [2, 4, 5, 6, 8, 9, 10]
+const BALANCED_NO_WALLS_LOST_SEEDS: Array[int] = [1, 3, 4, 6, 9, 10]
+## D-01: the castle-aware balanced bot never upgrades the castle before this day (the first day is
+## day 1); measured, its earliest first upgrade is day 6.
+const CASTLE_EARLIEST_DAY: int = 2
+const SHIPPED_EARLIEST_CASTLE_DAY: int = 6
 ## Review WR-06: seeds of ten in which each bot with walls bought at least one wall tier, as
-## measured; the orders put the walls late, so most seeds never reach them.
-const BALANCED_WALL_SEEDS_MIN: int = 6
+## measured; the orders put the walls late, so most seeds never reach them. Plan 05-11: under the
+## gate the Phase 4 balanced order spends less on the economy than the Phase 3 order in nine seeds
+## of ten (it cannot upgrade its towers and loses earlier), so the economy-gold comparison only
+## still separates the army pair; the balanced pair floor is the one seed measured.
+const BALANCED_WALL_SEEDS_MIN: int = 1
 const ARMY_BALANCED_WALL_SEEDS_MIN: int = 3
 const GRUNT_PATH := "res://data/enemies/grunt.tres"
 const GRUNT_MAX_HEALTH: int = 6
@@ -97,6 +136,7 @@ var _report: Dictionary = {}
 var _balanced_report: Dictionary = {}
 var _army_report: Dictionary = {}
 var _twin_report: Dictionary = {}
+var _no_castle_report: Dictionary = {}
 
 
 func before_all() -> void:
@@ -106,6 +146,8 @@ func before_all() -> void:
 	_army_report = BalanceReport.run([&"army_balanced"] as Array[StringName], ARMY_BALANCED_SEEDS)
 	var twins: Array[StringName] = [&"balanced_no_walls", &"army_balanced_no_walls"]
 	_twin_report = BalanceReport.run(twins, BALANCED_SEEDS)
+	var no_castle: Array[StringName] = [&"balanced_no_castle", &"army_balanced_no_castle"]
+	_no_castle_report = BalanceReport.run(no_castle, BALANCED_SEEDS)
 
 
 func _runs_of(strategy: StringName) -> Array:
@@ -117,6 +159,8 @@ func _runs_of(strategy: StringName) -> Array:
 		source = _army_report
 	elif strategy == &"balanced_no_walls" or strategy == &"army_balanced_no_walls":
 		source = _twin_report
+	elif strategy == &"balanced_no_castle" or strategy == &"army_balanced_no_castle":
+		source = _no_castle_report
 	for entry: Dictionary in source.get("runs", []):
 		if entry["strategy"] == str(strategy):
 			matching.append(entry)
@@ -141,49 +185,72 @@ func _lost_seeds(strategy: StringName) -> Array[int]:
 
 func test_the_matrix_ran_every_strategy_on_every_seed() -> void:
 	assert_eq(_runs_of(&"balanced").size(), BALANCED_SEEDS.size(), "balanced ran all ten seeds")
-	for twin: StringName in [&"balanced_no_walls", &"army_balanced_no_walls"]:
+	for twin: StringName in [
+		&"balanced_no_walls",
+		&"army_balanced_no_walls",
+		&"balanced_no_castle",
+		&"army_balanced_no_castle"
+	]:
 		assert_eq(_runs_of(twin).size(), BALANCED_SEEDS.size(), "%s ran all ten seeds" % twin)
 	for strategy: StringName in [&"greedy_economy", &"no_build", &"towers_first"]:
 		assert_eq(_runs_of(strategy).size(), SEEDS.size(), "%s ran every seed" % strategy)
 
 
-func test_balanced_no_walls_wins_every_seed_it_is_not_pinned_to_lose() -> void:
-	var wins: int = 0
-	for entry: Dictionary in _runs_of(&"balanced_no_walls"):
-		if not BALANCED_LOST_SEEDS.has(int(entry["seed"])):
-			assert_eq(
-				entry["outcome"],
-				BalanceReport.OUTCOME_WON,
-				"balanced_no_walls seed %d is won" % entry["seed"]
-			)
-			wins += 1
+func test_the_gate_costs_the_phase_three_balanced_order_six_seeds() -> void:
+	## Plan 05-11: the Phase 3 order (balanced_no_walls) won 8 of 10 before the gate and wins 4 now;
+	## it keeps its Phase 3 loss night floor (night 3 or later) and loses exactly these seeds.
 	assert_eq(
-		wins,
-		BALANCED_SEEDS.size() - BALANCED_LOST_SEEDS.size(),
-		"the Phase 3 balanced order still wins 8 of 10 (9 before Round 2)"
+		_lost_seeds(&"balanced_no_walls"),
+		BALANCED_NO_WALLS_LOST_SEEDS,
+		"the gate turns the Phase 3 order's seeds 1, 4, 6 and 10 into losses (3 and 9 stay lost)"
 	)
-
-
-func test_balanced_no_walls_loses_only_seeds_three_and_nine_and_never_before_night_three() -> void:
 	for entry: Dictionary in _lost_runs(&"balanced_no_walls"):
-		var loss_night: int = int(entry["nights_survived"]) + 1
 		assert_gte(
-			loss_night,
+			int(entry["nights_survived"]) + 1,
 			BALANCED_FIRST_LOSS_NIGHT,
 			"balanced_no_walls seed %d is lost on night 3 or later" % entry["seed"]
 		)
+
+
+func test_the_gate_costs_the_phase_four_balanced_order_seven_seeds() -> void:
+	## Plan 05-11: balanced_no_castle is the Phase 4 order. Without castle II it cannot upgrade a
+	## tower and wins 3 of 10; this is what the gate costs a bot that ignores the castle, and the
+	## reason the castle-aware order exists.
 	assert_eq(
-		_lost_seeds(&"balanced_no_walls"),
-		BALANCED_LOST_SEEDS,
-		"the Phase 3 losses are exactly seeds 3 and 9"
+		_lost_seeds(&"balanced_no_castle"),
+		BALANCED_NO_CASTLE_LOST_SEEDS,
+		"the Phase 4 order loses seven seeds with the gate on"
 	)
+	for entry: Dictionary in _lost_runs(&"balanced_no_castle"):
+		assert_gte(
+			int(entry["nights_survived"]) + 1,
+			BALANCED_FIRST_LOSS_NIGHT,
+			"balanced_no_castle seed %d is lost on night 3 or later" % entry["seed"]
+		)
+
+
+func test_the_castle_aware_balanced_bot_never_buys_the_castle_before_day_two() -> void:
+	## D-01: the first upgrade is a real trade-off. Every run that upgraded the castle did it on day
+	## 2 or later, and the earliest measured first upgrade is day 6 (the castle costs 6 gold, and
+	## the bot holds 4 at the start and 1 more at the first dawn).
+	var earliest: int = 0
+	for entry: Dictionary in _runs_of(&"balanced"):
+		var days: Array = entry["castle_days"]
+		if days.is_empty():
+			continue
+		var first: int = int(days[0])
+		assert_gte(first, CASTLE_EARLIEST_DAY, "seed %d: day of the first upgrade" % entry["seed"])
+		earliest = first if earliest == 0 else mini(earliest, first)
+	assert_eq(earliest, SHIPPED_EARLIEST_CASTLE_DAY, "the earliest first upgrade measured")
+	var summary: Dictionary = BalanceReport.summary(_balanced_report, &"balanced")
+	assert_gt(float(summary["mean_castle_tier_reached"]), 1.0, "the bot does buy the castle")
 
 
 func test_balanced_with_walls_loses_the_same_two_seeds() -> void:
 	assert_eq(
 		_lost_seeds(&"balanced"),
 		BALANCED_WALLS_LOST_SEEDS,
-		"D-14 same outcomes: walls change no seed of the balanced bot"
+		"D-08 same outcomes: the castle-aware order loses the seeds the Phase 4 order lost"
 	)
 	for entry: Dictionary in _lost_runs(&"balanced"):
 		assert_gte(
@@ -226,17 +293,29 @@ func test_the_army_no_walls_twin_keeps_the_phase_three_result() -> void:
 	assert_eq(_lost_seeds(&"army_balanced_no_walls"), ARMY_BALANCED_LOST_SEEDS, "seeds 1 and 9")
 
 
+func test_the_army_no_castle_twin_keeps_the_phase_four_result() -> void:
+	## Plan 05-11: the gate costs the army order nothing, since it reaches Tower II only after its
+	## gold has run out: 8 of 10 won, seeds 1 and 9 lost, as in Phase 4.
+	var wins: int = 0
+	for entry: Dictionary in _runs_of(&"army_balanced_no_castle"):
+		wins += 1 if entry["outcome"] == BalanceReport.OUTCOME_WON else 0
+	assert_eq(wins, 8, "exactly the Phase 4 eight")
+	assert_eq(_lost_seeds(&"army_balanced_no_castle"), ARMY_BALANCED_LOST_SEEDS, "seeds 1 and 9")
+
+
 func test_the_bots_with_walls_pay_for_walls_in_enough_seeds() -> void:
 	## The wall entries are in the orders but sit late (the economy leaves little room), so some
 	## seeds never reach them. A wall counts as economy in the gold ledger, so a seed in which the
 	## bot bought a wall tier spends more on the economy role than the same seed of its twin.
-	## Measured on seeds 1 to 10: balanced buys walls in 6 seeds, army_balanced in 3. The floors
-	## are those counts, so a change that makes the orders skip the walls fails here (review WR-06).
+	## Measured on seeds 1 to 10 (plan 05-11, the Phase 4 orders against the Phase 3 orders, both
+	## under the castle gate): balanced_no_castle buys walls in 1 seed, army_balanced_no_castle in 3.
+	## The floors are those counts, so a change that makes the orders skip the walls fails here
+	## (review WR-06).
 	## No wall segment falls in any of these runs (the per-night walls_broken column is all zero),
 	## so wall damage is pinned by the walls scenarios, not here.
 	for pair: Array in [
-		[&"balanced", &"balanced_no_walls", BALANCED_WALL_SEEDS_MIN],
-		[&"army_balanced", &"army_balanced_no_walls", ARMY_BALANCED_WALL_SEEDS_MIN]
+		[&"balanced_no_castle", &"balanced_no_walls", BALANCED_WALL_SEEDS_MIN],
+		[&"army_balanced_no_castle", &"army_balanced_no_walls", ARMY_BALANCED_WALL_SEEDS_MIN]
 	]:
 		var with_walls: Array = _runs_of(pair[0])
 		var without: Array = _runs_of(pair[1])
@@ -323,6 +402,15 @@ func test_squads_are_worth_their_gold_against_towers() -> void:
 	## D-26 stays pinned where Phase 3 measured it, on the army twin without walls. The ratio with
 	## the wall runs bought (0.888) is reported in 04-BALANCE-REPORT.md; a value under the bar there
 	## would be a finding for the owner, not a retune (plan 04-10).
+	var castle_aware: Dictionary = BalanceReport.summary(_army_report, &"army_balanced")
+	assert_gte(
+		float(castle_aware["squad_value_ratio"]),
+		SQUAD_VALUE_BAR,
+		(
+			"plan 05-11: the castle-aware army bot's squad value ratio %.3f is at least %.2f"
+			% [float(castle_aware["squad_value_ratio"]), SQUAD_VALUE_BAR]
+		)
+	)
 	var summary: Dictionary = BalanceReport.summary(_twin_report, &"army_balanced_no_walls")
 	var ratio: float = float(summary["squad_value_ratio"])
 	assert_gte(

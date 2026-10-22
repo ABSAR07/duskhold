@@ -28,6 +28,8 @@ func _describe(ctx: RunContext, spot_id: StringName, coins_paid: int = 0) -> Dic
 
 func _build(ctx: RunContext, spot_id: StringName, times: int) -> void:
 	for _i: int in range(times):
+		if ctx.commands.validate_build(spot_id) == CommandProcessor.CASTLE_TIER:
+			E2eSupport.raise_castle(ctx, 2)
 		assert_eq(ctx.commands.submit(BuildIntent.new(spot_id)), CommandProcessor.OK, "build ok")
 
 

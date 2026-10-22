@@ -23,6 +23,7 @@ cost = 16
 max_health = 80
 squad_size = 14
 squad_respawn_seconds = 4.0
+requires_castle_tier = 2
 
 [resource]
 script = ExtResource("2_def")

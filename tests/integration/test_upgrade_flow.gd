@@ -23,6 +23,7 @@ func _first_spot_of(ctx: RunContext, building_id: StringName) -> StringName:
 
 func _climb_to_the_top(ctx: RunContext, spot_id: StringName) -> void:
 	var building_def: BuildingDef = ctx.buildings.get_building_def_for_spot(spot_id)
+	E2eSupport.raise_castle(ctx, 2)
 	for tier: int in range(1, building_def.max_tier() + 1):
 		var gold_before: int = ctx.economy.get_gold()
 		watch_signals(ctx.events)

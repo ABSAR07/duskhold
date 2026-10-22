@@ -117,6 +117,30 @@ static func stand_at_spot(test: GutTest, map_root: MapRoot, spot_id: StringName)
 	return await wait_until(test, focused, FOCUS_TIMEOUT_S)
 
 
+## Buys the castle plot's tiers up to `tier` on the context's map, the way the castle gate of
+## BLDG-09 asks: a test that buys a top tier (House III, Tower II, Barracks III, Archery Range III,
+## Wall III) needs castle II first. It grants each upgrade's price, so the gold the test holds is
+## unchanged, and submits one BuildIntent per tier with the first card that tier offers. Does
+## nothing when the map has no castle plot or the castle already stands at `tier`. The run must be
+## in the day phase.
+static func raise_castle(ctx: RunContext, tier: int) -> void:
+	var plot: StringName = &""
+	for spot_id: StringName in ctx.buildings.spot_ids():
+		if ctx.buildings.get_spot(spot_id).is_castle:
+			plot = spot_id
+	if plot == &"":
+		return
+	var def: BuildingDef = ctx.buildings.get_building_def_for_spot(plot)
+	while ctx.buildings.current_tier(plot) < mini(tier, def.max_tier()):
+		var next_tier: BuildingTierDef = def.tier_def(ctx.buildings.current_tier(plot) + 1)
+		var card: StringName = &""
+		if not next_tier.choices.is_empty():
+			card = next_tier.choices[0].id
+		ctx.economy.grant(next_tier.cost)
+		if ctx.commands.submit(BuildIntent.new(plot, card)) != CommandProcessor.OK:
+			return
+
+
 ## Takes the hold controller's clock away from the engine and starts a hold: stops its own
 ## processing, presses the build action, then steps it once by zero so the fresh press starts the
 ## hold in a frame of its own. From here on only `step_hold` moves the hold clock, so every

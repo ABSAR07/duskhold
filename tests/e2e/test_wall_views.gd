@@ -34,6 +34,8 @@ func _fixture_map() -> MapConfig:
 
 func _buy(ctx: RunContext, spot_id: StringName, times: int = 1) -> void:
 	for _i: int in range(times):
+		if ctx.commands.validate_build(spot_id) == CommandProcessor.CASTLE_TIER:
+			E2eSupport.raise_castle(ctx, 2)
 		assert_eq(ctx.commands.submit(BuildIntent.new(spot_id)), CommandProcessor.OK, "bought")
 
 

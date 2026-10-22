@@ -17,7 +17,7 @@ var _report: Dictionary = {}
 
 
 func before_all() -> void:
-	var strategies: Array[StringName] = [&"balanced_castle", &"balanced_no_walls"]
+	var strategies: Array[StringName] = [&"balanced", &"balanced_no_castle"]
 	var seeds: Array[int] = [1, 2]
 	_report = BalanceReport.run(strategies, seeds)
 
@@ -41,7 +41,7 @@ func _tier_cost(ctx: RunContext, spot_id: StringName, tier: int) -> int:
 
 
 func test_a_castle_aware_run_reports_a_castle_tier_between_one_and_four() -> void:
-	var runs: Array = _runs_of(&"balanced_castle")
+	var runs: Array = _runs_of(&"balanced")
 	assert_eq(runs.size(), 2, "two seeds")
 	for entry: Dictionary in runs:
 		assert_between(int(entry["castle_tier_reached"]), 1, 4, "seed %d" % entry["seed"])
@@ -51,9 +51,9 @@ func test_a_castle_aware_run_reports_a_castle_tier_between_one_and_four() -> voi
 
 func test_picks_list_the_card_ids_in_pick_order_and_match_the_tier_reached() -> void:
 	var pick_order: Array[String] = []
-	for card: StringName in PlaytestStrategies.make(&"balanced_castle").card_picks:
+	for card: StringName in PlaytestStrategies.make(&"balanced").card_picks:
 		pick_order.append(String(card))
-	for entry: Dictionary in _runs_of(&"balanced_castle"):
+	for entry: Dictionary in _runs_of(&"balanced"):
 		var picks: Array = entry["picks"]
 		var tier: int = int(entry["castle_tier_reached"])
 		assert_eq(picks.size(), tier - 1, "one pick per castle upgrade (seed %d)" % entry["seed"])
@@ -67,7 +67,7 @@ func test_picks_list_the_card_ids_in_pick_order_and_match_the_tier_reached() -> 
 
 func test_castle_gold_spent_equals_the_cost_of_the_tiers_bought() -> void:
 	var ctx: RunContext = _rich_context()
-	for entry: Dictionary in _runs_of(&"balanced_castle"):
+	for entry: Dictionary in _runs_of(&"balanced"):
 		var expected: int = 0
 		for tier: int in range(2, int(entry["castle_tier_reached"]) + 1):
 			expected += _tier_cost(ctx, CASTLE, tier)
@@ -75,7 +75,7 @@ func test_castle_gold_spent_equals_the_cost_of_the_tiers_bought() -> void:
 
 
 func test_a_bot_that_never_buys_the_castle_reports_tier_one_and_no_picks() -> void:
-	for entry: Dictionary in _runs_of(&"balanced_no_walls"):
+	for entry: Dictionary in _runs_of(&"balanced_no_castle"):
 		assert_eq(entry["castle_tier_reached"], 1, "seed %d stays at tier I" % entry["seed"])
 		assert_eq((entry["picks"] as Array).size(), 0, "no card was picked")
 		assert_eq((entry["castle_days"] as Array).size(), 0, "no castle upgrade day")
@@ -84,10 +84,10 @@ func test_a_bot_that_never_buys_the_castle_reports_tier_one_and_no_picks() -> vo
 
 
 func test_the_summary_carries_the_castle_columns() -> void:
-	var castle: Dictionary = BalanceReport.summary(_report, &"balanced_castle")
+	var castle: Dictionary = BalanceReport.summary(_report, &"balanced")
 	assert_between(float(castle["mean_castle_tier_reached"]), 1.0, 4.0, "mean tier")
 	assert_gte(int(castle["earliest_castle_day"]), 0, "0 when never upgraded")
-	var twin: Dictionary = BalanceReport.summary(_report, &"balanced_no_walls")
+	var twin: Dictionary = BalanceReport.summary(_report, &"balanced_no_castle")
 	assert_eq(twin["mean_castle_tier_reached"], 1.0, "the twin never upgrades")
 	assert_eq(twin["earliest_castle_day"], 0, "so it has no first day")
 	assert_eq(twin["mean_castle_gold_spent"], 0.0, "and no castle gold")
@@ -101,8 +101,8 @@ func test_the_markdown_has_a_castle_and_shrine_table_with_a_row_per_strategy() -
 	for line: String in text.split("\n"):
 		if line.begins_with("## "):
 			inside = line == "## Castle and Shrine"
-		var is_row: bool = line.begins_with("| balanced_castle |")
-		is_row = is_row or line.begins_with("| balanced_no_walls |")
+		var is_row: bool = line.begins_with("| balanced |")
+		is_row = is_row or line.begins_with("| balanced_no_castle |")
 		if inside and is_row:
 			rows += 1
 			assert_eq(line.count("|"), 7, "six cells")
@@ -141,7 +141,7 @@ func _run_once() -> Dictionary:
 		load(MAP_PATH),
 		load(TUNING_PATH),
 		1,
-		PlaytestStrategies.make(&"balanced_castle"),
+		PlaytestStrategies.make(&"balanced"),
 		40000,
 		0,
 		load(KING_PATH)

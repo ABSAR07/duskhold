@@ -3,9 +3,11 @@ extends GutTest
 ## upgrade tier (II, III, IV), each a run-wide passive made only of stat modifiers on systems that
 ## exist by Phase 5. The set and its numbers are Claude's draft under D-02 and the owner judges
 ## them at the end-of-phase check; a deliberate retune edits this table in the same commit, as the
-## military data contract does. Three draft names were replaced under the CLAUDE.md IP rule (no
-## Thronefall names): Assassin's Training is Headsman's Edge, Rallying Banner is War Horns and Magic
-## Armor is Warded Mail (the king takes a quarter less damage through king.damage_taken x0.75).
+## military data contract does. Plan 05-11 measured the cards with the bots and fitted none of them
+## (the order lever of the D-15 ladder met the bar), so the table is still the draft.
+## Three draft names were replaced under the CLAUDE.md IP rule (no Thronefall names):
+## Assassin's Training is Headsman's Edge, Rallying Banner is War Horns and Magic Armor is
+## Warded Mail (the king takes a quarter less damage through king.damage_taken x0.75).
 
 const CASTLE_PATH := "res://data/buildings/castle_center.tres"
 const ABILITY_DIR := "res://data/abilities/"

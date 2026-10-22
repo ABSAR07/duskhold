@@ -5,7 +5,9 @@ extends GutTest
 ## the floor: each paying dawn pays 1 less, down to a floor of 1, never 0. The Mine's cost 4, first
 ## payout 3 and health 20, the Mill's, the Field's, the Harbor's and the Shrine's numbers are the
 ## planner's starting numbers; plan 05-11 refits them with the bots, and does it by
-## editing this file in the same commit (a deliberate retune, never a silent one). The .tres
+## editing this file in the same commit (a deliberate retune, never a silent one). Plan 05-11
+## measured them (05-BALANCE-REPORT.md) and the order lever of the D-15 ladder met the bar, so it
+## fitted none of them: every number below is still the planner's starting number. The .tres
 ## files store IncomeCurve as its integer, so the enum order is pinned too.
 
 const MINE_PATH := "res://data/buildings/gold_mine.tres"

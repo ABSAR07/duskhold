@@ -20,6 +20,7 @@ attack_damage = 6
 max_health = 70
 attack_interval = 0.7
 projectile_speed = 20.0
+requires_castle_tier = 2
 
 [resource]
 script = ExtResource("2_def")

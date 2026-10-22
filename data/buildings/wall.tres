@@ -17,6 +17,7 @@ max_health = 60
 script = ExtResource("1_tier")
 cost = 6
 max_health = 90
+requires_castle_tier = 2
 
 [resource]
 script = ExtResource("2_def")

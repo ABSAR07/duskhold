@@ -12,12 +12,14 @@ const EPSILON: float = 0.0001
 const BALANCED_FAMILY: Array[StringName] = [
 	&"balanced",
 	&"army_balanced",
+	&"balanced_no_castle",
+	&"army_balanced_no_castle",
 	&"balanced_no_walls",
 	&"army_balanced_no_walls",
-	&"balanced_castle",
-	&"army_castle",
 ]
-const ARMY_FAMILY: Array[StringName] = [&"army_balanced", &"army_balanced_no_walls", &"army_castle"]
+const ARMY_FAMILY: Array[StringName] = [
+	&"army_balanced", &"army_balanced_no_castle", &"army_balanced_no_walls"
+]
 const WALL_PLOTS: Array[StringName] = [&"wall_west", &"wall_east", &"wall_north", &"wall_ring"]
 
 
@@ -41,10 +43,10 @@ func test_the_ten_named_strategies_are_listed() -> void:
 		&"towers_first",
 		&"balanced",
 		&"army_balanced",
+		&"balanced_no_castle",
+		&"army_balanced_no_castle",
 		&"balanced_no_walls",
 		&"army_balanced_no_walls",
-		&"balanced_castle",
-		&"army_castle",
 	]
 	assert_eq(PlaytestStrategies.NAMES, expected, "the names the CLI may select")
 
@@ -245,9 +247,11 @@ func test_the_no_walls_twins_keep_the_phase_three_orders_and_buy_no_wall() -> vo
 func test_balanced_and_army_balanced_buy_the_four_wall_runs_later_than_their_towers() -> void:
 	## D-15 / plan 04-10: the road runs are bought and upgraded once each, the ring once after the
 	## last first-tier House, every upgrade after the last tower upgrade; nothing else differs.
-	for name: StringName in [&"balanced", &"army_balanced"]:
+	for name: StringName in [&"balanced_no_castle", &"army_balanced_no_castle"]:
 		var order: Array[StringName] = PlaytestStrategies.make(name).build_order
-		var twin: PlaytestBot = PlaytestStrategies.make(StringName("%s_no_walls" % name))
+		var twin: PlaytestBot = PlaytestStrategies.make(
+			StringName(String(name).replace("_no_castle", "_no_walls"))
+		)
 		assert_eq(_without_walls(order), twin.build_order, "%s: only walls differ" % name)
 		var last_tower: int = maxi(
 			order.rfind(&"tower_1"), maxi(order.rfind(&"tower_2"), order.rfind(&"tower_3"))

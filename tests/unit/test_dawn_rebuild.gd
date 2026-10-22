@@ -81,6 +81,8 @@ func _watched(ctx: RunContext) -> RunContext:
 
 func _build(ctx: RunContext, spot_id: StringName, times: int = 1) -> void:
 	for step: int in range(times):
+		if ctx.commands.validate_build(spot_id) == CommandProcessor.CASTLE_TIER:
+			E2eSupport.raise_castle(ctx, 2)
 		assert_eq(
 			ctx.commands.submit(BuildIntent.new(spot_id)),
 			CommandProcessor.OK,

@@ -14,10 +14,10 @@ const ECONOMY_BUILDINGS: Array[StringName] = [
 const FIELDS: Array[StringName] = [&"field_1", &"field_2", &"field_3"]
 const SHRINES: Array[StringName] = [&"shrine_west", &"shrine_east"]
 const EXPECTED_PICKS: Dictionary = {
-	&"balanced_castle": [&"masons", &"engineers", &"golden_age"],
-	&"army_castle": [&"commander", &"war_horns", &"iron_discipline"],
+	&"balanced": [&"masons", &"engineers", &"golden_age"],
+	&"army_balanced": [&"commander", &"war_horns", &"iron_discipline"],
 }
-const CASTLE_STRATEGIES: Array[StringName] = [&"balanced_castle", &"army_castle"]
+const CASTLE_STRATEGIES: Array[StringName] = [&"balanced", &"army_balanced"]
 
 
 func _building_of(map: MapConfig, spot_id: StringName) -> StringName:
@@ -102,11 +102,11 @@ func test_the_castle_comes_before_the_first_tier_that_needs_it() -> void:
 
 
 func test_the_castle_bots_keep_the_family_settings_of_their_phase_four_twins() -> void:
-	var balanced: PlaytestBot = PlaytestStrategies.make(&"balanced_castle")
-	var army: PlaytestBot = PlaytestStrategies.make(&"army_castle")
-	assert_true(balanced.prefer_telegraphed_towers, "balanced_castle follows the telegraph")
+	var balanced: PlaytestBot = PlaytestStrategies.make(&"balanced")
+	var army: PlaytestBot = PlaytestStrategies.make(&"army_balanced")
+	assert_true(balanced.prefer_telegraphed_towers, "balanced follows the telegraph")
 	assert_eq(balanced.night_orders.size(), 0, "and gives no squad orders")
-	assert_eq(army.night_orders.size(), 2, "army_castle gives its two night orders")
+	assert_eq(army.night_orders.size(), 2, "army_balanced gives its two night orders")
 	assert_eq(army.slam_min_enemies, 3, "and slams the same way")
 	assert_eq(army.king_mode, PlaytestBot.KING_DEFEND_NEAREST_THREAT, "the king defends")
 
@@ -122,3 +122,18 @@ func test_the_telegraph_never_reorders_the_castle_or_a_shrine_among_the_tower_pl
 	assert_true(bot._is_tower_plot(ctx, &"tower_1"), "a Tower plot still is")
 	assert_false(bot._is_tower_plot(ctx, &"house_1"), "a House plot is not")
 	assert_false(bot._is_tower_plot(ctx, &"no_such_plot"), "an unknown plot is not")
+
+
+func test_the_no_castle_twins_keep_the_phase_four_orders_and_buy_nothing_new() -> void:
+	## balanced_no_castle and army_balanced_no_castle are the Phase 4 orders: the four wall runs, no
+	## castle plot, no card and none of the new buildings, so they measure what the gate costs.
+	var new_plots: Array[StringName] = [
+		CASTLE, &"gold_mine_1", &"mill_1", &"field_1", &"harbor_1", &"shrine_west", &"shrine_east"
+	]
+	for strategy: StringName in [&"balanced_no_castle", &"army_balanced_no_castle"]:
+		var bot: PlaytestBot = PlaytestStrategies.make(strategy)
+		assert_gt(bot.build_order.size(), 0, "%s has an order" % strategy)
+		assert_eq(bot.card_picks.size(), 0, "%s picks no card" % strategy)
+		for plot: StringName in new_plots:
+			assert_false(bot.build_order.has(plot), "%s never buys %s" % [strategy, plot])
+		assert_eq(bot.build_order.count(&"wall_west"), 2, "%s keeps its wall runs" % strategy)

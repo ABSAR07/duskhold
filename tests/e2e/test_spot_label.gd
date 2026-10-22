@@ -171,6 +171,7 @@ func test_a_max_tier_spot_says_max_tier_and_shows_no_coins() -> void:
 	var map_root: MapRoot = await E2eSupport.spawn_map(self, _rich_map())
 	var ctx: RunContext = map_root.get_context()
 	var house: BuildingDef = ctx.buildings.get_building_def_for_spot(HOUSE_SPOT)
+	E2eSupport.raise_castle(ctx, 2)
 	for _tier: int in range(house.max_tier()):
 		ctx.commands.submit(BuildIntent.new(HOUSE_SPOT))
 	var label: Node3D = _label(map_root)

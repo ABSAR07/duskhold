@@ -58,6 +58,7 @@ func test_a_max_tier_building_is_denied_with_max_tier() -> void:
 	var ctx: RunContext = map_root.get_context()
 	var hold: BuildHoldController = map_root.get_build_hold()
 	var building_def: BuildingDef = ctx.buildings.get_building_def_for_spot(MAX_SPOT)
+	E2eSupport.raise_castle(ctx, 2)
 	for _tier: int in range(building_def.max_tier()):
 		assert_eq(ctx.commands.submit(BuildIntent.new(MAX_SPOT)), CommandProcessor.OK, "climb")
 	assert_eq(ctx.buildings.current_tier(MAX_SPOT), building_def.max_tier(), "at the top")

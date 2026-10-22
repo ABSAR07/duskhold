@@ -11,31 +11,29 @@ extends RefCounted
 ##                     roads, so it must lose around the middle nights (D-10).
 ##   houses_first    - three Houses, then the towers, then upgrades, then the last Houses.
 ##   towers_first    - the towers first, then Houses, then upgrades.
-##   balanced        - alternates tower and House, towers on the roads the coming night uses first,
-##                     then upgrades. Since plan 04-10 (D-15) it also buys the four wall runs: the
-##                     road runs right after the first tower upgrade, the ring after the last
-##                     first-tier House and one upgrade of each road run after the last tower
-##                     upgrade. Every other entry keeps its relative order.
-##   army_balanced   - the balanced order with the Barracks (barracks_1) and the Archery Range
-##                     (archery_1) and their upgrades woven in: the Barracks within the first three
-##                     entries, the Range within the first six. At every night start the footmen
-##                     follow the king and the archers hold their post; the king slams when at
-##                     least three enemies are within the slam's radius (plan 03-11, D-08). It buys
-##                     the same four wall runs since plan 04-10, the road runs right after the
-##                     first Archery Range (the Range stays within the first six non-wall entries).
+##   balanced        - the order for the day of Phase 5 (plan 05-11): alternates tower and House as
+##                     before, buys the Fishing Harbor right after the first tower, the castle
+##                     (castle_plot, three upgrades with one deterministic card pick each) right
+##                     after the second, then Tower II, the Gold Mine, the Mill with its Fields, the
+##                     four wall runs and the two Shrines. A locked entry (a top tier before castle
+##                     II, a Field before the Mill) is deferred by the bot, never waited for
+##                     (Pitfall 1). full_idle plays this bot.
+##   army_balanced   - the army order for the same day: the Barracks within the first three
+##                     entries, the Range within the first six, then the Harbor, the Mine, the
+##                     castle with its picks and the rest of the Phase 4 army order (walls, the
+##                     Mill and its Fields, the Shrines). The king slams when at least three
+##                     enemies are within the slam's radius (plan 03-11, D-08); at every night
+##                     start the footmen follow the king and the archers hold their post.
+##   balanced_no_castle, army_balanced_no_castle
+##                   - the Phase 4 orders of balanced and army_balanced, unchanged (plan 05-11
+##                     renamed them): the four wall runs, no castle and none of the new buildings.
+##                     With the castle gate on the shipped map these bots never buy a top tier, so
+##                     they measure what the gate costs a bot that ignores the castle.
 ##   balanced_no_walls, army_balanced_no_walls
 ##                   - the Phase 3 orders of balanced and army_balanced, unchanged: the same builds,
-##                     king, squad and slam settings and no wall. They keep the Phase 3 results
-##                     and measure what the walls change (plan 04-10, D-15).
-##   balanced_castle, army_castle
-##                   - the balanced and army_balanced orders for the day of Phase 5 (plan 05-11):
-##                     the castle plot (castle_plot, three upgrades, one deterministic card pick
-##                     each) bought after the opening economy and before the first tier that needs
-##                     it, and the four new economic buildings (gold_mine_1, mill_1 with its Fields,
-##                     harbor_1, shrine_west and shrine_east). A locked entry is deferred by the
-##                     bot, never waited for (Pitfall 1). Task 2 of the plan renames them balanced
-##                     and army_balanced and the Phase 4 orders balanced_no_castle and
-##                     army_balanced_no_castle.
+##                     king, squad and slam settings and no wall. They measured what the walls
+##                     change (plan 04-10, D-15) and now also keep the gate's cost on the Phase 3
+##                     orders visible.
 
 const NAMES: Array[StringName] = [
 	&"no_build",
@@ -44,10 +42,10 @@ const NAMES: Array[StringName] = [
 	&"towers_first",
 	&"balanced",
 	&"army_balanced",
+	&"balanced_no_castle",
+	&"army_balanced_no_castle",
 	&"balanced_no_walls",
 	&"army_balanced_no_walls",
-	&"balanced_castle",
-	&"army_castle",
 ]
 ## The king slams when this many enemies stand inside the slam's radius.
 const _ARMY_SLAM_MIN_ENEMIES: int = 3
@@ -214,22 +212,24 @@ const _ARMY_BALANCED: Array[StringName] = [
 	&"wall_east",
 	&"wall_north",
 ]
-## The balanced order with the castle and the four economic buildings (plan 05-11). The Phase 4
-## entries keep their relative order; the Harbor and the Mine follow the first three towers (the
-## opening is the Phase 4 opening), the castle comes before the first tier that needs it (Tower II,
-## the top tier, needs castle II), the Mill and its Fields follow the road walls, the Shrines and
-## the castle's later tiers sit last. The entries past what the bot can pay for are never reached.
+## The balanced order for the day of Phase 5 (plan 05-11, see the search log in
+## 05-BALANCE-REPORT.md). The Phase 4 entries keep their relative order. The Harbor follows the
+## first tower (a Harbor pays a gold a boat from its first dawn, the best price per gold on the
+## map), the castle follows the second tower and comes before Tower II, the one top tier this order
+## buys (it needs castle II), and the Mine, the Mill with its Fields, the road walls, the Shrines
+## and the castle's later tiers follow. The entries past what the bot can pay for are never
+## reached.
 const _BALANCED_CASTLE: Array[StringName] = [
 	&"house_1",
 	&"house_2",
 	&"house_3",
 	&"tower_1",
-	&"tower_2",
-	&"tower_3",
 	&"harbor_1",
-	&"gold_mine_1",
+	&"tower_2",
 	&"castle_plot",
+	&"tower_3",
 	&"tower_1",
+	&"gold_mine_1",
 	&"wall_west",
 	&"wall_east",
 	&"wall_north",
@@ -255,7 +255,7 @@ const _BALANCED_CASTLE: Array[StringName] = [
 	&"shrine_east",
 	&"castle_plot",
 ]
-## The army order with the castle and the four economic buildings (plan 05-11): the Barracks within
+## The army order for the day of Phase 5 (plan 05-11): the Barracks within
 ## the first three non-wall entries and the Range within the first six, as before.
 const _ARMY_CASTLE: Array[StringName] = [
 	&"house_1",
@@ -300,7 +300,7 @@ const _ARMY_CASTLE: Array[StringName] = [
 	&"wall_north",
 ]
 ## The cards each castle-aware bot takes, one per castle tier (tiers II, III, IV), in pick order.
-## balanced_castle leans on buildings, towers and gold; army_castle on the king and the squads.
+## balanced leans on buildings, towers and gold; army_balanced on the king and the squads.
 const _BALANCED_CASTLE_PICKS: Array[StringName] = [&"masons", &"engineers", &"golden_age"]
 const _ARMY_CASTLE_PICKS: Array[StringName] = [&"commander", &"war_horns", &"iron_discipline"]
 
@@ -321,7 +321,7 @@ static func make(name: StringName) -> PlaytestBot:
 		bot.build_order = _TOWERS_FIRST.duplicate()
 	elif _is_army(name):
 		bot.build_order = _army_order(name).duplicate()
-		if name == &"army_castle":
+		if name == &"army_balanced":
 			bot.card_picks = _ARMY_CASTLE_PICKS.duplicate()
 		bot.prefer_telegraphed_towers = true
 		bot.night_orders = [
@@ -331,23 +331,27 @@ static func make(name: StringName) -> PlaytestBot:
 		bot.slam_min_enemies = _ARMY_SLAM_MIN_ENEMIES
 	else:
 		bot.build_order = _balanced_order(name).duplicate()
-		if name == &"balanced_castle":
+		if name == &"balanced":
 			bot.card_picks = _BALANCED_CASTLE_PICKS.duplicate()
 		bot.prefer_telegraphed_towers = true
 	return bot
 
 
 static func _is_army(name: StringName) -> bool:
-	return name == &"army_balanced" or name == &"army_balanced_no_walls" or name == &"army_castle"
+	return (
+		name == &"army_balanced"
+		or name == &"army_balanced_no_castle"
+		or name == &"army_balanced_no_walls"
+	)
 
 
 static func _army_order(name: StringName) -> Array[StringName]:
-	if name == &"army_castle":
+	if name == &"army_balanced":
 		return _ARMY_CASTLE
-	return _ARMY_BALANCED if name == &"army_balanced" else _ARMY_BALANCED_NO_WALLS
+	return _ARMY_BALANCED if name == &"army_balanced_no_castle" else _ARMY_BALANCED_NO_WALLS
 
 
 static func _balanced_order(name: StringName) -> Array[StringName]:
-	if name == &"balanced_castle":
+	if name == &"balanced":
 		return _BALANCED_CASTLE
-	return _BALANCED if name == &"balanced" else _BALANCED_NO_WALLS
+	return _BALANCED if name == &"balanced_no_castle" else _BALANCED_NO_WALLS

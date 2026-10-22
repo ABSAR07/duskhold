@@ -5,9 +5,9 @@
 #   e.g. bash tools/playtest.sh                                   (all strategies, seeds 1..10)
 #        bash tools/playtest.sh --strategies=no_build --seeds=2
 # Strategies: no_build, greedy_economy, houses_first, towers_first, balanced, army_balanced (the
-# last two buy the four wall runs), balanced_no_walls, army_balanced_no_walls (the Phase 3 orders),
-# balanced_castle, army_castle (plan 05-11: the castle with a card pick per tier and the four new
-# economic buildings; Task 2 of the plan renames them balanced and army_balanced).
+# castle-aware orders of plan 05-11: the four wall runs, the castle with one card pick per tier and
+# the four new economic buildings), balanced_no_castle, army_balanced_no_castle (the Phase 4 orders,
+# which never buy the castle) and balanced_no_walls, army_balanced_no_walls (the Phase 3 orders).
 # Environment: PLAYTEST_TIMEOUT_S (default 1800) bounds the Godot run.
 # Exit status: 0 pass; 1 a run timed out, no PLAYTEST_OK sentinel or a script error in the output;
 # 3 Godot is not installed; 64 usage error; 124 the timeout fired.
