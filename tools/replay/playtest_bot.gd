@@ -37,6 +37,12 @@ var night_orders: Array[Dictionary] = []
 ## The king slams when the slam is ready and at least this many living enemies are within its
 ## radius. 0 never slams.
 var slam_min_enemies: int = 0
+## The cards the bot takes at a branching tier (the castle's tier II onward), in the order it
+## prefers them. At a tier that asks for a card the bot passes the first listed card that tier
+## offers and removes it from the list, so a card is never listed twice; a listed card the tier does
+## not offer is left for a later tier. With no acceptable card the entry is deferred like a locked
+## one (_pending), never submitted without a pick, so the bot never meets choice_required.
+var card_picks: Array[StringName] = []
 
 var _cursor: int = 0
 ## Entries deferred because a requirement locked them (castle_tier, needs_spot), in the order they
@@ -112,20 +118,24 @@ func _slam(ctx: RunContext) -> void:
 
 ## Builds the next entries of build_order while they are accepted. An entry that can never be
 ## built (max tier, unknown spot) is skipped; an unaffordable one waits for a later think. An entry
-## locked behind the castle or another plot (castle_tier, needs_spot) is deferred, not waited for:
-## it moves to the pending list and the later entries are still bought, so a gate never stalls the
-## whole order (Pitfall 1). Every think retries the pending entries first, in their original order.
+## locked behind the castle or another plot (castle_tier, needs_spot), or asking for a card none of
+## card_picks offers (choice_required), is deferred, not waited for: it moves to the pending list
+## and the later entries are still bought, so a gate never stalls the whole order (Pitfall 1).
+## Every think retries the pending entries first, in their original order.
 func _build(ctx: RunContext) -> void:
 	_retry_pending(ctx)
 	while _cursor < build_order.size():
 		var spot_id: StringName = build_order[_cursor]
-		var reason: StringName = ctx.commands.validate_build(spot_id)
+		var reason: StringName = _try_buy(ctx, spot_id)
 		if reason == CommandProcessor.OK:
-			ctx.commands.submit(BuildIntent.new(spot_id))
 			_cursor += 1
 		elif reason == CommandProcessor.MAX_TIER or reason == CommandProcessor.UNKNOWN_SPOT:
 			_cursor += 1
-		elif reason == CommandProcessor.CASTLE_TIER or reason == CommandProcessor.NEEDS_SPOT:
+		elif (
+			reason == CommandProcessor.CASTLE_TIER
+			or reason == CommandProcessor.NEEDS_SPOT
+			or reason == CommandProcessor.CHOICE_REQUIRED
+		):
 			_pending.append(spot_id)
 			_cursor += 1
 		else:
@@ -134,16 +144,36 @@ func _build(ctx: RunContext) -> void:
 
 ## Retries the deferred entries in the order they were deferred: one that is accepted now is
 ## submitted and dropped, one that can never be built (max tier, unknown spot) is dropped, and one
-## that is still locked or unaffordable stays for the next think.
+## that is still locked, unaffordable or waiting for an acceptable card stays for the next think.
 func _retry_pending(ctx: RunContext) -> void:
 	var still_pending: Array[StringName] = []
 	for spot_id: StringName in _pending:
-		var reason: StringName = ctx.commands.validate_build(spot_id)
-		if reason == CommandProcessor.OK:
-			ctx.commands.submit(BuildIntent.new(spot_id))
-		elif reason != CommandProcessor.MAX_TIER and reason != CommandProcessor.UNKNOWN_SPOT:
+		var reason: StringName = _try_buy(ctx, spot_id)
+		if (
+			reason != CommandProcessor.OK
+			and reason != CommandProcessor.MAX_TIER
+			and reason != CommandProcessor.UNKNOWN_SPOT
+		):
 			still_pending.append(spot_id)
 	_pending = still_pending
+
+
+## Buys the next tier of the spot when the gate accepts it and returns OK; otherwise returns the
+## gate's reason and submits nothing. A tier that asks for a card (CHOICE_REQUIRED) is bought with
+## the first card of card_picks it offers, which is then removed from the list; with none offered
+## the reason stays CHOICE_REQUIRED.
+func _try_buy(ctx: RunContext, spot_id: StringName) -> StringName:
+	var reason: StringName = ctx.commands.validate_build(spot_id)
+	if reason == CommandProcessor.OK:
+		ctx.commands.submit(BuildIntent.new(spot_id))
+	elif reason == CommandProcessor.CHOICE_REQUIRED:
+		for index: int in range(card_picks.size()):
+			var pick: StringName = card_picks[index]
+			if ctx.commands.validate_build(spot_id, pick) == CommandProcessor.OK:
+				ctx.commands.submit(BuildIntent.new(spot_id, pick))
+				card_picks.remove_at(index)
+				return CommandProcessor.OK
+	return reason
 
 
 ## Once per day: among the not yet built entries, the first entry of each unbuilt tower plot keeps

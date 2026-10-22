@@ -1,0 +1,336 @@
+[gd_resource type="Resource" script_class="MapConfig" load_steps=49 format=3]
+
+[ext_resource type="Script" path="res://simulation/defs/map_config.gd" id="1_map"]
+[ext_resource type="Script" path="res://simulation/defs/build_spot_def.gd" id="2_spot"]
+[ext_resource type="Script" path="res://simulation/defs/building_def.gd" id="3_bdef"]
+[ext_resource type="Script" path="res://simulation/defs/building_tier_def.gd" id="4_tier"]
+[ext_resource type="Script" path="res://simulation/defs/spawn_point_def.gd" id="5_spawn"]
+[ext_resource type="Script" path="res://simulation/defs/spawn_group_def.gd" id="6_group"]
+[ext_resource type="Script" path="res://simulation/defs/night_def.gd" id="7_night"]
+[ext_resource type="Script" path="res://simulation/defs/enemy_def.gd" id="8_enemy"]
+[ext_resource type="Script" path="res://simulation/defs/choice_def.gd" id="9_choice"]
+[ext_resource type="Script" path="res://simulation/stats/stat_modifier_def.gd" id="10_mod"]
+
+[sub_resource type="Resource" id="Resource_grunt"]
+script = ExtResource("8_enemy")
+id = &"grunt"
+display_name = "Grunt"
+max_health = 6
+move_speed = 3.2
+radius = 0.5
+attack_range = 1.2
+attack_damage = 2
+attack_interval = 1.0
+aggro_range = 6.0
+leash_range = 10.0
+retarget_interval_seconds = 0.5
+projectile_speed = 0.0
+
+[sub_resource type="Resource" id="Resource_mod_royal_health"]
+script = ExtResource("10_mod")
+stat = &"king.max_health"
+bucket = 1
+value = 25
+
+[sub_resource type="Resource" id="Resource_mod_royal_damage"]
+script = ExtResource("10_mod")
+stat = &"king.attack_damage"
+value = 1
+
+[sub_resource type="Resource" id="Resource_card_royal_training"]
+script = ExtResource("9_choice")
+id = &"royal_training"
+display_name = "Royal Training"
+flavour = "The king drills until the blade feels light."
+modifiers = Array[ExtResource("10_mod")]([SubResource("Resource_mod_royal_health"), SubResource("Resource_mod_royal_damage")])
+
+[sub_resource type="Resource" id="Resource_mod_commander_health"]
+script = ExtResource("10_mod")
+stat = &"unit.max_health"
+bucket = 1
+value = 25
+
+[sub_resource type="Resource" id="Resource_mod_commander_damage"]
+script = ExtResource("10_mod")
+stat = &"unit.attack_damage"
+bucket = 1
+value = 25
+
+[sub_resource type="Resource" id="Resource_card_commander"]
+script = ExtResource("9_choice")
+id = &"commander"
+display_name = "Commander"
+flavour = "A steady voice carries the whole line."
+modifiers = Array[ExtResource("10_mod")]([SubResource("Resource_mod_commander_health"), SubResource("Resource_mod_commander_damage")])
+
+[sub_resource type="Resource" id="Resource_mod_masons_buildings"]
+script = ExtResource("10_mod")
+stat = &"building.max_health"
+bucket = 1
+value = 30
+
+[sub_resource type="Resource" id="Resource_mod_masons_walls"]
+script = ExtResource("10_mod")
+stat = &"wall.max_health"
+bucket = 1
+value = 30
+
+[sub_resource type="Resource" id="Resource_card_masons"]
+script = ExtResource("9_choice")
+id = &"masons"
+display_name = "Masons"
+flavour = "Stone laid true holds against the storm."
+modifiers = Array[ExtResource("10_mod")]([SubResource("Resource_mod_masons_buildings"), SubResource("Resource_mod_masons_walls")])
+
+[sub_resource type="Resource" id="Resource_mod_prosperity_income"]
+script = ExtResource("10_mod")
+stat = &"castle.base_income"
+value = 1
+
+[sub_resource type="Resource" id="Resource_card_prosperity"]
+script = ExtResource("9_choice")
+id = &"prosperity"
+display_name = "Prosperity"
+flavour = "Coin follows the banner home."
+modifiers = Array[ExtResource("10_mod")]([SubResource("Resource_mod_prosperity_income")])
+
+[sub_resource type="Resource" id="Resource_castle_tier1"]
+script = ExtResource("4_tier")
+cost = 1
+
+[sub_resource type="Resource" id="Resource_castle_tier2"]
+script = ExtResource("4_tier")
+cost = 6
+dawn_income = 2
+attack_range = 22.0
+attack_damage = 3
+max_health = 100
+attack_interval = 1.5
+projectile_speed = 27.0
+choices = Array[ExtResource("9_choice")]([SubResource("Resource_card_royal_training"), SubResource("Resource_card_commander"), SubResource("Resource_card_masons"), SubResource("Resource_card_prosperity")])
+
+[sub_resource type="Resource" id="Resource_castle"]
+script = ExtResource("3_bdef")
+id = &"castle_center"
+display_name = "Castle"
+body_radius = 3.5
+tiers = Array[ExtResource("4_tier")]([SubResource("Resource_castle_tier1"), SubResource("Resource_castle_tier2")])
+
+[sub_resource type="Resource" id="Resource_mine_tier1"]
+script = ExtResource("4_tier")
+cost = 4
+dawn_income = 3
+max_health = 20
+income_step = 1
+income_floor = 1
+
+[sub_resource type="Resource" id="Resource_mine"]
+script = ExtResource("3_bdef")
+id = &"gold_mine"
+display_name = "Gold Mine"
+body_radius = 1.5
+income_curve = 1
+tiers = Array[ExtResource("4_tier")]([SubResource("Resource_mine_tier1")])
+
+[sub_resource type="Resource" id="Resource_mill_tier1"]
+script = ExtResource("4_tier")
+cost = 3
+dawn_income = 1
+max_health = 15
+
+[sub_resource type="Resource" id="Resource_mill"]
+script = ExtResource("3_bdef")
+id = &"mill"
+display_name = "Mill"
+body_radius = 1.5
+tiers = Array[ExtResource("4_tier")]([SubResource("Resource_mill_tier1")])
+
+[sub_resource type="Resource" id="Resource_field_tier1"]
+script = ExtResource("4_tier")
+cost = 2
+dawn_income = 1
+max_health = 8
+
+[sub_resource type="Resource" id="Resource_field"]
+script = ExtResource("3_bdef")
+id = &"field"
+display_name = "Field"
+body_radius = 1.2
+tiers = Array[ExtResource("4_tier")]([SubResource("Resource_field_tier1")])
+
+[sub_resource type="Resource" id="Resource_harbor_tier1"]
+script = ExtResource("4_tier")
+cost = 3
+max_health = 18
+boat_cap = 3
+boat_income = 1
+
+[sub_resource type="Resource" id="Resource_harbor"]
+script = ExtResource("3_bdef")
+id = &"fishing_harbor"
+display_name = "Fishing Harbor"
+body_radius = 1.5
+income_curve = 2
+tiers = Array[ExtResource("4_tier")]([SubResource("Resource_harbor_tier1")])
+
+[sub_resource type="Resource" id="Resource_shrine_tier1"]
+script = ExtResource("4_tier")
+cost = 3
+dawn_income = 1
+attack_range = 9.0
+attack_damage = 3
+max_health = 30
+attack_interval = 1.1
+projectile_speed = 20.0
+wake_radius = 18.0
+wake_threshold_hp = 100
+synergy_percent = 20
+
+[sub_resource type="Resource" id="Resource_shrine"]
+script = ExtResource("3_bdef")
+id = &"shrine"
+display_name = "Shrine"
+body_radius = 1.2
+income_curve = 3
+damage_stat = &"shrine.damage"
+range_stat = &"shrine.range"
+tiers = Array[ExtResource("4_tier")]([SubResource("Resource_shrine_tier1")])
+
+[sub_resource type="Resource" id="Resource_tower_tier1"]
+script = ExtResource("4_tier")
+cost = 4
+attack_range = 9.0
+attack_damage = 3
+max_health = 50
+attack_interval = 0.9
+projectile_speed = 18.0
+
+[sub_resource type="Resource" id="Resource_tower"]
+script = ExtResource("3_bdef")
+id = &"tower"
+display_name = "Tower"
+body_radius = 1.0
+tiers = Array[ExtResource("4_tier")]([SubResource("Resource_tower_tier1")])
+
+[sub_resource type="Resource" id="Resource_spot_castle_plot"]
+script = ExtResource("2_spot")
+id = &"castle_plot"
+position = Vector3(0, 0, 5)
+building_id = &"castle_center"
+is_castle = true
+
+[sub_resource type="Resource" id="Resource_spot_gold_mine_1"]
+script = ExtResource("2_spot")
+id = &"gold_mine_1"
+position = Vector3(-17, 0, -6)
+building_id = &"gold_mine"
+
+[sub_resource type="Resource" id="Resource_spot_mill_1"]
+script = ExtResource("2_spot")
+id = &"mill_1"
+position = Vector3(20, 0, 18)
+building_id = &"mill"
+
+[sub_resource type="Resource" id="Resource_spot_field_1"]
+script = ExtResource("2_spot")
+id = &"field_1"
+position = Vector3(24, 0, 20)
+building_id = &"field"
+requires_spot = &"mill_1"
+requires_spot_tier = 1
+
+[sub_resource type="Resource" id="Resource_spot_harbor_1"]
+script = ExtResource("2_spot")
+id = &"harbor_1"
+position = Vector3(0, 0, 22)
+building_id = &"fishing_harbor"
+
+[sub_resource type="Resource" id="Resource_spot_shrine_1"]
+script = ExtResource("2_spot")
+id = &"shrine_1"
+position = Vector3(-14, 0, 8)
+building_id = &"shrine"
+
+[sub_resource type="Resource" id="Resource_spot_tower_1"]
+script = ExtResource("2_spot")
+id = &"tower_1"
+position = Vector3(-12, 0, 4)
+building_id = &"tower"
+
+[sub_resource type="Resource" id="Resource_spot_tower_2"]
+script = ExtResource("2_spot")
+id = &"tower_2"
+position = Vector3(-12, 0, -4)
+building_id = &"tower"
+
+[sub_resource type="Resource" id="Resource_spawn_west"]
+script = ExtResource("5_spawn")
+id = &"west"
+display_name = "West"
+position = Vector3(-40, 0, 0)
+scatter_radius = 1.0
+
+[sub_resource type="Resource" id="Resource_spawn_northwest"]
+script = ExtResource("5_spawn")
+id = &"northwest"
+display_name = "Northwest"
+position = Vector3(-38, 0, 6)
+scatter_radius = 1.0
+
+[sub_resource type="Resource" id="Resource_group_n1"]
+script = ExtResource("6_group")
+spawn_point_id = &"west"
+enemy_id = &"grunt"
+count = 24
+start_delay_seconds = 0.5
+interval_seconds = 0.8
+
+[sub_resource type="Resource" id="Resource_group_n2"]
+script = ExtResource("6_group")
+spawn_point_id = &"northwest"
+enemy_id = &"grunt"
+count = 10
+start_delay_seconds = 0.5
+interval_seconds = 0.8
+
+[sub_resource type="Resource" id="Resource_group_n3"]
+script = ExtResource("6_group")
+spawn_point_id = &"northwest"
+enemy_id = &"grunt"
+count = 10
+start_delay_seconds = 0.5
+interval_seconds = 0.8
+
+[sub_resource type="Resource" id="Resource_night_1"]
+script = ExtResource("7_night")
+groups = Array[ExtResource("6_group")]([SubResource("Resource_group_n1")])
+
+[sub_resource type="Resource" id="Resource_night_2"]
+script = ExtResource("7_night")
+groups = Array[ExtResource("6_group")]([SubResource("Resource_group_n2")])
+
+[sub_resource type="Resource" id="Resource_night_3"]
+script = ExtResource("7_night")
+groups = Array[ExtResource("6_group")]([SubResource("Resource_group_n3")])
+
+[resource]
+script = ExtResource("1_map")
+id = &"fixture_replay_economy"
+display_name = "Fixture Replay Economy"
+is_sandbox = true
+starting_gold = 60
+base_dawn_income = 1
+king_spawn = Vector3(0, 0, 7)
+castle_position = Vector3(0, 0, 0)
+buildings = Array[ExtResource("3_bdef")]([SubResource("Resource_castle"), SubResource("Resource_mine"), SubResource("Resource_mill"), SubResource("Resource_field"), SubResource("Resource_harbor"), SubResource("Resource_shrine"), SubResource("Resource_tower")])
+spots = Array[ExtResource("2_spot")]([SubResource("Resource_spot_castle_plot"), SubResource("Resource_spot_gold_mine_1"), SubResource("Resource_spot_mill_1"), SubResource("Resource_spot_field_1"), SubResource("Resource_spot_harbor_1"), SubResource("Resource_spot_shrine_1"), SubResource("Resource_spot_tower_1"), SubResource("Resource_spot_tower_2")])
+enemies = Array[ExtResource("8_enemy")]([SubResource("Resource_grunt")])
+spawn_points = Array[ExtResource("5_spawn")]([SubResource("Resource_spawn_west"), SubResource("Resource_spawn_northwest")])
+nights = Array[ExtResource("7_night")]([SubResource("Resource_night_1"), SubResource("Resource_night_2"), SubResource("Resource_night_3")])
+castle_max_health = 70
+castle_radius = 3.5
+castle_attack_damage = 2
+castle_attack_range = 22.0
+castle_attack_interval = 1.5
+castle_projectile_speed = 27.0
+ground_half_extent = 90.0

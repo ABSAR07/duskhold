@@ -18,13 +18,22 @@ extends RefCounted
 ##                stragglers go round through the gap, and dawn restores the wall. Its golden
 ##                digest lives in tests/golden/walls.json and, like the smoke and army goldens,
 ##                moves only when the simulation rules change, never when data/ is retuned.
+##   economy    - self-contained fixture data
+##                (tests/fixtures/fixture_map_replay_economy.tres): inline copies of the castle
+##                (tier II with four cards), Gold Mine, Mill, Field, Fishing Harbor, Shrine and
+##                tower as they were when the scenario was pinned, a west road for night 1 and a
+##                north-west road for nights 2 and 3. A scripted bot buys the castle tier II with a
+##                fixed card pick and every new building; night 1's crowd wakes the Shrine and
+##                breaks the Mine, and dawn rebuilds it free. Its golden digest lives in
+##                tests/golden/economy.json and, like the other goldens, moves only when the
+##                simulation rules change, never when data/ is retuned.
 ##   full_idle  - the shipped prototype map, tuning and king played through all eight nights by the
 ##                balanced bot (the name is kept for CI; the king no longer idles, because an idle
 ##                king loses on night 1). No golden, because balance retunes change it. Two runs in
 ##                one process must agree.
 ## tools/ is excluded from the export.
 
-const NAMES: Array[StringName] = [&"smoke", &"full_idle", &"army", &"walls"]
+const NAMES: Array[StringName] = [&"smoke", &"full_idle", &"army", &"walls", &"economy"]
 const GOLDEN_DIR := "res://tests/golden"
 ## The key looked up when the file has no entry for the running platform.
 const DEFAULT_KEY := "default"
@@ -77,6 +86,25 @@ const WALLS_BUILD_ORDER: Array[StringName] = [&"wall_west", &"tower_1"]
 ## The king waits on the castle side of the wall run, out of the crowd's way.
 const WALLS_HOLD_POINT := Vector2(-8.0, 6.0)
 
+const ECONOMY_MAP := "res://tests/fixtures/fixture_map_replay_economy.tres"
+const ECONOMY_MAX_TICKS: int = 9000
+## The castle tier II first (it opens the card pick), then each new building; the Field waits for
+## the Mill's plot and is deferred by the bot until it stands.
+const ECONOMY_BUILD_ORDER: Array[StringName] = [
+	&"castle_plot",
+	&"gold_mine_1",
+	&"mill_1",
+	&"field_1",
+	&"harbor_1",
+	&"shrine_1",
+	&"tower_1",
+	&"tower_2",
+]
+## The card the bot takes at the castle's tier II.
+const ECONOMY_CARD_PICKS: Array[StringName] = [&"masons"]
+## The king waits on the castle's east side, out of the west road's crowd.
+const ECONOMY_HOLD_POINT := Vector2(6.0, 8.0)
+
 const FULL_MAP := "res://data/maps/prototype_map.tres"
 const FULL_KING := "res://data/king/king.tres"
 const FULL_TUNING := "res://data/tuning/loop_tuning.tres"
@@ -103,6 +131,8 @@ static func max_ticks(name: StringName) -> int:
 		return ARMY_MAX_TICKS
 	if name == &"walls":
 		return WALLS_MAX_TICKS
+	if name == &"economy":
+		return ECONOMY_MAX_TICKS
 	return 0
 
 
@@ -118,6 +148,8 @@ static func run(name: StringName, run_seed: int, on_tick: Callable = Callable())
 		return _run_army(run_seed, on_tick)
 	if name == &"walls":
 		return _run_walls(run_seed, on_tick)
+	if name == &"economy":
+		return _run_economy(run_seed, on_tick)
 	return {}
 
 
@@ -174,6 +206,18 @@ static func _run_walls(run_seed: int, on_tick: Callable) -> Dictionary:
 	var tuning: LoopTuning = load(SMOKE_TUNING)
 	var king: KingDef = load(SMOKE_KING)
 	return ReplayDriver.run(map, tuning, run_seed, bot, WALLS_MAX_TICKS, 0, king, on_tick)
+
+
+static func _run_economy(run_seed: int, on_tick: Callable) -> Dictionary:
+	var bot: PlaytestBot = PlaytestBot.new()
+	bot.build_order = ECONOMY_BUILD_ORDER.duplicate()
+	bot.card_picks = ECONOMY_CARD_PICKS.duplicate()
+	bot.king_mode = PlaytestBot.KING_HOLD_POINT
+	bot.hold_point = ECONOMY_HOLD_POINT
+	var map: MapConfig = load(ECONOMY_MAP)
+	var tuning: LoopTuning = load(SMOKE_TUNING)
+	var king: KingDef = load(SMOKE_KING)
+	return ReplayDriver.run(map, tuning, run_seed, bot, ECONOMY_MAX_TICKS, 0, king, on_tick)
 
 
 static func _run_full_idle(run_seed: int, on_tick: Callable) -> Dictionary:
