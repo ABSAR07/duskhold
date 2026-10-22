@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 05
 current_phase_name: Castle Center & Economy Depth
 status: executing
-stopped_at: Completed 05-10-PLAN.md
-last_updated: "2026-10-22T01:21:28.459Z"
+stopped_at: Completed 05-11-PLAN.md
+last_updated: "2026-10-22T08:00:22.095Z"
 last_activity: 2026-10-21
 last_activity_desc: Phase 05 execution started
-state_head: 1ddaf9c05757e19dc61cdf800f1466c0203e4292
+state_head: 9fcb5cc5898db7cee492e5093e6c72788c18c92b
 progress:
   total_phases: 13
   completed_phases: 4
   total_plans: 99
-  completed_plans: 97
+  completed_plans: 98
   percent: 31
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-21)
 ## Current Position
 
 Phase: 05 (Castle Center & Economy Depth) — EXECUTING
-Plan: 11 of 12
+Plan: 12 of 12
 Status: Ready to execute
 Last activity: 2026-10-21 — Phase 05 execution started
 
@@ -156,6 +156,7 @@ Progress: [███░░░░░░░] 31%
 | Phase 05 P08 | 105 min | 2 tasks | 36 files |
 | Phase 05 P09 | 85 min | 2 tasks | 47 files |
 | Phase 05 P10 | 45min | 2 tasks | 13 files |
+| Phase 05 P11 | 3h | 3 tasks | 37 files |
 
 ## Accumulated Context
 
@@ -371,6 +372,8 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-09: the Shrine fixture needed the plot at (-14, 0, 8), a second tower plot and 36 grunts at 0.8 s: at the planned (-16, 0, 6) the grunts destroyed the dormant Shrine before it woke; the shipped plots sit 12.5 m from the roads, so plan 05-11 must check how often a 9 m reach actually fires
 - [Phase 05]: Economy replay golden (D-08) lives on a frozen inline-copy fixture; the Mine falls once via a west road in night 1 and a north-west road carries nights 2 and 3
 - [Phase 05]: Task 2 pins the Mine's next payout through next_payout() and not a paid-dawns count, because mine_paid_dawns stops counting at the floor
+- [Phase 05]: 05-11: the order lever met the bar (balanced 8 of 10, army_balanced 8 of 10 ratio 0.888, castle first bought day 6) so no castle, card, economy or night number was fitted; the gate is the only data change (requires_castle_tier 2 on five last tiers)
+- [Phase 05]: 05-11: the Phase 4 orders became balanced_no_castle (3 of 10 with the gate) and army_balanced_no_castle; balanced and army_balanced are castle-aware; full_idle moved 6911 ticks 4385f569 to 7000 ticks afc11cd0 with all four goldens unmoved
 
 ### Pending Todos
 
@@ -389,7 +392,8 @@ None yet.
 - [Phase 11]: Boss-night difficulty cliffs; tune with seeded simulated playthroughs plus owner playtest
 - [Phase 13]: SmartScreen/AV behavior of unsigned export only known after clean-machine test
 
-- [Phase 4] After gap round 2 (2026-10-20): PLAT-01 is met by measurement (p95 5.37 ms) but three items stay open for the next passes: (1) [done 2026-10-21, see 04-REVIEW-FIX.md: 27 fixed incl. WR-12, WR-13 and IN-17; WR-02, WR-03, IN-02, IN-03, IN-11, IN-12 remain, recorded as skipped in the ledger] 04-REVIEW.md round-2 review leaves 33 findings open, none critical, incl. new WR-12 (the native stamp's source half is taken at install time, not at build start), WR-13 (tools/native_stamp_probe.sh is run by nothing: not CI, test.sh or prepush_check.sh) and IN-17 (tools/_common.sh carries a raw CR byte and raw newlines inside quoted strings at lines 92-94 and 135; git now classifies the file as binary, no eol normalisation; works on both CI platforms) — route: /gsd-code-review 4 --fix --all; (2) REQUIREMENTS.md still lists BLDG-10 and ENMY-04 unchecked after the c962bb7 revert although their evidence is complete (only PLAT-01 was re-marked by 04-28) — phase.complete at the UAT close-out marks them; (3) screenshots/overlay_field_gate.png shows the panel text Phase DAY / Enemies 0 / Drawn 0 while a crowd is drawn (read by the verifier as a capture-harness timing artefact, 0.25 s panel refresh vs fast-forward; not proven) — noted on UAT test 15 for the owner.
+- [Phase 4] After gap round 2 (2026-10-20): PLAT-01 is met by measurement (p95 5.37 ms) but three items stay open for the next passes: (1) [done 2026-10-21, see 04-REVIEW-FIX.md: 27 fixed incl. WR-12, WR-13 and IN-17; WR-02, WR-03, IN-02, IN-03, IN-11, IN-12 remain, recorded as skipped in the ledger] 04-REVIEW.md round-2 review leaves 33 findings open, critical, incl. new WR-12 (the native stamp's source half is taken at install time, not at build start), WR-13 (tools/native_stamp_probe.sh is run by nothing: not CI, test.sh or prepush_check.sh) and IN-17 (tools/_common.sh carries a raw CR byte and raw newlines inside quoted strings at lines 92-94 and 135; git now classifies the file as binary, no eol normalisation; works on both CI platforms) — route: /gsd-code-review 4 --fix --all; (2) REQUIREMENTS.md still lists BLDG-10 and ENMY-04 unchecked after the c962bb7 revert although their evidence is complete (only PLAT-01 was re-marked by 04-28) — phase.complete at the UAT close-out marks them; (3) screenshots/overlay_field_gate.png shows the panel text Phase DAY / Enemies 0 / Drawn 0 while a crowd is drawn (read by the verifier as a capture-harness timing artefact, 0.25 s panel refresh vs fast-forward; not proven) — noted on UAT test 15 for the owner.
+- 05-11: tests/unit/test_choice_validation.gd, tests/integration/test_build_flow.gd and tests/e2e/test_building_models.gd fail because House III and Tower II are gated (outside the declared edit list; gap plan needed); hud_drag_box screenshot fails independently of the gate
 
 ### Quick Tasks Completed
 
@@ -408,6 +412,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-22T01:21:27.495Z
-Stopped at: Completed 05-10-PLAN.md
+Last session: 2026-10-22T08:00:20.511Z
+Stopped at: Completed 05-11-PLAN.md
 Resume file: None
