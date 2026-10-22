@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 05
 current_phase_name: Castle Center & Economy Depth
 status: executing
-stopped_at: Completed 05-08-PLAN.md
-last_updated: "2026-10-21T22:26:07.832Z"
+stopped_at: Completed 05-09-PLAN.md
+last_updated: "2026-10-22T00:10:33.096Z"
 last_activity: 2026-10-21
 last_activity_desc: Phase 05 execution started
-state_head: a59ccb1d58c7344bb0b3ec919335a5b7237a9096
+state_head: 2b04a5e2931f10b130e102fc30558803ec5a5ca1
 progress:
   total_phases: 13
   completed_phases: 4
   total_plans: 99
-  completed_plans: 95
+  completed_plans: 96
   percent: 31
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-21)
 ## Current Position
 
 Phase: 05 (Castle Center & Economy Depth) — EXECUTING
-Plan: 9 of 12
+Plan: 10 of 12
 Status: Ready to execute
 Last activity: 2026-10-21 — Phase 05 execution started
 
@@ -154,6 +154,7 @@ Progress: [███░░░░░░░] 31%
 | Phase 05 P06 | 98 min | 2 tasks | 39 files |
 | Phase 05 P07 | 90 min | 2 tasks | 24 files |
 | Phase 05 P08 | 105 min | 2 tasks | 36 files |
+| Phase 05 P09 | 85 min | 2 tasks | 47 files |
 
 ## Accumulated Context
 
@@ -364,6 +365,9 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-07: Field cost is 2 not 1 (owner's 0.5 s minimum-hold pin); Mill and Field are FLAT so IncomeState is untouched; the Field lock reads the Mill's tier so a fallen Mill never relocks Fields
 - [Phase 05]: 05-08: a Harbor boat count never falls (after = max(before, min(before + 1, cap))); boat i sits at the golden angle times i at 0.6 of the pond radius, a pure function of the index
 - [Phase 05]: 05-08: boat and pond data are validated by EconomyValidation (cap 1..20, gold 1..1000, pond radius 0..30, 10 m of clear water beside each road); the pond is visual only and never read by simulation or NavGrid
+- [Phase 05]: 05-09: a Shrine credit counts a death exactly at wake_radius (<=) and wakes at a credit exactly equal to the threshold (>=), from any killer and while the Shrine lies in rubble; the towers loop skips a dormant Shrine before any target query and a TowerSystem with no IncomeState keeps it silent
+- [Phase 05]: 05-09: shrine_synergy is one PERCENT source on shrine.damage (synergy_percent x (n - 1)) replaced when the awake count changes, updated once per enemy_died after every Shrine is credited; BuildingDef.damage_stat and range_stat name the stats an attack reads and EconomyValidation requires an integer and a float stat id
+- [Phase 05]: 05-09: the Shrine fixture needed the plot at (-14, 0, 8), a second tower plot and 36 grunts at 0.8 s: at the planned (-16, 0, 6) the grunts destroyed the dormant Shrine before it woke; the shipped plots sit 12.5 m from the roads, so plan 05-11 must check how often a 9 m reach actually fires
 
 ### Pending Todos
 
@@ -401,6 +405,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-21T22:26:06.820Z
-Stopped at: Completed 05-08-PLAN.md
+Last session: 2026-10-22T00:10:31.361Z
+Stopped at: Completed 05-09-PLAN.md
 Resume file: None

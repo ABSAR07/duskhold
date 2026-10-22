@@ -359,7 +359,7 @@ Plans:
      - a Shrine, which activates after enough nearby enemy deaths, then attacks, pays, and strengthens other active Shrines
   4. Bonuses from building upgrades and castle abilities combine in one fixed, documented order. Automated tests verify single-modifier and combined-modifier cases.
 
-**Plans**: 8/12 plans executed (planned 2026-10-21: 12 plans in 11 waves, one chain with 05-04 and 05-05 side by side; research P1 to P8 and the one approved golden step folded in)
+**Plans**: 9/12 plans executed (planned 2026-10-21: 12 plans in 11 waves, one chain with 05-04 and 05-05 side by side; research P1 to P8 and the one approved golden step folded in)
 
 Plans:
 
@@ -386,7 +386,7 @@ Plans:
 - [x] 05-08: Fishing Harbor — one boat per surviving dawn up to the tier's cap, harbor_boats_changed, the visual-only pond and its clearance validation (ECON-05, D-11)
 
 **Wave 8** *(blocked on 05-08)*
-- [ ] 05-09: Shrines — wake by nearby kill credit, the awake gate in the tower loop, the mutual +20% through the stack, shrine_woke; the edge-probe ledger (ECON-06, D-12)
+- [x] 05-09: Shrines — wake by nearby kill credit, the awake gate in the tower loop, the mutual +20% through the stack, shrine_woke; the edge-probe ledger (ECON-06, D-12)
 
 **Wave 9** *(blocked on 05-09)*
 - [ ] 05-10: The new economy replay golden on a frozen fixture with its CI lines, scripted bot card picks, the one-night D-14 test across all four buildings
@@ -532,7 +532,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 2. Night Defense & Playtest Gate | 22/22 | Complete    | 2026-10-08 |
 | 3. King Combat & Troops | 19/19 | Complete    | 2026-10-15 |
 | 4. Crowd-Scale Battles & Walls | 28/28 | Complete    | 2026-10-21 |
-| 5. Castle Center & Economy Depth | 8/12 | In Progress|  |
+| 5. Castle Center & Economy Depth | 9/12 | In Progress|  |
 | 6. Enemy Roster & Tower Specializations | 0/TBD | Not started | - |
 | 7. Army Variety & Heroes | 0/TBD | Not started | - |
 | 8. Art, Readability & Sound | 0/TBD | Not started | - |
