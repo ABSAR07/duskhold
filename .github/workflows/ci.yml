@@ -208,7 +208,7 @@ jobs:
           path: addons/duskhold_sim/bin
       - name: Headless import and GUT
         run: bash tools/test.sh
-      # DEV-05: the seeded smoke, army and walls runs must reproduce their checked-in golden
+      # DEV-05: the seeded smoke, army, walls and economy runs must reproduce their checked-in golden
       # digests and themselves twice in one process; a full run on the shipped data must
       # reproduce itself.
       - name: Seeded replay determinism
