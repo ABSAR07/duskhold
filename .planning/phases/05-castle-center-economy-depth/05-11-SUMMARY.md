@@ -68,8 +68,8 @@ patterns-established:
 
 requirements-completed: [BLDG-09, BLDG-08, ECON-03, ECON-04, ECON-05, ECON-06]
 
-gaps:
-  - "tests/unit/test_choice_validation.gd (2 asserts), tests/integration/test_build_flow.gd (8) and tests/e2e/test_building_models.gd (16) fail because House III and Tower II now need castle II; they are outside the declared edit list, so they are not edited (plan step 1b)"
+gaps: []
+gaps_resolved_by_orchestrator: "commit f39b578 (fix: resolve post-merge conflicts from wave 10): the three gated-tier tests and the hud_drag_box shot"
 
 coverage:
   - id: D1
@@ -221,7 +221,10 @@ Gate-caused failures fixed by buying castle II in the setup through the new `E2e
 
 **Total deviations:** 3 auto-fixed (1 bug, 2 blocking). **Impact on plan:** none on scope.
 
-## Deferred Issues (gap plan required)
+## Deferred Issues (resolved by the orchestrator after hand-back)
+
+**Resolved in commit f39b578 (`fix: resolve post-merge conflicts from wave 10`, the execute-phase post-merge fix step, 2026-10-22):** `test_build_flow` and `test_building_models` raise the castle to II through `E2eSupport.raise_castle` before buying a top tier (the castle-keep test spawns without the raise and still sees the tier I keep); the one-tier castle validation case drops the other buildings' castle requirements on its copy so the castle error stays the only one; the `hud_drag_box` shot stands the king at the spawn point (0, 0, 7), 2.8 m from the castle plot, so the card row is not up when the drag starts, and the drag box shows again (PNG re-captured and reviewed). Each script passes alone and lint is clean; the wave-10 post-merge gate ran the full suite on that commit. The entries below are kept as the hand-back recorded them.
+
 
 - **Three tests outside the declared edit list fail because House III and Tower II now need castle II** (plan step 1b: stop and report, never edit): `tests/unit/test_choice_validation.gd::test_a_castle_building_with_one_tier_is_reported` (2 asserts: the shipped House III now names an impossible requirement when the castle is cut to one tier, so `validate()` reports two errors where the test expects one), `tests/integration/test_build_flow.gd` (8 asserts: the third House tier is refused with `castle_tier`), `tests/e2e/test_building_models.gd` (16 asserts: the tier III House and tier II Tower models are never reached). Each needs `E2eSupport.raise_castle(ctx, 2)` in its setup (the first one needs the shipped House tier 3 requirement neutralised on its copy). The full suite is therefore red until a gap plan edits them.
 - **`hud_drag_box` screenshot fails** ("the drag box is not showing"). The king stands at (0, 0, 4), on the castle plot, with gold for castle II, so the Phase 5 card row is up and probably takes the mouse press; it buys only tier I buildings and is independent of the gate and of this plan's changes. Not fixed (undeclared). Found by the full 44-shot pass; the other 43 shots saved.
@@ -249,7 +252,7 @@ None. T-05-21 holds: pins, data and the report landed in one commit (5d4a227), t
 
 ## Next Phase Readiness
 
-- 05-12 can run the local pass and push once a gap plan (or its own first task) fixes the three gated-tier tests and decides on `hud_drag_box`; the ci.yml comment lines are still one golden out of date (left for 05-12).
+- 05-12 can run the local pass and push: the three gated-tier tests and `hud_drag_box` were fixed by the orchestrator in f39b578; the ci.yml comment lines are still one golden out of date (left for 05-12).
 - Owner feel items are in the report: the card numbers, A10, the castle ladder's reach, the army bot's castle, the Harbor's dominance, the Shrine's near-silence, and what the gate feels like to a player who ignores the castle.
 
 ## Self-Check: PASSED
