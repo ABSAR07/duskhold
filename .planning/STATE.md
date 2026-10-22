@@ -2,17 +2,17 @@
 gsd_state_version: "1.0"
 current_phase: 05
 current_phase_name: Castle Center & Economy Depth
-status: executing
-stopped_at: Completed 05-11-PLAN.md
-last_updated: "2026-10-22T08:00:22.095Z"
+status: verifying
+stopped_at: Completed 05-12-PLAN.md
+last_updated: "2026-10-22T09:17:29.500Z"
 last_activity: 2026-10-21
 last_activity_desc: Phase 05 execution started
-state_head: 9fcb5cc5898db7cee492e5093e6c72788c18c92b
+state_head: a49e2beb27f18cb73471f66038a503c982ed9603
 progress:
   total_phases: 13
   completed_phases: 4
   total_plans: 99
-  completed_plans: 98
+  completed_plans: 99
   percent: 31
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-21)
 
 Phase: 05 (Castle Center & Economy Depth) — EXECUTING
 Plan: 12 of 12
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-10-21 — Phase 05 execution started
 
 Progress: [███░░░░░░░] 31%
@@ -157,6 +157,7 @@ Progress: [███░░░░░░░] 31%
 | Phase 05 P09 | 85 min | 2 tasks | 47 files |
 | Phase 05 P10 | 45min | 2 tasks | 13 files |
 | Phase 05 P11 | 3h | 3 tasks | 37 files |
+| Phase 05 P12 | 51 min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -374,6 +375,7 @@ Recent decisions affecting current work:
 - [Phase 05]: Task 2 pins the Mine's next payout through next_payout() and not a paid-dawns count, because mine_paid_dawns stops counting at the floor
 - [Phase 05]: 05-11: the order lever met the bar (balanced 8 of 10, army_balanced 8 of 10 ratio 0.888, castle first bought day 6) so no castle, card, economy or night number was fitted; the gate is the only data change (requires_castle_tier 2 on five last tiers)
 - [Phase 05]: 05-11: the Phase 4 orders became balanced_no_castle (3 of 10 with the gate) and army_balanced_no_castle; balanced and army_balanced are castle-aware; full_idle moved 6911 ticks 4385f569 to 7000 ticks afc11cd0 with all four goldens unmoved
+- [Phase 05]: 05-12: no presentation fix in the four declared files; banner overlap, cropped tier IV roof and small buildings in economy_day listed as owner open points
 
 ### Pending Todos
 
@@ -412,6 +414,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-22T08:00:20.511Z
-Stopped at: Completed 05-11-PLAN.md
+Last session: 2026-10-22T09:17:28.281Z
+Stopped at: Completed 05-12-PLAN.md
 Resume file: None

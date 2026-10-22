@@ -33,11 +33,11 @@ Requirements for the initial release (5-map campaign). Each maps to exactly one 
 - [x] **BLDG-02**: When the king is near a build spot during the day, player sees what can be built there and its gold cost
 - [x] **BLDG-03**: Player can build on an empty spot by holding the action key near it, with a visible hold-progress indicator, if they can afford the cost
 - [x] **BLDG-04**: Player can upgrade an existing building the same way, seeing the next tier's cost and effect
-- [ ] **BLDG-05**: When an upgrade tier offers branching options, player picks one of the offered choice cards (with keyboard or mouse), and that choice is permanent for the run
+- [x] **BLDG-05**: When an upgrade tier offers branching options, player picks one of the offered choice cards (with keyboard or mouse), and that choice is permanent for the run
 - [x] **BLDG-06**: Building and upgrading is only possible during the day
 - [x] **BLDG-07**: Buildings have health, take damage from enemies, and are visibly destroyed at zero health
-- [ ] **BLDG-08**: Player can upgrade the castle center through its tiers for more health, picking one of four run-wide abilities or passives at each tier
-- [ ] **BLDG-09**: The castle center's tier gates which higher building tiers can be purchased
+- [x] **BLDG-08**: Player can upgrade the castle center through its tiers for more health, picking one of four run-wide abilities or passives at each tier
+- [x] **BLDG-09**: The castle center's tier gates which higher building tiers can be purchased
 - [x] **BLDG-10**: Player can build walls and barricades that block enemy movement and upgrade linearly in health
 - [ ] **BLDG-11**: Player can build towers that attack enemies, upgrading through a tier-2 choice of four specializations and a tier-3 choice of four further specializations, each with a distinct attack behavior
 - [ ] **BLDG-12**: Player can build a Blacksmith and a Royal Forge and start timed research (spanning multiple days) that grants global buffs to the king, units, and buildings
@@ -47,10 +47,10 @@ Requirements for the initial release (5-map campaign). Each maps to exactly one 
 
 - [x] **ECON-01**: Gold is the only currency, and the HUD always shows the player's current gold
 - [x] **ECON-02**: A House pays a flat income each dawn that increases with its upgrade tier
-- [ ] **ECON-03**: A Gold Mine pays a high income that declines by a fixed amount each night
-- [ ] **ECON-04**: A Mill pays income per tier and unlocks nearby Field build spots, each Field paying a flat income
-- [ ] **ECON-05**: A Fishing Harbor gains a boat each night up to a cap (raised by upgrading), and each boat pays income
-- [ ] **ECON-06**: A Shrine activates after enough enemies die near it; once active it attacks enemies and pays income, and each additional active Shrine strengthens the others
+- [x] **ECON-03**: A Gold Mine pays a high income that declines by a fixed amount each night
+- [x] **ECON-04**: A Mill pays income per tier and unlocks nearby Field build spots, each Field paying a flat income
+- [x] **ECON-05**: A Fishing Harbor gains a boat each night up to a cap (raised by upgrading), and each boat pays income
+- [x] **ECON-06**: A Shrine activates after enough enemies die near it; once active it attacks enemies and pays income, and each additional active Shrine strengthens the others
 - [x] **ECON-07**: Unspent gold carries over from day to day
 
 ### Military Units
@@ -111,7 +111,7 @@ Requirements for the initial release (5-map campaign). Each maps to exactly one 
 ### Interface & Presentation
 
 - [x] **UI-01**: The in-run HUD shows gold, current night out of total, the king's health, the ability cooldown, and unit group status, without cluttering the view
-- [ ] **UI-02**: Upgrade choice cards show an icon, name, and short description for each option
+- [x] **UI-02**: Upgrade choice cards show an icon, name, and short description for each option
 - [ ] **UI-03**: The game has a main menu, map select, pre-run loadout screen (weapon, perks, mutators, with a live score-multiplier preview), pause menu, and results screen (score breakdown, XP gained, new unlocks)
 - [ ] **UI-04**: The settings menu offers key/button rebinding, display options (resolution, window mode, vsync), master and SFX volume, and graphics quality presets
 - [ ] **UI-05**: Buildings, units, and enemies stay distinguishable at night through silhouettes and a consistent color language, with distinct day and night lighting moods
@@ -197,21 +197,21 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BLDG-02 | Phase 1 | Complete |
 | BLDG-03 | Phase 1 | Complete |
 | BLDG-04 | Phase 1 | Complete |
-| BLDG-05 | Phase 5 | Pending |
+| BLDG-05 | Phase 5 | Complete |
 | BLDG-06 | Phase 1 | Complete |
 | BLDG-07 | Phase 2 | Complete |
-| BLDG-08 | Phase 5 | Pending |
-| BLDG-09 | Phase 5 | Pending |
+| BLDG-08 | Phase 5 | Complete |
+| BLDG-09 | Phase 5 | Complete |
 | BLDG-10 | Phase 4 | Complete |
 | BLDG-11 | Phase 6 | Pending |
 | BLDG-12 | Phase 12 | Pending |
 | BLDG-13 | Phase 12 | Pending |
 | ECON-01 | Phase 1 | Complete |
 | ECON-02 | Phase 1 | Complete |
-| ECON-03 | Phase 5 | Pending |
-| ECON-04 | Phase 5 | Pending |
-| ECON-05 | Phase 5 | Pending |
-| ECON-06 | Phase 5 | Pending |
+| ECON-03 | Phase 5 | Complete |
+| ECON-04 | Phase 5 | Complete |
+| ECON-05 | Phase 5 | Complete |
+| ECON-06 | Phase 5 | Complete |
 | ECON-07 | Phase 1 | Complete |
 | UNIT-01 | Phase 7 | Pending |
 | UNIT-02 | Phase 7 | Pending |
@@ -248,7 +248,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INPT-02 | Phase 3 | Complete |
 | INPT-03 | Phase 13 | Pending |
 | UI-01 | Phase 3 | Complete |
-| UI-02 | Phase 5 | Pending |
+| UI-02 | Phase 5 | Complete |
 | UI-03 | Phase 10 | Pending |
 | UI-04 | Phase 13 | Pending |
 | UI-05 | Phase 8 | Pending |
