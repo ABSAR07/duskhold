@@ -5,7 +5,9 @@ extends RefCounted
 ## label, a Field beside the unbuilt Mill reading "Needs a Mill", the Fishing Harbor on its pond
 ## with three boats, and an awake Shrine glowing at night with a violet bolt in flight. They follow
 ## the rules of ShotScenarios: every scene reaches its state through the command intents and the
-## Input Map, never by writing simulation state. Later Phase 5 plans append their shots here.
+## Input Map, never by writing simulation state. Plan 05-11 closed the list with castle_gate_locked
+## (a Tower I plot whose upgrade reads "Needs Castle II") and economy_day (the south side of the map
+## by day with the Mine, the Mill and its Fields, the Harbor on the pond and a Shrine).
 
 const CASTLE: StringName = &"castle_plot"
 ## shrine_awake_night runs on the Shrine fixture (two towers and a Shrine beside the west road).
@@ -25,12 +27,32 @@ const SHRINE_SPOT: StringName = &"shrine_1"
 const SHRINE_BUILD_ORDER: Array[StringName] = [&"tower_1", &"tower_2", &"shrine_1"]
 const SHRINE_STAND_OFFSET := Vector3(3.0, 0.0, 3.0)
 const SHRINE_BOLT_TIMEOUT_S: float = 25.0
+## castle_gate_locked: the shipped Tower plot bought at tier I, whose tier II needs castle II.
+const GATE_TOWER: StringName = &"tower_1"
+const GATE_LINE := "Needs Castle II"
+## castle_gate_locked: the king stands to the side of the plot (still within the 2.5 m reach), so
+## he is clear of the label.
+const GATE_STAND_OFFSET := Vector3(2.1, 0.0, 0.8)
+## economy_day: the plots bought in order (a Field needs the Mill before it), the dawns that give
+## the Harbor its boats and where the king stands, south of the castle, by the pond.
+const DAY_BUILD_ORDER: Array[StringName] = [
+	&"gold_mine_1", &"mill_1", &"field_1", &"field_2", &"harbor_1", &"shrine_west"
+]
+const DAY_HARBOR: StringName = &"harbor_1"
+const DAY_DAWNS: int = 2
+const DAY_STAND := Vector3(0.0, 0.0, 26.0)
+## economy_day widens the camera's zoom range for the capture only (the shipped rig stops at 1.5,
+## a frame about 43 m wide, and the Mine and the Shrines lie 92 m apart) and zooms out this long.
+const DAY_ZOOM_MAX: float = 3.4
+const DAY_ZOOM_OUT_S: float = 4.5
 const ECONOMY_SHOTS: Array[StringName] = [
 	ShotScenarios.CASTLE_CARDS,
 	ShotScenarios.CASTLE_TIER_FOUR,
 	ShotScenarios.FIELD_LOCKED,
 	ShotScenarios.HARBOR_POND,
 	ShotScenarios.SHRINE_AWAKE_NIGHT,
+	ShotScenarios.CASTLE_GATE_LOCKED,
+	ShotScenarios.ECONOMY_DAY,
 ]
 ## The gold the Phase 5 shots start with: enough for all three castle upgrades (6 + 10 + 16).
 const SHOT_GOLD: int = 60
@@ -66,7 +88,7 @@ static func map_for(shot_name: StringName) -> MapConfig:
 	var shipped: MapConfig = load(ShotScenarios.MAP_DATA_PATH)
 	var config: MapConfig = shipped.duplicate_deep(Resource.DEEP_DUPLICATE_ALL)
 	config.starting_gold = SHOT_GOLD
-	if shot_name == ShotScenarios.HARBOR_POND:
+	if shot_name == ShotScenarios.HARBOR_POND or shot_name == ShotScenarios.ECONOMY_DAY:
 		var no_nights: Array[NightDef] = []
 		config.nights = no_nights
 	return config
@@ -84,6 +106,10 @@ static func run(shot_name: StringName, runner: Node, map_root: MapRoot) -> bool:
 			return await _harbor_pond(runner, map_root)
 		ShotScenarios.SHRINE_AWAKE_NIGHT:
 			return await _shrine_awake_night(runner, map_root)
+		ShotScenarios.CASTLE_GATE_LOCKED:
+			return await _castle_gate_locked(runner, map_root)
+		ShotScenarios.ECONOMY_DAY:
+			return await _economy_day(runner, map_root)
 	printerr("unknown economy shot %s" % shot_name)
 	return false
 
@@ -228,3 +254,57 @@ static func _shrine_bolt_drawn(vfx: ProjectileVfx, plot: Vector3) -> bool:
 		if absf(launch.x - plot.x) < 0.01 and absf(launch.z - plot.z) < 0.01:
 			return true
 	return false
+
+
+## By day with Tower I bought on the shipped tower_1 plot and the king beside it: the label offers
+## tier II but reads "Needs Castle II" in place of a price, the BLDG-09 gate on a shipped plot.
+static func _castle_gate_locked(runner: Node, map_root: MapRoot) -> bool:
+	var ctx: RunContext = map_root.get_context()
+	if not ShotScenarios._submit_ok(ctx, BuildIntent.new(GATE_TOWER)):
+		return false
+	var plot: Vector3 = ctx.buildings.get_spot(GATE_TOWER).position
+	map_root.get_king().global_position = plot + GATE_STAND_OFFSET
+	await ShotScenarios._wait(runner, ShotScenarios.CAMERA_SETTLE_S)
+	await ShotScenarios._wait(runner, SETTLE_S)
+	var status: Label3D = map_root.find_child("Status", true, false) as Label3D
+	var ready: bool = status != null and status.visible and status.text == GATE_LINE
+	if not ready:
+		printerr("the Tower label does not read '%s'" % GATE_LINE)
+	return ready
+
+
+## By day on the south side: the Gold Mine, the Mill with two Fields, the Fishing Harbor with two
+## boats on the pond and shrine_west, all bought through their commands, then two timed nights run
+## the way a replay runs them (each dawn gives the Harbor a boat). The king stands south of the
+## castle and the camera is zoomed out so the Mine, the pond, the Mill's Fields and a Shrine share
+## the frame.
+static func _economy_day(runner: Node, map_root: MapRoot) -> bool:
+	var ctx: RunContext = map_root.get_context()
+	for spot_id: StringName in DAY_BUILD_ORDER:
+		if not ShotScenarios._submit_ok(ctx, BuildIntent.new(spot_id)):
+			return false
+	for _dawn: int in range(DAY_DAWNS):
+		if not ShotScenarios._submit_ok(ctx, StartNightIntent.new()):
+			return false
+		var ticks: int = 0
+		while ctx.run_manager.get_phase() != RunManager.RunPhase.DAY and ticks < POND_NIGHT_TICKS:
+			ctx.step()
+			ticks += 1
+	map_root.get_king().global_position = DAY_STAND
+	var rig: CameraRig = map_root.get_node("CameraRig") as CameraRig
+	rig.zoom_max = DAY_ZOOM_MAX
+	Input.action_press(&"zoom_out")
+	await ShotScenarios._wait(runner, DAY_ZOOM_OUT_S)
+	Input.action_release(&"zoom_out")
+	await ShotScenarios._wait(runner, ShotScenarios.CAMERA_SETTLE_S)
+	var pond: PondView = map_root.get_node("PondView") as PondView
+	var ready: bool = (
+		ctx.run_manager.get_phase() == RunManager.RunPhase.DAY
+		and pond != null
+		and pond.boat_count(DAY_HARBOR) == DAY_DAWNS
+		and ctx.buildings.current_tier(&"mill_1") == 1
+		and ctx.buildings.current_tier(&"shrine_west") == 1
+	)
+	if not ready:
+		printerr("the south side is not staged (%s)" % ShotScenarios._state_line(ctx))
+	return ready

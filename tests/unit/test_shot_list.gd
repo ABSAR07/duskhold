@@ -4,7 +4,7 @@ extends GutTest
 
 const SCRIPT_PATH := "res://tools/screenshot.sh"
 const LIST_OPEN := "ALL_SHOTS=("
-const EXPECTED_SHOT_COUNT: int = 42
+const EXPECTED_SHOT_COUNT: int = 44
 const PHASE_1_SHOT_COUNT: int = 15
 
 
@@ -32,15 +32,15 @@ func _bash_shots() -> Array[StringName]:
 
 func test_the_wrapper_lists_the_scenarios_in_the_same_order() -> void:
 	var bash_shots: Array[StringName] = _bash_shots()
-	assert_eq(bash_shots.size(), EXPECTED_SHOT_COUNT, "the wrapper lists forty-two shots")
+	assert_eq(bash_shots.size(), EXPECTED_SHOT_COUNT, "the wrapper lists forty-four shots")
 	assert_eq(bash_shots, ShotScenarios.ALL_SHOTS, "bash and GDScript lists are identical")
 
 
-func test_there_are_forty_two_distinct_shots() -> void:
+func test_there_are_forty_four_distinct_shots() -> void:
 	var seen: Dictionary = {}
 	for shot: StringName in ShotScenarios.ALL_SHOTS:
 		seen[shot] = true
-	assert_eq(ShotScenarios.ALL_SHOTS.size(), EXPECTED_SHOT_COUNT, "forty-two shots")
+	assert_eq(ShotScenarios.ALL_SHOTS.size(), EXPECTED_SHOT_COUNT, "forty-four shots")
 	assert_eq(seen.size(), EXPECTED_SHOT_COUNT, "no name is listed twice")
 
 
@@ -115,7 +115,7 @@ func test_the_shots_come_in_four_blocks_phase_1_then_3_then_4_then_5() -> void:
 	assert_eq(phase_3, ShotScenarios.ARMY_SHOTS, "they follow the first fifteen in order")
 	assert_eq(ShotCrowdScenarios.CROWD_SHOTS.size(), 4, "four Phase 4 shots")
 	assert_eq(phase_4, ShotCrowdScenarios.CROWD_SHOTS, "they follow in order")
-	assert_eq(ShotEconomyScenarios.ECONOMY_SHOTS.size(), 5, "five Phase 5 shots so far")
+	assert_eq(ShotEconomyScenarios.ECONOMY_SHOTS.size(), 7, "seven Phase 5 shots")
 	assert_eq(phase_5, ShotEconomyScenarios.ECONOMY_SHOTS, "they close the list in order")
 	for shot: StringName in ShotScenarios.ARMY_SHOTS:
 		assert_true(ShotArmyScenarios.handles(shot), "%s has a Phase 3 scene" % shot)
@@ -225,11 +225,13 @@ func test_the_economy_shots_are_listed_and_handled_by_the_economy_scenes() -> vo
 		&"field_locked",
 		&"harbor_pond",
 		&"shrine_awake_night",
+		&"castle_gate_locked",
+		&"economy_day",
 	]
 	assert_eq(
 		ShotEconomyScenarios.ECONOMY_SHOTS,
 		wanted,
-		"the cards, the keep, the lock, the pond, the Shrine"
+		"the cards, the keep, the lock, the pond, the Shrine, the gate, the south side"
 	)
 	for shot: StringName in wanted:
 		assert_true(ShotScenarios.ALL_SHOTS.has(shot), "%s is in ALL_SHOTS" % shot)
@@ -279,7 +281,7 @@ func test_the_economy_shots_run_with_the_shipped_king() -> void:
 func test_the_field_locked_shot_stages_a_deep_copy_with_the_mill_unbuilt() -> void:
 	var shot: StringName = &"field_locked"
 	var listed: Array[StringName] = ShotScenarios.ALL_SHOTS
-	assert_eq(listed[listed.size() - 3], shot, "it is third last, the pond and Shrine shots follow")
+	assert_eq(listed[listed.size() - 5], shot, "it is fifth last, four Phase 5 shots follow")
 	assert_eq(ShotEconomyScenarios.ECONOMY_SHOTS[2], shot, "the third of the Phase 5 block")
 	var map: MapConfig = ShotScenarios.map_for(shot)
 	var shipped: MapConfig = load(ShotScenarios.MAP_DATA_PATH)
@@ -297,7 +299,7 @@ func test_the_field_locked_shot_stages_a_deep_copy_with_the_mill_unbuilt() -> vo
 func test_the_harbor_pond_shot_is_a_waveless_deep_copy_with_the_harbor_unbuilt() -> void:
 	var shot: StringName = &"harbor_pond"
 	var listed: Array[StringName] = ShotScenarios.ALL_SHOTS
-	assert_eq(listed[listed.size() - 2], shot, "it is second last, the Shrine shot closes the list")
+	assert_eq(listed[listed.size() - 4], shot, "it is fourth last, three Phase 5 shots follow")
 	assert_eq(ShotEconomyScenarios.ECONOMY_SHOTS[3], shot, "the fourth of the Phase 5 block")
 	assert_true(_bash_shots().has(shot), "the wrapper lists it")
 	var map: MapConfig = ShotScenarios.map_for(shot)
@@ -309,10 +311,11 @@ func test_the_harbor_pond_shot_is_a_waveless_deep_copy_with_the_harbor_unbuilt()
 	assert_eq(map.starting_gold, ShotEconomyScenarios.SHOT_GOLD, "with the shot gold")
 
 
-func test_the_shrine_awake_night_shot_closes_the_list_on_the_shrine_fixture_copy() -> void:
+func test_the_shrine_awake_night_shot_runs_on_the_shrine_fixture_copy() -> void:
 	var shot: StringName = &"shrine_awake_night"
-	assert_eq(ShotScenarios.ALL_SHOTS.back(), shot, "it closes the list")
-	assert_eq(ShotEconomyScenarios.ECONOMY_SHOTS.back(), shot, "and the Phase 5 block")
+	var listed: Array[StringName] = ShotScenarios.ALL_SHOTS
+	assert_eq(listed[listed.size() - 3], shot, "it is third last, the plan 05-11 shots follow")
+	assert_eq(ShotEconomyScenarios.ECONOMY_SHOTS[4], shot, "the fifth of the Phase 5 block")
 	assert_true(_bash_shots().has(shot), "the wrapper lists it")
 	var map: MapConfig = ShotScenarios.map_for(shot)
 	var fixture: MapConfig = load(ShotEconomyScenarios.SHRINE_FIXTURE)

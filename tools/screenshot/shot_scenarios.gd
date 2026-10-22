@@ -95,6 +95,8 @@ const CASTLE_TIER_FOUR := &"castle_tier_four"
 const FIELD_LOCKED := &"field_locked"
 const HARBOR_POND := &"harbor_pond"
 const SHRINE_AWAKE_NIGHT := &"shrine_awake_night"
+const CASTLE_GATE_LOCKED := &"castle_gate_locked"
+const ECONOMY_DAY := &"economy_day"
 const ARMY_SHOTS: Array[StringName] = [
 	HUD_DAY_SQUADS,
 	HUD_NIGHT_SQUAD_DOWN,
@@ -157,7 +159,9 @@ const ALL_SHOTS: Array[StringName] = [
 	CASTLE_TIER_FOUR,
 	FIELD_LOCKED,
 	HARBOR_POND,
-	SHRINE_AWAKE_NIGHT
+	SHRINE_AWAKE_NIGHT,
+	CASTLE_GATE_LOCKED,
+	ECONOMY_DAY
 ]
 
 
