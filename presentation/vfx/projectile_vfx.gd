@@ -183,7 +183,7 @@ func _on_attack_fired(
 		maxf(flight_seconds(flight_ticks), SimClock.STEP),
 		_target_code(target_kind),
 		target_id,
-		_color_for(attacker_kind)
+		_color_for(attacker_kind, attacker_id)
 	)
 
 
@@ -198,12 +198,22 @@ func _draws_arrows(attacker_kind: StringName) -> bool:
 	)
 
 
-func _color_for(attacker_kind: StringName) -> Color:
+func _color_for(attacker_kind: StringName, attacker_id: int) -> Color:
 	if attacker_kind == PendingHits.KIND_ENEMY:
 		return SKIRMISHER_COLOR
+	if attacker_kind == PendingHits.KIND_BUILDING and _is_shrine(attacker_id):
+		return SHRINE_COLOR
 	if attacker_kind == PendingHits.KIND_UNIT:
 		return UNIT_ARROW_COLOR
 	return TOWER_COLOR
+
+
+## True when the building at plot index `index` is an awakened one (a Shrine): its bolts are violet.
+func _is_shrine(index: int) -> bool:
+	var building_def: BuildingDef = _ctx.buildings.get_building_def_for_spot(
+		_ctx.buildings.spot_at_index(index)
+	)
+	return building_def != null and building_def.income_curve == BuildingDef.IncomeCurve.AWAKENED
 
 
 ## How NativeArrows follows a target of this kind: enemies and the king move, units are resolved

@@ -41,6 +41,8 @@ const BUILDING_BAR_WIDTH: float = 2.0
 const COLLAPSE_SINK_DEPTH: float = 0.6
 const COLLAPSE_SQUASH_SCALE := Vector3(1.12, 0.04, 1.12)
 const BAR_NODE_NAME := "HealthBar"
+## The orb of a Shrine's model that shows once the Shrine has woken.
+const GLOW_NODE_NAME := "Glow"
 ## A rebuilt building grows up from the ground over this long, from this flat scale.
 const RISE_SECONDS: float = 0.4
 const RISE_START_SCALE := Vector3(1.0, 0.05, 1.0)
@@ -70,6 +72,7 @@ func bind_run(ctx: RunContext, _map_root: MapRoot) -> void:
 	ctx.events.building_damaged.connect(_on_building_damaged)
 	ctx.events.building_destroyed.connect(_on_building_destroyed)
 	ctx.events.buildings_rebuilt.connect(_on_buildings_rebuilt)
+	ctx.events.shrine_woke.connect(_on_shrine_woke)
 
 
 ## The rubble the keep collapsed into once the castle has fallen (D-17); null until then.
@@ -88,9 +91,14 @@ func get_health_bar(spot_id: StringName) -> HealthBar3D:
 	return _bars.get(spot_id) as HealthBar3D
 
 
-## True while the Shrine on the plot shows its glow; false for any other plot. Test hook, read-only.
-func is_shrine_glowing(_spot_id: StringName) -> bool:
-	return false
+## True while the Shrine on the plot shows its glow; false for any other plot, an empty one and a
+## fallen Shrine. Test hook, read-only.
+func is_shrine_glowing(spot_id: StringName) -> bool:
+	var view: Node3D = get_view(spot_id)
+	if view == null:
+		return false
+	var glow: Node3D = view.get_node_or_null(GLOW_NODE_NAME) as Node3D
+	return glow != null and glow.visible
 
 
 ## Null if no building stands on the spot.
@@ -194,6 +202,8 @@ func _marker_color(spot_id: StringName, building_id: StringName) -> Color:
 	var building_def: BuildingDef = _ctx.buildings.get_building_def_for_spot(spot_id)
 	if building_def != null and building_def.unit_id != &"":
 		return MILITARY_MARKER_COLOR
+	if building_def != null and building_def.income_curve == BuildingDef.IncomeCurve.AWAKENED:
+		return SHRINE_MARKER_COLOR
 	if building_id == &"tower":
 		return TOWER_MARKER_COLOR
 	return HOUSE_MARKER_COLOR
@@ -268,7 +278,22 @@ func _place_building(spot_id: StringName, building_id: StringName, new_tier: int
 	view.position = _ctx.buildings.get_spot(spot_id).position
 	_views[spot_id] = view
 	_attach_bar(view, spot_id)
+	_show_glow(view, spot_id)
 	return view
+
+
+## A Shrine that is awake shows its Glow orb, and a rebuilt one shows it again; any other model has
+## no Glow child and is left alone.
+func _show_glow(view: Node3D, spot_id: StringName) -> void:
+	var glow: Node3D = view.get_node_or_null(GLOW_NODE_NAME) as Node3D
+	if glow != null:
+		glow.visible = _ctx.income != null and _ctx.income.is_awake(spot_id)
+
+
+func _on_shrine_woke(spot_id: StringName) -> void:
+	var view: Node3D = get_view(spot_id)
+	if view != null:
+		_show_glow(view, spot_id)
 
 
 ## One hurt-only bar above the building's model, told the building's current health.

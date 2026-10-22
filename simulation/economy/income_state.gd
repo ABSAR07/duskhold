@@ -27,13 +27,24 @@ extends RefCounted
 ## shrine_woke once. The Shrine pays its dawn_income only while awake. The towers loop asks
 ## is_awake() before it lets a Shrine fire, so a dormant one never shoots (research P4).
 ##
+## With n Shrines awake every awake Shrine gains synergy_percent x (n - 1) percent attack damage
+## (D-12): one StatStack source, shrine_synergy, a PERCENT modifier on shrine.damage that is
+## REPLACED whenever n changes (never appended, T-05-18) and removed below two. It is updated once
+## per death, after every Shrine has been credited, so Shrines that wake on the same tick change it
+## once, to the final count.
+##
 ## A building that fell and was rebuilt this dawn pays nothing and makes no progress (D-14,
 ## LOOP-05): it loses nothing it accumulated, it only skips the morning. Detached from the scene
 ## tree and the clock; no randomness (DR-1 to DR-10).
 
+## The one stack source that carries the mutual buff, and the stat it modifies.
+const SYNERGY_SOURCE: StringName = &"shrine_synergy"
+const SYNERGY_STAT: StringName = &"shrine.damage"
+
 var _map: MapConfig
 var _buildings: BuildingSystem
 var _events: SimEvents
+var _stats: StatStack
 ## Plot id -> dawns paid so far; a plot appears here the first time it pays.
 var _paid: Dictionary = {}
 ## Plot id -> boats the Harbor has; a plot appears here the first time it gains a boat.
@@ -46,11 +57,12 @@ var _awake: Dictionary = {}
 
 
 func _init(
-	map: MapConfig, buildings: BuildingSystem, events: SimEvents, _stat_stack: StatStack = null
+	map: MapConfig, buildings: BuildingSystem, events: SimEvents, stat_stack: StatStack = null
 ) -> void:
 	_map = map
 	_buildings = buildings
 	_events = events
+	_stats = stat_stack if stat_stack != null else StatStack.new()
 	events.enemy_died.connect(_on_enemy_died)
 
 
@@ -166,6 +178,7 @@ func _on_enemy_died(
 	var enemy: EnemyDef = _map.find_enemy(def_id)
 	if enemy == null or enemy.max_health <= 0:
 		return
+	var woke: bool = false
 	for spot_id: StringName in _buildings.spot_ids():
 		var tier_def: BuildingTierDef = _shrine_tier(spot_id)
 		if tier_def == null:
@@ -178,7 +191,10 @@ func _on_enemy_died(
 		_credit[spot_id] = total
 		if total >= tier_def.wake_threshold_hp and not _awake.has(spot_id):
 			_awake[spot_id] = true
+			woke = true
 			_events.shrine_woke.emit(spot_id)
+	if woke:
+		_refresh_synergy()
 
 
 ## The current tier of the AWAKENED building built on this plot, fallen or standing; null for an
@@ -188,3 +204,27 @@ func _shrine_tier(spot_id: StringName) -> BuildingTierDef:
 	if building_def == null or building_def.income_curve != BuildingDef.IncomeCurve.AWAKENED:
 		return null
 	return building_def.tier_def(_buildings.current_tier(spot_id))
+
+
+## Sets the shrine_synergy source for the awake count now: synergy_percent x (n - 1) percent on
+## shrine.damage for two or more awake Shrines, no source otherwise. add_source replaces the earlier
+## list, so the source is never appended to. The percent is capped at what the stack accepts.
+func _refresh_synergy() -> void:
+	var percent: int = _synergy_percent() * (awake_count() - 1)
+	if awake_count() < 2 or percent <= 0:
+		_stats.remove_source(SYNERGY_SOURCE)
+		return
+	var mod: StatModifierDef = StatModifierDef.new()
+	mod.stat = SYNERGY_STAT
+	mod.bucket = StatModifierDef.Bucket.PERCENT
+	mod.value = mini(percent, StatModifierDef.PERCENT_MAX)
+	_stats.add_source(SYNERGY_SOURCE, [mod] as Array[StatModifierDef])
+
+
+## The synergy_percent in the data of the first awake Shrine in MapConfig order; 0 when none.
+func _synergy_percent() -> int:
+	for spot_id: StringName in _buildings.spot_ids():
+		if _awake.has(spot_id):
+			var tier_def: BuildingTierDef = _shrine_tier(spot_id)
+			return maxi(tier_def.synergy_percent, 0) if tier_def != null else 0
+	return 0

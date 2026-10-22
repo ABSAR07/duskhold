@@ -54,7 +54,10 @@ with a x2 multiplier as well it gives 36.
 
 ## Sources
 
-A source is a named list of modifiers (a castle ability, the Shrine synergy, a perk).
+A source is a named list of modifiers (a castle ability, the Shrine synergy, a perk). The Shrine
+synergy is the source `shrine_synergy`: `IncomeState` sets one PERCENT modifier of `synergy_percent`
+(Shrine data, 20 shipped) times the number of other awake Shrines on `shrine.damage`, replacing the
+source whenever the awake count changes and removing it below two awake Shrines.
 
 - `add_source(source_id, mods)` gives a source its list. A source id added again **replaces** its
   earlier list; it never stacks twice. It returns false and changes nothing when any modifier is
@@ -85,8 +88,8 @@ game already read the raw value.
 | `wall.max_health` | int | `WallSystem.on_building_built` (`simulation/walls/wall_system.gd`) |
 | `tower.damage` | int | `TowerSystem.step` (`simulation/night/tower_system.gd`) |
 | `tower.range` | float | `TowerSystem.step` |
-| `shrine.damage` | int | `TowerSystem.step`, for a Shrine (plan 05-09) |
-| `shrine.range` | float | `TowerSystem.step`, for a Shrine (plan 05-09) |
+| `shrine.damage` | int | `TowerSystem.step`, through the Shrine's `BuildingDef.damage_stat` |
+| `shrine.range` | float | `TowerSystem.step`, through the Shrine's `BuildingDef.range_stat` |
 | `castle.max_health` | int | `CastleState` (`simulation/castle/castle_state.gd`) |
 | `castle.arrow_damage` | int | `CastleState.arrow_damage`, read by `CastleAttack` |
 | `castle.arrow_range` | float | `CastleState.arrow_range`, read by `CastleAttack` |
