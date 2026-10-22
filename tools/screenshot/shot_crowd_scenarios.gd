@@ -83,10 +83,31 @@ static func run(shot_name: StringName, runner: Node, map_root: MapRoot) -> bool:
 	return false
 
 
+## Buys the castle plot's tiers up to `tier` through the build command, each with the first card
+## the tier offers, because the reinforced north run is a top tier and needs castle II (BLDG-09).
+## The gold is granted first, so the shot's own gold is unchanged. False when a purchase is refused.
+static func _raise_castle(ctx: RunContext, tier: int) -> bool:
+	for spot_id: StringName in ctx.buildings.spot_ids():
+		if not ctx.buildings.get_spot(spot_id).is_castle:
+			continue
+		var def: BuildingDef = ctx.buildings.get_building_def_for_spot(spot_id)
+		while ctx.buildings.current_tier(spot_id) < mini(tier, def.max_tier()):
+			var next_tier: BuildingTierDef = def.tier_def(ctx.buildings.current_tier(spot_id) + 1)
+			var card: StringName = &""
+			if not next_tier.choices.is_empty():
+				card = next_tier.choices[0].id
+			ctx.economy.grant(next_tier.cost)
+			if not ShotScenarios._submit_ok(ctx, BuildIntent.new(spot_id, card)):
+				return false
+	return true
+
+
 ## By day with all four runs bought (west a barricade, east stone, north reinforced, the ring
 ## stone) and the king just inside the west gap, so its label offers Wall II.
 static func _walls_day(runner: Node, map_root: MapRoot) -> bool:
 	var ctx: RunContext = map_root.get_context()
+	if not _raise_castle(ctx, 2):
+		return false
 	for index: int in range(DAY_RUNS.size()):
 		for _step: int in range(DAY_TIERS[index]):
 			if not ShotScenarios._submit_ok(ctx, BuildIntent.new(DAY_RUNS[index])):
