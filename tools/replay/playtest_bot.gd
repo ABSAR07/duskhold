@@ -207,10 +207,18 @@ func _prioritise_telegraphed_towers(ctx: RunContext) -> void:
 		build_order[slots[slot]] = ordered[slot]
 
 
-## True when the spot takes a building whose first tier shoots.
+## True when the spot takes a road tower: a building whose first tier shoots. The castle plot
+## (its arrow is the castle's) and an AWAKENED building (a Shrine shoots once it has woken, wherever
+## the kills happened) shoot too but guard no road, so the telegraph never reorders them among the
+## tower plots (plan 05-11, research Pattern 9).
 func _is_tower_plot(ctx: RunContext, spot_id: StringName) -> bool:
+	var spot: BuildSpotDef = ctx.buildings.get_spot(spot_id)
+	if spot == null or spot.is_castle:
+		return false
 	var def: BuildingDef = ctx.buildings.get_building_def_for_spot(spot_id)
 	if def == null or def.tier_def(1) == null:
+		return false
+	if def.income_curve == BuildingDef.IncomeCurve.AWAKENED:
 		return false
 	return def.tier_def(1).attack_damage > 0
 

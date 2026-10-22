@@ -21,8 +21,13 @@ const RUN_KEYS: Array[String] = [
 	"military_gold_spent",
 	"tower_gold_spent",
 	"economy_gold_spent",
+	"castle_gold_spent",
+	"shrine_gold_spent",
 	"unit_kills",
 	"tower_kills",
+	"castle_tier_reached",
+	"picks",
+	"castle_days",
 ]
 const NIGHT_KEYS: Array[String] = [
 	"night",
@@ -51,6 +56,10 @@ const SUMMARY_KEYS: Array[String] = [
 	"unit_kills_per_military_gold",
 	"tower_kills_per_tower_gold",
 	"squad_value_ratio",
+	"mean_castle_tier_reached",
+	"earliest_castle_day",
+	"mean_castle_gold_spent",
+	"mean_shrine_gold_spent",
 ]
 ## Phase numbers of RunManager.RunPhase that end a night.
 const PHASE_NIGHT: int = 2

@@ -25,8 +25,11 @@ const OUTCOME_LOST := &"lost"
 ## night (one per wall_segment_broken event). `end` is
 ## "dawn", "won" or "lost" for a night that finished and "" for one the tick bound cut short;
 ## `gold_at_dawn` is the gold after the dawn payout, or the gold when the night ended without one.
-## `spent` is the gold the run put into buildings by role, {military, towers, economy}: a build and
-## each upgrade count once at the tier's own price, a refused build counts nothing.
+## `spent` is the gold the run put into buildings by role, {military, towers, economy, castle,
+## shrine}: a build and each upgrade count once at the tier's own price, a refused build counts
+## nothing. `castle_tier` is the castle plot's tier at the end of the run (1 when it was never
+## upgraded, and 1 on a map with no castle plot), `picks` the ability card ids in the order they
+## were picked and `castle_days` the day number (nights started plus one) of each castle upgrade.
 ## `stop_after_dawns` of 0 means run until the run ends or `max_ticks` runs out.
 ## `on_tick`, when valid, is called with the RunContext right after every ctx.step() (plan 04-23,
 ## the enemy trace tool): a read-only observer, so the digest does not depend on it.
@@ -76,6 +79,9 @@ static func run(
 		},
 		"per_night": tally.per_night,
 		"spent": tally.spent,
+		"castle_tier": tally.castle_tier(),
+		"picks": tally.picks,
+		"castle_days": tally.castle_days,
 	}
 
 
@@ -89,9 +95,16 @@ class Tally:
 	## Steps run in the current night, counted by the driver before each step.
 	var night_steps: int = 0
 	var per_night: Array = []
-	## Gold spent by building role: {"military": int, "towers": int, "economy": int}. Military is a
-	## building with a unit_id, towers any other building with a tier that attacks, economy the rest.
-	var spent: Dictionary = {"military": 0, "towers": 0, "economy": 0}
+	## Gold spent by building role: {"military": int, "towers": int, "economy": int, "castle": int,
+	## "shrine": int}. Castle is the castle plot (its tiers), shrine a building paid on the AWAKENED
+	## curve, military a building with a unit_id, towers any other building with a tier that
+	## attacks, economy the rest. The castle and the Shrine are classed before the attack test,
+	## because both shoot without being road towers (plan 05-11).
+	var spent: Dictionary = {"military": 0, "towers": 0, "economy": 0, "castle": 0, "shrine": 0}
+	## The ability card ids picked, in pick order (choice_picked).
+	var picks: Array[String] = []
+	## The day number (nights started plus one) on which each castle upgrade was bought.
+	var castle_days: Array[int] = []
 
 	var _ctx: RunContext
 	var _open: Dictionary = {}
@@ -109,6 +122,12 @@ class Tally:
 		events.king_downed.connect(_on_king_downed)
 		events.building_built.connect(_on_building_built)
 		events.dawn_payout.connect(_on_dawn_payout)
+		events.choice_picked.connect(_on_choice_picked)
+
+	## The castle plot's tier now, 1 when the map has no castle plot.
+	func castle_tier() -> int:
+		var plot: StringName = _castle_plot()
+		return maxi(_ctx.buildings.current_tier(plot), 1) if plot != &"" else 1
 
 	func on_phase_changed(old_phase: int, new_phase: int) -> void:
 		if new_phase == RunManager.RunPhase.DAWN:
@@ -193,10 +212,25 @@ class Tally:
 		var tier_def: BuildingTierDef = def.tier_def(new_tier)
 		if tier_def == null:
 			return
-		var role: String = _role_of(def)
+		var role: String = _role_of(spot_id, def)
 		spent[role] = int(spent[role]) + tier_def.cost
+		if role == "castle":
+			castle_days.append(nights + 1)
 
-	func _role_of(def: BuildingDef) -> String:
+	func _on_choice_picked(_spot_id: StringName, _tier: int, choice_id: StringName) -> void:
+		picks.append(String(choice_id))
+
+	func _castle_plot() -> StringName:
+		for spot_id: StringName in _ctx.buildings.spot_ids():
+			if _ctx.buildings.get_spot(spot_id).is_castle:
+				return spot_id
+		return &""
+
+	func _role_of(spot_id: StringName, def: BuildingDef) -> String:
+		if _ctx.buildings.get_spot(spot_id).is_castle:
+			return "castle"
+		if def.income_curve == BuildingDef.IncomeCurve.AWAKENED:
+			return "shrine"
 		if def.unit_id != &"":
 			return "military"
 		for tier_def: BuildingTierDef in def.tiers:

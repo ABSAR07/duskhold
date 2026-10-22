@@ -27,6 +27,15 @@ extends RefCounted
 ##                   - the Phase 3 orders of balanced and army_balanced, unchanged: the same builds,
 ##                     king, squad and slam settings and no wall. They keep the Phase 3 results
 ##                     and measure what the walls change (plan 04-10, D-15).
+##   balanced_castle, army_castle
+##                   - the balanced and army_balanced orders for the day of Phase 5 (plan 05-11):
+##                     the castle plot (castle_plot, three upgrades, one deterministic card pick
+##                     each) bought after the opening economy and before the first tier that needs
+##                     it, and the four new economic buildings (gold_mine_1, mill_1 with its Fields,
+##                     harbor_1, shrine_west and shrine_east). A locked entry is deferred by the
+##                     bot, never waited for (Pitfall 1). Task 2 of the plan renames them balanced
+##                     and army_balanced and the Phase 4 orders balanced_no_castle and
+##                     army_balanced_no_castle.
 
 const NAMES: Array[StringName] = [
 	&"no_build",
@@ -37,6 +46,8 @@ const NAMES: Array[StringName] = [
 	&"army_balanced",
 	&"balanced_no_walls",
 	&"army_balanced_no_walls",
+	&"balanced_castle",
+	&"army_castle",
 ]
 ## The king slams when this many enemies stand inside the slam's radius.
 const _ARMY_SLAM_MIN_ENEMIES: int = 3
@@ -203,6 +214,95 @@ const _ARMY_BALANCED: Array[StringName] = [
 	&"wall_east",
 	&"wall_north",
 ]
+## The balanced order with the castle and the four economic buildings (plan 05-11). The Phase 4
+## entries keep their relative order; the Harbor and the Mine follow the first three towers (the
+## opening is the Phase 4 opening), the castle comes before the first tier that needs it (Tower II,
+## the top tier, needs castle II), the Mill and its Fields follow the road walls, the Shrines and
+## the castle's later tiers sit last. The entries past what the bot can pay for are never reached.
+const _BALANCED_CASTLE: Array[StringName] = [
+	&"house_1",
+	&"house_2",
+	&"house_3",
+	&"tower_1",
+	&"tower_2",
+	&"tower_3",
+	&"harbor_1",
+	&"gold_mine_1",
+	&"castle_plot",
+	&"tower_1",
+	&"wall_west",
+	&"wall_east",
+	&"wall_north",
+	&"mill_1",
+	&"field_1",
+	&"field_2",
+	&"house_4",
+	&"tower_2",
+	&"house_5",
+	&"wall_ring",
+	&"tower_3",
+	&"field_3",
+	&"shrine_west",
+	&"castle_plot",
+	&"wall_west",
+	&"wall_east",
+	&"wall_north",
+	&"house_1",
+	&"house_2",
+	&"house_3",
+	&"house_4",
+	&"house_5",
+	&"shrine_east",
+	&"castle_plot",
+]
+## The army order with the castle and the four economic buildings (plan 05-11): the Barracks within
+## the first three non-wall entries and the Range within the first six, as before.
+const _ARMY_CASTLE: Array[StringName] = [
+	&"house_1",
+	&"house_2",
+	&"barracks_1",
+	&"house_3",
+	&"tower_1",
+	&"archery_1",
+	&"harbor_1",
+	&"gold_mine_1",
+	&"castle_plot",
+	&"wall_west",
+	&"wall_east",
+	&"wall_north",
+	&"tower_2",
+	&"house_4",
+	&"tower_3",
+	&"barracks_1",
+	&"archery_1",
+	&"mill_1",
+	&"field_1",
+	&"field_2",
+	&"house_5",
+	&"wall_ring",
+	&"tower_1",
+	&"tower_2",
+	&"field_3",
+	&"shrine_west",
+	&"castle_plot",
+	&"house_1",
+	&"house_2",
+	&"house_3",
+	&"house_4",
+	&"house_5",
+	&"barracks_1",
+	&"archery_1",
+	&"tower_3",
+	&"shrine_east",
+	&"castle_plot",
+	&"wall_west",
+	&"wall_east",
+	&"wall_north",
+]
+## The cards each castle-aware bot takes, one per castle tier (tiers II, III, IV), in pick order.
+## balanced_castle leans on buildings, towers and gold; army_castle on the king and the squads.
+const _BALANCED_CASTLE_PICKS: Array[StringName] = [&"masons", &"engineers", &"golden_age"]
+const _ARMY_CASTLE_PICKS: Array[StringName] = [&"commander", &"war_horns", &"iron_discipline"]
 
 
 ## A fresh bot for `name`, or null when the name is not in NAMES.
@@ -219,9 +319,10 @@ static func make(name: StringName) -> PlaytestBot:
 		bot.build_order = _HOUSES_FIRST.duplicate()
 	elif name == &"towers_first":
 		bot.build_order = _TOWERS_FIRST.duplicate()
-	elif name == &"army_balanced" or name == &"army_balanced_no_walls":
-		var army_walls: bool = name == &"army_balanced"
-		bot.build_order = (_ARMY_BALANCED if army_walls else _ARMY_BALANCED_NO_WALLS).duplicate()
+	elif _is_army(name):
+		bot.build_order = _army_order(name).duplicate()
+		if name == &"army_castle":
+			bot.card_picks = _ARMY_CASTLE_PICKS.duplicate()
 		bot.prefer_telegraphed_towers = true
 		bot.night_orders = [
 			{"squads": [&"barracks_1"], "verb": &"follow"},
@@ -229,7 +330,24 @@ static func make(name: StringName) -> PlaytestBot:
 		]
 		bot.slam_min_enemies = _ARMY_SLAM_MIN_ENEMIES
 	else:
-		var balanced_walls: bool = name == &"balanced"
-		bot.build_order = (_BALANCED if balanced_walls else _BALANCED_NO_WALLS).duplicate()
+		bot.build_order = _balanced_order(name).duplicate()
+		if name == &"balanced_castle":
+			bot.card_picks = _BALANCED_CASTLE_PICKS.duplicate()
 		bot.prefer_telegraphed_towers = true
 	return bot
+
+
+static func _is_army(name: StringName) -> bool:
+	return name == &"army_balanced" or name == &"army_balanced_no_walls" or name == &"army_castle"
+
+
+static func _army_order(name: StringName) -> Array[StringName]:
+	if name == &"army_castle":
+		return _ARMY_CASTLE
+	return _ARMY_BALANCED if name == &"army_balanced" else _ARMY_BALANCED_NO_WALLS
+
+
+static func _balanced_order(name: StringName) -> Array[StringName]:
+	if name == &"balanced_castle":
+		return _BALANCED_CASTLE
+	return _BALANCED if name == &"balanced" else _BALANCED_NO_WALLS

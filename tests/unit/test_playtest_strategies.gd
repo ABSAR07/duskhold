@@ -7,10 +7,17 @@ const TUNING_PATH := "res://data/tuning/loop_tuning.tres"
 const HOUSE: StringName = &"house"
 const TOWER: StringName = &"tower"
 const EPSILON: float = 0.0001
-## The four bots built on the balanced order: with the wall runs and the Phase 3 twins without.
+## The bots built on the balanced order: with the wall runs, the Phase 3 twins without them and the
+## castle-aware pair of plan 05-11.
 const BALANCED_FAMILY: Array[StringName] = [
-	&"balanced", &"army_balanced", &"balanced_no_walls", &"army_balanced_no_walls"
+	&"balanced",
+	&"army_balanced",
+	&"balanced_no_walls",
+	&"army_balanced_no_walls",
+	&"balanced_castle",
+	&"army_castle",
 ]
+const ARMY_FAMILY: Array[StringName] = [&"army_balanced", &"army_balanced_no_walls", &"army_castle"]
 const WALL_PLOTS: Array[StringName] = [&"wall_west", &"wall_east", &"wall_north", &"wall_ring"]
 
 
@@ -26,7 +33,7 @@ func _building_of(map: MapConfig, spot_id: StringName) -> StringName:
 	return &""
 
 
-func test_the_eight_named_strategies_are_listed() -> void:
+func test_the_ten_named_strategies_are_listed() -> void:
 	var expected: Array[StringName] = [
 		&"no_build",
 		&"greedy_economy",
@@ -36,6 +43,8 @@ func test_the_eight_named_strategies_are_listed() -> void:
 		&"army_balanced",
 		&"balanced_no_walls",
 		&"army_balanced_no_walls",
+		&"balanced_castle",
+		&"army_castle",
 	]
 	assert_eq(PlaytestStrategies.NAMES, expected, "the names the CLI may select")
 
@@ -213,7 +222,7 @@ func test_army_balanced_follows_with_the_footmen_and_holds_the_archers_each_nigh
 
 func test_the_strategies_without_squads_give_no_orders_and_never_slam() -> void:
 	for strategy: StringName in PlaytestStrategies.NAMES:
-		if strategy == &"army_balanced" or strategy == &"army_balanced_no_walls":
+		if ARMY_FAMILY.has(strategy):
 			continue
 		var bot: PlaytestBot = PlaytestStrategies.make(strategy)
 		assert_eq(bot.night_orders.size(), 0, "%s gives no night orders" % strategy)

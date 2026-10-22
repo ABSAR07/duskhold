@@ -17,6 +17,13 @@ extends RefCounted
 ## cannot judge tension, readability or fun. Footmen that shield a tower get no kill credit, so the
 ## ratio understates squads that hold a line for towers behind them. The gate decision stays with
 ## the owner.
+##
+## Castle and Shrine (plan 05-11): each run also records `castle_tier_reached` (1 when the castle
+## was never upgraded), `picks` (the ability card ids in pick order), `castle_days` (the day number
+## of each castle upgrade) and the gold spent on the castle and on Shrines, which the spend roles
+## keep apart from towers and economy because both shoot without being road towers or income. A
+## strategy's summary adds the mean tier, the earliest day the castle was first upgraded (0 when it
+## never was) and the mean gold in those two roles.
 
 const MAP_PATH := "res://data/maps/prototype_map.tres"
 const TUNING_PATH := "res://data/tuning/loop_tuning.tres"
@@ -52,8 +59,9 @@ const NIGHT_COLUMNS: Array[String] = [
 ## Runs every strategy over every seed on the shipped data and returns
 ## {seeds, runs, summaries}. A name that is not a known strategy is skipped. A run is
 ## {strategy, seed, outcome, nights_survived, gold_earned, buildings_lost, king_knockouts,
-## per_night, military_gold_spent, tower_gold_spent, economy_gold_spent, unit_kills, tower_kills};
-## summaries maps strategy to what `summary` returns.
+## per_night, military_gold_spent, tower_gold_spent, economy_gold_spent, castle_gold_spent,
+## shrine_gold_spent, unit_kills, tower_kills, castle_tier_reached, picks, castle_days}; summaries
+## maps strategy to what `summary` returns.
 static func run(strategies: Array[StringName], seeds: Array[int]) -> Dictionary:
 	return run_on(load(MAP_PATH), load(TUNING_PATH), load(KING_PATH), strategies, seeds)
 
@@ -87,9 +95,11 @@ static func run_on(
 ## What one strategy did across the report's seeds: {win_rate, mean_nights_survived,
 ## min_nights_survived, max_nights_survived, median_loss_night, mean_gold_earned,
 ## mean_buildings_lost, mean_knockouts, unit_kills_per_military_gold, tower_kills_per_tower_gold,
-## squad_value_ratio}. `median_loss_night` is the night number lost runs ended on (the lower middle
-## one of the sorted list, ties ordered by seed) and 0 when none was lost. The three squad value
-## keys divide sums over the runs, not a mean of per-run ratios, and are 0.0 when a divisor is 0.
+## squad_value_ratio, mean_castle_tier_reached, earliest_castle_day, mean_castle_gold_spent,
+## mean_shrine_gold_spent}. `median_loss_night` is the night number lost runs ended on (the lower
+## middle one of the sorted list, ties ordered by seed) and 0 when none was lost. The three squad
+## value keys divide sums over the runs, not a mean of per-run ratios, and are 0.0 when a divisor
+## is 0.
 static func summary(report: Dictionary, strategy: StringName) -> Dictionary:
 	var runs: Array = _runs_of(report, strategy)
 	var wins: int = 0
@@ -102,6 +112,10 @@ static func summary(report: Dictionary, strategy: StringName) -> Dictionary:
 	var tower_gold: int = 0
 	var unit_kills: int = 0
 	var tower_kills: int = 0
+	var castle_tiers: int = 0
+	var castle_gold: int = 0
+	var shrine_gold: int = 0
+	var earliest_castle_day: int = 0
 	for entry: Dictionary in runs:
 		var nights: int = int(entry["nights_survived"])
 		survived.append(nights)
@@ -112,6 +126,12 @@ static func summary(report: Dictionary, strategy: StringName) -> Dictionary:
 		tower_gold += int(entry.get("tower_gold_spent", 0))
 		unit_kills += int(entry.get("unit_kills", 0))
 		tower_kills += int(entry.get("tower_kills", 0))
+		castle_tiers += int(entry.get("castle_tier_reached", 1))
+		castle_gold += int(entry.get("castle_gold_spent", 0))
+		shrine_gold += int(entry.get("shrine_gold_spent", 0))
+		var first_day: int = _first_castle_day(entry)
+		if first_day > 0 and (earliest_castle_day == 0 or first_day < earliest_castle_day):
+			earliest_castle_day = first_day
 		if entry["outcome"] == OUTCOME_WON:
 			wins += 1
 		elif entry["outcome"] == OUTCOME_LOST:
@@ -134,6 +154,10 @@ static func summary(report: Dictionary, strategy: StringName) -> Dictionary:
 		"unit_kills_per_military_gold": unit_value,
 		"tower_kills_per_tower_gold": tower_value,
 		"squad_value_ratio": unit_value / tower_value if tower_value > 0.0 else 0.0,
+		"mean_castle_tier_reached": float(castle_tiers) / count,
+		"earliest_castle_day": earliest_castle_day,
+		"mean_castle_gold_spent": float(castle_gold) / count,
+		"mean_shrine_gold_spent": float(shrine_gold) / count,
 	}
 
 
@@ -175,6 +199,20 @@ static func to_markdown(report: Dictionary) -> String:
 		lines.append(
 			_value_row(strategy, _runs_of(report, StringName(strategy)), summaries[strategy])
 		)
+	lines.append("")
+	lines.append("## Castle and Shrine")
+	lines.append("")
+	lines.append(
+		(
+			"| Strategy | Castle tier reached (mean) | Earliest first upgrade (day)"
+			+ " | Castle gold (mean) | Shrine gold (mean) | Picks (most common) |"
+		)
+	)
+	lines.append("|---|---:|---:|---:|---:|---|")
+	for strategy: String in summaries.keys():
+		lines.append(
+			_castle_row(strategy, _runs_of(report, StringName(strategy)), summaries[strategy])
+		)
 	for strategy: String in summaries.keys():
 		lines.append("")
 		lines.append("## Per night: %s" % strategy)
@@ -207,8 +245,13 @@ static func _run_entry(strategy: StringName, run_seed: int, result: Dictionary) 
 		"military_gold_spent": spent["military"],
 		"tower_gold_spent": spent["towers"],
 		"economy_gold_spent": spent["economy"],
+		"castle_gold_spent": spent["castle"],
+		"shrine_gold_spent": spent["shrine"],
 		"unit_kills": unit_kills,
 		"tower_kills": tower_kills,
+		"castle_tier_reached": result["castle_tier"],
+		"picks": result["picks"].duplicate(),
+		"castle_days": result["castle_days"].duplicate(),
 	}
 
 
@@ -274,6 +317,46 @@ static func _value_row(strategy: String, runs: Array, values: Dictionary) -> Str
 			values["squad_value_ratio"],
 		]
 	)
+
+
+## One castle row: the strategy summary's castle numbers and the pick order most runs share.
+static func _castle_row(strategy: String, runs: Array, values: Dictionary) -> String:
+	var earliest: int = int(values["earliest_castle_day"])
+	return (
+		"| %s | %.2f | %s | %.2f | %.2f | %s |"
+		% [
+			strategy,
+			values["mean_castle_tier_reached"],
+			str(earliest) if earliest > 0 else NO_VALUE,
+			values["mean_castle_gold_spent"],
+			values["mean_shrine_gold_spent"],
+			_common_picks(runs),
+		]
+	)
+
+
+## The day number of the run's first castle upgrade, 0 when it never upgraded the castle.
+static func _first_castle_day(entry: Dictionary) -> int:
+	var days: Array = entry.get("castle_days", [])
+	return int(days[0]) if not days.is_empty() else 0
+
+
+## The pick order shared by most of `runs` as "a, b, c", ties going to the order seen first; the
+## NO_VALUE text when no run picked a card.
+static func _common_picks(runs: Array) -> String:
+	var counts: Dictionary = {}
+	var best: String = NO_VALUE
+	var best_count: int = 0
+	for entry: Dictionary in runs:
+		var picks: Array = entry.get("picks", [])
+		if picks.is_empty():
+			continue
+		var key: String = ", ".join(PackedStringArray(picks))
+		counts[key] = int(counts.get(key, 0)) + 1
+		if int(counts[key]) > best_count:
+			best_count = int(counts[key])
+			best = key
+	return best
 
 
 ## One markdown row per night number any of `runs` started, averaged over the runs that started it.

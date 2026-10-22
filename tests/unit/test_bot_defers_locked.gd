@@ -2,9 +2,9 @@ extends GutTest
 ## Pitfall 1, BLDG-09: a bot whose next entry is locked (castle_tier or needs_spot) defers that
 ## entry and keeps buying the later ones, retrying the deferred entries on every think, so a gate
 ## never stalls a whole build order. An unaffordable entry still waits in place, as it always did.
-## The shipped data gates only the Mill's third tier and the three Fields (plan 05-07), and no
-## shipped build order buys any of them yet, so no shipped strategy ever defers (plan 05-11 changes
-## this).
+## Until plan 05-11 no shipped build order bought a gated entry. Since then the castle-aware orders
+## buy the castle, the Mill, the Fields and the gated tiers, and the last test checks that they meet
+## each gate in sequence instead of forbidding them.
 
 const FIXTURE := "res://tests/fixtures/fixture_map_gate.tres"
 const TUNING := "res://data/tuning/loop_tuning.tres"
@@ -109,22 +109,38 @@ func test_an_entry_that_became_max_tier_is_dropped_from_the_deferred_list() -> v
 	assert_eq(ctx.economy.get_gold(), gold, "the third entry is max tier and buys nothing")
 
 
-func test_a_shipped_strategy_on_the_shipped_map_never_defers() -> void:
+func test_a_shipped_strategy_meets_its_gates_in_sequence() -> void:
+	## Plan 05-11: the castle-aware orders buy the castle, the Mill, the Fields and the gated top
+	## tiers, so the test no longer forbids them. A strategy that buys the castle plot must reach
+	## each gate before the entry that needs it (castle II before any top tier, the Mill before a
+	## Field). A strategy with no castle entry (the Phase 4 orders, the three older ones) may name a
+	## gated tier: its bot defers that entry for the rest of the run, which is what the no-castle
+	## twins measure, but it never names a Field without the Mill before it.
 	var shipped: MapConfig = E2eSupport.shipped_prototype_map()
 	for strategy: StringName in PlaytestStrategies.NAMES:
+		var order: Array[StringName] = PlaytestStrategies.make(strategy).build_order
+		var buys_castle: bool = order.has(CASTLE)
 		var bought: Dictionary = {}
-		for spot_id: StringName in PlaytestStrategies.make(strategy).build_order:
+		for spot_id: StringName in order:
 			var tier_number: int = int(bought.get(spot_id, 0)) + 1
 			bought[spot_id] = tier_number
 			var spot: BuildSpotDef = _shipped_spot(shipped, spot_id)
 			assert_not_null(spot, "%s: %s is on the map" % [strategy, spot_id])
 			if spot == null:
 				continue
-			assert_eq(spot.requires_spot, &"", "%s: %s needs no other plot" % [strategy, spot_id])
+			if spot.requires_spot != &"" and tier_number == 1:
+				var before: String = (
+					"%s: %s comes after %s" % [strategy, spot_id, spot.requires_spot]
+				)
+				assert_true(bought.has(spot.requires_spot), before)
 			var tier: BuildingTierDef = _shipped_tier(shipped, spot, tier_number)
-			if tier != null:
-				var note: String = "%s: %s tier %d is ungated" % [strategy, spot_id, tier_number]
-				assert_eq(tier.requires_castle_tier, 0, note)
+			if tier != null and tier.requires_castle_tier > 0 and buys_castle:
+				var castle_tier: int = int(bought.get(CASTLE, 0)) + 1
+				var note: String = (
+					"%s: %s tier %d needs castle %d, the order holds it by then"
+					% [strategy, spot_id, tier_number, tier.requires_castle_tier]
+				)
+				assert_gte(castle_tier, tier.requires_castle_tier, note)
 
 
 func _shipped_spot(map: MapConfig, spot_id: StringName) -> BuildSpotDef:
