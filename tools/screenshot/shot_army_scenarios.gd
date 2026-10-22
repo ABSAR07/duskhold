@@ -14,6 +14,9 @@ const ARCHERY: StringName = &"archery_1"
 const BOTH: Array[StringName] = [&"barracks_1", &"archery_1"]
 ## Where the king waits by day: between the two squads, in front of the keep.
 const KING_STAND := Vector3(0.0, 0.0, 4.0)
+## The drag-box shot stands the king at the spawn point, 2.8 m from the castle plot: inside the
+## 2.5 m reach with enough gold the card row is up (plan 05-02) and would take the press.
+const DRAG_STAND := Vector3(0.0, 0.0, 7.0)
 ## Far east on the ground plane, so a click off the map's edge lands on no ground.
 const KING_EDGE := Vector3(84.0, 0.0, 0.0)
 const OFF_MAP_POINT := Vector3(100.0, 0.0, 0.0)
@@ -174,7 +177,7 @@ static func _night_squad_down(runner: Node, map_root: MapRoot, selected: StringN
 static func _drag_box(runner: Node, map_root: MapRoot) -> bool:
 	if not await _raise_squads(runner, map_root):
 		return false
-	await _stand(runner, map_root, KING_STAND)
+	await _stand(runner, map_root, DRAG_STAND)
 	_mouse_motion(DRAG_FROM)
 	await ShotScenarios._wait_frames(runner, 2)
 	_mouse_button(MOUSE_BUTTON_LEFT, true, DRAG_FROM)

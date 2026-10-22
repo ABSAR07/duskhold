@@ -25,10 +25,14 @@ const HOUSE_SPOT: StringName = &"house_1"
 const TOWER_SPOT: StringName = &"tower_1"
 
 
-func _spawn_views() -> Array:
+## `raise_castle` buys castle II first: House III, Tower II, Barracks III and Archery Range III
+## need it since plan 05-11 (D-03). The castle-keep test spawns without it (tier I keep).
+func _spawn_views(raise_castle: bool = true) -> Array:
 	var map_root: MapRoot = await E2eSupport.spawn_map(self)
 	var ctx: RunContext = map_root.get_context()
 	ctx.economy.grant(EXTRA_GOLD)
+	if raise_castle:
+		E2eSupport.raise_castle(ctx, 2)
 	return [map_root, ctx, map_root.get_node("BuildingViews")]
 
 
@@ -107,7 +111,7 @@ func test_tower_tiers_use_their_wrapper_scenes_and_tier_two_is_taller() -> void:
 
 
 func test_castle_center_is_the_castle_wrapper_scene() -> void:
-	var setup: Array = await _spawn_views()
+	var setup: Array = await _spawn_views(false)
 	var views: BuildingViews = setup[2]
 	var castle: Node3D = views.get_node_or_null("CastleCenter") as Node3D
 	assert_not_null(castle, "the castle landmark exists")

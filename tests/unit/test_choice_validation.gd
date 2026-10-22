@@ -172,6 +172,12 @@ func test_a_castle_building_with_one_tier_is_reported() -> void:
 	var map: MapConfig = _map()
 	var only: Array[BuildingTierDef] = [_castle(map).tiers[0]]
 	_castle(map).tiers = only
+	# The shipped House III needs castle II (plan 05-11), which a one-tier castle makes impossible:
+	# that is BuildRequirementValidation's error, not this one, so it is taken out of the way.
+	for building_def: BuildingDef in map.buildings:
+		if building_def.id != _castle(map).id:
+			for tier_def: BuildingTierDef in building_def.tiers:
+				tier_def.requires_castle_tier = 0
 	_assert_one_error(map, ["castle_center", "fewer than two tiers"], "one tier")
 
 

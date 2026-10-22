@@ -102,6 +102,8 @@ func test_second_build_on_a_single_tier_building_hits_max_tier() -> void:
 func test_upgrade_path_spends_each_tier_cost_in_order() -> void:
 	var ctx: RunContext = _context_for(PROTOTYPE_MAP)
 	ctx.economy.grant(100)
+	# House III needs castle II since plan 05-11 (D-03); the helper grants and spends its own cost.
+	E2eSupport.raise_castle(ctx, 2)
 	var spot_id: StringName = ctx.buildings.spot_ids()[0]
 	var house: BuildingDef = ctx.buildings.get_building_def_for_spot(spot_id)
 	for tier: int in range(1, house.max_tier() + 1):
