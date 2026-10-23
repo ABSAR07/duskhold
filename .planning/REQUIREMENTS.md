@@ -20,7 +20,7 @@ Requirements for the initial release (5-map campaign). Each maps to exactly one 
 
 ### King
 
-- [x] **KING-01**: Player can move the mounted king with WASD or the left stick, with a sprint modifier
+- [x] **KING-01**: Player can move the mounted king with WASD or the left stick, with a sprint modifier (the left-stick and pad sprint bindings were removed on 2026-10-23; see the amendment note)
 - [x] **KING-02**: The camera follows the king from a fixed isometric-style angle
 - [x] **KING-03**: The king automatically attacks enemies in range using the equipped weapon's passive attack
 - [x] **KING-04**: Player can trigger the equipped weapon's active ability, which then shows a visible cooldown
@@ -102,7 +102,7 @@ Requirements for the initial release (5-map campaign). Each maps to exactly one 
 >
 > **Amended 2026-10-09 (owner decision, Phase 3 discuss-phase, 03-CONTEXT.md D-11):** the mouse returns to runs for **unit commands only**: it selects squads (click, drag box, Ctrl to add), stores and recalls control groups (Ctrl + 0–9, 0–9) and supplies the ground point of move, attack-move and patrol (UNIT-09/10). Building stays ride-up-and-hold and the king's attacks stay automatic. The gamepad reaches the same commands by cycling squads and a right-stick ground cursor (INPT-02).
 >
-> **Amended 2026-10-16 (owner decision):** a gamepad is no longer required. INPT-02 stays checked as shipped history; its pad paths are unsupported from this date. The pad clauses of KING-01 (left stick), UNIT-09 (cycling on gamepad) and UNIT-10 (right-stick cursor) describe shipped behaviour, not an ongoing requirement. From Phase 4 on, no requirement implies pad parity.
+> **Amended 2026-10-16 (owner decision):** a gamepad is no longer required. INPT-02 stays checked as shipped history; its pad paths are unsupported from this date. The pad clauses of KING-01 (left stick), UNIT-09 (cycling on gamepad) and UNIT-10 (right-stick cursor) describe shipped behaviour, not an ongoing requirement. From Phase 4 on, no requirement implies pad parity. Amended 2026-10-23 (quick task 261023-aos): the left-stick movement and pad sprint bindings of KING-01 were removed from project.godot because a connected pad's stick noise walked the king off his plot during the Phase 5 UAT; every other pad binding stays as shipped.
 
 - [x] **INPT-01**: Player can play the game entirely on keyboard and mouse: move, sprint, action (hold to build or upgrade), active ability, unit selection and commands, and start night
 - [x] **INPT-02**: Player can play the game entirely on a gamepad with equivalent bindings, switching between keyboard and gamepad at any time with on-screen prompts matching the active device (no longer required from 2026-10-16; the shipped pad paths stay unsupported)

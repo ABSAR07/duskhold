@@ -4,10 +4,10 @@ current_phase: 05
 current_phase_name: Castle Center & Economy Depth
 status: verifying
 stopped_at: Completed 05-12-PLAN.md
-last_updated: "2026-10-22T09:17:29.500Z"
-last_activity: 2026-10-21
-last_activity_desc: Phase 05 execution started
-state_head: a49e2beb27f18cb73471f66038a503c982ed9603
+last_updated: "2026-10-23T03:33:43.340Z"
+last_activity: 2026-10-23
+last_activity_desc: Completed quick task 261023-aos - strip the gamepad bindings from the king movement and sprint actions
+state_head: 876ca9547666abdeb42f39dd708af9c560b142a0
 progress:
   total_phases: 13
   completed_phases: 4
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-21)
 Phase: 05 (Castle Center & Economy Depth) — EXECUTING
 Plan: 12 of 12
 Status: Phase complete — ready for verification
-Last activity: 2026-10-21 — Phase 05 execution started
+Last activity: 2026-10-23 — Completed quick task 261023-aos: strip the gamepad bindings from the king movement and sprint actions
 
 Progress: [███░░░░░░░] 31%
 
@@ -290,7 +290,7 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-18: Round 2 published as outcome (a) with the owner's 0.8 bar (D-26); Round 1 text kept below and declared superseded; gate packet flags that the exported build predates the fixes and the retune
 - [Phase 03]: Phase 3 closed 2026-10-15: UAT 25 of 25 pass (7 superseded rows, 2 pad rows passed on a DualShock 4); the owner passed the Phase 3 gate (test 24) without the full two-or-three-run playtest ("it seems fine, might come back and change stuff later"), so the 15 assumptions in 03-PLAYTEST-GATE.md stand as accepted by default; D-29 accepts the two long toasts and amends the UI-SPEC bound; review-fix pass 1 fixed 13 findings (CR-01, WR-02 to WR-04, IN-01 to IN-09), the fourth review left IN-10 and IN-11 (info) open; suite 1427 tests, goldens unchanged
 - [Phase 03]: Re-verification after review-fix pass 2 (2026-10-15): the ledger step reads every `### <ID>:` heading in REVIEW.md as a finding, so a review's fix-verification sections must not use that shape (the fifth review's two were reworded to `### Fix <ID> verified:`); the verifier returned `passed` directly because 03-UAT.md is complete, keeping the ten human items with their UAT test numbers and results
-- [Quick 261016-1o5]: Gamepad dropped as a requirement (owner decision 2026-10-16). The shipped pad code (pad bindings in project.godot, PadChords, PadCursorController, the glyph tiles and the hud_pad_cursor shot) stays in the build unsupported, kept as shipped and not extended; DeviceModel never reports the pad, so every HUD prompt stays on keyboard glyphs while a pad drives the game; no later phase adds pad parity, pad prompts or pad tests. Recorded in PROJECT.md (Constraints, Validated, Active, Context, Key Decisions), REQUIREMENTS.md (amendment note, INPT-02, INPT-03, BLDG-05), ROADMAP.md (controls note, Phase 5 and Phase 13 criteria) and CLAUDE.md
+- [Quick 261016-1o5]: Gamepad dropped as a requirement (owner decision 2026-10-16). The shipped pad code (pad bindings in project.godot, PadChords, PadCursorController, the glyph tiles and the hud_pad_cursor shot) stays in the build unsupported, kept as shipped and not extended; DeviceModel never reports the pad, so every HUD prompt stays on keyboard glyphs while a pad drives the game; no later phase adds pad parity, pad prompts or pad tests. Amended 2026-10-23 (quick 261023-aos): the king's movement and sprint pad bindings were removed from project.godot after a connected pad's stick noise walked the king off his plot during the Phase 5 UAT; the rest of the pad code stays as shipped. Recorded in PROJECT.md (Constraints, Validated, Active, Context, Key Decisions), REQUIREMENTS.md (amendment note, INPT-02, INPT-03, BLDG-05), ROADMAP.md (controls note, Phase 5 and Phase 13 criteria) and CLAUDE.md
 - [Phase 04]: [04-01] Enemy batches keep instance colours on and pass white: the Compatibility renderer reads a missing vertex colour as black, so a colourless batch drew every body black through the tint; any later batch that reads COLOR must keep colours on — Forward+ hid the bug; found by the Compatibility screenshot run
 - [Phase 04]: [04-01] ShotRunner waits one processed frame before the capture: batched views upload in _process, so a scenario that stepped the simulation by hand left the captured frame without enemies — Puppet nodes appeared at spawn; batches commit per frame
 - [Phase 04]: [04-01] View hooks (has_view, puppet_position, flash_of, bar_ratio_of, puff_count) read CPU state, never the MultiMesh; DeathPuffBatch.spawn takes an optional colour and the puff cap is 128 (was 64); MAX_VIEWS is 512 enemies drawn in total — Headless renderer reads MultiMeshes back as zeros (RESEARCH F6)
@@ -403,6 +403,7 @@ None yet.
 |---|-------------|------|--------|-----------|
 | 261001-0dd | Resolve Phase 1 owner decisions: widen CI to every push (DEV-02) and record the horse licence keep decision (ART-02) | 2026-09-30 | bfe3c97 | [261001-0dd-resolve-phase-1-owner-decisions-widen-ci](./quick/261001-0dd-resolve-phase-1-owner-decisions-widen-ci/) |
 | 261016-1o5 | Record gamepad no longer required: owner decision 2026-10-16 recorded in PROJECT, REQUIREMENTS, ROADMAP, CLAUDE.md and STATE; HUD prompts stay on the keyboard, pad support kept unsupported | 2026-10-15 | 2e76527 | [261016-1o5-record-gamepad-no-longer-required](./quick/261016-1o5-record-gamepad-no-longer-required/) |
+| 261023-aos | Strip the gamepad bindings from the king's movement and sprint actions (a connected pad's stick noise walked the king off his plot during the Phase 5 UAT) | 2026-10-23 | 876ca95 | [261023-aos-strip-the-gamepad-bindings-from-the-king](./quick/261023-aos-strip-the-gamepad-bindings-from-the-king/) |
 
 ## Deferred Items
 

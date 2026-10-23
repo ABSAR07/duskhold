@@ -13,7 +13,7 @@ A faithful, from-scratch recreation of Thronefall's gameplay as a Windows PC gam
 - **Tech stack**: Godot 4.7.2-stable, GDScript (standard build), GUT 9.7.1 tests, gdtoolkit lint/format — text-based scenes/resources and headless CLI for AI-driven development
 - **Assets**: CC0 (or equally permissive) only — clean licensing for a public portfolio; attribution log maintained
 - **IP**: No Thronefall trademarks, names, or assets; the mechanics are recreated, the content is original
-- **Platform**: Windows PC; keyboard and mouse for all gameplay (Thronefall-style ride-up-and-hold building; RTS-style squad selection, control groups and orders with the mouse). A gamepad is no longer a requirement (owner decision 2026-10-16): the pad bindings shipped in Phases 1 to 3 stay in the project unsupported, and no later phase adds pad parity, pad prompts or pad tests.
+- **Platform**: Windows PC; keyboard and mouse for all gameplay (Thronefall-style ride-up-and-hold building; RTS-style squad selection, control groups and orders with the mouse). A gamepad is no longer a requirement (owner decision 2026-10-16): the pad bindings shipped in Phases 1 to 3 stay in the project unsupported (except the king's movement and sprint bindings, removed on 2026-10-23 after a connected pad's stick noise walked the king off his plot; quick task 261023-aos), and no later phase adds pad parity, pad prompts or pad tests.
 - **Budget**: Zero-cost tools and assets (no code-signing certificate)
 - **Performance**: Modest hardware (roughly GTX 970 / 4 GB RAM); 60 fps with hundreds of units and projectiles on screen
 
