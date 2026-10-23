@@ -1,11 +1,13 @@
 extends GutTest
-## INPT-01, INPT-02, D-12: every in-run capability has a keyboard-and-mouse path and a gamepad path.
-## The table names the Input Map actions behind each capability on each device; the tests check the
-## actions exist, that the keyboard / mouse side has a key or mouse event and that the gamepad side
-## has a joypad button or stick event, and that no project action is left out of the table. The one
-## capability that is not an action, select one type by double-click, is a gesture marker backed by
-## its own scene test, so a marker with no test fails here. The pad-only actions of plan 03-09
-## (command layer, group mode, select type, the ground cursor) are pinned to their pad bindings.
+## INPT-01, INPT-02, D-12: every in-run capability has a keyboard-and-mouse path and, but for
+## KEYBOARD_ONLY_CAPABILITIES, a gamepad path. The move and sprint rows have had an empty pad
+## column since 2026-10-23, when their pad events were removed. The table names the Input Map
+## actions behind each capability on each device; the tests check the actions exist, that the
+## keyboard / mouse side has a key or mouse event and that the gamepad side has a joypad button or
+## stick event, and that no project action is left out of the table. The one capability that is
+## not an action, select one type by double-click, is a gesture marker backed by its own scene
+## test, so a marker with no test fails here. The pad-only actions of plan 03-09 (command layer,
+## group mode, select type, the ground cursor) are pinned to their pad bindings.
 ## The pad column is unsupported since 2026-10-16 (owner decision); it pins the shipped bindings.
 
 const CURSOR_ACTIONS: Array[StringName] = [
@@ -30,9 +32,11 @@ const GESTURE_MARKERS: Dictionary = {
 }
 ## The "pad" column of every row below pins the shipped pad bindings, which stay unsupported.
 const PAD_COLUMN_STATUS: String = "unsupported since 2026-10-16 (owner decision)"
+## Pad events of the four move actions and sprint removed 2026-10-23 (Phase 5 UAT stick drift).
+const KEYBOARD_ONLY_CAPABILITIES: Array[String] = ["move", "sprint"]
 const CAPABILITIES: Dictionary = {
-	"move": {"keys": MOVE_ACTIONS, "pad": MOVE_ACTIONS},
-	"sprint": {"keys": [&"sprint"], "pad": [&"sprint"]},
+	"move": {"keys": MOVE_ACTIONS, "pad": []},
+	"sprint": {"keys": [&"sprint"], "pad": []},
 	"build": {"keys": [&"action_build"], "pad": [&"action_build"]},
 	"start night": {"keys": [&"start_night"], "pad": [&"start_night"]},
 	"ability": {"keys": [&"ability"], "pad": [&"ability"]},
@@ -181,12 +185,25 @@ func test_every_capability_has_a_keyboard_or_mouse_path() -> void:
 		assert_true(reachable, "%s can be done on the keyboard and mouse" % capability)
 
 
-func test_every_capability_has_a_gamepad_path_and_every_action_on_it_has_a_pad_event() -> void:
+func test_every_capability_but_the_keyboard_only_ones_has_a_gamepad_path() -> void:
 	for capability: String in CAPABILITIES:
+		if KEYBOARD_ONLY_CAPABILITIES.has(capability):
+			continue
 		var entries: Array = CAPABILITIES[capability]["pad"]
 		assert_gt(entries.size(), 0, "%s names its pad actions" % capability)
 		for entry: Variant in entries:
 			assert_true(_has_pad_event(entry), "%s: %s has a joypad event" % [capability, entry])
+
+
+func test_the_keyboard_only_rows_have_no_pad_column_and_no_pad_event() -> void:
+	for capability: String in KEYBOARD_ONLY_CAPABILITIES:
+		assert_true(CAPABILITIES.has(capability), "%s is a row of the table" % capability)
+		var row: Dictionary = CAPABILITIES[capability]
+		var pad: Array = row["pad"]
+		assert_eq(pad.size(), 0, "%s has an empty pad column" % capability)
+		for action: StringName in row["keys"]:
+			assert_false(_has_pad_event(action), "%s has no joypad event" % action)
+			assert_true(_has_keyboard_or_mouse_event(action), "%s keeps its key" % action)
 
 
 func test_every_gesture_marker_is_backed_by_a_scene_test_that_exists() -> void:

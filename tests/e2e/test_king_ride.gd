@@ -48,6 +48,20 @@ func _ride_distance(map_root: MapRoot, action: StringName, seconds: float, sprin
 	return _xz(king.global_position).distance_to(start)
 
 
+func _pad_axis(axis: JoyAxis, value: float) -> void:
+	var motion: InputEventJoypadMotion = InputEventJoypadMotion.new()
+	motion.axis = axis
+	motion.axis_value = value
+	Input.parse_input_event(motion)
+
+
+func _pad_button(index: JoyButton, pressed: bool) -> void:
+	var button: InputEventJoypadButton = InputEventJoypadButton.new()
+	button.button_index = index
+	button.pressed = pressed
+	Input.parse_input_event(button)
+
+
 func test_ride_reaches_the_first_spot_within_the_walk_time_budget() -> void:
 	var map_root: MapRoot = await _start_map()
 	var ctx: RunContext = map_root.get_context()
@@ -96,6 +110,31 @@ func test_stick_input_below_the_deadzone_does_not_move_the_king() -> void:
 	Input.action_press(&"move_right", 0.1)
 	await wait_seconds(0.4)
 	assert_almost_eq(king.global_position.x, start.x, 0.001, "no drift from sub-deadzone input")
+
+
+## Since 2026-10-23 a full left-stick push and RB move and sprint nothing: those pad events were
+## removed from the move and sprint actions after the Phase 5 UAT.
+func test_a_left_stick_push_and_rb_no_longer_ride_or_sprint_the_king() -> void:
+	var map_root: MapRoot = await _start_map()
+	var king: King = map_root.get_king()
+	var start: Vector3 = king.global_position
+	_pad_axis(JOY_AXIS_LEFT_X, 1.0)
+	_pad_axis(JOY_AXIS_LEFT_Y, -1.0)
+	_pad_button(JOY_BUTTON_RIGHT_SHOULDER, true)
+	await wait_seconds(0.4)
+	var sprint_pressed: bool = Input.is_action_pressed(&"sprint")
+	var end: Vector3 = king.global_position
+	_pad_axis(JOY_AXIS_LEFT_X, 0.0)
+	_pad_axis(JOY_AXIS_LEFT_Y, 0.0)
+	_pad_button(JOY_BUTTON_RIGHT_SHOULDER, false)
+	await wait_process_frames(1)
+	assert_false(sprint_pressed, "RB no longer reads as sprint since 2026-10-23")
+	assert_almost_eq(
+		end.x, start.x, 0.001, "a full stick push no longer rides the king (UAT drift)"
+	)
+	assert_almost_eq(
+		end.z, start.z, 0.001, "a full stick push no longer rides the king (UAT drift)"
+	)
 
 
 func test_model_turns_to_face_the_ride_direction_and_the_body_does_not() -> void:

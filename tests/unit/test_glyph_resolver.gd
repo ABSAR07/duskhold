@@ -18,6 +18,19 @@ func _key(physical: Key) -> InputEventKey:
 	return key
 
 
+func _pad_button(index: JoyButton) -> InputEventJoypadButton:
+	var button: InputEventJoypadButton = InputEventJoypadButton.new()
+	button.button_index = index
+	return button
+
+
+func _stick(axis: JoyAxis, value: float) -> InputEventJoypadMotion:
+	var motion: InputEventJoypadMotion = InputEventJoypadMotion.new()
+	motion.axis = axis
+	motion.axis_value = value
+	return motion
+
+
 func _tile(action: StringName, device: int) -> String:
 	return GlyphResolver.tile_path(GlyphResolver.first_event(action, device), _identity)
 
@@ -88,7 +101,8 @@ func test_pad_buttons_map_to_the_xbox_tiles() -> void:
 	assert_eq(_tile(&"action_build", PAD_DEVICE), PAD + "xbox_button_a.png", "A")
 	assert_eq(_tile(&"command_cancel", PAD_DEVICE), PAD + "xbox_button_b.png", "B")
 	assert_eq(_tile(&"command_layer", PAD_DEVICE), PAD + "xbox_lb.png", "LB")
-	assert_eq(_tile(&"sprint", PAD_DEVICE), PAD + "xbox_rb.png", "RB")
+	var rb: InputEventJoypadButton = _pad_button(JOY_BUTTON_RIGHT_SHOULDER)
+	assert_eq(GlyphResolver.tile_path(rb, _identity), PAD + "xbox_rb.png", "RB")
 	assert_eq(_tile(&"group_mode", PAD_DEVICE), PAD + "xbox_button_start.png", "Start")
 	assert_eq(_tile(&"toggle_debug_overlay", PAD_DEVICE), PAD + "xbox_button_back.png", "Back")
 	assert_eq(_tile(&"select_type", PAD_DEVICE), PAD + "xbox_stick_r_press.png", "R3")
@@ -104,8 +118,12 @@ func test_the_d_pad_buttons_map_to_the_four_d_pad_tiles() -> void:
 func test_the_triggers_and_sticks_map_to_their_tiles() -> void:
 	assert_eq(_tile(&"command_queue", PAD_DEVICE), PAD + "xbox_rt.png", "right trigger")
 	assert_eq(_tile(&"fast_forward", PAD_DEVICE), PAD + "xbox_lt.png", "left trigger")
-	assert_eq(_tile(&"move_left", PAD_DEVICE), PAD + "xbox_ls.png", "left stick")
-	assert_eq(_tile(&"move_back", PAD_DEVICE), PAD + "xbox_ls.png", "left stick, other axis")
+	var left_x: InputEventJoypadMotion = _stick(JOY_AXIS_LEFT_X, -1.0)
+	assert_eq(GlyphResolver.tile_path(left_x, _identity), PAD + "xbox_ls.png", "left stick")
+	var left_y: InputEventJoypadMotion = _stick(JOY_AXIS_LEFT_Y, 1.0)
+	assert_eq(
+		GlyphResolver.tile_path(left_y, _identity), PAD + "xbox_ls.png", "left stick, other axis"
+	)
 	assert_eq(_tile(&"cursor_right", PAD_DEVICE), PAD + "xbox_rs.png", "right stick")
 	assert_eq(_tile(&"cursor_up", PAD_DEVICE), PAD + "xbox_rs.png", "right stick, other axis")
 
@@ -128,6 +146,16 @@ func test_an_action_with_no_binding_on_a_device_is_unbound_there() -> void:
 	assert_null(GlyphResolver.first_event(&"cursor_left", KEYBOARD), "a pad-only action")
 	assert_null(GlyphResolver.first_event(&"no_such_action", KEYBOARD), "an unknown action")
 	assert_not_null(GlyphResolver.first_event(&"squad_move", KEYBOARD), "a bound one is found")
+	for action: StringName in [
+		&"move_left", &"move_right", &"move_forward", &"move_back", &"sprint"
+	]:
+		assert_null(
+			GlyphResolver.first_event(action, PAD_DEVICE),
+			"%s has no pad binding since 2026-10-23" % action
+		)
+		assert_not_null(
+			GlyphResolver.first_event(action, KEYBOARD), "%s keeps its keyboard binding" % action
+		)
 
 
 func test_a_key_the_pack_has_no_tile_for_falls_back_to_a_text_keycap() -> void:

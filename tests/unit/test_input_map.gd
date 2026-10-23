@@ -1,7 +1,8 @@
 extends GutTest
-## Input Map contract (T-01-09, T-01-18): every gameplay action has a keyboard and a gamepad
-## binding, only the squad ground-point command (squad_move, the right mouse button, D-11) has a
-## mouse binding, build / start-night share no key or button, and no two gameplay actions (zoom
+## Input Map contract (T-01-09, T-01-18): every gameplay action has a keyboard binding and every
+## one but KEYBOARD_ONLY_ACTIONS a gamepad binding, only the squad ground-point command
+## (squad_move, the right mouse button, D-11) has a mouse binding, build / start-night share no key
+## or button, and no two gameplay actions (zoom
 ## included) share a key, button or stick direction except the pairs listed in
 ## SHARED_BINDINGS_ALLOWED. The squad point commands of plan 03-07 (squad_move, squad_attack_move,
 ## squad_patrol, command_queue, command_cancel) are checked for keyboard and mouse and, since plan
@@ -32,6 +33,11 @@ const GAMEPLAY_ACTIONS: Array[StringName] = [
 	&"select_all",
 ]
 
+## Pad events of the four move actions and sprint removed 2026-10-23 (Phase 5 UAT stick drift).
+const KEYBOARD_ONLY_ACTIONS: Array[StringName] = [
+	&"move_left", &"move_right", &"move_forward", &"move_back", &"sprint"
+]
+
 const EXPECTED_KEYS: Dictionary = {
 	&"move_left": [KEY_A, KEY_LEFT],
 	&"move_right": [KEY_D, KEY_RIGHT],
@@ -53,7 +59,7 @@ const EXPECTED_KEYS: Dictionary = {
 }
 
 const EXPECTED_BUTTONS: Dictionary = {
-	&"sprint": [JOY_BUTTON_RIGHT_SHOULDER],
+	&"sprint": [],
 	&"action_build": [JOY_BUTTON_A],
 	&"start_night": [JOY_BUTTON_Y],
 	&"toggle_debug_overlay": [JOY_BUTTON_BACK],
@@ -70,10 +76,6 @@ const EXPECTED_BUTTONS: Dictionary = {
 
 # Stick bindings as [axis, sign].
 const EXPECTED_AXES: Dictionary = {
-	&"move_left": [JOY_AXIS_LEFT_X, -1.0],
-	&"move_right": [JOY_AXIS_LEFT_X, 1.0],
-	&"move_forward": [JOY_AXIS_LEFT_Y, -1.0],
-	&"move_back": [JOY_AXIS_LEFT_Y, 1.0],
 	&"zoom_in": [JOY_AXIS_RIGHT_Y, -1.0],
 	&"zoom_out": [JOY_AXIS_RIGHT_Y, 1.0],
 	&"fast_forward": [JOY_AXIS_TRIGGER_LEFT, 1.0],
@@ -192,13 +194,16 @@ func test_every_gameplay_action_has_a_keyboard_binding() -> void:
 		assert_gt(_keys_of(action).size(), 0, "%s has a keyboard binding" % action)
 
 
-func test_every_gameplay_action_has_a_gamepad_binding() -> void:
+func test_every_gameplay_action_but_the_keyboard_only_ones_has_a_gamepad_binding() -> void:
 	for action: StringName in GAMEPLAY_ACTIONS:
 		var pad_events: int = 0
 		for event: InputEvent in InputMap.action_get_events(action):
 			if event is InputEventJoypadButton or event is InputEventJoypadMotion:
 				pad_events += 1
-		assert_gt(pad_events, 0, "%s has a gamepad binding" % action)
+		if KEYBOARD_ONLY_ACTIONS.has(action):
+			assert_eq(pad_events, 0, "%s is keyboard only since 2026-10-23" % action)
+		else:
+			assert_gt(pad_events, 0, "%s has a gamepad binding" % action)
 
 
 func test_keyboard_bindings_match_the_binding_table() -> void:
