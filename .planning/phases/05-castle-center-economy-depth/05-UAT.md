@@ -1,9 +1,9 @@
 ---
-status: complete
+status: diagnosed
 phase: 05-castle-center-economy-depth
 source: [05-01-SUMMARY.md, 05-02-SUMMARY.md, 05-03-SUMMARY.md, 05-04-SUMMARY.md, 05-05-SUMMARY.md, 05-06-SUMMARY.md, 05-07-SUMMARY.md, 05-08-SUMMARY.md, 05-09-SUMMARY.md, 05-10-SUMMARY.md, 05-11-SUMMARY.md, 05-12-SUMMARY.md, 05-VERIFICATION.md, 05-PLAYTEST-GATE.md]
 started: 2026-10-22T10:24:21Z
-updated: 2026-10-24T19:13:36Z
+updated: 2026-10-24T20:03:16Z
 ---
 
 ## Current Test
@@ -110,16 +110,71 @@ blocked: 0
   reason: "User reported: Owner (2026-10-24), two points. (a) On Commander's +25% unit damage rounding back to 1 at the shipped unit numbers: 'perhaps we need to scale all damage and health numbers up by a factor of 100. then percentages and rounding to nearest unit will work more as intended i think'. (b) On Prosperity's +1 gold a dawn: 'seems weak. we want to make sure that all alternatives at an upgrade level are mostly viable options, stronger in particular cases but not overly weak even in a case where its not an ideal option'. Claude's context for the gap planner: the twelve cards are distinct and each lands in the stack (verified); the defect is tuning resolution and balance, not the pick mechanism. A x100 scale of every health and damage integer (units, enemies, king, towers, buildings, walls, castle arrows, Shrine bolts, slam) touches every .tres and contract pin, the HUD and label numbers (50/50 would read 5000/5000 unless the display divides), the balance pins and the full_idle digest; the four fixture goldens carry their own def copies and would stay unless the fixtures are rescaled too (D-08 stop rule). Lower-blast alternatives the planner should weigh: scale only unit and enemy health and damage by 10, or make the small-base cards flat (+1 unit damage) where a percent cannot resolve."
   severity: major
   test: 2
-  artifacts: []  # Filled by diagnosis
-  missing: []    # Filled by diagnosis
+  root_cause: "Three causes add up (debug session, scratch probe on the real StatStack and shipped data): (a) several cards apply a percent or multiplier to a per-hit whole number whose shipped base is 1, 2 or 3, so the change rounds away or overshoots: Commander's +25% unit damage on footman and archer damage 1 gives 1 (no change); Warded Mail's x0.75 on every enemy hit of 2 gives 2 (the whole card does nothing in every run); Golden Age's +25% shrine damage on 3 gives 4, the same as the Shrine's own synergy, so it adds nothing once two Shrines are awake; Iron Discipline's x1.5 on damage 1 gives 2 (+100%, more than written); Engineers' +25% on Tower I damage 3 gives 4 (+33%). (b) Enemies die in 1 to 6 hits (grunt 6 hp, skirmisher 4 hp), so a damage percent only shows when it changes the hits to kill; a uniform x100 rescale keeps every one of those thresholds where it is. (c) Prosperity (+1 castle gold a dawn) and Golden Age (+2) pay a flat amount at each dawn left after the pick, and the castle tiers arrive late (castle II on day 6 at the earliest for the bot, seven paying dawns in a run), so Prosperity pays about 2 gold for a 6-gold tier; the shipped balanced bot with Prosperity instead of Masons wins 7 of 10 (Masons 8) with 28.8 gold earned (Masons 30.0); +2 matches Masons on gold. StatStack itself works as documented (one exact fraction, rounded half up once): the fault is in the data bases and the flat income design, not the formula. Why not caught: test_ability_data pins only each card's stat, bucket and value; test_stat_stack and test_stat_combined use synthetic bases (3, 6, 10); the bots only ever pick Masons."
+  artifacts:
+    - path: "data/abilities/commander.tres"
+      issue: "+25% unit.attack_damage on a base of 1 rounds to no change"
+    - path: "data/abilities/warded_mail.tres"
+      issue: "x0.75 king.damage_taken on every 2-damage enemy hit rounds to 2: the card does nothing"
+    - path: "data/abilities/golden_age.tres"
+      issue: "+25% shrine.damage on 3 is masked by the Shrine synergy; +2 castle gold at tier IV has 0 or 1 paying dawn"
+    - path: "data/abilities/iron_discipline.tres"
+      issue: "x1.5 unit.attack_damage on 1 gives 2, double what the card says"
+    - path: "data/abilities/prosperity.tres"
+      issue: "+1 castle gold a dawn is worth about 2 gold by the time castle II is bought; weakest tier II card by wins, gold and buildings lost"
+    - path: "data/abilities/engineers.tres"
+      issue: "+25% tower damage on 3 gives 4 (+33%); only the range half changes a kill"
+    - path: "data/abilities/headsmans_edge.tres"
+      issue: "x2 damage at x1.5 interval is a loss against skirmishers and after Royal Training (kill thresholds)"
+    - path: "data/units/footman.tres"
+      issue: "attack_damage 1 (Phase 3 D-07) is the base every unit damage percent rounds against"
+    - path: "data/units/archer.tres"
+      issue: "attack_damage 1, same"
+    - path: "data/enemies/grunt.tres"
+      issue: "damage 2 and health 6 set the kill thresholds every damage card is measured against"
+    - path: "data/enemies/ranged.tres"
+      issue: "damage 2 and health 4, same"
+    - path: "tests/unit/test_ability_data.gd"
+      issue: "pins stat, bucket and value only; no test that a card moves its stat at every shipped base it touches"
+    - path: "simulation/stats/stat_stack.gd"
+      issue: "correct to its contract (one half-up rounding); a per-attacker fractional carry would be the systemic alternative"
+  missing:
+    - "A choice of resolution fix, from the debug session's three sized alternatives: (ii) recut the dead or dishonest cards in data only (Commander +1 unit damage or a bigger health half; Warded Mail x0.5 or -1 damage taken; Golden Age +1 shrine damage; Iron Discipline text made honest), smallest blast, no golden moves; (iii) a per-attacker fractional carry inside StatStack so percents land on 1-damage hits with data unchanged (new rounding sentence in STAT_MODIFIERS.md, test_stat_contract), no golden moves, Iron Discipline becomes an honest x1.5; or the owner's x100 (or x10) rescale of every health and damage number (about 20 data files, 5 stress files, 7 fixtures, 10 display sites, about 15 contract tests, all balance pins; full_idle moves, the four fixture goldens stay) which fixes the percents but not the hits-to-kill thresholds"
+    - "Prosperity made viable: +2 castle gold a dawn (matches Masons on gold in the bot sweep) or a percent-of-all-income stat (new income stat in code; roughly +2 a dawn at 6 to 8 gold dawns); rework Golden Age's income half the same way"
+    - "A recurrence-guard contract test: every card modifier must move its stat at every shipped base it touches, within a band of its written effect"
+    - "Re-measure the Phase 2 bar (bash tools/playtest.sh --seeds=10) after the retune; record any full_idle move in 05-BALANCE-REPORT.md (D-08)"
+  debug_session: .planning/debug/card-percent-rounding-and-prosperity.md
 - gap_id: G-05-7
   truth: "The owner decides whether the Harbor should be weaker or the Mine, Mill and Fields stronger, and whether the Shrine needs a nearer plot, a longer reach, a lower threshold or a different wake rule. The bot sweep: the Shrine wakes in a minority of seeds and almost never fires; the Harbor dominates income"
   status: failed
   reason: "User reported: Owner (2026-10-25): 'pass as is, but I think move the harbor into a much more exposed position that have enemy threat but not complete tower coverage so it is a bit awkward to defend or something. perhaps reduce its hp a bit too.' The Harbor's numbers (cost 3, cap 3 then 5, 1 gold a boat), the Mine, Mill, Fields and the Shrine's plots and wake rule stay as shipped. Claude's context for the gap planner: the Harbor plot sits at (0, 20.5) on the north shore of the visual-only pond centred at (0, 30) radius 8, south of the castle and away from the three spawn roads (west, east, north), so no enemy path passes it; moving it to an exposed spot means moving the pond with it (D-11, the pond must stay clear of plots, spawns, roads and the nav grid: EconomyValidation and test_pond_layout pin that), choosing a place a road passes within the enemies' aggro but outside full tower cover, and lowering harbor max_health (18 at tier I, 24 at tier II) by a step; the shipped prototype_map.tres and fishing_harbor.tres change, so the full_idle digest moves (owner-sanctioned by this decision, record before and after in the balance report) while the four fixture goldens stay; re-check the balance bar after the move."
   severity: major
   test: 7
-  artifacts: []  # Filled by diagnosis
-  missing: []    # Filled by diagnosis
+  root_cause: "The Harbor is risk-free because of where it was placed and a test that keeps it there; nothing in the targeting code skips it (debug session, bot probes on seeds 1 to 10). (1) Data: harbor_1 sits at (0, 20.5) with its pond at (0, 30) radius 8, south of the castle where no road runs: 19.3 m from the west and east roads, 20.5 m from the north road, inside the castle arrow's 22 m reach. Enemies walk straight lines from their spawns at (-66, 24), (66, 24) and (0, -66) to the castle and only take a building whose edge is within their aggro (grunt 6 m, skirmisher 9 m; with the Harbor's 1.5 m body radius that is 7.5 m and 10.5 m centre to centre), so no enemy ever notices it: in 10 balanced-bot runs it was built in 9, earned 7.2 gold a run, took 0 hits. (2) A test rule: test_every_phase_five_plot_is_twelve_metres_from_every_road in tests/unit/test_prototype_map_economy.gd (MIN_ROAD_CLEARANCE_M 12, from RESEARCH E5 and D-09/D-11) covers harbor_1, so moving the plot alone fails the test and relaxing the test alone moves nothing. Measured candidates: a Harbor 9.5 to 10.3 m off a road is noticed by skirmishers only and keeps every balance pin; at 7.5 m grunts take it too and the balanced bot drops to 6 or 7 of 10. Proposal A (recommended): west road, south side, between tower_1 and the Mine, Harbor (-39.93, 25.48) with the pond at (-38.22, 30.18) radius 4.5 (shrunk from 8 to clear the Mine and the west Shrine; 15.3 m from the road against 14.5 needed), north-shore rule kept, no tower reaches it (tower_1 16.0 m away, the castle 47.4 m), an awake west Shrine 7.6 m away covers it partly: balanced 8 of 10 (same lost seeds 3 and 9), 26.4 gold (was 30.0), the Harbor earns 3.5 and is destroyed 18 times in 10 runs. B: west road north side (-45.09, 5.43), pond (-47.92, -2.37) r 8, 8 of 10, but the Harbor lands on the pond's south shore (dock faces away; BuildSpotDef has no facing). C: north road (-8, -40), pond (-18.6, -38.6) r 8, threat only from night 6; 7 of 10 at 18/24 health (breaks BALANCED_LOST_SEEDS), 8 of 10 at 14/20. Health: 18/24 today (House 12/18/24, Mill 15/20/25); 14/20 or 15/20 is 'a bit less'; pinned only by HARBOR_HEALTHS in test_economy_data_contract.gd; at A the health makes no difference (skirmishers finish it either way)."
+  artifacts:
+    - path: "data/maps/prototype_map.tres"
+      issue: "harbor_1 position (0, 20.5) and pond_center (0, 30) / pond_radius 8 keep the Harbor 19 m from every road, outside every enemy's notice"
+    - path: "data/buildings/fishing_harbor.tres"
+      issue: "max_health 18 / 24 is the lever for 'a bit less' (14/20 or 15/20)"
+    - path: "tests/unit/test_prototype_map_economy.gd"
+      issue: "MIN_ROAD_CLEARANCE_M 12 applies to harbor_1 (test_every_phase_five_plot_is_twelve_metres_from_every_road) and HARBOR_AT pins (0, 20.5)"
+    - path: "tests/unit/test_economy_data_contract.gd"
+      issue: "pins the plot position, POND_CENTER, POND_RADIUS and HARBOR_HEALTHS"
+    - path: "tests/unit/test_pond_layout.gd"
+      issue: "MIN_ROAD_CENTRE_M hard-coded to 18 (radius 8 + 10): compute it from the radius; the north-shore check holds for A and C, not B"
+    - path: "tests/e2e/test_harbor_scene.gd"
+      issue: "POND_CENTER and POND_RADIUS pins"
+    - path: "tools/screenshot/shot_economy_scenarios.gd"
+      issue: "POND_STAND_OFFSET and DAY_STAND aim the harbor_pond and economy_day shots at the old position"
+    - path: ".planning/phases/05-castle-center-economy-depth/05-BALANCE-REPORT.md"
+      issue: "full_idle (afc11cd0, 7000 ticks) moves with the map change; record before and after (D-08)"
+  missing:
+    - "Move harbor_1 and its pond to proposal A (Harbor (-39.93, 25.48), pond (-38.22, 30.18) radius 4.5) unless the owner prefers B or C; keep the pond clearance rules and the north-shore rule"
+    - "Give harbor_1 its own road band (9 to 10.5 m) in test_prototype_map_economy.gd instead of the 12 m rule, with the reason written in the test"
+    - "Lower the Harbor's health a step (14/20 or 15/20) and re-pin HARBOR_HEALTHS"
+    - "Update the position, pond and shot pins; compute test_pond_layout's road-distance constant from the radius; re-aim and re-capture harbor_pond and economy_day in a real window and review them"
+    - "Re-run bash tools/playtest.sh --seeds=10, keep the Phase 2 bar (balanced 7 or 8 of 10, army 8 of 10, ratio at least 0.8) without lowering it, re-pin test_balance_acceptance with a header naming this gap round, and record full_idle before and after in 05-BALANCE-REPORT.md; the four fixture goldens must not move"
+  debug_session: .planning/debug/harbor-exposed-placement.md
 
 ## Deferred Follow-Ups
 
