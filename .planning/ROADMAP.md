@@ -359,7 +359,7 @@ Plans:
      - a Shrine, which activates after enough nearby enemy deaths, then attacks, pays, and strengthens other active Shrines
   4. Bonuses from building upgrades and castle abilities combine in one fixed, documented order. Automated tests verify single-modifier and combined-modifier cases.
 
-**Plans**: 12/12 plans executed (planned 2026-10-21: 12 plans in 11 waves, one chain with 05-04 and 05-05 side by side; research P1 to P8 and the one approved golden step folded in)
+**Plans**: 12/17 plans executed (planned 2026-10-21: 12 plans in 11 waves, one chain with 05-04 and 05-05 side by side; research P1 to P8 and the one approved golden step folded in; 05-13 to 05-17 close the UAT gaps G-05-2 and G-05-7, planned 2026-10-24 and split into five plans at the plan check the same day)
 
 Plans:
 
@@ -396,6 +396,23 @@ Plans:
 
 **Wave 11** *(blocked on 05-11)*
 - [x] 05-12: Phase gate — the full local pass with all 44 shots, push and green CI, a launch-checked export and 05-PLAYTEST-GATE.md for the owner's feel check
+
+**Gap closure** *(UAT 2026-10-24/25: G-05-2 percent cards that round away at the shipped numbers and income cards too weak for their tier; G-05-7 the Fishing Harbor moved into harm's way with a little less health)*
+
+**Gap wave 1** *(after 05-12)*
+- [ ] 05-13: Percent cards land as written through a per-attacker rounding carry in StatStack on the seven per-hit stats, each pinned through its real hit path; no data change, goldens and full_idle unchanged (G-05-2)
+
+**Gap wave 2** *(blocked on 05-13)*
+- [ ] 05-14: Prosperity +2, Golden Age's income +4, Headsman's Edge x1.25, the card recurrence guard over every card and shipped base with its negative control, and the carry documented in STAT_MODIFIERS.md and contract-pinned at every hit site; goldens and full_idle unchanged (G-05-2)
+
+**Gap wave 3** *(blocked on 05-14)*
+- [ ] 05-15: The Fishing Harbor moves beside the west road (skirmishers notice it, no tower or castle arrow covers it) with its pond set 6.5 m off so the dock stays on land, its health 18/24 to 14/20, harbor_1's own road band and the pond and footprint rules pinned, exposure measured with the bots (G-05-7)
+
+**Gap wave 4** *(blocked on 05-15)*
+- [ ] 05-16: The bar re-measured and re-pinned, the gap-round section of 05-BALANCE-REPORT.md with the full_idle before and after and a viability basis for every card, harbor_pond and economy_day re-captured (G-05-2, G-05-7)
+
+**Gap wave 5** *(blocked on 05-16)*
+- [ ] 05-17: The closing local pass (full suite, five replays, gate stress), a launch-checked export and the owner's re-check list with a decision for each card the bots cannot judge (G-05-2, G-05-7)
 
 **UI hint**: yes
 
