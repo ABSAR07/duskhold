@@ -1,6 +1,7 @@
 extends GutTest
 ## DEV-04: the screenshot wrapper (bash) and the scenarios (GDScript) each keep a list of shot
 ## names. They must agree, or CI would capture a different set than the runner can script.
+## Gap round G-05-2 (the x100 rescale): the shipped king holds 5000, the hud_king_120 copy 12000.
 
 const SCRIPT_PATH := "res://tools/screenshot.sh"
 const LIST_OPEN := "ALL_SHOTS=("
@@ -169,8 +170,10 @@ func test_the_king_copies_of_the_hurt_shots_hold_their_health() -> void:
 	for shot: StringName in ShotArmyScenarios.FROZEN_KING_SHOTS:
 		var def: KingDef = ShotScenarios.king_def_for(shot)
 		assert_eq(def.regen_fraction_per_second, 0.0, "%s: no regeneration" % shot)
-	assert_eq(ShotScenarios.king_def_for(ShotScenarios.HUD_KING_120).max_health, 120, "120 health")
-	assert_eq(shipped.max_health, 50, "the shipped king is untouched")
+	assert_eq(
+		ShotScenarios.king_def_for(ShotScenarios.HUD_KING_120).max_health, 12000, "12000 health"
+	)
+	assert_eq(shipped.max_health, 5000, "the shipped king is untouched")
 	assert_gt(shipped.regen_fraction_per_second, 0.0, "and still regenerates")
 
 
@@ -214,8 +217,8 @@ func test_the_crowd_stress_night_king_outlasts_the_surge_and_the_shipped_king_is
 	var shipped: KingDef = load(ShotScenarios.KING_DATA_PATH)
 	var shot_king: KingDef = ShotScenarios.king_def_for(&"crowd_stress_night")
 	assert_eq(shot_king.max_health, ShotCrowdScenarios.STRESS_NIGHT_KING_HEALTH, "a long pool")
-	assert_eq(shipped.max_health, 50, "the shipped king keeps 50")
-	assert_eq(ShotScenarios.king_def_for(&"overlay_field_gate").max_health, 50, "other shots too")
+	assert_eq(shipped.max_health, 5000, "the shipped king keeps 5000")
+	assert_eq(ShotScenarios.king_def_for(&"overlay_field_gate").max_health, 5000, "other shots too")
 
 
 func test_the_economy_shots_are_listed_and_handled_by_the_economy_scenes() -> void:

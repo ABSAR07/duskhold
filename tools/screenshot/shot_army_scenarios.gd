@@ -39,13 +39,14 @@ const FROZEN_KING_SHOTS: Array[StringName] = [
 	ShotScenarios.HUD_KING_120,
 ]
 const LONG_RUN_NIGHTS: int = 12
-const KING_120_HEALTH: int = 120
+## The shot name hud_king_120 predates the x100 rescale (G-05-2): the king is 12000 now.
+const KING_120_HEALTH: int = 12000
 ## The night the king starts defending in the squad-down scenes: before it the squads hold alone.
 const DEFEND_FROM_NIGHT: int = 4
-const HURT_MIN: int = 34
-const HURT_MAX: int = 42
-const HURT_120_MIN: int = 84
-const HURT_120_MAX: int = 90
+const HURT_MIN: int = 3400
+const HURT_MAX: int = 4200
+const HURT_120_MIN: int = 8400
+const HURT_120_MAX: int = 9000
 const POINT_MARGIN_PX: float = 60.0
 ## The ten queued moves, relative to the king: five on each side of the keep, in two rows, clear of
 ## the squad slots (which swallow a click) at the foot of the screen.
@@ -93,7 +94,7 @@ static func use_twelve_short_nights(config: MapConfig) -> void:
 
 
 ## Edits the king copy of a shot: the shots that hurt him hold his health still, and the long-health
-## shot gets 120 points.
+## shot gets 12000 points (its name, hud_king_120, predates the x100 scale).
 static func tune_king(shot_name: StringName, def: KingDef) -> void:
 	if FROZEN_KING_SHOTS.has(shot_name):
 		def.regen_fraction_per_second = 0.0
@@ -336,8 +337,8 @@ static func _day_counter_long(runner: Node, map_root: MapRoot) -> bool:
 	return shown
 
 
-## A king of 120 health, hurt to the high eighties at a spawn point: three digits on both sides of
-## the slash.
+## A king of 12000 health, hurt to the high eighty-hundreds (8400 to 9000) at a spawn point:
+## four digits against five on either side of the slash.
 static func _king_120(runner: Node, map_root: MapRoot) -> bool:
 	var ctx: RunContext = map_root.get_context()
 	var bot: PlaytestBot = PlaytestStrategies.make(&"balanced")
@@ -354,7 +355,7 @@ static func _king_120(runner: Node, map_root: MapRoot) -> bool:
 			and health <= HURT_120_MAX
 		)
 	if not ShotScenarios._fast_forward(map_root, bot, hurt):
-		printerr("the king was never hurt into the eighties (%s)" % ShotScenarios._state_line(ctx))
+		printerr("the king was never hurt to 8400 to 9000 (%s)" % ShotScenarios._state_line(ctx))
 		return false
 	await ShotScenarios._wait(runner, ShotScenarios.RESPAWN_WAIT_S)
 	return ctx.king.get_max_health() == KING_120_HEALTH

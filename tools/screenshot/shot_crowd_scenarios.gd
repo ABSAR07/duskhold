@@ -41,7 +41,7 @@ const FIELD_GATE_DRAW_TIMEOUT_S: float = 4.0
 ## many ticks (12 s) and the batches get this long to draw. At least this many enemies must be
 ## drawn.
 const STRESS_NIGHT_KING := Vector3(0.0, 0.0, 24.0)
-const STRESS_NIGHT_KING_HEALTH: int = 100000
+const STRESS_NIGHT_KING_HEALTH: int = 10000000
 const STRESS_NIGHT_ZOOM_OUT_S: float = 1.2
 const STRESS_NIGHT_TICKS: int = 360
 const STRESS_NIGHT_DRAW_TIMEOUT_S: float = 4.0
