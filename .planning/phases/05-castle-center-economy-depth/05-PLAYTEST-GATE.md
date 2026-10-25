@@ -32,6 +32,50 @@ The scripted bots play the new numbers and say nothing about feel; you are the j
 - The controls, the editor-binary alternative and the plot list under "How to play" further down are unchanged, except for the Harbor: it is no longer at (0, 20.5) behind the castle but beside the west road, with its pond (see What changed).
 - Keyboard and mouse only, as before.
 
+### What to re-judge
+
+Play two or three full runs on the fresh build, then answer these three. They are the ones from your last round of play that these changes were made for.
+
+1. **The cards (your test 2).** Take different cards over two or three runs, at every tier you reach. Look for: is each card worth a pick in its own case, and not a dead pick when it is not the ideal one (your own words: stronger in particular cases, not overly weak otherwise)? Do you now feel the percent cards, for example a Commander squad hitting a little harder, and does Prosperity still feel weak beside Masons, Royal Training and Commander? Is there a card you would never take, or one you always take? The F3 overlay's Stats section shows what each card has stacked.
+2. **The day's depth and fun (your test 5, which you put off until these fixes).** Play full runs, climbing the castle and building the new economy. Look for: do the day's gold choices (castle, defences, income) feel richer without just being busier, and is the night still tense? The bots cannot say; this is the one that decides whether Phase 5 is fun.
+3. **The Harbor (your test 7).** Build it on its new pond beside the west road and play a few nights with it. Look for: does it feel worth the risk, how awkward is it to defend without being unfair, and do you lose it so often that the boats never pay? If it is too punishing or too safe, the choices below say how it can move.
+
+One plain thing about the blows, so the numbers do not surprise you: a bigger percent only changes a fight when it saves a whole blow. Commander's soldiers now kill a grunt in five blows instead of six, while Engineers' +25% tower damage still needs two arrows for every enemy (the extra range is what you will notice there). If you want percents to matter on more kills, enemies could later get more health relative to the damage they take; that is not done, and it is one of the choices below.
+
+### The cards the bots cannot judge
+
+The eight cards of castle tiers III and IV were set by arithmetic, with no measurement, because no bot ever reaches those tiers (a whole bot run earns about 26 gold and the tiers cost 10 and 16), so you judge them in play. Commander is in the same position: the main bot never picks it and the army bot, which would, never buys the castle, so it too was set by arithmetic. Each row gives the numbers as the card shows them now, why I think it is worth a pick, your choices, and my recommendation (it is only a recommendation; you decide).
+
+| Card | Tier | Numbers as the card shows them | Why it should be worth a pick | Your choice (my recommendation first) |
+|---|---|---|---|---|
+| Commander | II | +25% unit health, +25% unit damage | It now lands as written: a footman hits 125 instead of 100 and has 1250 health, an archer has 750, and a grunt dies in 5 blows instead of 6. It is a null card unless you field soldiers, which is its case. | **Keep as drafted (recommended).** Or name a change. |
+| Headsman's Edge | III | x2 king damage, x1.25 king attack interval | The king hits for 1000 every 0.875 s. Against enemies that already die in one blow that is a fifth slower than the plain sword; against a grunt without Royal Training it is 1.6 times the kill rate (one blow instead of two). With Royal Training the grunt dies in one blow anyway, so the card then buys no extra kill. | **Keep x2 damage at x1.25 (recommended):** never worse than a fifth below the plain sword and well ahead against grunts. Or the old x1.5 (half again slower, a third behind against one-hit kills). Or no slowdown at all (not recommended: it becomes the card everyone takes). |
+| Engineers | III | +25% tower damage, +15% tower range | +25% lands exactly (a first-tier Tower 300 becomes 375, a second-tier 600 becomes 750) but changes no kill against today's enemies. What it really adds is range: 9.0 m becomes 10.35 m, and 10.5 m becomes 12.075 m. | **Keep as drafted (recommended):** the extra range reaches enemies the towers missed. Or raise its damage to +34%, so a first-tier Tower kills a skirmisher with one arrow (402 against 400 health). |
+| War Horns | III | x0.6 unit return time | Unchanged by the rescale: a squad respawns in 6 s instead of 10, 4.2 s instead of 7, 2.4 s instead of 4. It is exactly as good as the squads it speeds up. | **Keep as drafted (recommended).** Or name a change. |
+| Warded Mail | III | x0.75 damage the king takes | Now real: every 200 blow becomes 150, so the king falls on the 34th grunt blow instead of the 25th. Before the rescale it did nothing (2 stayed 2). | **Keep as drafted (recommended).** Or name a change. |
+| Iron Discipline | IV | x1.5 unit damage, x1.3 unit health | An honest x1.5: a footman hits 150 instead of 100, a grunt dies in 4 blows instead of 6, and footman health goes from 1000 to 1300. | **Keep as drafted (recommended).** Or name a change. |
+| Arrow Storm | IV | +100% castle arrow damage, +25% castle arrow range | Doubles the arrow exactly: the tier IV keep's arrow goes from 500 to 1000, so a grunt dies in one arrow instead of two, and the range goes from 22 m to 27.5 m. | **Keep as drafted (recommended).** Or name a change. |
+| Master Builders | IV | x1.5 building health, x1.5 wall health | Exactly x1.5: a first-tier House 1200 becomes 1800, a first-tier Tower 5000 becomes 7500, a third-tier Wall 9000 becomes 13500. It is Masons' shape at +50% instead of +30%. | **Keep as drafted (recommended).** Or name a change. |
+| Golden Age | IV | +4 castle gold at dawn, +25% shrine damage | +4 gold a dawn (it was +2). Tier IV comes about one paying dawn after the tier II pick on day 6, so +4 pays about what Prosperity's +2 pays at its tier. The Shrine bonus takes a Shrine bolt from 300 to 375, and to 435 with its neighbour bonus, which kills a 400-health skirmisher in one bolt. | **Keep +4 (recommended).** Or +3, or the old +2. |
+
+**Prosperity, the one tier II card the bots did measure, came out short.** It pays 2 gold a dawn. With only the second-tier card swapped, the main bot won 8 of 10 games with Masons and 6 of 10 with Prosperity, and it trailed Masons by two wins in ten even when I tried 3 gold a dawn (at 3 gold it matches Masons on gold earned, 26.6 against 26.4, but not on wins). The likely cause is that Masons' +30% building health keeps the Harbor and its neighbours standing now that the Harbor is exposed, and gold cannot buy that back for a bot that has spent everything by day 7; that is a reading, not a measurement. The choices:
+
+- keep +2;
+- raise it to +3 (matches Masons on gold, still two wins behind);
+- give Prosperity an effect other than gold (for example a second small effect beside the gold);
+- or bring Masons' +30% down.
+
+My recommendation is to keep +2 and judge it in play: +3 closed the gold gap and none of the wins gap, so it would change a number without changing the result, and if it still feels weak after your runs I would give it a second effect rather than a bigger gold number. The bots decided nothing here; you decide.
+
+### Other choices you can ask for
+
+Each of these is a change you can ask for at `/gsd-verify-work 5`; each would be a new round of work.
+
+1. **Show the numbers divided by 100** (display only: the screen would read a king of 50 health again, and the game's data would keep the large numbers). My recommendation: keep them as they are, so the screen and the game agree and a card's percent can be checked against the number you see.
+2. **The Harbor at a different spot.** Spot B is the north side of the west road (its dock would face away from its water). Spot C is beside the north road (the bots measured it too: safe until the north gate opens on night 6, so most of the run it is as safe as it used to be). My recommendation: keep the current spot, which is the one that made the Harbor a risk.
+3. **A different Harbor health.** It is 1400 (2000 upgraded) now, and was 1800 (2400) when you played. Higher makes it safer, lower makes it more fragile. My recommendation: keep it, because the bots never defend it and you will lose it less than they do.
+4. **More enemy health relative to damage**, so a percent card changes more kills (today a percent only matters when it saves a whole blow). My recommendation: wait for the Phase 6 roster of heavier enemies, which changes the arithmetic anyway.
+
 ## How to play
 
 - **Exported build:** `build/windows/Duskhold.exe`, exported on 2026-10-22 (UTC) by `bash tools/export.sh` from the tree at commit `570ff8d` (the game code is that of plan 05-11 and the orchestrator's wave-10 fix; every later commit is planning files only). That is the code CI run 39751537305 checked. `libduskhold_sim.windows.x86_64.dll` and `Duskhold.pck` sit beside the exe, and `timeout 90 build/windows/Duskhold.exe --headless --quit-after 120` launched and quit cleanly (exit 0 in about 8 s). It replaces the Phase 4 export.
