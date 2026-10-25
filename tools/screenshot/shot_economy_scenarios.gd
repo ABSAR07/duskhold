@@ -20,7 +20,10 @@ const POND_HARBOR: StringName = &"harbor_1"
 const POND_DAWNS: int = 3
 ## A timed night and its dawn take a few hundred steps; this bounds the loop if one never ends.
 const POND_NIGHT_TICKS: int = 4000
-const POND_STAND_OFFSET := Vector3(-2.5, 0.0, 6.5)
+## The king stands on dry land west of the pond, relative to the harbor_1 plot: the pond lies 2.22
+## m east and 6.11 m south of the plot (radius 4.5), so this spot is 5.8 m from the water's middle
+## (1.3 m clear of its edge) and puts the dock and all of the water in the zoomed-out frame.
+const POND_STAND_OFFSET := Vector3(-3.5, 0.0, 5.0)
 ## shrine_awake_night: the plots the bot buys on the Shrine fixture, the Shrine, where the king
 ## stands beside it and how long the real-time capture waits for a bolt in flight.
 const SHRINE_SPOT: StringName = &"shrine_1"
@@ -40,10 +43,14 @@ const DAY_BUILD_ORDER: Array[StringName] = [
 ]
 const DAY_HARBOR: StringName = &"harbor_1"
 const DAY_DAWNS: int = 2
-const DAY_STAND := Vector3(0.0, 0.0, 26.0)
+## Absolute: halfway between shrine_west (-46, 30) and the Mill's Fields (x 25 to 35), so the Mine,
+## the Harbor on its west-road pond (-37.71, 31.59), the Mill and the Fields share the frame.
+const DAY_STAND := Vector3(-5.5, 0.0, 28.0)
 ## economy_day widens the camera's zoom range for the capture only (the shipped rig stops at 1.5,
-## a frame about 43 m wide, and the Mine and the Shrines lie 92 m apart) and zooms out this long.
-const DAY_ZOOM_MAX: float = 3.4
+## a frame about 43 m wide) and zooms out this long. shrine_west and the Fields' far end now lie 81
+## m apart, and 3.4 (a frame about 85 m wide) left shrine_west cut at the edge, so it is 3.7, the
+## farthest the rig zooms out in DAY_ZOOM_OUT_S at its speed of 0.6 a second (a frame about 93 m).
+const DAY_ZOOM_MAX: float = 3.7
 const DAY_ZOOM_OUT_S: float = 4.5
 const ECONOMY_SHOTS: Array[StringName] = [
 	ShotScenarios.CASTLE_CARDS,
@@ -177,6 +184,16 @@ static func _field_locked(runner: Node, map_root: MapRoot) -> bool:
 	return ready
 
 
+## A connected pad's stick noise sends events for the actions it is bound to, and each one overrides
+## a scripted press (the zoom then never moves); the capture drops the pad bindings of the two
+## zoom actions in memory, as the pad probes do. Nothing is saved.
+static func _drop_pad_zoom_events() -> void:
+	for action: StringName in [&"zoom_in", &"zoom_out"]:
+		for event: InputEvent in InputMap.action_get_events(action):
+			if event is InputEventJoypadMotion or event is InputEventJoypadButton:
+				InputMap.action_erase_event(action, event)
+
+
 ## By day with a Fishing Harbor built and three boats on the pond: the Harbor is bought through its
 ## command, then three timed nights are run the way a replay runs them (the loop steps the
 ## simulation, nothing writes its state), each dawn giving the Harbor one boat. The king stands on
@@ -194,6 +211,7 @@ static func _harbor_pond(runner: Node, map_root: MapRoot) -> bool:
 			ticks += 1
 	var plot: Vector3 = ctx.buildings.get_spot(POND_HARBOR).position
 	map_root.get_king().global_position = plot + POND_STAND_OFFSET
+	_drop_pad_zoom_events()
 	Input.action_press(&"zoom_out")
 	await ShotScenarios._wait(runner, ZOOM_OUT_S)
 	Input.action_release(&"zoom_out")
@@ -293,6 +311,7 @@ static func _economy_day(runner: Node, map_root: MapRoot) -> bool:
 	map_root.get_king().global_position = DAY_STAND
 	var rig: CameraRig = map_root.get_node("CameraRig") as CameraRig
 	rig.zoom_max = DAY_ZOOM_MAX
+	_drop_pad_zoom_events()
 	Input.action_press(&"zoom_out")
 	await ShotScenarios._wait(runner, DAY_ZOOM_OUT_S)
 	Input.action_release(&"zoom_out")
