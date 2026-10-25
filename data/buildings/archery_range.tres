@@ -6,21 +6,21 @@
 [sub_resource type="Resource" id="Resource_tier1"]
 script = ExtResource("1_tier")
 cost = 4
-max_health = 40
+max_health = 4000
 squad_size = 4
 squad_respawn_seconds = 10.0
 
 [sub_resource type="Resource" id="Resource_tier2"]
 script = ExtResource("1_tier")
 cost = 8
-max_health = 60
+max_health = 6000
 squad_size = 8
 squad_respawn_seconds = 7.0
 
 [sub_resource type="Resource" id="Resource_tier3"]
 script = ExtResource("1_tier")
 cost = 16
-max_health = 80
+max_health = 8000
 squad_size = 14
 squad_respawn_seconds = 4.0
 requires_castle_tier = 2
