@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 05
 current_phase_name: Castle Center & Economy Depth
 status: executing
-stopped_at: Completed 05-23-PLAN.md
-last_updated: "2026-10-25T21:26:31.944Z"
+stopped_at: Completed 05-24-PLAN.md
+last_updated: "2026-10-25T22:15:54.077Z"
 last_activity: 2026-10-25
 last_activity_desc: Phase 05 execution started
-state_head: 55180ac784c0f4db30bdbba1da6eefb87ac7a339
+state_head: 78610f22f161df2954a8899ac347fe957586d31c
 progress:
   total_phases: 13
   completed_phases: 4
   total_plans: 111
-  completed_plans: 110
+  completed_plans: 111
   percent: 31
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-21)
 ## Current Position
 
 Phase: 05 (Castle Center & Economy Depth) — EXECUTING
-Plan: 12 of 24
+Plan: 13 of 24
 Status: Ready to execute
 Last activity: 2026-10-25 — Phase 05 execution started
 
@@ -169,6 +169,7 @@ Progress: [███░░░░░░░] 31%
 | Phase 05 P21 | 30 min | 2 tasks | 7 files |
 | Phase 05 P22 | 23 min | 2 tasks | 8 files |
 | Phase 05 P23 | 34 min | 2 tasks | 3 files |
+| Phase 05 P24 | 30 min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -398,6 +399,7 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-21: Prosperity +2, Golden Age income +4 and Headsman's Edge interval x1.25 recut in data only (D-02); the G-05-2 recurrence guard test_card_resolution (8 tests, bases from shipped files, band 0.5 to 1.5, 100..MAX_ABS_BASE bound, negative control) keeps every card landing at every base
 - [Phase 05]: 05-22: Harbor built at proposal A, harbor_1 (-39.93, 0, 25.48), pond (-37.71, 31.59) radius 4.5; health 1400 / 2000; harbor_1 alone has a 9 to 10.5 m road band; full_idle 6993 ticks c68254cd after the move and the health step (goldens unchanged)
 - [Phase 05]: 05-23: the bar held on the first sweep with no bot order moved; Prosperity ships at +2 because neither +2 nor +3 meets the tier II wins rule against Masons (owner feel item); nine cards owner-judged
+- [Phase 05]: Plan 05-24: Prosperity recommendation to the owner is keep +2 and judge in play (+3 closes the gold gap, not the wins gap); every other card and choice carries a recommendation, the owner decides
 
 ### Pending Todos
 
@@ -437,6 +439,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-25T21:26:30.304Z
-Stopped at: Completed 05-23-PLAN.md
+Last session: 2026-10-25T22:15:51.679Z
+Stopped at: Completed 05-24-PLAN.md
 Resume file: None
