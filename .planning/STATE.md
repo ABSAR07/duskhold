@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 05
 current_phase_name: Castle Center & Economy Depth
 status: executing
-stopped_at: Completed 05-20-PLAN.md
-last_updated: "2026-10-25T18:59:10.753Z"
+stopped_at: Completed 05-21-PLAN.md
+last_updated: "2026-10-25T19:47:17.841Z"
 last_activity: 2026-10-25
 last_activity_desc: Phase 05 execution started
-state_head: 0a8b5ce3fe908c24aba4bf68cb17659059f39834
+state_head: 6852027aa600c404b3a50f18b6b8adb9c76e723b
 progress:
   total_phases: 13
   completed_phases: 4
   total_plans: 111
-  completed_plans: 107
+  completed_plans: 108
   percent: 31
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-21)
 ## Current Position
 
 Phase: 05 (Castle Center & Economy Depth) — EXECUTING
-Plan: 9 of 24
+Plan: 10 of 24
 Status: Ready to execute
 Last activity: 2026-10-25 — Phase 05 execution started
 
@@ -166,6 +166,7 @@ Progress: [███░░░░░░░] 31%
 | Phase 05 P18 | 8 min | 2 tasks | 10 files |
 | Phase 05 P19 | 10 min | 2 tasks | 7 files |
 | Phase 05 P20 | 33 min | 3 tasks | 9 files |
+| Phase 05 P21 | 30 min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -392,6 +393,7 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-17: labels show the x100 numbers as they are (no hidden division); the owner may reverse at the next UAT
 - [Phase 05]: 05-18: the wall-decision pins keep the Phase 4 wall health (PHASE_FOUR_WALL_HEALTH 30/60/90 on a duplicate_deep map copy); the PLAT-01 pins were not edited, only their inputs moved
 - [Phase 05]: 05-20: king widget label holds 128 px (row x 16..408); HUD shows the x100 numbers as they are (reversible Flagged Assumption: divide by 100 for display)
+- [Phase 05]: 05-21: Prosperity +2, Golden Age income +4 and Headsman's Edge interval x1.25 recut in data only (D-02); the G-05-2 recurrence guard test_card_resolution (8 tests, bases from shipped files, band 0.5 to 1.5, 100..MAX_ABS_BASE bound, negative control) keeps every card landing at every base
 
 ### Pending Todos
 
@@ -431,6 +433,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-25T18:59:08.983Z
-Stopped at: Completed 05-20-PLAN.md
+Last session: 2026-10-25T19:47:15.860Z
+Stopped at: Completed 05-21-PLAN.md
 Resume file: None
