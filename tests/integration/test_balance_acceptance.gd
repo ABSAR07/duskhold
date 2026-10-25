@@ -76,6 +76,37 @@ extends GutTest
 ## to the nearest unit work as written. GRUNT_MAX_HEALTH 6 became 600; every other pin is
 ## unchanged because every hits-to-kill count is (the bots measured the scaled game in plan
 ## 05-14).
+##
+## Gap round G-05-2 and G-05-7 (plans 05-13 to 05-24, owner UAT 2026-10-24 and 2026-10-25): the
+## whole round measured once on its final data, `bash tools/playtest.sh --seeds=10` (PLAYTEST_OK
+## runs=100, 05-BALANCE-REPORT.md has the tables and the search log). What the round changed:
+## every health and damage number is 100 times larger (the owner's hard requirement, plans 05-13
+## to 05-20; GRUNT_MAX_HEALTH 6 became 600 in plan 05-14), Prosperity pays +2 (was +1), Golden Age
+## +4 income (was +2), Headsman's Edge slows the blow x1.25 (was x1.5) (plan 05-21), and the
+## Fishing Harbor and its pond moved beside the west road with 1400 / 2000 health (were 1800 /
+## 2400 after the rescale, 18 / 24 before it) (plan 05-22). No bot order moved: the bar held on
+## the first sweep, so the only lever the round kept in reserve (harbor_1's place in the balanced
+## and army_balanced orders) was not pulled. Every pinned value, old to new:
+##   - BALANCED_MIN_WINS 7 and BALANCED_MAX_WINS 8: unchanged (balanced 8 of 10, was 8 of 10).
+##   - ARMY_BALANCED_MIN_WINS 7 and ARMY_BALANCED_MAX_WINS 8: unchanged (army_balanced 8 of 10).
+##   - SQUAD_VALUE_BAR 0.8: unchanged (the army bot's ratio is 0.882, was 0.888).
+##   - BALANCED_LOST_SEEDS [3, 9] and BALANCED_WALLS_LOST_SEEDS [3, 9]: unchanged (seed 3 on
+##     night 7, seed 9 on night 3); BALANCED_FIRST_LOSS_NIGHT 3: unchanged.
+##   - ARMY_BALANCED_LOST_SEEDS [1, 9] and ARMY_BALANCED_WALLS_LOST_SEEDS [1, 9]: unchanged (seed
+##     1 on night 7, seed 9 on night 6).
+##   - BALANCED_NO_CASTLE_LOST_SEEDS [2, 4, 5, 6, 8, 9, 10] and BALANCED_NO_WALLS_LOST_SEEDS
+##     [1, 3, 4, 6, 9, 10]: unchanged.
+##   - CASTLE_EARLIEST_DAY 2 and SHIPPED_EARLIEST_CASTLE_DAY 6: unchanged (first upgrade on day 6
+##     in six of the eight seeds that buy it, day 7 in one, day 8 in one).
+##   - BALANCED_WALL_SEEDS_MIN 1 and ARMY_BALANCED_WALL_SEEDS_MIN 3: unchanged (measured 1 seed,
+##     seed 10, and 3 seeds, seeds 2 to 4).
+##   - GREEDY_FIRST_LOSS_NIGHT 3, GREEDY_LAST_LOSS_NIGHT 5, NO_BUILD_MAX_NIGHTS_SURVIVED 2 and
+##     TOWERS_FIRST_MIN_NIGHTS_SURVIVED 6: unchanged.
+##   - GRUNT_MAX_HEALTH 600: unchanged since plan 05-14 (6 before the round).
+## What did move, and is recorded rather than pinned: the balanced bot earns 26.4 gold a run (was
+## 30.0) and loses 10.6 buildings a run (was 8.6), because the exposed Harbor is struck; the
+## gold it no longer pays shows in the economy and tower spend (11.1 and 13.2 gold a run, was 13.7
+## and 14.6), not in the wins.
 
 const SEEDS: Array[int] = [1, 2, 3]
 ## The balanced bot is measured on ten seeds (owner decision 2026-10-07: it loses 2 or 3 of 10).
