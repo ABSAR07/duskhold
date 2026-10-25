@@ -2,6 +2,8 @@ extends GutTest
 ## KING-06 on the real scene: eight grunts spawned beside a four-hit-point king knock him out; the
 ## model gives way to a ghost that cannot move, the HUD counts down, and he reappears at the castle.
 ## Health bars show only what is hurt (D-12 rule). Wait times derive from loop_tuning.tres.
+## Gap round G-05-2 (the x100 rescale): the heal hit is 1000 because the shipped king now
+## heals 500 a second, so a hit of 10 healed inside one step and hid the bar unseen.
 
 const FIXTURE := "res://tests/fixtures/fixture_map_one_night.tres"
 const MAP_SCENE := "res://presentation/map/prototype_map.tscn"
@@ -9,7 +11,7 @@ const TUNING := "res://data/tuning/loop_tuning.tres"
 const KING_PATH := "res://data/king/king.tres"
 const KING_HEALTH: int = 4
 ## The heal case keeps the shipped king (no max_health override) and hurts him by this much.
-const HEAL_DAMAGE: int = 10
+const HEAL_DAMAGE: int = 1000
 ## Real-time slack on top of the derived regeneration waits.
 const HEAL_SLACK_S: float = 3.0
 const HEALTH_TEXT := "%d / %d"

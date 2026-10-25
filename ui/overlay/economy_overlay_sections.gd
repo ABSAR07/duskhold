@@ -46,7 +46,8 @@ static func economy_rows(ctx: RunContext) -> Array:
 	return rows
 
 
-## "asleep 30 of 100" while the Shrine has not woken, "awake 112" once it has: its credit so far.
+## "asleep 3000 of 10000" while the Shrine has not woken, "awake 11200" once it has: its credit
+## so far.
 static func _shrine_text(ctx: RunContext, spot_id: StringName, tier: BuildingTierDef) -> String:
 	var credit: int = ctx.income.kill_credit(spot_id)
 	if ctx.income.is_awake(spot_id):

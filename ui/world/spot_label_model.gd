@@ -95,7 +95,7 @@ static func _locked_line(ctx: RunContext, spot_id: StringName, tier: BuildingTie
 	return ""
 
 
-## "12 segments, 30 health each": what a wall plot's run is at the given tier. The segment count
+## "12 segments, 3000 health each": what a wall plot's run is at the given tier. The segment count
 ## belongs to the plot's run and the health to the tier, so this lives here, not in effect_line().
 static func _wall_effect(run: WallRunDef, tier: BuildingTierDef) -> String:
 	if tier == null:
@@ -103,7 +103,7 @@ static func _wall_effect(run: WallRunDef, tier: BuildingTierDef) -> String:
 	return "%d segments, %d health each" % [run.segment_count(), tier.max_health]
 
 
-## "Health 100 · Arrow 3 · 2 gold at dawn": what the castle becomes at `tier`, each number read
+## "Health 10000 · Arrow 300 · 2 gold at dawn": what the castle becomes at `tier`, each number read
 ## through the stat stack (castle.max_health, castle.arrow_damage, castle.base_income) so a picked
 ## card that changes it shows in the label. Income never reads below 0, as at the dawn payout.
 static func _castle_effect(ctx: RunContext, tier: BuildingTierDef) -> String:
@@ -114,7 +114,7 @@ static func _castle_effect(ctx: RunContext, tier: BuildingTierDef) -> String:
 	return "Health %d · Arrow %d · %d gold at dawn" % [health, arrow, income]
 
 
-## "Asleep: 30 of 100 enemy health" while the Shrine is dormant, "Awake" once it has woken.
+## "Asleep: 3000 of 10000 enemy health" while the Shrine is dormant, "Awake" once it has woken.
 static func _shrine_effect(ctx: RunContext, spot_id: StringName, tier: BuildingTierDef) -> String:
 	if ctx.income.is_awake(spot_id):
 		return "Awake"

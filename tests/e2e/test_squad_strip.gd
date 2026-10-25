@@ -6,6 +6,8 @@ extends GutTest
 ## is rubble), a replacement fill that rises over the tier interval, a border flash at dawn, a
 ## one-line "14 / 14", and the layout rows of the UI-SPEC (clear of the king widget, 8 px above the
 ## start-night box, outside the protected centre).
+## Gap round G-05-2 (the x100 rescale): the felling blow is 100000, enough for footmen and the
+## 4000-health Barracks at the x100 scale.
 
 const HUD_SCENE := "res://ui/hud/hud.tscn"
 const SLOT_SCENE := "res://ui/hud/squad_slot.tscn"
@@ -24,7 +26,7 @@ const DIMMED := Color("#7A808C")
 const FLASH := Color("#8CEBFF")
 const IDLE_BORDER := Color("#3A3F4B")
 const SETTLE_FRAMES: int = 3
-const KILL_DAMAGE: int = 1000
+const KILL_DAMAGE: int = 100000
 const CRAWL_SPEED: float = 0.001
 const MAX_NIGHT_STEPS: int = 20000
 const STEPS_PER_SECOND: int = 30
