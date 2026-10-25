@@ -2,6 +2,36 @@
 
 You are the gate (the feel half of D-02 and D-12, ROADMAP success criteria 1 to 4 of Phase 5). Claude has checked everything it can observe and lists it below. It cannot tell you whether the castle's cards read well and are worth a pick, whether the twelve abilities are distinct and worth their numbers, whether the castle gate makes the castle a real choice, or whether the four new buildings (Gold Mine, Mill with Fields, Fishing Harbor, Shrines) make the day's gold decisions deeper and still fun. Play two or three full runs, then sign off or name the fixes that must land before Phase 6. Nothing was changed in the game in the last plan; everything below describes the build as it ships.
 
+## Gap round (G-05-2 and G-05-7): what changed and what to re-judge
+
+Written 2026-10-25 (UTC). This section is the newest and comes first. Everything below it (How to play, What to judge, What Claude already checked and the rest) is the packet from before your round of play and stays as history: where it quotes an old number, a plot position or the old build, this section wins.
+
+### What changed
+
+You asked for two things after playing the build, and this round does them.
+
+- **Every health and damage number is now 100 times bigger, as you required.** The king has 5000 health, a footman hits for 100 and a Tower for 300, and the screen shows those numbers exactly as they are. Gold did not change at all: costs, incomes and refunds are as they were. The reason you wanted it is now true: a percent card adds exactly what it says. Commander's soldiers hit 125 instead of 100, Warded Mail turns every 200 blow into 150, Iron Discipline is an honest x1.5 (100 becomes 150), Royal Training adds +100 king damage and +25% king health (5000 becomes 6250), and Masons add 30% where before the rounding gave 33%.
+- **Three cards were recut.** Prosperity pays 2 gold a dawn instead of 1. Golden Age pays 4 gold a dawn plus its Shrine bonus instead of 2. Headsman's Edge still hits twice as hard but is now only a quarter slower between blows instead of half as slow.
+- **The Fishing Harbor moved to an exposed spot.** It now stands on a smaller pond beside the west road, between the first tower and the Gold Mine. Skirmishers walking that road notice it and come for it, and no tower or castle arrow reaches it, so it is awkward to defend (your wish). Its health is lower: 1400 (2000 once upgraded) instead of 1800 (2400). Its price, its boats and the gold each boat pays are as before, and it still needs Castle II for its second tier.
+- **The king's health number beside his bar is wider now** and sits a little further right, so "6250 / 6250" stays on one line.
+
+Nothing else moved: the castle ladder (6, 10 and 16 gold), the other nine cards, the Mine, the Mill and Fields, the Shrines and the night counts are as they were.
+
+### What the bots measured
+
+The scripted bots play the new numbers and say nothing about feel; you are the judge of that.
+
+- **The bar your earlier rounds set still holds, without lowering it.** The main bot wins 8 of 10 games, and the army bot wins 8 of 10 with its soldiers killing nearly as much per gold as towers do (a ratio of 0.88 against a bar of 0.8). The main bot still buys its first castle upgrade on day 6 at the earliest. No bot's build order was changed to make this pass.
+- **The Harbor is now at risk.** The main bot built it in 9 of 10 games, enemies attacked it in 7 of those 9, and it was destroyed 18 times across the ten games. The bots never ride out to defend it, so this is the worst case: a king who defends it will lose it less. The price shows in the bot's income: it earns about 26 gold a run instead of 30 and loses about 11 buildings a run instead of 9, with the same two lost games as before.
+- **Prosperity trails Masons.** With only the second-tier card swapped, the main bot won 8 of 10 with Masons and 6 of 10 with Prosperity, even when Prosperity was tried at 3 gold a dawn. More on this under the card choices below.
+- **The old checks are unchanged.** The four recorded test runs replay byte for byte, 300 enemies still cross the wall gate with none stuck, and the full test suite passes (281 test files, 2668 tests).
+
+### How to play
+
+- **The fresh build is `build/windows/Duskhold.exe`**, exported on 2026-10-25 (UTC) from the finished round. `Duskhold.pck` and `libduskhold_sim.windows.x86_64.dll` sit beside it, and a headless launch (`timeout 90 build/windows/Duskhold.exe --headless --quit-after 120`) started and quit cleanly in about 8 seconds. It replaces the 2026-10-22 export.
+- The controls, the editor-binary alternative and the plot list under "How to play" further down are unchanged, except for the Harbor: it is no longer at (0, 20.5) behind the castle but beside the west road, with its pond (see What changed).
+- Keyboard and mouse only, as before.
+
 ## How to play
 
 - **Exported build:** `build/windows/Duskhold.exe`, exported on 2026-10-22 (UTC) by `bash tools/export.sh` from the tree at commit `570ff8d` (the game code is that of plan 05-11 and the orchestrator's wave-10 fix; every later commit is planning files only). That is the code CI run 39751537305 checked. `libduskhold_sim.windows.x86_64.dll` and `Duskhold.pck` sit beside the exe, and `timeout 90 build/windows/Duskhold.exe --headless --quit-after 120` launched and quit cleanly (exit 0 in about 8 s). It replaces the Phase 4 export.
