@@ -359,7 +359,7 @@ Plans:
      - a Shrine, which activates after enough nearby enemy deaths, then attacks, pays, and strengthens other active Shrines
   4. Bonuses from building upgrades and castle abilities combine in one fixed, documented order. Automated tests verify single-modifier and combined-modifier cases.
 
-**Plans**: 12/24 plans executed (planned 2026-10-21: 12 plans in 11 waves, one chain with 05-04 and 05-05 side by side; research P1 to P8 and the one approved golden step folded in; 05-13 to 05-24 close the UAT gaps G-05-2 and G-05-7: first planned 2026-10-24 as five plans around a per-attacker rounding carry, replanned 2026-10-25 as twelve plans in twelve waves after the owner's hard requirement to scale every health and damage number by 100)
+**Plans**: 13/24 plans executed (planned 2026-10-21: 12 plans in 11 waves, one chain with 05-04 and 05-05 side by side; research P1 to P8 and the one approved golden step folded in; 05-13 to 05-24 close the UAT gaps G-05-2 and G-05-7: first planned 2026-10-24 as five plans around a per-attacker rounding carry, replanned 2026-10-25 as twelve plans in twelve waves after the owner's hard requirement to scale every health and damage number by 100)
 
 Plans:
 
@@ -400,7 +400,7 @@ Plans:
 **Gap closure** *(UAT 2026-10-24/25: G-05-2 percent cards that round away at the shipped numbers and income cards too weak for their tier, resolved by the owner's hard requirement of 2026-10-25 to scale every health and damage number by 100; G-05-7 the Fishing Harbor moved into harm's way with a little less health. One chain of twelve plans, one per wave, because executors share the main checkout and its test and replay outputs)*
 
 **Gap wave 1** *(after 05-12)*
-- [ ] 05-13: The x100 rescale begins: the king, sword, soldiers, enemies, towers, Shrine and castle at 100 times their health and damage, each file checked line by line against the round's base; the data is consistent only after 05-14 (G-05-2)
+- [x] 05-13: The x100 rescale begins: the king, sword, soldiers, enemies, towers, Shrine and castle at 100 times their health and damage, each file checked line by line against the round's base; the data is consistent only after 05-14 (G-05-2)
 
 **Gap wave 2** *(blocked on 05-13)*
 - [ ] 05-14: The rescale completes in the shipped data (walls, Houses, military and economy buildings, Royal Training's flat +100) and the bots play the scaled game to the unchanged bar (GRUNT_MAX_HEALTH 600); full_idle to its scaled digest (G-05-2)
@@ -570,7 +570,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 2. Night Defense & Playtest Gate | 22/22 | Complete    | 2026-10-08 |
 | 3. King Combat & Troops | 19/19 | Complete    | 2026-10-15 |
 | 4. Crowd-Scale Battles & Walls | 28/28 | Complete    | 2026-10-21 |
-| 5. Castle Center & Economy Depth | 12/12 | In Progress|  |
+| 5. Castle Center & Economy Depth | 13/24 | In Progress|  |
 | 6. Enemy Roster & Tower Specializations | 0/TBD | Not started | - |
 | 7. Army Variety & Heroes | 0/TBD | Not started | - |
 | 8. Art, Readability & Sound | 0/TBD | Not started | - |
