@@ -5,7 +5,7 @@ extends GutTest
 ## to 10, seeds 3 and 9 lost on night 3 (a night-3 wall for House openings). The other strategies
 ## keep the D-10 shape on seeds 1 to 3: greedy economy play never wins and falls on the middle
 ## nights, doing nothing falls at once, and the owner's tower opening (towers_first) earns gold and
-## can win. The grunt keeps 6 hp: at 5 the king one-shots grunts (owner decision of 2026-10-06).
+## can win. The grunt keeps 600 hp against the king's 500 blow (owner decision of 2026-10-06).
 ## The bots' numbers are measurements of the data, not the owner's sign-off (D-18).
 ##
 ## Plan 03-11 (D-08) retuned nights 5 to 8 for squads (totals 21, 22, 27, 33 became 25, 31, 39,
@@ -70,6 +70,12 @@ extends GutTest
 ##     on nights 7 and 8, 6 or 7 nights survived) keep their pins.
 ## No night count, castle number, card or economy number moved: the order lever of the D-15 ladder
 ## was enough, so BALANCED_MIN_WINS 7 and BALANCED_MAX_WINS 8 stand.
+##
+## Gap round G-05-2 (plans 05-13 to 05-24, owner UAT decision 2026-10-25): every health and
+## damage number is 100 times larger, the owner's hard requirement, so percentages and rounding
+## to the nearest unit work as written. GRUNT_MAX_HEALTH 6 became 600; every other pin is
+## unchanged because every hits-to-kill count is (the bots measured the scaled game in plan
+## 05-14).
 
 const SEEDS: Array[int] = [1, 2, 3]
 ## The balanced bot is measured on ten seeds (owner decision 2026-10-07: it loses 2 or 3 of 10).
@@ -119,7 +125,7 @@ const SHIPPED_EARLIEST_CASTLE_DAY: int = 6
 const BALANCED_WALL_SEEDS_MIN: int = 1
 const ARMY_BALANCED_WALL_SEEDS_MIN: int = 3
 const GRUNT_PATH := "res://data/enemies/grunt.tres"
-const GRUNT_MAX_HEALTH: int = 6
+const GRUNT_MAX_HEALTH: int = 600
 ## Greedy economy must lose on a night from 3 to 5 (D-10: around the middle nights; the last was
 ## night 6 before plan 03-11 raised night 5).
 const GREEDY_FIRST_LOSS_NIGHT: int = 3
@@ -374,9 +380,13 @@ func test_towers_first_survives_at_least_six_nights_on_every_pinned_seed() -> vo
 		)
 
 
-func test_the_grunt_still_has_six_hp() -> void:
+func test_the_grunt_still_has_six_hundred_hp() -> void:
 	var grunt: EnemyDef = load(GRUNT_PATH)
-	assert_eq(grunt.max_health, GRUNT_MAX_HEALTH, "the owner ruled out 5 hp (one-shot by the king)")
+	assert_eq(
+		grunt.max_health,
+		GRUNT_MAX_HEALTH,
+		"the owner ruled out 500 hp (one-shot by the king's 500)"
+	)
 
 
 func test_the_balanced_bot_wins_seven_or_eight_of_ten_seeds() -> void:

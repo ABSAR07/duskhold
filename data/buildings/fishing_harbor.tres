@@ -6,14 +6,14 @@
 [sub_resource type="Resource" id="Resource_tier1"]
 script = ExtResource("1_tier")
 cost = 3
-max_health = 18
+max_health = 1800
 boat_cap = 3
 boat_income = 1
 
 [sub_resource type="Resource" id="Resource_tier2"]
 script = ExtResource("1_tier")
 cost = 6
-max_health = 24
+max_health = 2400
 requires_castle_tier = 2
 boat_cap = 5
 boat_income = 1

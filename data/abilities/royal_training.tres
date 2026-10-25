@@ -13,7 +13,7 @@ value = 25
 [sub_resource type="Resource" id="Resource_damage"]
 script = ExtResource("2_mod")
 stat = &"king.attack_damage"
-value = 1
+value = 100
 
 [resource]
 script = ExtResource("1_choice")

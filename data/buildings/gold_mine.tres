@@ -7,7 +7,7 @@
 script = ExtResource("1_tier")
 cost = 4
 dawn_income = 3
-max_health = 20
+max_health = 2000
 income_step = 1
 income_floor = 1
 
