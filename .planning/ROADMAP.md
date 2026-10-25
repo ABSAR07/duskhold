@@ -359,7 +359,7 @@ Plans:
      - a Shrine, which activates after enough nearby enemy deaths, then attacks, pays, and strengthens other active Shrines
   4. Bonuses from building upgrades and castle abilities combine in one fixed, documented order. Automated tests verify single-modifier and combined-modifier cases.
 
-**Plans**: 14/24 plans executed (planned 2026-10-21: 12 plans in 11 waves, one chain with 05-04 and 05-05 side by side; research P1 to P8 and the one approved golden step folded in; 05-13 to 05-24 close the UAT gaps G-05-2 and G-05-7: first planned 2026-10-24 as five plans around a per-attacker rounding carry, replanned 2026-10-25 as twelve plans in twelve waves after the owner's hard requirement to scale every health and damage number by 100)
+**Plans**: 15/24 plans executed (planned 2026-10-21: 12 plans in 11 waves, one chain with 05-04 and 05-05 side by side; research P1 to P8 and the one approved golden step folded in; 05-13 to 05-24 close the UAT gaps G-05-2 and G-05-7: first planned 2026-10-24 as five plans around a per-attacker rounding carry, replanned 2026-10-25 as twelve plans in twelve waves after the owner's hard requirement to scale every health and damage number by 100)
 
 Plans:
 
@@ -406,7 +406,7 @@ Plans:
 - [x] 05-14: The rescale completes in the shipped data (walls, Houses, military and economy buildings, Royal Training's flat +100) and the bots play the scaled game to the unchanged bar (GRUNT_MAX_HEALTH 600); full_idle to its scaled digest (G-05-2)
 
 **Gap wave 3** *(blocked on 05-14)*
-- [ ] 05-15: The seven non-golden fixtures that load shipped defs move to the x100 scale, and the wall tests apply their own amounts at it; the four golden fixtures untouched (G-05-2)
+- [x] 05-15: The seven non-golden fixtures that load shipped defs move to the x100 scale, and the wall tests apply their own amounts at it; the four golden fixtures untouched (G-05-2)
 
 **Gap wave 4** *(blocked on 05-15)*
 - [ ] 05-16: The stress map and the stress tools' king and castle follow the scale; the gate stress keeps its crossing statistics and the PLAT-01 fill pins hold unedited (G-05-2)
@@ -570,7 +570,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 2. Night Defense & Playtest Gate | 22/22 | Complete    | 2026-10-08 |
 | 3. King Combat & Troops | 19/19 | Complete    | 2026-10-15 |
 | 4. Crowd-Scale Battles & Walls | 28/28 | Complete    | 2026-10-21 |
-| 5. Castle Center & Economy Depth | 14/24 | In Progress|  |
+| 5. Castle Center & Economy Depth | 15/24 | In Progress|  |
 | 6. Enemy Roster & Tower Specializations | 0/TBD | Not started | - |
 | 7. Army Variety & Heroes | 0/TBD | Not started | - |
 | 8. Art, Readability & Sound | 0/TBD | Not started | - |
