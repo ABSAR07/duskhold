@@ -8,12 +8,12 @@ script = ExtResource("1_tier")
 cost = 3
 dawn_income = 1
 attack_range = 9.0
-attack_damage = 3
-max_health = 30
+attack_damage = 300
+max_health = 3000
 attack_interval = 1.1
 projectile_speed = 20.0
 wake_radius = 18.0
-wake_threshold_hp = 100
+wake_threshold_hp = 10000
 synergy_percent = 20
 
 [resource]

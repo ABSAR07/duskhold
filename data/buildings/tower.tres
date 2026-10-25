@@ -7,8 +7,8 @@
 script = ExtResource("1_tier")
 cost = 4
 attack_range = 9.0
-attack_damage = 3
-max_health = 50
+attack_damage = 300
+max_health = 5000
 attack_interval = 0.9
 projectile_speed = 18.0
 
@@ -16,8 +16,8 @@ projectile_speed = 18.0
 script = ExtResource("1_tier")
 cost = 6
 attack_range = 10.5
-attack_damage = 6
-max_health = 70
+attack_damage = 600
+max_health = 7000
 attack_interval = 0.7
 projectile_speed = 20.0
 requires_castle_tier = 2
