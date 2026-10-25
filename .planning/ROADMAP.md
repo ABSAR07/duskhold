@@ -359,7 +359,7 @@ Plans:
      - a Shrine, which activates after enough nearby enemy deaths, then attacks, pays, and strengthens other active Shrines
   4. Bonuses from building upgrades and castle abilities combine in one fixed, documented order. Automated tests verify single-modifier and combined-modifier cases.
 
-**Plans**: 22/24 plans executed (planned 2026-10-21: 12 plans in 11 waves, one chain with 05-04 and 05-05 side by side; research P1 to P8 and the one approved golden step folded in; 05-13 to 05-24 close the UAT gaps G-05-2 and G-05-7: first planned 2026-10-24 as five plans around a per-attacker rounding carry, replanned 2026-10-25 as twelve plans in twelve waves after the owner's hard requirement to scale every health and damage number by 100)
+**Plans**: 23/24 plans executed (planned 2026-10-21: 12 plans in 11 waves, one chain with 05-04 and 05-05 side by side; research P1 to P8 and the one approved golden step folded in; 05-13 to 05-24 close the UAT gaps G-05-2 and G-05-7: first planned 2026-10-24 as five plans around a per-attacker rounding carry, replanned 2026-10-25 as twelve plans in twelve waves after the owner's hard requirement to scale every health and damage number by 100)
 
 Plans:
 
@@ -430,7 +430,7 @@ Plans:
 - [x] 05-22: The Fishing Harbor moves beside the west road (skirmishers notice it, no tower or castle arrow covers it) with its pond set 6.5 m off so the dock stays on land, its health 1800/2400 to 1400/2000, harbor_1's own road band and the pond and footprint rules pinned, exposure measured with the bots (G-05-7)
 
 **Gap wave 11** *(blocked on 05-22)*
-- [ ] 05-23: The bar re-measured and re-pinned, the gap-round section of 05-BALANCE-REPORT.md with full_idle before, after the rescale and at the end, the rescale, and a viability basis for every card; harbor_pond and economy_day re-captured (G-05-2, G-05-7)
+- [x] 05-23: The bar re-measured and re-pinned, the gap-round section of 05-BALANCE-REPORT.md with full_idle before, after the rescale and at the end, the rescale, and a viability basis for every card; harbor_pond and economy_day re-captured (G-05-2, G-05-7)
 
 **Gap wave 12** *(blocked on 05-23)*
 - [ ] 05-24: The closing local pass (full suite, five replays, gate stress), a launch-checked export and the owner's re-check list with the display choice, the hits-to-kill point and a decision for each card the bots cannot judge (G-05-2, G-05-7)
@@ -570,7 +570,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 2. Night Defense & Playtest Gate | 22/22 | Complete    | 2026-10-08 |
 | 3. King Combat & Troops | 19/19 | Complete    | 2026-10-15 |
 | 4. Crowd-Scale Battles & Walls | 28/28 | Complete    | 2026-10-21 |
-| 5. Castle Center & Economy Depth | 22/24 | In Progress|  |
+| 5. Castle Center & Economy Depth | 23/24 | In Progress|  |
 | 6. Enemy Roster & Tower Specializations | 0/TBD | Not started | - |
 | 7. Army Variety & Heroes | 0/TBD | Not started | - |
 | 8. Art, Readability & Sound | 0/TBD | Not started | - |
