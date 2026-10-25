@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 05
 current_phase_name: Castle Center & Economy Depth
 status: executing
-stopped_at: Completed 05-19-PLAN.md
-last_updated: "2026-10-25T18:24:35.253Z"
+stopped_at: Completed 05-20-PLAN.md
+last_updated: "2026-10-25T18:59:10.753Z"
 last_activity: 2026-10-25
 last_activity_desc: Phase 05 execution started
-state_head: e03752a2dc7b08ac0e552be63c8f8f67d164ee00
+state_head: 0a8b5ce3fe908c24aba4bf68cb17659059f39834
 progress:
   total_phases: 13
   completed_phases: 4
   total_plans: 111
-  completed_plans: 106
+  completed_plans: 107
   percent: 31
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-21)
 ## Current Position
 
 Phase: 05 (Castle Center & Economy Depth) — EXECUTING
-Plan: 8 of 24
+Plan: 9 of 24
 Status: Ready to execute
 Last activity: 2026-10-25 — Phase 05 execution started
 
@@ -165,6 +165,7 @@ Progress: [███░░░░░░░] 31%
 | Phase 05 P17 | 7 min | 2 tasks | 10 files |
 | Phase 05 P18 | 8 min | 2 tasks | 10 files |
 | Phase 05 P19 | 10 min | 2 tasks | 7 files |
+| Phase 05 P20 | 33 min | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -390,6 +391,7 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-16: stress map at x100 (grunt 200, footman 100, tower 100, huge pools 10000000, king 10000000, bench castle 1000000000); gate stress statistics unchanged, digest e448ffdb -> eb319f09 recorded only; PLAT-01 fill pins pass unedited
 - [Phase 05]: 05-17: labels show the x100 numbers as they are (no hidden division); the owner may reverse at the next UAT
 - [Phase 05]: 05-18: the wall-decision pins keep the Phase 4 wall health (PHASE_FOUR_WALL_HEALTH 30/60/90 on a duplicate_deep map copy); the PLAT-01 pins were not edited, only their inputs moved
+- [Phase 05]: 05-20: king widget label holds 128 px (row x 16..408); HUD shows the x100 numbers as they are (reversible Flagged Assumption: divide by 100 for display)
 
 ### Pending Todos
 
@@ -429,6 +431,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-25T18:24:33.146Z
-Stopped at: Completed 05-19-PLAN.md
+Last session: 2026-10-25T18:59:08.983Z
+Stopped at: Completed 05-20-PLAN.md
 Resume file: None
