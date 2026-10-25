@@ -359,7 +359,7 @@ Plans:
      - a Shrine, which activates after enough nearby enemy deaths, then attacks, pays, and strengthens other active Shrines
   4. Bonuses from building upgrades and castle abilities combine in one fixed, documented order. Automated tests verify single-modifier and combined-modifier cases.
 
-**Plans**: 12/17 plans executed (planned 2026-10-21: 12 plans in 11 waves, one chain with 05-04 and 05-05 side by side; research P1 to P8 and the one approved golden step folded in; 05-13 to 05-17 close the UAT gaps G-05-2 and G-05-7, planned 2026-10-24 and split into five plans at the plan check the same day)
+**Plans**: 12/24 plans executed (planned 2026-10-21: 12 plans in 11 waves, one chain with 05-04 and 05-05 side by side; research P1 to P8 and the one approved golden step folded in; 05-13 to 05-24 close the UAT gaps G-05-2 and G-05-7: first planned 2026-10-24 as five plans around a per-attacker rounding carry, replanned 2026-10-25 as twelve plans in twelve waves after the owner's hard requirement to scale every health and damage number by 100)
 
 Plans:
 
@@ -397,22 +397,43 @@ Plans:
 **Wave 11** *(blocked on 05-11)*
 - [x] 05-12: Phase gate — the full local pass with all 44 shots, push and green CI, a launch-checked export and 05-PLAYTEST-GATE.md for the owner's feel check
 
-**Gap closure** *(UAT 2026-10-24/25: G-05-2 percent cards that round away at the shipped numbers and income cards too weak for their tier; G-05-7 the Fishing Harbor moved into harm's way with a little less health)*
+**Gap closure** *(UAT 2026-10-24/25: G-05-2 percent cards that round away at the shipped numbers and income cards too weak for their tier, resolved by the owner's hard requirement of 2026-10-25 to scale every health and damage number by 100; G-05-7 the Fishing Harbor moved into harm's way with a little less health. One chain of twelve plans, one per wave, because executors share the main checkout and its test and replay outputs)*
 
 **Gap wave 1** *(after 05-12)*
-- [ ] 05-13: Percent cards land as written through a per-attacker rounding carry in StatStack on the seven per-hit stats, each pinned through its real hit path; no data change, goldens and full_idle unchanged (G-05-2)
+- [ ] 05-13: The x100 rescale begins: the king, sword, soldiers, enemies, towers, Shrine and castle at 100 times their health and damage, each file checked line by line against the round's base; the data is consistent only after 05-14 (G-05-2)
 
 **Gap wave 2** *(blocked on 05-13)*
-- [ ] 05-14: Prosperity +2, Golden Age's income +4, Headsman's Edge x1.25, the card recurrence guard over every card and shipped base with its negative control, and the carry documented in STAT_MODIFIERS.md and contract-pinned at every hit site; goldens and full_idle unchanged (G-05-2)
+- [ ] 05-14: The rescale completes in the shipped data (walls, Houses, military and economy buildings, Royal Training's flat +100) and the bots play the scaled game to the unchanged bar (GRUNT_MAX_HEALTH 600); full_idle to its scaled digest (G-05-2)
 
 **Gap wave 3** *(blocked on 05-14)*
-- [ ] 05-15: The Fishing Harbor moves beside the west road (skirmishers notice it, no tower or castle arrow covers it) with its pond set 6.5 m off so the dock stays on land, its health 18/24 to 14/20, harbor_1's own road band and the pond and footprint rules pinned, exposure measured with the bots (G-05-7)
+- [ ] 05-15: The seven non-golden fixtures that load shipped defs move to the x100 scale, and the wall tests apply their own amounts at it; the four golden fixtures untouched (G-05-2)
 
 **Gap wave 4** *(blocked on 05-15)*
-- [ ] 05-16: The bar re-measured and re-pinned, the gap-round section of 05-BALANCE-REPORT.md with the full_idle before and after and a viability basis for every card, harbor_pond and economy_day re-captured (G-05-2, G-05-7)
+- [ ] 05-16: The stress map and the stress tools' king and castle follow the scale; the gate stress keeps its crossing statistics and the PLAT-01 fill pins hold unedited (G-05-2)
 
 **Gap wave 5** *(blocked on 05-16)*
-- [ ] 05-17: The closing local pass (full suite, five replays, gate stress), a launch-checked export and the owner's re-check list with a decision for each card the bots cannot judge (G-05-2, G-05-7)
+- [ ] 05-17: Every contract and label test that names a shipped health or damage number is re-pinned x100 with the gap round in its header (D-07's footman blow as 100) (G-05-2)
+
+**Gap wave 6** *(blocked on 05-17)*
+- [ ] 05-18: The PLAT-01 pins stay byte-identical (their inputs scaled or frozen at the Phase 4 numbers) and the combat tests keep their intent at the new scale (G-05-2)
+
+**Gap wave 7** *(blocked on 05-18)*
+- [ ] 05-19: The tests that fell shipped buildings, segments and units with their own blows fell them again at the x100 scale (G-05-2)
+
+**Gap wave 8** *(blocked on 05-19)*
+- [ ] 05-20: The HUD shows the scaled numbers as they are, the king widget's label widened to 128 px, the HUD tests and shot scenarios at the new scale, ten real-window shots reviewed (G-05-2)
+
+**Gap wave 9** *(blocked on 05-20)*
+- [ ] 05-21: Prosperity +2, Golden Age's income +4, Headsman's Edge x1.25, and the card recurrence guard over every card and shipped base with the scale bound and a negative control, green on its first run (G-05-2)
+
+**Gap wave 10** *(blocked on 05-21)*
+- [ ] 05-22: The Fishing Harbor moves beside the west road (skirmishers notice it, no tower or castle arrow covers it) with its pond set 6.5 m off so the dock stays on land, its health 1800/2400 to 1400/2000, harbor_1's own road band and the pond and footprint rules pinned, exposure measured with the bots (G-05-7)
+
+**Gap wave 11** *(blocked on 05-22)*
+- [ ] 05-23: The bar re-measured and re-pinned, the gap-round section of 05-BALANCE-REPORT.md with full_idle before, after the rescale and at the end, the rescale, and a viability basis for every card; harbor_pond and economy_day re-captured (G-05-2, G-05-7)
+
+**Gap wave 12** *(blocked on 05-23)*
+- [ ] 05-24: The closing local pass (full suite, five replays, gate stress), a launch-checked export and the owner's re-check list with the display choice, the hits-to-kill point and a decision for each card the bots cannot judge (G-05-2, G-05-7)
 
 **UI hint**: yes
 
