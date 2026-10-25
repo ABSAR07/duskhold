@@ -7,8 +7,8 @@
 script = ExtResource("1_tier")
 cost = 1
 attack_range = 30.0
-attack_damage = 1
-max_health = 100000
+attack_damage = 100
+max_health = 10000000
 attack_interval = 0.15
 projectile_speed = 5.0
 

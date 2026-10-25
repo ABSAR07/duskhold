@@ -6,7 +6,7 @@
 [sub_resource type="Resource" id="Resource_tier1"]
 script = ExtResource("1_tier")
 cost = 1
-max_health = 100000
+max_health = 10000000
 squad_size = 25
 squad_respawn_seconds = 1.0
 
