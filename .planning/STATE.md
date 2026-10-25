@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 05
 current_phase_name: Castle Center & Economy Depth
 status: executing
-stopped_at: Completed 05-15-PLAN.md
-last_updated: "2026-10-25T12:30:04.089Z"
+stopped_at: Completed 05-16-PLAN.md
+last_updated: "2026-10-25T12:55:48.446Z"
 last_activity: 2026-10-25
 last_activity_desc: Phase 05 execution started
-state_head: 4841698bdedb154c53983e536880f64635779fbf
+state_head: 2f706f3ec1a85a354029ca892d11a348366ad4a6
 progress:
   total_phases: 13
   completed_phases: 4
   total_plans: 111
-  completed_plans: 102
+  completed_plans: 103
   percent: 31
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-21)
 ## Current Position
 
 Phase: 05 (Castle Center & Economy Depth) — EXECUTING
-Plan: 4 of 24
+Plan: 5 of 24
 Status: Ready to execute
 Last activity: 2026-10-25 — Phase 05 execution started
 
@@ -161,6 +161,7 @@ Progress: [███░░░░░░░] 31%
 | Phase 05 P13 | 5 min | 2 tasks | 10 files |
 | Phase 05 P14 | 8 min | 2 tasks | 10 files |
 | Phase 05 P15 | 10 min | 2 tasks | 10 files |
+| Phase 05 P16 | 5 min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -383,6 +384,7 @@ Recent decisions affecting current work:
 - [Phase 05]: [05-13] Ten shipped data files flipped to the owner's x100 health and damage scale (king 5000, sword 500/400, footman 1000/100, archer 600/100, grunt 600/200, skirmisher 400/200, towers, Shrine, castle tiers, map castle 7000/200); exact-x100 check empty for all ten, four goldens unchanged; shipped data consistent only after plan 05-14
 - [Phase 05]: 05-14: shipped data complete at x100 (all 19 files); only GRUNT_MAX_HEALTH re-pinned (600), bots met the unchanged bar; full_idle cec3eb71 won in 7000 ticks, four goldens unchanged
 - [Phase 05]: Plan 05-15: seven non-golden fixtures and the three wall tests at x100 with every expected wall tick count unchanged; golden inputs untouched (D-08)
+- [Phase 05]: 05-16: stress map at x100 (grunt 200, footman 100, tower 100, huge pools 10000000, king 10000000, bench castle 1000000000); gate stress statistics unchanged, digest e448ffdb -> eb319f09 recorded only; PLAT-01 fill pins pass unedited
 
 ### Pending Todos
 
@@ -422,6 +424,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-25T12:30:02.604Z
-Stopped at: Completed 05-15-PLAN.md
+Last session: 2026-10-25T12:55:47.003Z
+Stopped at: Completed 05-16-PLAN.md
 Resume file: None
