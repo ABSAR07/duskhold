@@ -188,7 +188,7 @@ requires_spot_tier = 1
 [sub_resource type="Resource" id="Resource_harbor_1"]
 script = ExtResource("2_spot")
 id = &"harbor_1"
-position = Vector3(0, 0, 20.5)
+position = Vector3(-39.93, 0, 25.48)
 building_id = &"fishing_harbor"
 
 [sub_resource type="Resource" id="Resource_shrine_west"]
@@ -510,6 +510,6 @@ castle_attack_range = 22.0
 castle_attack_interval = 1.5
 castle_projectile_speed = 27.0
 ground_half_extent = 90.0
-pond_center = Vector2(0, 30)
-pond_radius = 8.0
+pond_center = Vector2(-37.71, 31.59)
+pond_radius = 4.5
 nav_tuning = ExtResource("19_nav")

@@ -15,6 +15,11 @@ extends GutTest
 ## box so NavGrid keeps its layout. Plans 05-07 to 05-09 only append their plot ids to
 ## PHASE_FIVE_PLOT_IDS and the rules then cover them. The Mill and its Fields (D-10) also pin their
 ## own adjacency: each Field 4 to 8 m from the Mill and every new plot 5 m from every other plot.
+##
+## UAT G-05-7 (owner 2026-10-25, plan 05-22): the Fishing Harbor is meant to be exposed, threatened
+## by a road but not covered by towers, so harbor_1 is the one Phase 5 plot exempt from the 12 m
+## rule; it keeps a band of 9 to 10.5 m, inside a skirmisher's notice and outside a grunt's
+## (test_harbor_exposure derives both from the shipped enemy data).
 
 const PROTOTYPE := "res://data/maps/prototype_map.tres"
 const TUNING := "res://data/tuning/loop_tuning.tres"
@@ -38,7 +43,7 @@ const MINE: StringName = &"gold_mine_1"
 const MINE_AT := Vector3(-30.0, 0.0, 30.0)
 const HARBOR: StringName = &"harbor_1"
 const HARBOR_INDEX: int = 20
-const HARBOR_AT := Vector3(0.0, 0.0, 20.5)
+const HARBOR_AT := Vector3(-39.93, 0.0, 25.48)
 const MILL: StringName = &"mill_1"
 const MILL_INDEX: int = 16
 const FIELDS: Array[StringName] = [&"field_1", &"field_2", &"field_3"]
@@ -49,6 +54,11 @@ const FIELD_MAX_FROM_MILL_M: float = 8.0
 const MIN_PLOT_SPACING_M: float = 5.0
 ## The generic geometry rules (RESEARCH E5, P3).
 const MIN_ROAD_CLEARANCE_M: float = 12.0
+## harbor_1's own band (UAT G-05-7). Most: a skirmisher notices a building whose edge is within its
+## 9 m aggro, and the Harbor's body is 1.5 m, so 10.5 m centre to centre.
+const HARBOR_ROAD_BAND_MAX_M: float = 10.5
+## Least: a grunt's 6 m aggro plus the Harbor's 1.5 m body is 7.5 m, kept 1.5 m clear.
+const HARBOR_ROAD_BAND_MIN_M: float = 9.0
 const MIN_WALL_RUN_CLEARANCE_M: float = 3.0
 const GAP_SAMPLE_STEP_M: float = 0.5
 const CONTENT_MAX_ABS_X: float = 66.3
@@ -216,15 +226,22 @@ func test_the_harbor_is_spot_twenty_one_on_the_north_shore_of_the_pond() -> void
 	var harbor: BuildSpotDef = _map().spots[HARBOR_INDEX]
 	assert_eq(harbor.id, HARBOR, "index 20")
 	assert_eq(harbor.building_id, &"fishing_harbor", "it takes the Fishing Harbor")
-	assert_eq(harbor.position, HARBOR_AT, "at (0, 0, 20.5)")
+	assert_eq(harbor.position, HARBOR_AT, "at (-39.93, 0, 25.48)")
 	assert_null(harbor.wall_run, "and is no wall plot")
 	assert_eq(harbor.requires_spot, &"", "it needs no other plot")
 
 
-func test_every_phase_five_plot_is_twelve_metres_from_every_road() -> void:
+func test_every_phase_five_plot_keeps_its_road_clearance() -> void:
 	var map: MapConfig = _map()
 	for spot: BuildSpotDef in _phase_five_spots(map):
 		var apart: float = _road_distance(map, _ground(spot.position))
+		if spot.id == HARBOR:
+			var note: String = (
+				"the exposed Harbor is %.2f m from a road, 9 to 10.5 m wanted" % apart
+			)
+			assert_gte(apart, HARBOR_ROAD_BAND_MIN_M, note)
+			assert_lte(apart, HARBOR_ROAD_BAND_MAX_M, note)
+			continue
 		assert_gte(apart, MIN_ROAD_CLEARANCE_M, "%s is %.1f m from a road" % [spot.id, apart])
 
 

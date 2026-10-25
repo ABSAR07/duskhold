@@ -13,6 +13,8 @@ extends GutTest
 ## number is 100 times larger, the owner's hard requirement, so percentages and rounding to the
 ## nearest unit work as written; the numbers below moved x100 and nothing else did; here: the
 ## economy buildings' health and the Shrine's 300 / 3000 / 10000.
+## Plan 05-22 (UAT G-05-7) moved the Harbor and its pond beside the west road for the owner: the
+## plot and the pond pins below are the new ones.
 
 const MINE_PATH := "res://data/buildings/gold_mine.tres"
 const MILL_PATH := "res://data/buildings/mill.tres"
@@ -59,9 +61,11 @@ const HARBOR_BOAT_GOLD: Array[int] = [1, 1]
 const HARBOR_HEALTHS: Array[int] = [1800, 2400]
 const HARBOR_CASTLE_TIERS: Array[int] = [0, 2]
 const HARBOR_BODY_RADIUS: float = 1.5
-## The visual-only pond (D-11): at the south edge of the built-up area, the Harbor on its shore.
-const POND_CENTER := Vector2(0.0, 30.0)
-const POND_RADIUS: float = 8.0
+## The visual-only pond (D-11): south-west, beside the west road, shrunk so the water clears the
+## Mine and the west Shrine, centred 6.5 m from the Harbor so the dock stays on land.
+const HARBOR_PLOT := Vector3(-39.93, 0.0, 25.48)
+const POND_CENTER := Vector2(-37.71, 31.59)
+const POND_RADIUS: float = 4.5
 
 ## The Shrine (plan 05-09), [ASSUMED] starting numbers that plan 05-11 fits with the bots.
 const SHRINE_COST: int = 3
@@ -260,10 +264,10 @@ func test_the_map_lists_the_harbor_its_plot_and_the_pond() -> void:
 	assert_not_null(plot, "the plot exists")
 	if plot != null:
 		assert_eq(plot.building_id, &"fishing_harbor", "it takes the Harbor")
-		assert_eq(plot.position, Vector3(0.0, 0.0, 20.5), "at (0, 0, 20.5)")
+		assert_eq(plot.position, HARBOR_PLOT, "at (-39.93, 0, 25.48)")
 		assert_eq(plot.requires_spot, &"", "and is never locked")
-	assert_eq(map.pond_center, POND_CENTER, "the pond is centred at (0, 30)")
-	assert_eq(map.pond_radius, POND_RADIUS, "with radius 8")
+	assert_eq(map.pond_center, POND_CENTER, "the pond is centred at (-37.71, 31.59)")
+	assert_eq(map.pond_radius, POND_RADIUS, "with radius 4.5")
 
 
 func test_the_catalog_has_models_for_both_harbor_tiers() -> void:

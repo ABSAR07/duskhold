@@ -7,8 +7,8 @@ extends GutTest
 
 const HARBOR: StringName = &"harbor_1"
 const HARBOR_VIEW_FILE := "fishing_harbor_t1.tscn"
-const POND_CENTER := Vector2(0.0, 30.0)
-const POND_RADIUS: float = 8.0
+const POND_CENTER := Vector2(-37.71, 31.59)
+const POND_RADIUS: float = 4.5
 const CAP: int = 3
 const BOAT_GOLD: int = 1
 const RICH_GOLD: int = 30
@@ -94,8 +94,8 @@ func _collision_nodes() -> Array[Node]:
 func test_the_pond_is_a_water_disc_at_the_map_pond_with_no_collision() -> void:
 	assert_not_null(_pond, "the scene has a PondView")
 	assert_true(_pond.has_pond(), "the map names a pond")
-	assert_eq(_pond.water_center(), POND_CENTER, "centred at (0, 30)")
-	assert_eq(_pond.water_radius(), POND_RADIUS, "radius 8")
+	assert_eq(_pond.water_center(), POND_CENTER, "centred at (-37.71, 31.59)")
+	assert_eq(_pond.water_radius(), POND_RADIUS, "radius 4.5")
 	var water: MeshInstance3D = _water()
 	assert_not_null(water, "a water disc is drawn")
 	var disc: CylinderMesh = water.mesh as CylinderMesh

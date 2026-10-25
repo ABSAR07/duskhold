@@ -1,15 +1,16 @@
 extends GutTest
 ## D-11, T-05-16, research Open Question 2 (RESOLVED): the visual-only pond. The shipped layout is
-## pinned (the pond holds no plot and no spawn point, every spawn-to-castle road keeps at least 18 m
-## from its centre, the Harbor stands on its shore, the water lies on the ground) and
-## MapConfig.validate() reports a pond that breaks those rules or carries numbers that are not
-## finite. A radius of 0 means no pond and passes. The pond never enters the nav grid
-## (test_nav_layout_pin), so none of this can move an enemy path.
+## pinned (the pond holds no plot and no spawn point, every spawn-to-castle road keeps its radius
+## plus 10 m from the centre, the Harbor stands on its shore with its footprint on land, the water
+## lies on the ground) and MapConfig.validate() reports a pond that breaks those rules or carries
+## numbers that are not finite. A radius of 0 means no pond and passes. The pond never enters the
+## nav grid (test_nav_layout_pin), so none of this can move an enemy path. Plan 05-22 (UAT G-05-7)
+## moved the Harbor and its pond beside the west road and shrank the water to a radius of 4.5, so
+## the road distance is computed from the shipped radius instead of a literal.
 
 const PROTOTYPE := "res://data/maps/prototype_map.tres"
 const HARBOR: StringName = &"harbor_1"
-## Every road keeps the pond radius (8) plus the validator's 10 m of clear water between them.
-const MIN_ROAD_CENTRE_M: float = 18.0
+const HARBOR_DEF := "res://data/buildings/fishing_harbor.tres"
 const MAX_SHORE_GAP_M: float = 3.0
 const WEST: StringName = &"west"
 
@@ -37,6 +38,11 @@ func _spawn(map: MapConfig, spawn_id: StringName) -> SpawnPointDef:
 	return map.find_spawn_point(spawn_id)
 
 
+## Every road keeps the pond radius plus the validator's 10 m of clear water between them.
+func _min_road_centre(map: MapConfig) -> float:
+	return map.pond_radius + EconomyValidation.POND_ROAD_CLEARANCE
+
+
 func _has(problems: Array[String], needle: String) -> bool:
 	for problem: String in problems:
 		if problem.contains(needle):
@@ -60,14 +66,16 @@ func test_the_shipped_pond_holds_no_plot_and_no_spawn_point() -> void:
 		)
 
 
-func test_every_spawn_to_castle_road_keeps_eighteen_metres_from_the_pond_centre() -> void:
+func test_every_spawn_to_castle_road_keeps_the_radius_plus_ten_metres_from_the_pond_centre(
+) -> void:
 	var map: MapConfig = _shipped()
 	var castle: Vector2 = _ground(map.castle_position)
 	for spawn: SpawnPointDef in map.spawn_points:
 		var at: Vector2 = _ground(spawn.position)
 		var nearest: Vector2 = Geometry2D.get_closest_point_to_segment(map.pond_center, at, castle)
 		var apart: float = nearest.distance_to(map.pond_center)
-		assert_gte(apart, MIN_ROAD_CENTRE_M, "the %s road is %.1f m away" % [spawn.id, apart])
+		var note: String = "the %s road is %.1f m away" % [spawn.id, apart]
+		assert_gte(apart, _min_road_centre(map), note)
 
 
 func test_the_harbor_stands_within_three_metres_of_the_pond_edge() -> void:
@@ -78,6 +86,9 @@ func test_the_harbor_stands_within_three_metres_of_the_pond_edge() -> void:
 	assert_gt(gap, 0.0, "on the shore, not in the water")
 	assert_lte(gap, MAX_SHORE_GAP_M, "%.1f m from the water's edge" % gap)
 	assert_lt(harbor.position.z, map.pond_center.y, "on the north shore")
+	var body: float = (load(HARBOR_DEF) as BuildingDef).body_radius
+	var note: String = "the dock's footprint stays on land (%.1f m gap, %.1f m body)" % [gap, body]
+	assert_gte(gap, body, note)
 
 
 func test_the_pond_lies_inside_the_ground() -> void:
@@ -142,7 +153,7 @@ func test_a_pond_within_radius_plus_ten_metres_of_a_road_is_reported() -> void:
 	var start: Vector2 = _ground(_spawn(map, WEST).position)
 	var middle: Vector2 = (start + castle) * 0.5
 	var along: Vector2 = (castle - start).normalized()
-	# Twelve metres off the road with a radius of 8: under the 18 m the validator wants.
+	# Twelve metres off the road: under the radius plus 10 m (14.5 m) the validator wants.
 	map.pond_center = middle + along.orthogonal() * 12.0
 	assert_true(_has(_pond_problems(map), "road"), "the west road")
 
