@@ -91,8 +91,9 @@ func test_an_arrow_source_on_the_stack_changes_the_arrow_number_not_the_raw_tier
 
 func test_a_gold_source_and_a_health_source_show_in_the_label_too() -> void:
 	_buy(&"prosperity")
+	var gain: int = (_card(&"prosperity").modifiers[0] as StatModifierDef).value
 	var income: int = _ctx.stat_stack.int_value(&"castle.base_income", _tier(3).dawn_income)
-	assert_eq(income, _tier(3).dawn_income + 1, "Prosperity adds a gold to the tier III base")
+	assert_eq(income, _tier(3).dawn_income + gain, "Prosperity adds its value")
 	assert_eq(
 		_label()["effect"],
 		(

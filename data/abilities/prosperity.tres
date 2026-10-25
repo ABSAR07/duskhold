@@ -7,7 +7,7 @@
 [sub_resource type="Resource" id="Resource_income"]
 script = ExtResource("2_mod")
 stat = &"castle.base_income"
-value = 1
+value = 2
 
 [resource]
 script = ExtResource("1_choice")

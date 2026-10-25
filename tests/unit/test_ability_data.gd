@@ -12,6 +12,11 @@ extends GutTest
 ## number is 100 times larger, the owner's hard requirement, so percentages and rounding to the
 ## nearest unit work as written; the numbers below moved x100 and nothing else did; here: Royal
 ## Training's flat +100 king damage, the king's 300 base and 800 with both cards.
+## Gap round G-05-2 (owner UAT 2026-10-24 and 2026-10-25, plans 05-13 to 05-24), the card recuts:
+## every card at a tier must be a viable pick, and the rescale cannot help a flat gold card.
+## Prosperity +1 to +2: a flat dawn card is worth its value times the dawns left to pay, and the
+## debug session measured +2 matching Masons on wins and gold while +1 trailed (plan 05-23
+## re-measures it).
 
 const CASTLE_PATH := "res://data/buildings/castle_center.tres"
 const ABILITY_DIR := "res://data/abilities/"
@@ -43,7 +48,7 @@ const CARDS: Dictionary = {
 	["Commander", [[&"unit.max_health", PERCENT, 25], [&"unit.attack_damage", PERCENT, 25]]],
 	&"masons":
 	["Masons", [[&"building.max_health", PERCENT, 30], [&"wall.max_health", PERCENT, 30]]],
-	&"prosperity": ["Prosperity", [[&"castle.base_income", FLAT, 1]]],
+	&"prosperity": ["Prosperity", [[&"castle.base_income", FLAT, 2]]],
 	&"headsmans_edge":
 	[
 		"Headsman's Edge",
