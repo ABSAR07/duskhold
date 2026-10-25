@@ -4,6 +4,8 @@ extends GutTest
 ## during the night, spawned at the post and walking to its slot; a squad at its cap runs no
 ## countdown; a fallen building freezes the countdown; the dawn restore brings every squad back to
 ## full numbers and health without moving its anchor. Every pace is read from the data files.
+## Gap round G-05-2 (owner UAT decision 2026-10-25): every health and damage number is 100
+## times larger; this test's felling blow moved with them so it fells what it felled before.
 
 const FIXTURE := "res://tests/fixtures/fixture_map_squads.tres"
 const BARRACKS: StringName = &"barracks_1"
@@ -154,7 +156,7 @@ func test_a_fallen_building_freezes_the_countdown_and_spawns_nothing() -> void:
 	for _i: int in range(5):
 		_step(true)
 	var frozen: float = _squads.replacement_progress(BARRACKS)
-	_buildings.damage_building(BARRACKS, 1000)
+	_buildings.damage_building(BARRACKS, 100000)
 	assert_true(_buildings.is_destroyed(BARRACKS), "the barracks fell")
 	for _i: int in range(interval * 2):
 		_step(true)

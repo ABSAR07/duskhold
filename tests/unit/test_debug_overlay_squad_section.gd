@@ -3,6 +3,8 @@ extends GutTest
 ## creation order with its alive / max, its stance and the seconds to its next replacement, and
 ## reading it is strictly read-only. A RunContext on the squad fixture, stepped with ctx.step() and
 ## no scene tree except for the one test that binds a real overlay.
+## Gap round G-05-2 (owner UAT decision 2026-10-25): every health and damage number is 100
+## times larger; this test's felling blow moved with them so it fells what it felled before.
 
 const FIXTURE := "res://tests/fixtures/fixture_map_squads.tres"
 const OVERLAY_SCENE := "res://ui/overlay/debug_overlay.tscn"
@@ -11,7 +13,7 @@ const ARCHERY: StringName = &"archery_1"
 const EM_DASH := "—"
 const BARRACKS_LABEL := "Squad barracks_1"
 const ARCHERY_LABEL := "Squad archery_1"
-const KILL_DAMAGE: int = 1000
+const KILL_DAMAGE: int = 100000
 const CRAWL_SPEED: float = 0.001
 const STEPS_AFTER_DEATHS: int = 45
 const READ_ONLY_REPEATS: int = 100

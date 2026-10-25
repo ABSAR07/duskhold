@@ -7,6 +7,8 @@ extends GutTest
 ## by a thin line in the verb colour (cyan move, #FF7A59 attack-move, #FFE073 patrol), the running
 ## order skipped and at most 6 shown; nothing is drawn for an unselected squad. Hovering within
 ## 32 px of an unselected squad's unit shows that squad's rings at alpha 0.4.
+## Gap round G-05-2 (owner UAT decision 2026-10-25): every health and damage number is 100
+## times larger; this test's felling blow moved with them so it fells what it felled before.
 
 const FIXTURE := "res://tests/fixtures/fixture_map_squads.tres"
 const BARRACKS: StringName = &"barracks_1"
@@ -34,7 +36,7 @@ const FLASH_SECONDS: float = 1.5
 const FLASH_TIMEOUT_S: float = 4.0
 const OFF_SCREEN_CM := Vector2i(6000, 0)
 const MAX_ARRIVAL_STEPS: int = 3000
-const KILL_DAMAGE: int = 999
+const KILL_DAMAGE: int = 99900
 const EMPTY_SPOT := Vector3(-1.0, 0.0, 0.0)
 
 var _view: SubViewport
