@@ -14,7 +14,8 @@ extends GutTest
 ## nearest unit work as written; the numbers below moved x100 and nothing else did; here: the
 ## economy buildings' health and the Shrine's 300 / 3000 / 10000.
 ## Plan 05-22 (UAT G-05-7) moved the Harbor and its pond beside the west road for the owner: the
-## plot and the pond pins below are the new ones.
+## plot and the pond pins below are the new ones, and the Harbor's health dropped a step with it,
+## 1800 / 2400 to 1400 / 2000 (18 / 24 to 14 / 20 at the old scale); no other economy number moved.
 
 const MINE_PATH := "res://data/buildings/gold_mine.tres"
 const MILL_PATH := "res://data/buildings/mill.tres"
@@ -58,7 +59,7 @@ const FIELD_PLOTS: Array[StringName] = [&"field_1", &"field_2", &"field_3"]
 const HARBOR_COSTS: Array[int] = [3, 6]
 const HARBOR_CAPS: Array[int] = [3, 5]
 const HARBOR_BOAT_GOLD: Array[int] = [1, 1]
-const HARBOR_HEALTHS: Array[int] = [1800, 2400]
+const HARBOR_HEALTHS: Array[int] = [1400, 2000]
 const HARBOR_CASTLE_TIERS: Array[int] = [0, 2]
 const HARBOR_BODY_RADIUS: float = 1.5
 ## The visual-only pond (D-11): south-west, beside the west road, shrunk so the water clears the
