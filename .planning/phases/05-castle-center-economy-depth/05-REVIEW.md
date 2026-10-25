@@ -1,47 +1,14 @@
 ---
 phase: 05-castle-center-economy-depth
-reviewed: 2026-10-22T09:55:05Z
+reviewed: 2026-10-25T23:41:54Z
 depth: standard
-files_reviewed: 279
+files_reviewed: 93
 files_reviewed_list:
-  - .github/workflows/ci.yml
-  - ASSETS.md
-  - assets/first_party/card_icons/arrow_storm.svg
-  - assets/first_party/card_icons/arrow_storm.svg.import
-  - assets/first_party/card_icons/commander.svg
-  - assets/first_party/card_icons/commander.svg.import
-  - assets/first_party/card_icons/engineers.svg
-  - assets/first_party/card_icons/engineers.svg.import
-  - assets/first_party/card_icons/golden_age.svg
-  - assets/first_party/card_icons/golden_age.svg.import
-  - assets/first_party/card_icons/headsmans_edge.svg
-  - assets/first_party/card_icons/headsmans_edge.svg.import
-  - assets/first_party/card_icons/iron_discipline.svg
-  - assets/first_party/card_icons/iron_discipline.svg.import
-  - assets/first_party/card_icons/masons.svg
-  - assets/first_party/card_icons/masons.svg.import
-  - assets/first_party/card_icons/master_builders.svg
-  - assets/first_party/card_icons/master_builders.svg.import
-  - assets/first_party/card_icons/prosperity.svg
-  - assets/first_party/card_icons/prosperity.svg.import
-  - assets/first_party/card_icons/royal_training.svg
-  - assets/first_party/card_icons/royal_training.svg.import
-  - assets/first_party/card_icons/war_horns.svg
-  - assets/first_party/card_icons/war_horns.svg.import
-  - assets/first_party/card_icons/warded_mail.svg
-  - assets/first_party/card_icons/warded_mail.svg.import
-  - data/abilities/arrow_storm.tres
-  - data/abilities/commander.tres
-  - data/abilities/engineers.tres
+  - .claude/CLAUDE.md
   - data/abilities/golden_age.tres
   - data/abilities/headsmans_edge.tres
-  - data/abilities/iron_discipline.tres
-  - data/abilities/masons.tres
-  - data/abilities/master_builders.tres
   - data/abilities/prosperity.tres
   - data/abilities/royal_training.tres
-  - data/abilities/war_horns.tres
-  - data/abilities/warded_mail.tres
   - data/buildings/archery_range.tres
   - data/buildings/barracks.tres
   - data/buildings/castle_center.tres
@@ -53,449 +20,236 @@ files_reviewed_list:
   - data/buildings/shrine.tres
   - data/buildings/tower.tres
   - data/buildings/wall.tres
+  - data/enemies/grunt.tres
+  - data/enemies/ranged.tres
+  - data/king/king.tres
+  - data/king/sword.tres
   - data/maps/prototype_map.tres
-  - docs/STAT_MODIFIERS.md
-  - input/build_hold_controller.gd
-  - input/card_picker.gd
-  - input/card_picker.gd.uid
-  - input/command_key_controller.gd
-  - presentation/buildings/building_view_catalog.tres
-  - presentation/buildings/building_views.gd
-  - presentation/buildings/models/castle_center_t2.tscn
-  - presentation/buildings/models/castle_center_t3.tscn
-  - presentation/buildings/models/castle_center_t4.tscn
-  - presentation/buildings/models/field_t1.tscn
-  - presentation/buildings/models/fishing_harbor_t1.tscn
-  - presentation/buildings/models/fishing_harbor_t2.tscn
-  - presentation/buildings/models/gold_mine_t1.tscn
-  - presentation/buildings/models/mill_t1.tscn
-  - presentation/buildings/models/mill_t2.tscn
-  - presentation/buildings/models/mill_t3.tscn
-  - presentation/buildings/models/shrine_t1.tscn
-  - presentation/environment/pond_view.gd
-  - presentation/environment/pond_view.gd.uid
-  - presentation/map/map_root.gd
-  - presentation/map/prototype_map.tscn
-  - presentation/units/unit_views.gd
-  - presentation/vfx/projectile_vfx.gd
-  - simulation/buildings/building_system.gd
-  - simulation/buildings/choice_ledger.gd
-  - simulation/buildings/choice_ledger.gd.uid
-  - simulation/castle/castle_state.gd
-  - simulation/commands/build_intent.gd
-  - simulation/commands/build_requirements.gd
-  - simulation/commands/build_requirements.gd.uid
-  - simulation/commands/command_processor.gd
-  - simulation/defs/build_requirement_validation.gd
-  - simulation/defs/build_requirement_validation.gd.uid
-  - simulation/defs/build_spot_def.gd
-  - simulation/defs/building_def.gd
-  - simulation/defs/building_tier_def.gd
-  - simulation/defs/castle_validation.gd
-  - simulation/defs/castle_validation.gd.uid
-  - simulation/defs/choice_def.gd
-  - simulation/defs/choice_def.gd.uid
-  - simulation/defs/choice_validation.gd
-  - simulation/defs/choice_validation.gd.uid
-  - simulation/defs/economy_validation.gd
-  - simulation/defs/economy_validation.gd.uid
-  - simulation/defs/map_config.gd
-  - simulation/economy/income_state.gd
-  - simulation/economy/income_state.gd.uid
-  - simulation/events/sim_events.gd
-  - simulation/king/king_state.gd
-  - simulation/night/castle_attack.gd
-  - simulation/night/night_sim.gd
-  - simulation/night/tower_system.gd
-  - simulation/run/run_context.gd
-  - simulation/run/run_manager.gd
-  - simulation/squads/squad_system.gd
-  - simulation/squads/unit_system.gd
-  - simulation/stats/stat_ids.gd
-  - simulation/stats/stat_ids.gd.uid
-  - simulation/stats/stat_modifier_def.gd
-  - simulation/stats/stat_modifier_def.gd.uid
-  - simulation/stats/stat_stack.gd
-  - simulation/stats/stat_stack.gd.uid
-  - simulation/walls/wall_system.gd
-  - tests/e2e/e2e_support.gd
-  - tests/e2e/test_build_denied.gd
-  - tests/e2e/test_building_models.gd
-  - tests/e2e/test_card_digit_handover.gd
-  - tests/e2e/test_card_digit_handover.gd.uid
-  - tests/e2e/test_card_mouse.gd
-  - tests/e2e/test_card_mouse.gd.uid
-  - tests/e2e/test_card_row.gd
-  - tests/e2e/test_card_row.gd.uid
-  - tests/e2e/test_castle_gate.gd
-  - tests/e2e/test_castle_gate.gd.uid
-  - tests/e2e/test_castle_three_picks.gd
-  - tests/e2e/test_castle_three_picks.gd.uid
-  - tests/e2e/test_castle_views.gd
-  - tests/e2e/test_castle_views.gd.uid
-  - tests/e2e/test_gold_mine_scene.gd
-  - tests/e2e/test_gold_mine_scene.gd.uid
+  - data/units/archer.tres
+  - data/units/footman.tres
+  - project.godot
   - tests/e2e/test_harbor_scene.gd
-  - tests/e2e/test_harbor_scene.gd.uid
-  - tests/e2e/test_mill_fields_scene.gd
-  - tests/e2e/test_mill_fields_scene.gd.uid
-  - tests/e2e/test_rebuilt_economy_marker.gd
-  - tests/e2e/test_rebuilt_economy_marker.gd.uid
-  - tests/e2e/test_shrine_look.gd
-  - tests/e2e/test_shrine_look.gd.uid
-  - tests/e2e/test_shrine_scene.gd
-  - tests/e2e/test_shrine_scene.gd.uid
-  - tests/e2e/test_spot_label.gd
-  - tests/e2e/test_upgrade_at_spot.gd
-  - tests/e2e/test_wall_views.gd
+  - tests/e2e/test_king_knockout.gd
+  - tests/e2e/test_king_ride.gd
+  - tests/e2e/test_king_widget.gd
+  - tests/e2e/test_order_markers.gd
+  - tests/e2e/test_squad_strip.gd
   - tests/fixtures/fixture_map_castle.tres
   - tests/fixtures/fixture_map_gate.tres
-  - tests/fixtures/fixture_map_replay_economy.tres
+  - tests/fixtures/fixture_map_one_night.tres
   - tests/fixtures/fixture_map_shrine.tres
-  - tests/golden/economy.json
+  - tests/fixtures/fixture_map_squads.tres
+  - tests/fixtures/fixture_map_walls.tres
+  - tests/fixtures/fixture_map_walls_gap.tres
   - tests/integration/test_balance_acceptance.gd
-  - tests/integration/test_balance_report.gd
-  - tests/integration/test_balance_report_castle.gd
-  - tests/integration/test_balance_report_castle.gd.uid
-  - tests/integration/test_build_flow.gd
-  - tests/integration/test_dawn_payout_economy.gd
-  - tests/integration/test_dawn_payout_economy.gd.uid
-  - tests/integration/test_economy_destroyed.gd
-  - tests/integration/test_economy_destroyed.gd.uid
-  - tests/integration/test_economy_replay_golden.gd
-  - tests/integration/test_economy_replay_golden.gd.uid
-  - tests/integration/test_field_independence.gd
-  - tests/integration/test_field_independence.gd.uid
-  - tests/integration/test_shrine_destroyed.gd
-  - tests/integration/test_shrine_destroyed.gd.uid
-  - tests/integration/test_shrine_night.gd
-  - tests/integration/test_shrine_night.gd.uid
-  - tests/integration/test_stat_tracer.gd
-  - tests/integration/test_stat_tracer.gd.uid
-  - tests/integration/test_upgrade_flow.gd
-  - tests/support/sim_signals.gd
+  - tests/integration/test_wall_dawn.gd
+  - tests/integration/test_wall_detour.gd
   - tests/unit/test_ability_data.gd
-  - tests/unit/test_ability_data.gd.uid
-  - tests/unit/test_bot_card_picks.gd
-  - tests/unit/test_bot_card_picks.gd.uid
-  - tests/unit/test_bot_defers_locked.gd
-  - tests/unit/test_bot_defers_locked.gd.uid
-  - tests/unit/test_build_choice.gd
-  - tests/unit/test_build_choice.gd.uid
-  - tests/unit/test_build_requirement_validation.gd
-  - tests/unit/test_build_requirement_validation.gd.uid
   - tests/unit/test_build_requirements.gd
-  - tests/unit/test_build_requirements.gd.uid
-  - tests/unit/test_build_spot.gd
-  - tests/unit/test_card_icons.gd
-  - tests/unit/test_card_icons.gd.uid
-  - tests/unit/test_card_row_model.gd
-  - tests/unit/test_card_row_model.gd.uid
+  - tests/unit/test_card_resolution.gd
+  - tests/unit/test_card_resolution.gd.uid
+  - tests/unit/test_castle_attack.gd
   - tests/unit/test_castle_data_contract.gd
-  - tests/unit/test_castle_data_contract.gd.uid
   - tests/unit/test_castle_label.gd
-  - tests/unit/test_castle_label.gd.uid
-  - tests/unit/test_castle_tiers.gd
-  - tests/unit/test_castle_tiers.gd.uid
-  - tests/unit/test_choice_validation.gd
-  - tests/unit/test_choice_validation.gd.uid
   - tests/unit/test_dawn_rebuild.gd
-  - tests/unit/test_debug_overlay_night_sections.gd
+  - tests/unit/test_debug_overlay_crowd_sections.gd
+  - tests/unit/test_debug_overlay_squad_section.gd
   - tests/unit/test_economy_data_contract.gd
-  - tests/unit/test_economy_data_contract.gd.uid
   - tests/unit/test_economy_overlay_sections.gd
-  - tests/unit/test_economy_overlay_sections.gd.uid
-  - tests/unit/test_economy_validation.gd
-  - tests/unit/test_economy_validation.gd.uid
-  - tests/unit/test_fishing_harbor.gd
-  - tests/unit/test_fishing_harbor.gd.uid
-  - tests/unit/test_gate_data_contract.gd
-  - tests/unit/test_gate_data_contract.gd.uid
-  - tests/unit/test_gold_mine.gd
-  - tests/unit/test_gold_mine.gd.uid
-  - tests/unit/test_loop_tuning_contract.gd
+  - tests/unit/test_enemy_targeting.gd
+  - tests/unit/test_field_route_pins.gd
+  - tests/unit/test_glyph_resolver.gd
+  - tests/unit/test_harbor_exposure.gd
+  - tests/unit/test_harbor_exposure.gd.uid
+  - tests/unit/test_input_capabilities.gd
+  - tests/unit/test_input_map.gd
+  - tests/unit/test_map_validate_castle.gd
+  - tests/unit/test_melee_breaks_to_target.gd
   - tests/unit/test_military_data_contract.gd
-  - tests/unit/test_mill_fields.gd
-  - tests/unit/test_mill_fields.gd.uid
-  - tests/unit/test_nav_layout_pin.gd
-  - tests/unit/test_nav_layout_pin.gd.uid
-  - tests/unit/test_playtest_strategies.gd
-  - tests/unit/test_playtest_strategies_castle.gd
-  - tests/unit/test_playtest_strategies_castle.gd.uid
+  - tests/unit/test_nav_grid.gd
   - tests/unit/test_pond_layout.gd
-  - tests/unit/test_pond_layout.gd.uid
-  - tests/unit/test_prototype_map_data.gd
   - tests/unit/test_prototype_map_economy.gd
-  - tests/unit/test_prototype_map_economy.gd.uid
-  - tests/unit/test_prototype_map_walls.gd
-  - tests/unit/test_replay_cli_args.gd
+  - tests/unit/test_run_stats.gd
   - tests/unit/test_shot_list.gd
-  - tests/unit/test_shot_list_gate.gd
-  - tests/unit/test_shot_list_gate.gd.uid
-  - tests/unit/test_shrine.gd
-  - tests/unit/test_shrine.gd.uid
-  - tests/unit/test_shrine_plots.gd
-  - tests/unit/test_shrine_plots.gd.uid
-  - tests/unit/test_shrine_synergy.gd
-  - tests/unit/test_shrine_synergy.gd.uid
-  - tests/unit/test_shrine_validation.gd
-  - tests/unit/test_shrine_validation.gd.uid
-  - tests/unit/test_sim_rules_guard.gd
-  - tests/unit/test_spot_label_locked.gd
-  - tests/unit/test_spot_label_locked.gd.uid
   - tests/unit/test_spot_label_model.gd
-  - tests/unit/test_stat_combined.gd
-  - tests/unit/test_stat_combined.gd.uid
-  - tests/unit/test_stat_consumers.gd
-  - tests/unit/test_stat_consumers.gd.uid
-  - tests/unit/test_stat_contract.gd
-  - tests/unit/test_stat_contract.gd.uid
-  - tests/unit/test_stat_refresh.gd
-  - tests/unit/test_stat_refresh.gd.uid
-  - tests/unit/test_stat_stack.gd
-  - tests/unit/test_stat_stack.gd.uid
+  - tests/unit/test_squad_archers.gd
+  - tests/unit/test_squad_respawn.gd
+  - tests/unit/test_stress_map_data.gd
   - tests/unit/test_structure_decision_pins.gd
-  - tools/playtest.sh
-  - tools/replay.sh
-  - tools/replay/balance_report.gd
-  - tools/replay/playtest_bot.gd
-  - tools/replay/playtest_strategies.gd
-  - tools/replay/replay_driver.gd
-  - tools/replay/replay_scenarios.gd
-  - tools/replay/sim_recorder.gd
-  - tools/screenshot.sh
+  - tests/unit/test_unit_fill_pins.gd
+  - tests/unit/test_wall_data_contract.gd
+  - tests/unit/test_wall_decision.gd
+  - tests/unit/test_wall_geometry_pins.gd
+  - tests/unit/test_wall_solids.gd
+  - tests/unit/test_weapon_def.gd
   - tools/screenshot/shot_army_scenarios.gd
   - tools/screenshot/shot_crowd_scenarios.gd
   - tools/screenshot/shot_economy_scenarios.gd
-  - tools/screenshot/shot_economy_scenarios.gd.uid
-  - tools/screenshot/shot_scenarios.gd
-  - ui/hud/dawn_no_income_marker.gd
-  - ui/overlay/debug_overlay.gd
-  - ui/overlay/debug_overlay_model.gd
+  - tools/stress/data/stress_barracks.tres
+  - tools/stress/data/stress_footman.tres
+  - tools/stress/data/stress_grunt.tres
+  - tools/stress/data/stress_tower.tres
+  - tools/stress/data/stress_wall.tres
+  - tools/stress/step_attribution.gd
+  - tools/stress/step_bench.gd
+  - tools/stress/stress_map.tres
+  - tools/stress/stress_night.gd
+  - ui/hud/king_widget.gd
   - ui/overlay/economy_overlay_sections.gd
-  - ui/overlay/economy_overlay_sections.gd.uid
-  - ui/overlay/stat_overlay_sections.gd
-  - ui/overlay/stat_overlay_sections.gd.uid
-  - ui/world/card_row.gd
-  - ui/world/card_row.gd.uid
-  - ui/world/card_row_model.gd
-  - ui/world/card_row_model.gd.uid
-  - ui/world/spot_label.gd
-  - ui/world/spot_label.tscn
   - ui/world/spot_label_model.gd
 findings:
   critical: 0
-  warning: 5
+  warning: 3
   info: 9
-  total: 14
+  total: 12
 status: issues_found
 ---
 
-# Phase 5: Code Review Report
+# Phase 5: Code Review Report (gap-closure round 1)
 
-**Reviewed:** 2026-10-22T09:55:05Z
+**Reviewed:** 2026-10-26
 **Depth:** standard
-**Files Reviewed:** 279
+**Files Reviewed:** 93
 **Status:** issues_found
 
 ## Summary
 
-Reviewed the whole Phase 5 scope: the StatStack and its consumers (king, units, buildings, walls, towers,
-castle), the castle plot with its four tiers and twelve cards, the requirement gate, IncomeState (Mine,
-Harbor, Shrine), the card row and picker, the pond, the castle-aware bots, the economy replay scenario and
-the screenshot tooling. The 72 `.uid` files each sit beside their script, scene or resource, the 12 `.import`
-files each sit beside their SVG, and the 12 SVGs are plain shapes (no script, no external reference), are each
-referenced by exactly one card in `data/abilities/` and are covered by the "First-party assets" paragraph of
-ASSETS.md. The CI workflow keeps `permissions: contents: read`, every `uses:` is SHA-pinned, there are no
-secrets, and the only Phase 5 edits are the two economy replay lines and the comment.
+This round rescaled every health and damage number x100 in shipped data, fixtures, the stress map and three stress tools, re-pinned the tests, recut three cards, moved the Harbor and its pond, widened the king widget label, and stripped the pad bindings from the king's move and sprint actions (quick task 261023-aos). I read the diff of each file against 06aa63d and checked the 13 surviving candidates against the source.
 
-The core arithmetic holds up under tracing: `StatStack._int_from` rounds once, half up, and the worst-case
-product (`100000 * 1100 * 400^4`, doubled for the rounding add) stays under int64; every handler of
-`changed` reads `previous_int_value` only for a stat that moved, so the stale-snapshot window is not
-reachable; the gate is checked in `validate_build` before any spend and `apply_next_tier` has no other
-production caller; IncomeState and `BuildingSystem.dawn_income_by_spot` partition the curves so nothing is
-paid twice; no float enters a decision other than the existing metre-space distance tests. No security
-finding and no correctness defect reachable with the shipped data was found, so there is no BLOCKER. The
-findings below are latent robustness gaps (data that validates but silently disarms or silently drops an
-effect), one misleading UI marker, one hot-path allocation, and cleanups.
+The data rescale itself holds up. The diff of `data/` shows a consistent x100 on health and damage, gold untouched, and the one place that sits near an integer limit (wall segment health in a PackedInt32Array) peaks at 9000 in shipped data and 10000000 in the stress wall, both far below int32. I found no critical defects. The quick task's `project.godot` change removes exactly the five intended pad events (four move axes, one sprint button). The defects are all of one family: a number rescaled in one place and left behind in another.
+
+- WR-06 to WR-08: one test that silently stopped testing, one bench constant that has no effect, and one shot-tool gap that lets a pad cancel the zoom.
+- IN-10 to IN-18: stale names, comments and docs after the rescale and the pad removal.
+
+All 13 candidates were confirmed against the source. Three were merged: the two step_bench candidates (one finding, WR-06), and the stale doc comments in `simulation/night/castle_attack.gd`, `building_def.gd` and `choice_def.gd` (IN-18). The CLAUDE.md candidate is reported at the line the file has on disk, 91. None was dropped. The six refuted candidates were not independently re-confirmed and are not reported.
+
+Carried count: 14 findings from the previous review (listed below). The frontmatter counts new findings only.
+
+## Carried from the previous review (still open, outside this round's changes)
+
+None of the fourteen was fixed, and this round touched none of their code.
+
+- WR-01: A refused `add_source` is ignored after the gold is spent and the pick is recorded
+- WR-02: Castle tiers II to IV are not validated, so a bad row silently disarms the keep; the CastleAttack header still claims otherwise
+- WR-03: `StatModifierDef.problems()` accepts a bucket that is not one of the three
+- WR-04: The "no income" coin is drawn over a rebuilt Shrine that has not woken and pays nothing anyway
+- WR-05: IncomeState's per-death handler allocates and rescans every plot for each enemy death
+- IN-01: `CastleAttack._map` is a dead field after 05-02
+- IN-02: A digit key above the card count clears the highlight instead of being ignored
+- IN-03: `StatStack` allocates an empty Dictionary on every read, and `CastleAttack` reads the stack several times per tick
+- IN-04: The card picker and the requirement check do avoidable work every frame near a plot
+- IN-05: `dawn_income` set on a BOATS tier is silently never paid and not reported
+- IN-06: The castle-raising helper exists twice, fails silently, and the shot version writes the economy directly
+- IN-07: `PondView.bind_run` dereferences spot entries without a null check
+- IN-08: A wall-clock loop in an e2e test makes the shake assertion machine-dependent
+- IN-09: The transcendental guard does not scan the Phase 5 simulation folders that make decisions
+
+Note on WR-02 and IN-18: IN-18 is separate from carried WR-02. The CastleAttack header is also stale after the rescale (its shipped numbers), which WR-02's fix should cover in the same edit.
 
 ## Warnings
 
-### WR-01: A refused `add_source` is ignored after the gold is spent and the pick is recorded
+### WR-06: step_bench's `CASTLE_HEALTH` never reaches the castle on the prototype shape: the castle plot is built to tier II, whose 10000 replaces it
 
-**File:** `simulation/buildings/choice_ledger.gd:71` (also `simulation/economy/income_state.gd:221`)
-**Issue:** `StatStack.add_source` returns `false` and changes nothing when a stat would exceed four
-multipliers or a percent sum would leave -90..1000 (`stat_stack.gd:42-61`). `ChoiceLedger._on_choice_picked`
-discards that result and goes on to append the card to `_picks` and `_all`, so the spot label's Picks line,
-the Economy overlay and the replay `picks` list report a card whose modifiers were never armed, and the player
-has already paid for the tier. `ChoiceValidation` checks each modifier alone (`stat_modifier_def.gd:26`) and
-never the stacking of every card of the map, so nothing reports the case. `IncomeState._refresh_synergy` has
-the same blind spot: when Golden Age's +25% on `shrine.damage` plus the capped synergy would pass 1000, the
-replacement is refused and the previous synergy value silently stays. Not reachable with the shipped 12 cards
-and two Shrines, but the data-driven design invites it as Phases 6 and 7 add cards.
-**Fix:** Have the ledger record the pick only when the stack accepted it, and make `ChoiceValidation` prove the
-worst case:
+**File:** `tools/stress/step_bench.gd:61` (also 179-185)
+**Issue:** `_build` writes `map.castle_max_health = CASTLE_HEALTH` (line 179) and then calls `apply_next_tier` on every spot (lines 184-185). `spot_ids()` includes the shipped `castle_plot` (`data/maps/prototype_map.tres:147-150`, `is_castle = true`), which `BuildingSystem` stands at tier I, so the call raises it to tier II. `CastleState._on_building_built` (`simulation/castle/castle_state.gd:177-182`) then sets `_max_health = _stat_max_health()`, and `_base_max_health()` (lines 162-167) reads the tier II row's `max_health = 10000` (`data/buildings/castle_center.tres:29`), not the map value. The bench castle therefore has 10000 health, 50 grunt blows of 200. The comment above the constant ("The castle must outlive the timed steps whatever the machine does") is false.
+
+This round raised the constant from 10000000 to 1000000000 without noticing that it does nothing; the cause predates the round. `--warmup` is allowed up to 900 and `--steps` up to 600, so 1500 ticks (50 s) can be requested. Grunts arrive in about 19 s, and the castle falls soon after. `RunContext.step()` then returns at once (`simulation/run/run_context.gd:74-75`) and the remaining timed samples read about 0 ms, so `mean_ms` and `p95_ms` come out too low. Tier II also arms the castle's arrows (300 damage), so the bench load differs from the "every plot built at tier 1" shape its header describes. The default run (30 steps, no warm-up) does not get that far, and `--map=stress` is unaffected because that map has no castle plot.
+**Fix:** In `_build`, skip the castle plot so it stays at tier I and keeps the map's value:
 ```gdscript
-if not _stats.add_source(choice_id, card.modifiers):
-    push_warning("card '%s' refused by the stat stack" % choice_id)  # or an event the recorder digests
-    return
+for spot_id: StringName in ctx.buildings.spot_ids():
+	if ctx.buildings.get_spot(spot_id).is_castle:
+		continue
+	ctx.buildings.apply_next_tier(spot_id)
 ```
-and in `ChoiceValidation.problems` build a scratch `StatStack`, `add_source` every card of the map once, and
-report `"cards together exceed the stat limits"` when any call returns false. In `_refresh_synergy` keep the cap
-at `PERCENT_SUM_MAX - (the other sources' percent)` or report through `EconomyValidation`.
+Alternatively, set the castle's health after the build loop. Correct the header's "every plot built at tier 1" either way.
 
-### WR-02: Castle tiers II to IV are not validated, so a bad row silently disarms the keep; the CastleAttack header still claims otherwise
+### WR-07: The "building fell" integration test no longer fells the Barracks after the x100 rescale (file missed by the re-pin)
 
-**File:** `simulation/defs/castle_validation.gd:28` and `simulation/defs/map_config.gd:512`; stale claim at
-`simulation/night/castle_attack.gd:14-18`
-**Issue:** Since 05-02 `CastleAttack.is_armed` and `step` read the arrow from `CastleState.arrow_*`, which for
-tier II and above come from the castle building's tier data (`castle_state.gd`, `_upgraded_tier()`). The tier
-numbers are checked only by `MapConfig._validate_tier_combat` (range >= 0, interval > 0, speed >= 0). A tier
-with `attack_damage = 0` (the `BuildingTierDef` default), an `attack_range` of 0, an interval below
-`SimClock.STEP` or above `MAX_CASTLE_ATTACK_INTERVAL_S`, or a non-finite value passes `validate()` and then
-fails `is_armed()`, so buying that castle tier turns the keep's arrow off with no report. The Shrine got exactly
-this check (`EconomyValidation._check_awakened`), the castle did not. The `CastleAttack` header still says
-"MapConfig.validate() reports every other value, so neither bad nor unvalidated data can make the castle fire
-every tick", which is no longer true for the upgraded tiers.
-**Fix:** In `CastleValidation._check_building`, for every tier index >= 1 of the castle building report
-`attack_damage < 1`, a non-finite or non-positive `attack_range`, `attack_interval` outside
-`[SimClock.STEP, MapConfig.MAX_CASTLE_ATTACK_INTERVAL_S]` and a non-finite or negative `projectile_speed`
-(the same bounds `is_armed` applies), and rewrite the header comment to say the tier data is validated by
-`CastleValidation`.
+**File:** `tests/integration/test_squad_lifecycle.gd:12, 174-179`
+**Issue:** `test_an_emptied_squad_whose_building_fell_is_rebuilt_and_restored_at_dawn` fells the Barracks with `KILL_DAMAGE`, still 1000 (line 12). The fixture loads the shipped `data/buildings/barracks.tres` (via `fixture_map_squads.tres`), whose tier I `max_health` is now 4000 (it was 40 at 06aa63d), so the blow takes it to 3000 and it is not destroyed. Nothing between line 174 and line 179 asserts that the building fell. As a result:
 
-### WR-03: `StatModifierDef.problems()` accepts a bucket that is not one of the three
+- `assert_false(is_destroyed(BARRACKS), "dawn rebuilt the barracks")` passes because the Barracks was never destroyed.
+- `_stood_at_restore` is true because it never fell.
+- "the squad is full again" can come from the night replacement trickle of a standing Barracks, not from the dawn rebuild and restore.
 
-**File:** `simulation/stats/stat_modifier_def.gd:26-47`
-**Issue:** `bucket` is an exported enum stored as an int in the `.tres`. A hand-edited `bucket = 3` (the
-project edits `.tres` as text) passes `problems()` (the `match` has no default arm), is accepted by
-`StatStack.add_source`, counts as a modifier for `is_modified`, `modified_stats` and the debug Stats row, and
-contributes nothing in `_compute_sums` (`stat_stack.gd:190-196` has no arm for it), while
-`effect_text()` prints it as a flat bonus. The card would show "+2 king damage" and do nothing, and no test or
-validation report catches it. This is the typo class the "unknown stat id" check exists for.
-**Fix:** Add a default arm that reports it:
+The rebuild-then-restore path the test is named for is no longer exercised, and the suite stays green. The unit kills at lines 72 and 84 still work, because the footman has 1000 health. The file is not in the round's scope list, which is the reason it was missed. In-scope siblings were re-pinned for the same call (`test_squad_respawn.gd` went to 100000).
+**Fix:** Fell the Barracks with its own health and assert it:
 ```gdscript
-_:
-    found.append("unknown bucket %d for '%s'" % [bucket, stat])
+_ctx.buildings.damage_building(BARRACKS, _ctx.buildings.max_health_of(BARRACKS))
+assert_true(_ctx.buildings.is_destroyed(BARRACKS), "the barracks fell")
 ```
+Keep `KILL_DAMAGE` for the unit blows only.
 
-### WR-04: The "no income" coin is drawn over a rebuilt Shrine that has not woken and pays nothing anyway
+### WR-08: `castle_tier_four` and `crowd_stress_night` press `zoom_out` without `_drop_pad_zoom_events`, so a connected pad still cancels their zoom
 
-**File:** `ui/hud/dawn_no_income_marker.gd:60-76` with `simulation/defs/building_def.gd:57-63`
-**Issue:** The marker asks `BuildingDef.pays_income(tier)`, which for every curve except BOATS is
-`tier.dawn_income > 0`. The Shrine tier carries `dawn_income = 1` (`data/buildings/shrine.tres`) but
-`IncomeState.dawn_payouts` pays an AWAKENED plot only while `is_awake` is true (`income_state.gd`, the
-`AWAKENED and is_awake(spot_id)` arm). A Shrine that fell and was rebuilt before it ever woke therefore gets
-the crossed-out coin ("you lose this morning's gold") although it had no gold to lose. No test covers a
-rebuilt Shrine in `test_rebuilt_economy_marker.gd` (Mine, House, Tower and wall plots only).
-**Fix:** Make the marker ask the income model, not the raw field: add `IncomeState.would_pay(spot_id)` (true
-for a FLAT plot with `dawn_income > 0`, for a DECLINING plot, for a BOATS plot with `boat_income > 0`, and for
-an AWAKENED plot only when `is_awake`) and call it from `_pays_income`; add a rebuilt-dormant-Shrine case to
-the e2e test.
-
-### WR-05: IncomeState's per-death handler allocates and rescans every plot for each enemy death
-
-**File:** `simulation/economy/income_state.gd:182` (loop), `:225` (`_synergy_percent`)
-**Issue:** `_on_enemy_died` runs once per death (hundreds per late night) and each time calls
-`_buildings.spot_ids()`, which returns `_order.duplicate()` (`building_system.gd:46`, a fresh 23-element
-array), then for each of the 23 plots does `_shrine_tier` (`get_building_def_for_spot` -> `get_spot` ->
-dictionary lookups, then `tier_def`, `current_tier`) only to discover that 21 of them are not Shrines;
-`_map.find_enemy(def_id)` is a linear search on top. `_synergy_percent` repeats the full scan on every wake.
-The set of AWAKENED plots is fixed by the map at construction.
-**Fix:** Build `_shrine_plots: Array[StringName]` (and each plot's `Vector2` position) once in `_init` from
-`map.spots` whose building has `IncomeCurve.AWAKENED`, in MapConfig order, and iterate only that list in
-`_on_enemy_died` and `_synergy_percent`; cache `EnemyDef.max_health` by `def_id` in a Dictionary built in
-`_init`. The golden digests are unaffected because the iteration order and arithmetic stay identical.
+**File:** `tools/screenshot/shot_economy_scenarios.gd:157` and `tools/screenshot/shot_crowd_scenarios.gd:220`
+**Issue:** Plan 05-23 found that with a pad connected, stick noise overrides a scripted `Input.action_press(&"zoom_out")`, and recorded the rule that a real-window shot that presses a zoom action must drop that action's pad bindings in memory first. The new `_drop_pad_zoom_events()` helper (shot_economy_scenarios.gd:190) is called only from `harbor_pond` (line 214) and `economy_day` (line 314). `_castle_tier_four` (lines 157-159, meant to fit the tall keep in frame) and `_crowd_stress_night` (shot_crowd_scenarios.gd:220-222) use the same press, wait, release sequence without it. Both zoom actions are bound to joypad axis 3 (`project.godot` zoom_in and zoom_out). Neither shot checks the camera zoom in its ready check, so with a pad connected both pass and save a picture at about the default zoom. The UI audit reads those pictures as evidence. Each shot runs in its own Godot process, so applying the helper everywhere is safe. The same mechanism could, less likely, affect `_queue_ten` in `shot_army_scenarios.gd` (it holds `command_queue`, bound to a trigger axis).
+**Fix:** Move the helper to `ShotScenarios` (or call it once in `ShotRunner` before any scenario) and call it before every scripted zoom press. Optionally assert the rig's zoom has moved before the capture.
 
 ## Info
 
-### IN-01: `CastleAttack._map` is a dead field after 05-02
+### IN-10: New header note calls 300 "the king's base"; the shipped king's base is 500
 
-**File:** `simulation/night/castle_attack.gd:23,31`
-**Issue:** Every `_map.castle_*` read was replaced by `_castle.arrow_*`; `_map` is assigned in `_init` and
-never read.
-**Fix:** Drop the field (keep the `map` parameter only if callers still pass it) and fix the header (see
-WR-02).
+**File:** `tests/unit/test_ability_data.gd:13-14` (constants at 84-85)
+**Issue:** The round's header line says "the king's 300 base and 800 with both cards", and the test is named `..._makes_king_damage_800_in_either_order`. The king's damage base is the weapon's `attack_damage` (`simulation/king/king_state.gd:280`), and `data/king/sword.tres:10` is `attack_damage = 500`. With both cards the shipped king deals (500 + 100) x 2 = 1200. `KING_BASE_DAMAGE` was always an arbitrary probe base, so the stack-order arithmetic is right, but the note says something false about the shipped king. The same header's Headsman's Edge paragraph uses the real 500, so the file contradicts itself.
+**Fix:** Rename the constant to a probe base (for example `STACK_PROBE_BASE`) and reword the header and test name, or load `sword.tres` and pin 1200.
 
-### IN-02: A digit key above the card count clears the highlight instead of being ignored
+### IN-11: Test name says "a million health" but its thousand-attacker case now uses a hundred million
 
-**File:** `input/card_picker.gd:62` with `ui/world/card_row_model.gd:46`
-**Issue:** `CardRowModel.index_for_digit(index + 1, _ids.size())` returns -1 for a digit above the number of
-shown cards and `set_highlight(-1)` is legal ("-1 clears it"), so pressing 4 on a three-card row deselects the
-current card. Unreachable today (the castle always offers four, enforced by `ChoiceValidation`), but
-`CardPicker` is documented as generic for Phase 6 and 7 tiers.
-**Fix:** Only act on a valid index: `var picked: int = ...; if picked >= 0: set_highlight(picked)`.
+**File:** `tests/unit/test_wall_decision.gd:175-177`
+**Issue:** The re-pin raised the thousand-attacker health from 1,000,000 to 100,000,000 so that 1000 x `GRUNT_PER_300` (2,000,000) still gives 15000 ticks. The name was not updated. A million health against that sum would give 150, which no line asserts, so the name matches neither the case it names nor the whole body.
+**Fix:** Rename it (for example `test_a_hundred_million_health_against_a_thousand_attackers_stays_exact`).
 
-### IN-03: `StatStack` allocates an empty Dictionary on every read, and `CastleAttack` reads the stack several times per tick
+### IN-12: Wall "break" before the grid rebuild no longer breaks the 3000-health segment (file missed by the re-pin)
 
-**File:** `simulation/stats/stat_stack.gd:91,97,130,224`; `simulation/night/castle_attack.gd:40-47,62-81`
-**Issue:** `_sums.get(stat, {})` builds a throwaway `{}` on every `int_value`, `float_value`, `sums_of` and
-`_apply`. `CastleAttack.step` runs every night tick and calls `is_armed()` (range, interval, speed, damage:
-four reads) and then, with an enemy in reach, three more. That is up to seven allocations per tick for a value
-that only changes when a card is picked or the tier changes.
-**Fix:** Use a shared `const _NO_SUMS: Dictionary = {}` (never mutated) or `_sums.get(stat)` with a null test
-in the four places; optionally cache the armed flag in `CastleAttack` and refresh it on `stat_stack.changed`
-and on `building_built` of the castle plot.
+**File:** `tests/unit/test_goal_field_cache.gd:83`
+**Issue:** `_walls.damage_segment(1, 1000)` used to break the old 30-health segment. The shipped wall now has 3000 health (`data/buildings/wall.tres:9`), so the segment is left at 2000 and the rebuild re-rasterises the same wall. The assertions still pass because `NavGrid.rebuild` bumps `_version` unconditionally (`simulation/nav/nav_grid.gd:183`), so the test no longer checks invalidation after a real wall change. This is the same stale-blow pattern the round fixed in `test_nav_grid.gd` (1000 to 100000). The file is not in the scope list.
+**Fix:** Use 100000 (or `_walls.max_health_of(1)`) so the segment really breaks before the rebuild.
 
-### IN-04: The card picker and the requirement check do avoidable work every frame near a plot
+### IN-13: `KILL_DAMAGE` 9900 kills nobody in the hurt run, so its "killed outright" path has never been pinned
 
-**File:** `input/card_picker.gd:132-147`; `simulation/commands/build_requirements.gd:13,32,41`
-**Issue:** While the king is in range of any plot `CardPicker._refresh` runs each frame and calls
-`validate_build`, which calls `BuildRequirements.rejection`; that scans `map.spots` for the castle plot up to
-twice (`_castle_plot(map)` at line 32 and again inside `castle_tier`). When the row shows it also rebuilds four
-Dictionaries through `CardRowModel.cards` every frame only to copy their ids.
-**Fix:** Resolve the castle plot once (`CastleState.plot_id()` already exists; pass it or the plot to
-`BuildRequirements`), and in `CardPicker` rebuild `_ids` only when the shown spot or tier changes.
+**File:** `tests/unit/test_unit_fill_pins.gd:6-7, 30-31, 35`
+**Issue:** The doc says the frame-1000 hit kills a unit. The squads are stress footmen with `max_health = 10000000` (`tools/stress/data/stress_footman.tres:9`), so a 9900 hit plus a few 100-point hits leaves the unit near 9,989,000 and nobody dies. This predates the round (99 against 100000 at the pin's creation also killed nobody). The x100 kept the ratio exactly, which is correct for the frozen digest. The constant name and comments still claim coverage the pin does not have.
+**Fix:** Change only names and comments, not the value (a real kill would move the frozen digest). Rename `KILL_DAMAGE` to something like `BIG_HIT_DAMAGE` and say bars drop out on restore, not on a death.
 
-### IN-05: `dawn_income` set on a BOATS tier is silently never paid and not reported
+### IN-14: The old 376 px right edge survives in `hud.tscn` and in the contrast probe's documented label rect
 
-**File:** `simulation/defs/economy_validation.gd:166-185` (`_check_unused`), `:85` (`_check_boats`)
-**Issue:** The "field set on the wrong curve" rule lists `income_step`, `income_floor`, the boat fields and
-the wake fields, but not `dawn_income` for a BOATS tier. IncomeState pays a BOATS plot only
-`boats * boat_income` and `BuildingSystem.dawn_income_by_spot` skips non-FLAT curves, so a Harbor authored with
-`dawn_income = 2` shows no error and never pays it.
-**Fix:** In `_check_boats` report `tier.dawn_income != 0` ("dawn_income is ignored on a boats curve").
+**File:** `ui/hud/hud.tscn:253`, `tools/screenshot/contrast_probe.gd:22-26`, `tools/contrast_probe.sh:8,35`
+**Issue:** `KingWidget` still has `offset_right = 376.0` (a 360 px rect), which matched the old minimum exactly. The new minimum is 392 (`LABEL_MIN_WIDTH` 128), and the row reaches x 408 only because an undersized Control grows along its default `grow_horizontal`. There is no runtime effect today (`test_king_widget` measures global rects against 408), but the scene no longer states the layout `king_widget.gd`'s header documents. The contrast probe still says the label rect is `280,648,96,56` and "LABEL_MIN_WIDTH is 96 (to x 376)"; the label now spans 280..408. The probe still works for the knocked-out "0 / 5000", so only the documented numbers are stale.
+**Fix:** Set `offset_right = 408.0` in `hud.tscn`. Update the probe comment to 128 (to x 408), and either keep the 96 px default with a note or widen it to `280,648,128,56`.
 
-### IN-06: The castle-raising helper exists twice, fails silently, and the shot version writes the economy directly
+### IN-15: CLAUDE.md still says the WASD and sprint actions each have keyboard and gamepad bindings
 
-**File:** `tests/e2e/e2e_support.gd:126-141`, `tools/screenshot/shot_crowd_scenarios.gd:89-102`
-**Issue:** `E2eSupport.raise_castle` and `ShotCrowdScenarios._raise_castle` are the same loop. The test helper
-returns without any failure when a purchase is refused, so a gate regression shows up as a confusing
-downstream assertion in whichever test called it. Both call `ctx.economy.grant`, while
-`ShotEconomyScenarios` states that scenes reach their state "through the command intents and the Input Map,
-never by writing simulation state".
-**Fix:** Move the loop to one shared helper (for example `tools/screenshot` and `tests/e2e` both calling a
-`RunContext`-level test hook), have the test version `push_error`/return a bool the caller asserts, and align
-the header comment with the grant.
+**File:** `.claude/CLAUDE.md:91`
+**Issue:** Quick task 261023-aos updated the Platform constraint (line 16) but not the Development Tools row, which still lists "WASD, sprint, ... each with keyboard and gamepad bindings". Since 2026-10-23 that is false for WASD and sprint, and the file is the one agents read, so it tells a future agent to re-add the stick and RB bindings that caused the UAT drift. `test_input_map`'s `pad_events == 0` assertion would catch a re-add, but the instructions contradict each other.
+**Fix:** Reword to "each with a keyboard binding and, except the move and sprint actions (keyboard only since 2026-10-23), a gamepad binding", or drop the gamepad clause.
 
-### IN-07: `PondView.bind_run` dereferences spot entries without a null check
+### IN-16: `COMMAND_BUTTONS` comment still says B lets a pad player deselect and ride again
 
-**File:** `presentation/environment/pond_view.gd:67-70`
-**Issue:** `for spot: BuildSpotDef in ctx.map.spots: ... spot.id` crashes on a null entry, while
-`BuildingSystem._init` skips null spots because `MapConfig.validate()` only reports them. A map with an empty
-spot entry therefore fails in the view with a script error instead of the reported data error.
-**Fix:** `if spot == null: continue`, or iterate `ctx.buildings.spot_ids()` like the other views.
+**File:** `tests/unit/test_input_map.gd:105`
+**Issue:** The comment says B cancels a selection, "which also lets a pad player deselect and ride again". Since 2026-10-23 the four move actions have no stick events, so no pad player can ride. The commit that removed them rewrote the header (lines 2-6) and left this block.
+**Fix:** Drop the "ride again" clause, or say the king has no pad movement and B only cancels the selection.
 
-### IN-08: A wall-clock loop in an e2e test makes the shake assertion machine-dependent
+### IN-17: The class doc still says the Shrine reads "Asleep: 30 of 100 enemy health" while the same file's `_shrine_effect` doc says 3000 of 10000
 
-**File:** `tests/e2e/test_castle_gate.gd:99-108`
-**Issue:** The denied-shake test samples the label for `SHAKE_WINDOW_S` of real time with
-`Time.get_ticks_msec()` and asserts `widest > 0.02`. On a busy machine a few long frames can skip every
-displaced sample of the 0.3 s tween (same class as the known hover/box-select flake).
-**Fix:** Drive the tween with frames (`await wait_process_frames(n)`) or assert on `label._shake_x` through
-the `hold_denied` handler instead of sampling the position against the wall clock.
+**File:** `ui/world/spot_label_model.gd:19`
+**Issue:** The round rewrote three doc examples in this file (lines 98, 106, 117) and missed the `describe()` doc at line 19. With the shipped `wake_threshold_hp = 10000` the label can never read "of 100". The file now contradicts itself about one string.
+**Fix:** Change line 19 to "Asleep: 3000 of 10000 enemy health".
 
-### IN-09: The transcendental guard does not scan the Phase 5 simulation folders that make decisions
+### IN-18: Doc comments in unchanged simulation files still give the pre-rescale numbers as "the shipped" ones
 
-**File:** `tests/unit/test_sim_rules_guard.gd:9-19`
-**Issue:** `MATH_ROOTS` gained `simulation/stats` and `simulation/economy` but not `simulation/buildings`
-(which now holds `ChoiceLedger` and the build rules), `simulation/commands` (the gate) or `simulation/run`
-(the dawn payout merge). A `sin`, `cos` or `sqrt` introduced there would pass the guard even though the
-determinism rules cover them.
-**Fix:** Add `res://simulation/buildings`, `res://simulation/commands` and `res://simulation/run` (and
-`res://simulation/defs` if no definition legitimately uses one) to `MATH_ROOTS`.
+**File:** `simulation/night/castle_attack.gd:7-9`, `simulation/defs/building_def.gd:70`, `simulation/defs/choice_def.gd:24`
+**Issue:** After the rescale, three comments contradict the data:
+
+- The CastleAttack header says the shipped castle deals 2 every 1.5 s and that three hits kill a 6 hp grunt and two a 4 hp skirmisher. The shipped values are `castle_attack_damage = 200`, grunt 600, skirmisher 400.
+- `BuildingDef.tier_effect_line` quotes "Wakes after 100 enemy health falls within 18 m". The game now prints 10000.
+- `ChoiceDef.effect_line` quotes Royal Training as "+25% king health, +1 king damage", while `test_castle_label.gd:132` pins "+100 king damage".
+
+This is separate from carried WR-02, which is about tier validation in the same CastleAttack header.
+**Fix:** Update the examples to the x100 values (damage 200, grunt 600 hp, skirmisher 400 hp; "Wakes after 10000 ..."; "+100 king damage"), or reword them so they do not claim to be the shipped numbers.
 
 ---
 
-_Reviewed: 2026-10-22T09:55:05Z_
+_Reviewed: 2026-10-26_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
