@@ -13,7 +13,7 @@ created: "2026-10-22"
 # Phase 5 — Security
 
 > Per-phase security contract: threat register, accepted risks, and audit trail.
-> Built from the `<threat_model>` blocks of plans 05-01 to 05-12 and the SUMMARY threat flags (all twelve report "None" beyond the planned surface). Verified at ASVS level 1 (grep depth) by the execute-phase orchestrator on 2026-10-22 at commit 06f3755; with `threats_open: 0` and a plan-time register at level 1, the workflow's short-circuit rule applied and no auditor subagent was spawned. Paths are relative to the repository root.
+> Built from the `<threat_model>` blocks of plans 05-01 to 05-12 and the SUMMARY threat flags (all twelve report "None" beyond the planned surface). Verified at ASVS level 1 (grep depth) by the execute-phase orchestrator on 2026-10-22 at commit 06f3755; with `threats_open: 0` and a plan-time register at level 1, the workflow's short-circuit rule applied and no auditor subagent was spawned. Paths are relative to the repository root. Extended on 2026-10-25 with gap round 1 (plans 05-13 to 05-24): threats T-05-25 to T-05-45, all closed at the same depth (see the Security Audit section of that date).
 
 ---
 
@@ -60,6 +60,27 @@ created: "2026-10-22"
 | T-05-22 | Information disclosure / Tampering | report and playtest outputs | low | mitigate | `tools/playtest.sh:4` `--out=build/<dir>` only; `tools/replay/replay_cli.gd:59-60,70,112` `safe_dir` under build/ with a usage error otherwise; no path is taken from data; the one committed output is the report | closed |
 | T-05-23 | Elevation of Privilege / Information disclosure | CI workflow and the push (05-12) | low | mitigate | 05-12 changed one comment line in ci.yml (570ff8d); `permissions: contents: read`, no secrets and every pinned `uses:` SHA kept; `tools/prepush_check.sh` ran before the one push with the gh credential-helper command verbatim; CI run 39751537305 green on all six jobs | closed |
 | T-05-24 | Tampering | the exported build | low | mitigate | `tools/export.sh:28,66-67` demands `libduskhold_sim.windows.x86_64.dll` (built from the pinned sources) beside the exe and fails otherwise; the launch check `timeout 90 build/windows/Duskhold.exe --headless --quit-after 120` exited 0 on the export of 2026-10-22 (109,268,480 bytes plus the 670,720-byte DLL) | closed |
+| T-05-25 | Tampering | the half-flipped shipped data between plans 05-13 and 05-14 | medium | mitigate | 05-13 (4749f2b) and 05-14 (7c8a516) ran back to back in one local chain; nothing was pushed (origin still at 570ff8d) or exported until the flip was complete; the post-merge gate between them was compared with the planner's expected-failure list | closed |
+| T-05-26 | Tampering | a mis-typed product or a missed field | medium | mitigate | The exact-x100 check (rebuild from ce3fcea with only the six health and damage field names multiplied, diff against the working file) prints EXACT_X100 for all sixteen rescaled files it covers today (the Fishing Harbor and the map were changed again by 05-22 by design); every executor ran it verbatim | closed |
+| T-05-27 | Repudiation | full_idle and the balance pins moving with the data | medium | mitigate | full_idle recorded at every step (afc11cd0 before the round, cec3eb71 after the rescale, 6fd6121e and c68254cd after the Harbor) in the SUMMARYs and 05-BALANCE-REPORT.md; only GRUNT_MAX_HEALTH moved in test_balance_acceptance, with the gap-round header paragraph | closed |
+| T-05-28 | Tampering | the eighteen flipped data files and Royal Training | medium | mitigate | Royal Training's diff against ce3fcea is exactly `value = 1` to `value = 100`; the exact-x100 check covers the other files; the eleven other cards changed only where plan 05-21 recut them | closed |
+| T-05-29 | Tampering | the golden fixture maps and their king and tuning copies | high | mitigate | `git diff --quiet ce3fcea -- tests/golden` plus the seven golden fixture resources exits 0; smoke 2599c7c2, army f7a967ed, walls bfb05fc7 and economy f4b98093 replayed byte-identical after every plan of the round and in 05-24's closing pass | closed |
+| T-05-30 | Tampering | a test weakened while scaling (fixtures and wall tests) | low | mitigate | Every test script the round edited keeps its ce3fcea test count (the only change is test_king_widget's 15 to 16, the new Royal Training fit test of 05-20); 05-15 changed literal amounts and messages only, expected tick counts kept | closed |
+| T-05-31 | Denial of service | int overflow at the 10000000 and 1000000000 pools | low | mitigate | `tools/stress/data/stress_wall.tres:9` max_health 10000000 and the stress castle 10000000 sit under the PackedInt32Array ceiling of `simulation/walls/wall_system.gd:26-27`; the 1000000000 castle of step_bench.gd is int64; no card arms on the stress map; the gate stress and the fill pins ran green | closed |
+| T-05-32 | Tampering | the PLAT-01 pins edited to pass (stress data) | medium | mitigate | `git diff --quiet ce3fcea` over test_enemy_fill_pins.gd and test_projectile_fill_pins.gd exits 0; both passed unedited after the stress rescale | closed |
+| T-05-33 | Repudiation | contract pins moved without a trace | low | mitigate | All ten re-pinned contract and label scripts carry the `Gap round G-05-2` header (test_weapon_def:6, test_military_data_contract:10, test_castle_data_contract:9, test_map_validate_castle:12, test_castle_label:7, test_wall_data_contract:6, test_economy_data_contract:12, test_ability_data:11, test_spot_label_model:4, test_economy_overlay_sections:8); counts unchanged | closed |
+| T-05-34 | Tampering | the PLAT-01 pins (native parity) | high | mitigate | The diff of the nine `tests/unit/test_*_pins.gd` scripts against ce3fcea holds no added or removed 64-hex digest, `"most_` or `"frames` line (PINS_INTACT); only inputs moved, and the decision worlds are frozen at PHASE_FOUR_WALL_HEALTH; all nine pin scripts pass | closed |
+| T-05-35 | Tampering | a test weakened while scaling (combat tests) | low | mitigate | 05-18's ten scripts keep their ce3fcea test counts and every expected value; only literal amounts and the one frozen-input helper changed | closed |
+| T-05-36 | Tampering | a test weakened while scaling (felling blows) | low | mitigate | 05-19 changed seven felling blows and one header note per file; counts equal ce3fcea; the eight scripts whose 1000 still fells a footman were left alone | closed |
+| T-05-37 | Tampering | the king widget's wider row covering other HUD | low | mitigate | `tests/e2e/test_king_widget.gd:18` pins WIDGET_RIGHT 408 against `ui/hud/king_widget.gd:32` LABEL_MIN_WIDTH 128; test_start_night_plate and test_hud_contract green; ten real-window shots read (the row ends near x 403, clear of the plate at x 440) | closed |
+| T-05-38 | Repudiation | card numbers retuned without a trace | low | mitigate | `tests/unit/test_ability_data.gd:15` opens the card-recut paragraph with each old and new value and its reason; 05-21's before and after tables are copied into 05-BALANCE-REPORT.md | closed |
+| T-05-39 | Tampering | a later data edit reintroducing a base too small to resolve a percent, or one past the stack's clamp | medium | mitigate | `tests/unit/test_card_resolution.gd` (8 tests) reads every base from the shipped files, bands every card at 0.5 to 1.5 times its text (`:252`), bounds every integer health and damage base between 100 and StatStack.MAX_ABS_BASE (`:325-335`) and carries the negative control (`:341`); the validate-phase probe with the footman back at 1 damage was caught (3 failures) | closed |
+| T-05-40 | Tampering | the moved pond and plot (nav and routes) | medium | mitigate | `tests/unit/test_pond_layout.gd:43` derives the road distance as pond_radius + POND_ROAD_CLEARANCE and `:89` keeps the dock's body out of the water; MapConfig.validate() and EconomyValidation reported nothing; test_nav_layout_pin unchanged and green; the pond stays visual only | closed |
+| T-05-41 | Repudiation | the 12 m road rule relaxed silently | low | mitigate | `tests/unit/test_prototype_map_economy.gd:19` states the owner's reason and `:57-61` gives harbor_1 alone its 9.0 to 10.5 m band; every other Phase 5 plot keeps 12 m; test_harbor_exposure derives both edges from the shipped enemy data | closed |
+| T-05-42 | Repudiation / Tampering | balance pins and the full_idle digests | medium | mitigate | Commit 624444d carries 05-BALANCE-REPORT.md and test_balance_acceptance.gd together; the report keeps afc11cd0 and cec3eb71 and records the final c68254cd, which 05-24's closing run printed; no bar constant moved | closed |
+| T-05-43 | Information disclosure | probe scripts and playtest outputs | low | mitigate | No probe or scratch file appears in any commit since ce3fcea; the probes ran from the executors' scratch folders; build/ (playtest and replay outputs) is git-ignored | closed |
+| T-05-44 | Tampering | the exported build | low | mitigate | `tools/export.sh:28` requires libduskhold_sim.windows.x86_64.dll beside the exe; the export of 2026-10-25 (Duskhold.exe 109,268,480 bytes, the 670,720-byte DLL) passed the headless launch check (exit 0 in 8 s) | closed |
+| T-05-45 | Repudiation | card numbers shipped on arithmetic alone and the display choice | low | mitigate | 05-PLAYTEST-GATE.md's gap-round section names every card the bots cannot judge (Commander, the four tier III and four tier IV cards), Prosperity's measured shortfall, each with its numbers, basis, alternatives and a recommendation, and the 'divided by 100' display choice | closed |
 | T-05-SC | Tampering | package installs (every plan) | low | accept | No npm, pip or cargo installs and no downloaded asset in any of the twelve plans (RESEARCH Package Legitimacy Audit: none); the card icons are first-party SVGs, every building model composes already-logged Kenney GLBs or engine primitives (AR-05-01) | closed |
 
 *Status: open · closed · open — below high threshold (non-blocking)*
@@ -88,6 +109,17 @@ None. Every SUMMARY's `## Threat Flags` section reports "None" beyond the planne
 | Audit Date | Threats Total | Closed | Open | Run By |
 |------------|---------------|--------|------|--------|
 | 2026-10-22 | 25 (T-05-01 to T-05-24 plus the per-plan T-05-SC row) | 25 | 0 | execute-phase orchestrator (ASVS L1 grep verification, short-circuit rule; HEAD 06f3755; CI run 39751537305 green on 570ff8d) |
+| 2026-10-25 | 21 new (T-05-25 to T-05-45, gap round 1, plus the per-plan T-05-SC row, accepted under AR-05-01) | 21 | 0 | execute-phase orchestrator (ASVS L1 grep verification, short-circuit rule; HEAD af53a14; not yet pushed) |
+
+
+## Security Audit 2026-10-25 (gap round 1, plans 05-13 to 05-24)
+| Metric | Count |
+|--------|-------|
+| Threats found | 21 |
+| Closed | 21 |
+| Open | 0 |
+
+Built from the `<threat_model>` blocks of the twelve gap plans (every one authored at plan time) and their SUMMARY threat flags (all twelve report no new surface). The round changed data, tests, two shot scenarios and one UI constant (the king widget's label width); it added no endpoint, file access, network call, dependency or asset, so the trust boundaries above are unchanged. Two threats are rated high, T-05-29 (the golden inputs) and T-05-34 (the PLAT-01 pins); both are closed by byte-level checks against ce3fcea. With `threats_open: 0`, a plan-time register and ASVS level 1, the short-circuit rule applies and no auditor was spawned; the evidence column cites the grep or diff result for each row (scratch `sec_grep_round1.sh` at HEAD af53a14).
 
 ---
 
@@ -98,4 +130,4 @@ None. Every SUMMARY's `## Threat Flags` section reports "None" beyond the planne
 - [x] `threats_open: 0` confirmed
 - [x] `status: verified` set in frontmatter
 
-**Approval:** verified 2026-10-22 (secure-phase, state B, ASVS L1 short-circuit; no auditor spawn needed)
+**Approval:** verified 2026-10-22 (secure-phase, state B, ASVS L1 short-circuit; no auditor spawn needed); re-verified 2026-10-25 after gap round 1 (secure-phase, state A, ASVS L1 short-circuit over T-05-25 to T-05-45; no auditor spawn needed)
