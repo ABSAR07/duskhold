@@ -144,6 +144,7 @@ blocked: 0
     - "A recurrence-guard contract test: every card modifier must move its stat at every shipped base it touches, within a band of its written effect"
     - "Re-measure the Phase 2 bar (bash tools/playtest.sh --seeds=10) after the retune; record any full_idle move in 05-BALANCE-REPORT.md (D-08)"
   debug_session: .planning/debug/card-percent-rounding-and-prosperity.md
+  owner_decision: "Owner decision 2026-10-25 (hard requirement, overrides the planner's first choice of a per-attacker rounding carry): 'nah this is a hard requirement from my side so this MUST be done' on the x100 rescale of all damage and health numbers, so that percentages and rounding to the nearest unit work as intended. The gap-closure plans implement the rescale across every health and damage number (units, enemies, king and sword, slam, towers, buildings, walls, castle tiers and arrows, Shrine bolts and wake threshold, the map's castle numbers, the flat +1 king damage card), with the displays, contract tests, balance pins and stress data following; the four fixture goldens stay as frozen fixtures, full_idle moves and is recorded before and after."
 - gap_id: G-05-7
   truth: "The owner decides whether the Harbor should be weaker or the Mine, Mill and Fields stronger, and whether the Shrine needs a nearer plot, a longer reach, a lower threshold or a different wake rule. The bot sweep: the Shrine wakes in a minority of seeds and almost never fires; the Harbor dominates income"
   status: failed
