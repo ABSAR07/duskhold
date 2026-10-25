@@ -1,11 +1,15 @@
-# Phase 05 — UI Review (Castle Center and Economy Depth)
+# Phase 05 — UI Review (Castle Center and Economy Depth), re-audit after gap round 1
 
-**Audited:** 2026-10-22T09:41:43Z
-**Baseline:** Abstract 6-pillar standards (no 05-UI-SPEC.md exists for this phase). Phase 5 copy, sizes and colours read from ui/world/card_row.gd, card_row_model.gd, spot_label.gd, spot_label.tscn, spot_label_model.gd, ui/hud/dawn_no_income_marker.gd, ui/overlay/economy_overlay_sections.gd, stat_overlay_sections.gd, and presentation/environment/pond_view.gd. The HUD type scale and palette from the Phase 3 review (03-UI-REVIEW.md) are used as the project's reference where it applies.
-**Screenshots:** captured (existing, not re-taken). 44 real-window PNGs at 1280x720, Forward+, under `screenshots/`. Viewed in this audit: castle_cards, castle_tier_four, economy_day, field_locked, shrine_awake_night, castle_gate_locked, harbor_pond, plus the convention shots spot_label, dawn_payout, day_overview and build_in_progress. The CI Compatibility-renderer copies under `build/ci-screenshots/screenshots/` were not separately graded; the packet says they carry the same content with flatter lighting.
-**Interaction captures:** off (interaction_capture: false, and this is a Godot build, so the web interaction driver does not apply). Every interaction finding below is code-derived or read from the static shots, and says so.
+**Audited:** 2026-10-26
+**Baseline:** Abstract 6-pillar standards (no 05-UI-SPEC.md exists). Starting point: the previous review of 2026-10-22 (15/24). Source read this round: ui/hud/king_widget.gd, ui/world/card_row.gd, ui/world/spot_label_model.gd, data/abilities/*.tres (card names and flavour lines), plus the 05-20 SUMMARY (the x100 HUD and its ten shot reviews).
+**Screenshots:** captured earlier, not re-taken this run (Godot desktop build, no dev server). Viewed this round, 1280x720 real-window, Forward+:
+- Fresh from this round (05-20 / 05-23): castle_cards.png, hud_day_squads.png, harbor_pond.png, economy_day.png
+- Orchestrator probe (2026-10-25): rt_after_buy.png, rt_tier2_rt_raised_crop.png, rt_tier3_he_raised_crop.png, tw_unbuilt_tower_label.png
+- Not viewed this round: hud_night_squad_down, hud_king_down, hud_king_120, overlay_on, castle_tier_four, walls_day, spot_label, crowd_stress_night, rt_tier2_rt_raised, rt_tier3_he_raised, tw_tower_label, rt_tier2_row, rt_tier3_row. Claims about them below are taken from the 05-20 SUMMARY and marked as such.
+- The other 32 PNGs (2026-10-22, before the rescale) were not used.
+**Interaction captures:** off (interaction_capture: false; Godot build, no browser driver). Interaction findings are code-derived and say so.
 
-This review grades what ships. The owner's packet (05-PLAYTEST-GATE.md) lists four known open points. Those are marked KNOWN below and are not presented as new discoveries. Findings the packet does not list are marked NEW.
+This review grades what ships. Known points the owner ruled on (UAT test 6, 2026-10-22: "pass for now, revisit in phase 8") are marked KNOWN. The round changed numbers and card copy only; no font size, colour, plate or layout changed except the king label width (96 to 128 px).
 
 ---
 
@@ -13,26 +17,68 @@ This review grades what ships. The owner's packet (05-PLAYTEST-GATE.md) lists fo
 
 | Pillar | Score | Key Finding |
 |--------|-------|-------------|
-| 1. Copywriting | 3/4 | Lock and payout copy is plain ("Needs Castle II", "Needs a Mill", "Next dawn: N gold"); the Shrine label "Asleep: 30 of 100 enemy health" is unexplained, and no copy anywhere says how to pick or buy a card |
-| 2. Visuals | 2/4 | The spot label's title and effect lines nearly touch on every plot; the banner sits over the raised card (KNOWN) and over the tier IV spire (NEW); the castle label is anchored inside the 15 m keep at tier IV (NEW) |
-| 3. Color | 3/4 | The world UI runs a third palette beside the HUD plate and cyan accent (card slate, lavender highlight, yellow numbers); the off-palette dawn marker #DB1A1A is still in place (KNOWN) |
-| 4. Typography | 2/4 | Six distinct world font sizes (48, 34, 32, 30, 24, 22) across two surfaces, outlines at 16, 12 and 8, and the flavour lines at 22 px are the smallest readable text on the card |
-| 5. Spacing | 2/4 | Title-to-effect step (0.45 m) is smaller than the 48 px title it follows; the coin row lands on the king sprite; the card row hugs the top HUD band |
-| 6. Experience Design | 3/4 | Every state is covered (locked, max tier, asleep, awake, boats, denied bump), but a player is never told to pick a card first, locked plots hide their price, and the cards re-appear with no dismiss (owner decision, KNOWN) |
+| 1. Copywriting | 3/4 | Card copy is plain and the three recut cards read cleanly, but the x100 numbers now mix units on one label ("Range 9.0 · Damage 300") and the Shrine line is still unexplained ("Asleep: 3000 of 10000 enemy health") |
+| 2. Visuals | 2/4 | Title and effect lines still nearly touch on the tower plot; the coin row still sits on the king's head; the banner still sits on the raised card (KNOWN) |
+| 3. Color | 3/4 | Unchanged: the world UI runs its own slate and lavender palette beside the HUD plate; the off-palette dawn marker is still in place (KNOWN) |
+| 4. Typography | 2/4 | Unchanged: six world font sizes across two surfaces; the 22 px flavour line is the smallest text on the card |
+| 5. Spacing | 2/4 | Unchanged: the raised card's top edge is cut by the frame at 1280x720 and the picks line sits on the king's head at Castle III |
+| 6. Experience Design | 3/4 | Unchanged: no pick instruction on the card row; locked plots still hide their price; the king's health label now reads at full scale in every state checked |
 
-**Overall: 15/24**
+**Overall: 15/24** (unchanged from 2026-10-22)
 
-No pillar scored 1 and no BLOCKER-class defect was found. Every card can be picked by key or by pointer and bought by hold; every plot label reads its lock reason; the flow is reachable. The defects below degrade legibility and discoverability and should be fixed.
+No pillar scored 1 and no BLOCKER-class defect was found. The round fixed one real overflow risk (the king's "6250 / 6250" now fits on one line), but it did not move any pillar score, because the open findings are presentation and copy, and this round did not touch them.
 
 ---
 
 ## Top 3 Priority Fixes
 
-1. **Spot label stack is cramped on every plot.** Title (48 px) at y 0.55, effect (30 px) at y 0.10, status and coin row at y -0.40 (spot_label.tscn). The title and effect lines nearly touch in spot_label.png ("House I" over "+1 gold at dawn") and in build_in_progress.png ("Tower I" over "Range 9.0 · Damage 3"). User impact: the one line that tells a player what a plot costs and pays is the hardest text on the screen to read. Concrete fix: move the Effect Label3D to y 0.00 and the Coins/Status pair to y -0.55, or drop the title size to 40. This is a transform change in spot_label.tscn; no code change.
+1. **Spot label stack is cramped on every plot (unchanged).** Title (48 px) at y 0.55, effect (30 px) at y 0.10 in spot_label.tscn. In tw_unbuilt_tower_label.png "Tower I" sits directly on "Range 9.0 · Damage 300" with no gap. User impact: the line that says what a plot costs and pays is the hardest text to read on the map. Concrete fix: move the effect label to y 0.00 and the coin/status pair to y -0.55, or drop the title to 40 px. Transform change in spot_label.tscn; no code change.
 
-2. **No instruction that cards are picked, then bought.** The card row has no header and no copy. The only prompt is "Hold N to start Night N" (hud.gd). A first-time player sees four cards, presses nothing, and gets the denied bump on a hold because no card is highlighted (spot_label_model and the packet's assumption 6). User impact: the castle's central choice is discoverable only by trial. Concrete fix: add one line to the card row, for example "Press 1–4 to pick, then hold Space to buy", drawn above the cards at the same world size as the name line. Copy and a Label3D only. Owner decision whether to pre-highlight card 1 (packet decision 5) is separate.
+2. **Mixed units on the scaled labels (NEW this round).** The x100 rescale was applied to health and damage, but range was not: the tower label reads "Range 9.0 · Damage 300" (tw_unbuilt_tower_label.png), and the castle reads "Health 10000 · Arrow 300 · 2 gold at dawn" beside a king bar at "5000 / 5000". A player cannot tell from the label that range is in metres and damage is in the scaled unit. User impact: the scaled numbers look like an error on the first tower a player inspects. Concrete fix: either show range in the same scale (for example "Range 9.0 m") or add the unit to the damage and health words; this is a copy decision for the owner, since the 05-20 summary records that the numbers are shown as they are. Copy only in spot_label_model.gd.
 
-3. **Banner and card collisions at the top of the frame.** "Night 1 of 8" overlaps the Commander card's top edge and the gap to Masons in castle_cards.png (KNOWN, packet open point 1). The same banner sits over the tier IV spire in castle_tier_four.png (NEW, not in the packet) and over the enemy crowd and yellow arrows in shrine_awake_night.png (the packet notes the arrows only). Concrete fix (untested): lower the card row by about 0.8 m (ROW_HEIGHT 7.6 to about 6.8 in card_row.gd) and confirm in castle_cards.png that the raised card clears the banner; or move the banner up one HUD row. Either is the presentation offset the packet names as the cheapest route.
+3. **No instruction that cards are picked, then bought (unchanged).** The card row has no header. The only prompt is "Hold N to start Night 1" (hud.gd). Searching ui/hud and ui/world for copy about picking returns nothing. User impact: the castle's central choice is discoverable only by trial. Concrete fix: one line above the cards, for example "Press 1–4 to pick, then hold Space to buy", at the name line's world size. Copy and a Label3D only.
+
+---
+
+## Previous Findings: Status This Round
+
+| Previous finding (2026-10-22) | Status now | Evidence |
+|---|---|---|
+| Spot label title and effect lines nearly touch | CHANGED (still holds) | tw_unbuilt_tower_label.png; transforms unchanged |
+| No pick instruction on the card row | CHANGED (still holds) | hud_day_squads.png; no copy added in 05-21 to 05-23 |
+| Shrine label unexplained ("Asleep: 30 of 100") | CHANGED (still holds, scaled) | Now "Asleep: 3000 of 10000 enemy health" in spot_label_model.gd; copy still unexplained |
+| Coin row lands on the king | STILL HOLDS | tw_unbuilt_tower_label.png: coin dots directly above the king's head; castle_cards.png the same |
+| Castle label inside the keep at tier IV | NOT RE-VERIFIED | castle_tier_four.png not viewed this round; the label height is unchanged in code. At tier III (rt_after_buy.png) "Castle III" sits on the keep top and the picks line "Royal Training" sits on the king's head |
+| Banner overlaps raised card (KNOWN, packet point 1) | STILL HOLDS, KNOWN | castle_cards.png, hud_day_squads.png, rt_tier3_he_raised_crop.png: "Night 1 of 8" over the top edge of the Engineers and War Horns cards |
+| Banner over the tier IV spire (NEW last round) | NOT RE-VERIFIED | castle_tier_four.png not viewed this round |
+| Shrine reads as a small Tower | NOT RE-VERIFIED | shrine_awake_night.png not viewed this round; no shrine change in the round |
+| Typography: six world sizes; 22 px flavour is smallest | STILL HOLDS | No font size changed; rt_tier3_he_raised_crop.png shows the flavour line legible but the smallest text on the card |
+| Card row hugs the top HUD band | STILL HOLDS | castle_cards.png: card tops cut by the frame; rt_after_buy.png shows the row at y 40 |
+| Stale "+4 gold" payout line under the gold counter (Phase 3, KNOWN) | STILL HOLDS, KNOWN | harbor_pond.png: "+4 gold" under "Gold: 66" |
+| King stands on the pond | CHANGED (not in this shot) | harbor_pond.png shows the king on the grass beside the pond, not on the water. Pond walkability was not re-checked in code this round |
+| Locked plots hide their price | STILL HOLDS | spot_label_model.gd: cost 0 for a locked tier; no code change this round |
+| Locked plots look like buildable plots | NOT RE-VERIFIED | not changed this round |
+| Cards re-appear on every pass (KNOWN, owner decision) | KNOWN | Not re-graded |
+| No card pre-highlighted (KNOWN, owner decision) | KNOWN | hud_day_squads.png shows card 1 highlighted only after the key press in that capture; not re-graded |
+| Dawn marker #DB1A1A (Phase 3, KNOWN) | STILL HOLDS, KNOWN | Not changed this round |
+| Harbor dominates income; Shrine does nothing in bot play (KNOWN, balance) | KNOWN | Not a UI finding; not re-graded |
+
+---
+
+## Round Changes: What Ships Now
+
+**King widget (05-20).** The label is 128 px wide (LABEL_MIN_WIDTH in ui/hud/king_widget.gd), and the row spans x 16 to 408. Observed: "5000 / 5000" (hud_day_squads.png, castle_cards.png) and "6250 / 6250" (rt_after_buy.png, after Royal Training) sit on one line and end near x 403, clear of the start-night plate at x 440. The row does not shift. This is a real fit, and it removes the risk the round targeted. Scored under Pillar 5 and 6 as a clean result, not as an improvement to the pillar scores.
+
+**Card recut (05-21).** Observed in the shots:
+- Royal Training: "+25% king health, +100 king damage" (rt_tier2_rt_raised_crop.png) fits its card on two lines. The number is shown in full at x100.
+- Headsman's Edge: "x2 king damage, x1.25 king attack interval" with the new flavour "Heavier cuts that land only a little slower." (rt_tier3_he_raised_crop.png) fits its card on two lines and reads clearly.
+- Prosperity and Golden Age: their numbers lines were not observed this round. Prosperity's flavour "Coin follows the banner home." is visible in castle_cards.png. Golden Age's copy was not checked on screen.
+
+**Harbor move (05-22) and re-aimed shots (05-23).** economy_day.png and harbor_pond.png show the pond and boats at the west side of the map, on a smaller pond. Three boats are visible in harbor_pond.png. The Harbor plot sits beside the pond. The small-buildings point in economy_day.png is still KNOWN (packet point 3).
+
+**Numbers at x100 (05-20).** Observed: "Health 10000 · Arrow 300 · 2 gold at dawn" at tier II and "Health 14000 · Arrow 400 · 3 gold at dawn" at tier III fit on one line. "Range 9.0 · Damage 300" fits on one line. No number clips. The only new problem is the mixed-unit reading (Top Fix 2).
+
+**Test kings (shot-only).** hud_king_120 (12000 health) and crowd_stress_night (10000000) run past x 408. These are test kings, not the shipped game, and are excluded from scoring, as the owner recorded.
 
 ---
 
@@ -41,88 +87,85 @@ No pillar scored 1 and no BLOCKER-class defect was found. Every card can be pick
 ### Pillar 1: Copywriting (3/4)
 
 Strengths, verified in code and in shots:
-- Lock reasons are literal and correct: "Needs Castle II" (castle gate, spot_label_model.gd `_locked_line`), "Needs a Mill" (field_locked.png), "Max tier" at the top tier (castle_tier_four.png).
-- Income copy is plain: "+1 gold at dawn" (house), "Next dawn: N gold" (Mine, built), "Boats 2 of 5, next dawn 3 gold" (Harbor, from code), "Health 100 · Arrow 3 · 2 gold at dawn" (castle, castle_cards.png).
-- Card flavour lines are short, in-world and have no IP content ("A steady voice carries the whole line.", "Coin follows the banner home.").
-- No generic labels (Submit, OK, Click Here) in the Phase 5 surfaces.
+- Lock reasons are literal: "Needs Castle II" (spot_label_model.gd `_locked_line`), "Needs a Mill", "Max tier".
+- Income copy is plain: "+1 gold at dawn", "Next dawn: N gold", "Boats 2 of 5, next dawn 3 gold", "Health 10000 · Arrow 300 · 2 gold at dawn".
+- The recut card copy is short and reads in-world. Flavour lines are from data/abilities/*.tres: "Heavier cuts that land only a little slower.", "The king drills until the blade feels light.", "Coin follows the banner home."
+- No generic labels (Submit, OK, Click Here) on the Phase 5 surfaces.
 
 Findings:
-- WARNING, Shrine label is unexplained. "Asleep: 30 of 100 enemy health" (spot_label_model.gd `_shrine_effect`) tells the player a number but not what raises it (enemies dying within 18 m of the Shrine). "Awake" alone does not say what the Shrine now does. Fix: "Wakes after 100 enemy health falls nearby" as the locked line, "Firing" when awake.
-- WARNING, no card instruction. Searching ui/hud and ui/world for copy about picking or choosing a card returns nothing (grep of the copy strings, this audit). The card row has no header. Fix: see Top Fix 2.
-- NIT, the Picks line "Royal Training · Engineers · Golden Age" (castle_tier_four.png) uses the middle dot separator, the same as the castle effect line. Consistent; no change.
+- WARNING, mixed units on one label (NEW, Top Fix 2). "Range 9.0 · Damage 300" puts an unscaled range beside a scaled damage. The castle's "Health 10000" and the king's "5000 / 5000" are scaled but carry no unit. Fix: a unit or a consistent scale for range; owner's copy call.
+- WARNING, Shrine label is unexplained (unchanged in substance). "Asleep: 3000 of 10000 enemy health" tells the player a number but not what raises it. "Awake" alone does not say what the Shrine now does. Fix: a locked line such as "Wakes after 10000 enemy health falls nearby", and "Firing" when awake.
+- WARNING, no card instruction (Top Fix 3). Copy search of ui/hud and ui/world finds no pick copy.
+- NIT, the Picks line "Royal Training · Engineers · Golden Age" uses the same middle-dot separator as the castle effect line. Consistent.
 
 ### Pillar 2: Visuals (2/4)
 
 Strengths:
-- The raised card with its yellow effect line gives a clear focal point in castle_cards.png; the pointed-at card is the one read first.
-- Locked plots say why in the label (field_locked.png, castle_gate_locked.png). The gate reads as a requirement, not as an error (no red, no cost shown).
-- The castle keep grows visibly per tier (castle_cards tier I to castle_tier_four tier IV); the picks line under the label carries the card names.
+- The raised card with its yellow numbers line is the clear focal point in castle_cards.png and rt_tier3_he_raised_crop.png.
+- The castle keep grows visibly per tier (Castle II in castle_cards.png, Castle III in rt_after_buy.png).
+- The king's label reads as one unit beside the bar in every fresh shot.
 
 Findings:
-- WARNING, spot label title and effect lines nearly touch on every plot (spot_label.png, build_in_progress.png, field_locked.png, castle_gate_locked.png). See Top Fix 1.
-- WARNING, coin row lands on the king. In build_in_progress.png the grey and gold coin discs sit on the king's head and on the effect line. In spot_label.png the grey coin dots sit just above the king's head. The coin row is at y -0.40, the same as the status line, and is drawn over the king at the standard camera. NEW.
-- WARNING, castle label is inside the keep at tier IV. LABEL_HEIGHT is a fixed 3.2 m above the plot (spot_label.gd line 10). The tier IV keep is about 15 m tall (packet). In castle_tier_four.png "Castle IV" is drawn over the tower face and the picks line crosses the king's sprite. The label does not rise with the building. NEW. Fix: anchor the castle label at the current keep height, plus 1.5 m, or raise the label for the castle plot only.
-- WARNING, banner overlap, KNOWN (packet point 1). castle_cards.png: "Night 1" sits over the Commander card's top right corner and "of 8" over Masons. Status: unchanged from the packet.
-- WARNING, banner over the keep spire, NEW. castle_tier_four.png: "Night 1 of 8" sits over the blue roof and spire of the tier IV keep. Not in the packet's open points; the packet only covers the tier IV crop.
-- WARNING, Shrine reads as a small Tower. In shrine_awake_night.png the Shrine is a short tower with a blue cone roof, the same family as Tower I. Only the violet plot disc and the awake orb separate it at the standard camera. NEW. Fix: give shrine_t1.tscn a distinct silhouette or an orb-topped cap visible when asleep.
-- KNOWN (packet point 3), economy_day.png: the Mine, Mill, Harbor and Shrine are small at zoom 3.4. The Mill's sails and the Mine's coins are not distinguishable at that camera. No change proposed in this review beyond the packet's own options.
-- KNOWN (packet point 2), castle_tier_four.png: the roof tip and flag are cropped at the top edge at the default zoom.
+- WARNING, spot label title and effect lines nearly touch on the tower plot (tw_unbuilt_tower_label.png). Top Fix 1. Unchanged.
+- WARNING, coin row lands on the king. In tw_unbuilt_tower_label.png the grey coin dots sit directly above the king's head; in castle_cards.png the coin row sits over the keep's door and just above the king. Unchanged.
+- WARNING, banner overlap (KNOWN, packet point 1). "Night 1 of 8" sits over the top edge of the raised card and the gap between cards (castle_cards.png, rt_tier3_he_raised_crop.png). Owner ruled "pass for now". Scored as a warning, not re-graded as new.
+- WARNING, Castle III picks line on the king (NEW this round, from rt_after_buy.png). The "Royal Training" picks line at the foot of the castle label sits on the king's head. At tier III the label does not clear the king.
+- KNOWN, castle_tier_four.png roof and flag cropped at the top (packet point 2). Not re-viewed this round.
+- KNOWN, economy_day.png: the Mine, Mill, Harbor and Shrine are small at zoom. Owner ruled "pass for now".
 
 ### Pillar 3: Color (3/4)
 
 Strengths:
-- The card row keeps dark slate (CARD_COLOR #242938 at alpha 0.94) against the grass, and the highlight is a lighter blue-grey (CARD_HIGHLIGHT_COLOR #5C668F): the raised card reads by value, not only by hue.
-- Coin colours are coded: gold for paid, grey for unpaid, red for unaffordable (spot_label.gd constants), and the unaffordable red is the same family as the HUD's denied state.
-- The map palette (tan plots, red tower discs, violet Shrine discs, teal and blue roofs, blue pond) stays distinct per building type in the wide shot.
+- The card row keeps dark slate (CARD_COLOR, alpha 0.94) against the grass, and the highlight is a lighter blue-grey (CARD_HIGHLIGHT_COLOR). The raised card reads by value, not only by hue (castle_cards.png, rt_tier3_he_raised_crop.png).
+- The king's health bar and its label use the red fill and white text consistently across all shots.
 
 Findings:
-- WARNING, the world UI runs its own palette. The card row uses slate and lavender (card_row.gd), the numbers line uses yellow #FFD666 (`NUMBERS_COLOR`), and the HUD uses plates #14141A at 0.78 with a cyan #8CEBFF accent. There is no shared token. The yellow effect line also competes with the gold coin colour and the gold counter. Fix: take the card face and highlight from the HUD plate and accent, or document the world palette as its own token set in the Phase 8 pass.
-- KNOWN (Phase 3, Pillar 3 warning), dawn_no_income_marker.gd line 14: BAR_COLOR Color(0.86, 0.1, 0.1) is still #DB1A1A, not the world health fill #D9332E. Verified unchanged in this audit. Not visible in any Phase 5 shot (no rebuilt income building was captured).
-- NIT, the blue pond (WATER_COLOR 0.2, 0.46, 0.74) and the blue house roofs sit close in value to the Tower plot discs. Acceptable in the shots; not a defect.
+- WARNING, the world UI runs its own palette. The card row uses slate and lavender (card_row.gd), the numbers line uses yellow #FFD666 (`NUMBERS_COLOR`), and the HUD uses plates #14141A at 0.78 with a cyan #8CEBFF accent. No shared token. Unchanged.
+- KNOWN (Phase 3), dawn_no_income_marker.gd BAR_COLOR #DB1A1A is still off the world health fill #D9332E. Not visible in any shot this round.
+- NIT, the blue pond and the blue house roofs sit close in value to the Tower plot discs. Acceptable in the shots.
 
 ### Pillar 4: Typography (2/4)
 
-Counted from the Phase 5 world UI (Label3D font_size values, scene and code):
+Counted from the Phase 5 world UI (Label3D font_size values, scene and code), unchanged this round:
 - spot_label.tscn: Title 48, Status 34, Effect 30, Picks 30.
 - card_row.gd: Name 32, Numbers 24, Flavour 22.
-- Six distinct sizes across two surfaces (48, 34, 32, 30, 24, 22), against the Phase 3 HUD scale of four (36, 28, 22, 18). The world labels were never reconciled with that scale. The Phase 1–3 review used a four-size rule for the HUD; the Phase 5 world UI breaks it.
-- Outlines differ: 16 on the Title, 12 on Effect, Status and Picks, 8 on card labels. Three outline weights for one label family.
+- Six distinct sizes across two surfaces (48, 34, 32, 30, 24, 22), against the Phase 3 HUD scale of four (36, 28, 22, 18).
+- Outline sizes differ: 16 on the Title, 12 on Effect, Status and Picks, 8 on card labels.
 
 Findings:
-- WARNING, the status line is larger than the effect line. On a locked plot the Status "Needs a Mill" is 34 px and the Effect "+1 gold at dawn" is 30 px (field_locked.png shows the lock line as the bigger text). The lock reason is more important than the effect, so the size order is defensible, but the Effect size should not be the smallest line in the label.
-- WARNING, flavour lines are the smallest readable text in the game. The 22 px flavour text on each card reads small in castle_cards.png (the flavour line looks about 13 px tall on the 1280x720 frame). It is the only copy a player needs to choose a card, and it is the smallest.
-- WARNING, six world sizes is above the four-size HUD rule. Consolidate to 48 / 32 / 24 / 22 or align both surfaces to the HUD's 36 / 28 / 22 / 18.
+- WARNING, flavour lines are the smallest readable text on the card. The 22 px flavour text is legible in rt_tier3_he_raised_crop.png but is the smallest copy on the card, and it is the copy a player needs to choose.
+- WARNING, the status line is larger than the effect line on a locked plot (34 px against 30 px). Defensible, since the lock reason matters more; the effect should not be the smallest line.
+- WARNING, six world sizes is above the four-size HUD rule. Consolidate to 48 / 32 / 24 / 22 or align both surfaces to the HUD scale.
+- PASS for the king's health label: HEALTH_FONT_SIZE 22 bold in a 128 px minimum width. The text fits at every value shown in the fresh shots.
 
 ### Pillar 5: Spacing (2/4)
 
 Strengths:
-- Card geometry is internally consistent: 3.4 by 3.2 m cards, 0.3 m gap, icon slot 0.9 m with its centre at 1.05 m, name at 0.5 m, flavour at 0.05 m, numbers at -0.85 m (card_row.gd constants). The raised card's 0.35 m rise leaves the other cards at rest.
-- The card row clears the spot label vertically (cards bottom at about 6.0 m above the spot; label top at about 4.2 m), so the row and the label never overlap in the wide view.
-- The castle's picks line sits below the effect line with its own spacing and does not crowd the coins.
+- Card geometry is internally consistent: 3.4 by 3.2 m cards, 0.3 m gap, icon slot 0.9 m, name at 0.5 m, flavour at 0.05 m, numbers at -0.85 m (card_row.gd). Wrapped card text stays inside its card in every fresh shot.
+- The king's widget row spans x 16 to 408 and clears the start-night plate at x 440 (hud_day_squads.png, rt_after_buy.png).
 
 Findings:
-- WARNING, title-to-effect step is too small. Title at y 0.55, effect at y 0.10: a 0.45 m step against a 48 px title. The lines touch (Top Fix 1). NEW.
-- WARNING, coin row and status line share one position (y -0.40). They never show together (a locked plot has no coins), so no overlap occurs today, but the shared slot is fragile. If a status line ever appears on a buyable plot, the coins and status will overlap. NEW (code-derived).
-- WARNING, card row hugs the HUD top band. At 1280x720 the raised card's top edge is within about 20 px of the top of the frame (castle_cards.png), and the banner sits on it (Top Fix 3).
-- Known, Phase 3 HUD: the "+4 gold" payout line in harbor_pond.png sits under the gold counter in the day view. It is the Phase 3 stale-payout line (03-UI-REVIEW Fix 1). Here it persists into the day with the next night's prompt showing. KNOWN.
+- WARNING, card row hugs the top of the frame. In castle_cards.png the raised card's top edge is cut by the frame and the tops of the unraised cards are clipped. In rt_after_buy.png the row sits at y 40, clear of the frame, but the banner still overlaps it. Unchanged.
+- WARNING, title-to-effect step is too small (0.45 m against a 48 px title). Unchanged (Top Fix 1).
+- WARNING, coin row and status line share one slot (y -0.40). They do not show together today; if a status line appears on a buyable plot, they will overlap. Code-derived.
+- WARNING, the Castle III picks line overlaps the king's head (rt_after_buy.png). NEW this round.
+- KNOWN, Phase 3 HUD: the "+4 gold" payout line sits under the gold counter in the day view (harbor_pond.png).
 
 ### Pillar 6: Experience Design (3/4)
 
 State coverage verified in the shots and code:
-- Locked lines: "Needs Castle II" and "Needs a Mill" with no price shown and no red (castle_gate_locked.png, field_locked.png). A denied hold bumps and the label shakes (spot_label.gd `_play_denied`).
-- Max tier, asleep and awake Shrine, Harbor boats and Mine next payout are all read from code and the label model; the Mine's "Next dawn: N gold" is shown on a built Mine.
-- The F3 overlay's Stats and Economy sections are read-only and list every stacked bonus, the castle's picks, each Mine's payout, the Harbor's boats and each Shrine's credit (economy_overlay_sections.gd, stat_overlay_sections.gd). Good debugging support.
-- Keyboard pick (keys 1 to 4) and pointer pick are both wired (card_rects hit test in card_row.gd).
+- Locked lines "Needs Castle II" and "Needs a Mill" carry no price and no red. A denied hold bumps and shakes the label (spot_label.gd `_play_denied`).
+- Max tier, Harbor boats and the Mine's next payout are read from the label model.
+- The king's health label shows its knocked-out state in code (red "0 / 5000", KNOCKED_OUT_COLOR) and the slam cooldown ring is present in the widget (king_widget.gd). The knocked-out shot (hud_king_down.png) was not viewed this round; the state is code-derived.
+- Keyboard pick (1 to 4) and pointer pick are wired (card_rects hit test in card_row.gd).
 
 Findings:
-- WARNING, no pick instruction (Top Fix 2). A player who has not read the packet has no way to learn that a card must be highlighted before the hold will buy. Code-derived; confirmed by the copy search and the captures.
-- WARNING, locked plots hide their price. spot_label_model.gd sets cost 0 for any locked tier, so Tower II reads "Range 10.5 · Damage 6 / Needs Castle II" with no cost (castle_gate_locked.png). The player cannot plan a saving toward the castle or the Mill from the label. The packet's question 3 asks whether the gate reads as a choice; hiding the price is part of why it reads as a wall. Fix: show the cost as grey coins on locked plots and keep the red-free treatment. NEW.
-- WARNING, locked plots look like buildable plots. A Field and an unlocked Field use the same tan disc (field_locked.png, economy_day.png). The only cue is the label, which shows only for the focused plot. A player cannot see from the map which plots are gated. NEW (code and shot evidence).
-- KNOWN (packet decision 5 and assumption 7), the cards re-appear on every pass with enough gold and no dismiss. Owner decision (research A10). Not re-graded here.
-- KNOWN (packet decision 5 and assumption 6), no card is pre-highlighted. Owner decision (research A7).
-- WARNING, the king stands on the pond. harbor_pond.png shows the king on the water. The pond is visual only (packet, assumption 14), so the player can ride across a lake that looks like a lake. NEW to this review; the packet records it as known and visual-only. Fix: add the pond as a no-walk area, or draw the king's path around it, or accept it and say so in the Phase 8 pass.
-- KNOWN (packet point 4), the Shrine does nothing in bot play. Balance, not presentation; the Shrine's visual reads as a Tower (see Visuals) and the owner decides between a nearer plot, a longer reach, or a different wake rule.
-- KNOWN (packet point 5), the Harbor dominates income. Balance decision for the owner.
+- WARNING, no pick instruction (Top Fix 3). Unchanged.
+- WARNING, locked plots hide their price (spot_label_model.gd sets cost 0 for any locked tier). The player cannot plan a saving toward the castle or the Mill from the label. Unchanged.
+- WARNING, locked plots look like buildable plots. A Field and an unlocked Field use the same tan disc (economy_day.png). The only cue is the label, shown only for the focused plot. Not re-verified this round.
+- KNOWN (packet decision 5 and assumption 7), the cards re-appear on every pass with enough gold and no dismiss. Owner decision; not re-graded.
+- KNOWN (packet decision 5 and assumption 6), no card is pre-highlighted. Owner decision; not re-graded.
+- KNOWN (packet points 4 and 5), Shrine does nothing in bot play; Harbor dominates income. Balance, not presentation.
 
 ---
 
@@ -130,30 +173,28 @@ Findings:
 
 | Packet point | Status in this audit |
 |---|---|
-| 1. Banner overlaps a raised card | KNOWN, confirmed in castle_cards.png; also seen over the tier IV spire (NEW) |
-| 2. Tier IV roof and flag cropped | KNOWN, confirmed in castle_tier_four.png; the castle label sitting inside the keep is NEW |
-| 3. Small buildings in economy_day | KNOWN, confirmed |
-| 4. Shrine does almost nothing | KNOWN (balance); its visual reads as a Tower (NEW) |
+| 1. Banner overlaps a raised card | KNOWN, still holds (castle_cards.png, rt_tier3_he_raised_crop.png) |
+| 2. Tier IV roof and flag cropped | KNOWN, not re-viewed this round |
+| 3. Small buildings in economy_day | KNOWN, still holds (economy_day.png) |
+| 4. Shrine does almost nothing | KNOWN (balance) |
 | 5. Harbor dominates income | KNOWN (balance) |
 | 6. Castle tiers III and IV out of bot reach | KNOWN (balance); not a UI finding |
 | 7. Cards re-appear on every pass | KNOWN, owner decision; not re-graded |
 
 ## Registry Safety
 
-Not applicable: Godot project, no components.json. The key tiles are Kenney Input Prompts (CC0), logged per the project's asset conventions. The card icons are first-party SVGs logged in ASSETS.md as CC0-1.0 (packet, assumption 8).
+Not applicable: Godot project, no components.json. The key tiles are Kenney Input Prompts (CC0), logged per the project's asset conventions. The card icons are first-party SVGs logged in ASSETS.md as CC0-1.0.
 
 ---
 
 ## Files Audited
 
-- .planning/phases/05-castle-center-economy-depth/05-PLAYTEST-GATE.md (owner packet: open points, assumptions, "What Claude already checked")
-- .planning/phases/05-castle-center-economy-depth/05-12-SUMMARY.md (phase gate; the eleven shots and the CI copies)
-- .planning/phases/03-king-combat-troops/03-UI-REVIEW.md (precedent: the HUD type scale, palette, the stale payout line, the dawn marker colour)
-- ui/world/card_row.gd, ui/world/card_row_model.gd (card geometry, sizes, colours, copy)
-- ui/world/spot_label.gd, ui/world/spot_label.tscn, ui/world/spot_label_model.gd (label anchor, type sizes, outlines, locked and max-tier copy)
-- ui/hud/dawn_no_income_marker.gd (BAR_COLOR, line 14)
-- ui/overlay/economy_overlay_sections.gd, ui/overlay/stat_overlay_sections.gd (F3 overlay copy)
-- ui/hud/hud.gd (HUD copy: start-night prompt, banner, preview; grep for card-pick copy returned none)
-- presentation/environment/pond_view.gd (pond colour; visual-only)
-- screenshots/: castle_cards, castle_tier_four, economy_day, field_locked, shrine_awake_night, castle_gate_locked, harbor_pond, spot_label, dawn_payout, day_overview, build_in_progress (read by eye; not re-captured)
-- Not read in full: 05-01 to 05-11 PLAN and SUMMARY files and 05-CONTEXT.md. Their decisions were taken from the owner packet's assumptions list, which restates them with plan references.
+- .planning/phases/05-castle-center-economy-depth/05-UI-REVIEW.md (previous review, 2026-10-22)
+- .planning/phases/05-castle-center-economy-depth/05-20-SUMMARY.md (the x100 HUD, the ten shot review lines)
+- ui/hud/king_widget.gd (LABEL_MIN_WIDTH 128, row x 16 to 408, font sizes, knocked-out colours)
+- ui/world/card_row.gd (card geometry, font sizes 32 / 24 / 22, colours, card_rects)
+- ui/world/spot_label_model.gd (copy: locked lines, castle and tower effect lines, Shrine line, picks line)
+- data/abilities/*.tres (card display names and flavour lines, grep)
+- screenshots/: castle_cards.png, hud_day_squads.png, harbor_pond.png, economy_day.png (viewed)
+- uat/out/ probe: rt_after_buy.png, rt_tier2_rt_raised_crop.png, rt_tier3_he_raised_crop.png, tw_unbuilt_tower_label.png (viewed)
+- Not read this round: 05-21, 05-22, 05-23 SUMMARY files, 05-CONTEXT.md, 05-UAT.md, 05-PLAYTEST-GATE.md, and the other shots listed under "Not viewed this round". Card and Harbor changes are taken from the orchestrator's brief and checked only where a shot shows them.
