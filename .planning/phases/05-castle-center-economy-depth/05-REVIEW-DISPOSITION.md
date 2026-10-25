@@ -3,6 +3,54 @@ phase: 05
 review: 05-REVIEW.md
 titles: json
 findings:
+  - id: WR-06
+    severity: warning
+    disposition: open
+    title: "step_bench's `CASTLE_HEALTH` never reaches the castle on the prototype shape: the castle plot is built to tier II, whose 10000 replaces it"
+  - id: WR-07
+    severity: warning
+    disposition: open
+    title: "The \"building fell\" integration test no longer fells the Barracks after the x100 rescale (file missed by the re-pin)"
+  - id: WR-08
+    severity: warning
+    disposition: open
+    title: "`castle_tier_four` and `crowd_stress_night` press `zoom_out` without `_drop_pad_zoom_events`, so a connected pad still cancels their zoom"
+  - id: IN-10
+    severity: info
+    disposition: open
+    title: "New header note calls 300 \"the king's base\"; the shipped king's base is 500"
+  - id: IN-11
+    severity: info
+    disposition: open
+    title: "Test name says \"a million health\" but its thousand-attacker case now uses a hundred million"
+  - id: IN-12
+    severity: info
+    disposition: open
+    title: "Wall \"break\" before the grid rebuild no longer breaks the 3000-health segment (file missed by the re-pin)"
+  - id: IN-13
+    severity: info
+    disposition: open
+    title: "`KILL_DAMAGE` 9900 kills nobody in the hurt run, so its \"killed outright\" path has never been pinned"
+  - id: IN-14
+    severity: info
+    disposition: open
+    title: "The old 376 px right edge survives in `hud.tscn` and in the contrast probe's documented label rect"
+  - id: IN-15
+    severity: info
+    disposition: open
+    title: "CLAUDE.md still says the WASD and sprint actions each have keyboard and gamepad bindings"
+  - id: IN-16
+    severity: info
+    disposition: open
+    title: "`COMMAND_BUTTONS` comment still says B lets a pad player deselect and ride again"
+  - id: IN-17
+    severity: info
+    disposition: open
+    title: "The class doc still says the Shrine reads \"Asleep: 30 of 100 enemy health\" while the same file's `_shrine_effect` doc says 3000 of 10000"
+  - id: IN-18
+    severity: info
+    disposition: open
+    title: "Doc comments in unchanged simulation files still give the pre-rescale numbers as \"the shipped\" ones"
   - id: WR-01
     severity: warning
     disposition: open
@@ -59,29 +107,41 @@ findings:
     severity: info
     disposition: open
     title: "The transcendental guard does not scan the Phase 5 simulation folders that make decisions"
-open: 14
-total: 14
-recorded: 2026-10-22T09:57:30.706Z
+open: 26
+total: 26
+recorded: 2026-10-25T23:42:34.375Z
 ---
 
 # Phase 05: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
-| WR-02 | warning | open | - |
-| WR-03 | warning | open | - |
-| WR-04 | warning | open | - |
-| WR-05 | warning | open | - |
-| IN-01 | info | open | - |
-| IN-02 | info | open | - |
-| IN-03 | info | open | - |
-| IN-04 | info | open | - |
-| IN-05 | info | open | - |
-| IN-06 | info | open | - |
-| IN-07 | info | open | - |
-| IN-08 | info | open | - |
-| IN-09 | info | open | - |
+| WR-06 | warning | open | - |
+| WR-07 | warning | open | - |
+| WR-08 | warning | open | - |
+| IN-10 | info | open | - |
+| IN-11 | info | open | - |
+| IN-12 | info | open | - |
+| IN-13 | info | open | - |
+| IN-14 | info | open | - |
+| IN-15 | info | open | - |
+| IN-16 | info | open | - |
+| IN-17 | info | open | - |
+| IN-18 | info | open | - |
+| WR-01 | warning | open | - (not in the current review) |
+| WR-02 | warning | open | - (not in the current review) |
+| WR-03 | warning | open | - (not in the current review) |
+| WR-04 | warning | open | - (not in the current review) |
+| WR-05 | warning | open | - (not in the current review) |
+| IN-01 | info | open | - (not in the current review) |
+| IN-02 | info | open | - (not in the current review) |
+| IN-03 | info | open | - (not in the current review) |
+| IN-04 | info | open | - (not in the current review) |
+| IN-05 | info | open | - (not in the current review) |
+| IN-06 | info | open | - (not in the current review) |
+| IN-07 | info | open | - (not in the current review) |
+| IN-08 | info | open | - (not in the current review) |
+| IN-09 | info | open | - (not in the current review) |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
 Set `deferred` by hand and put the reason in the Source cell; both are preserved. A `|` in the reason is kept as prose and escaped on the next run.
