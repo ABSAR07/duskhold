@@ -67,5 +67,5 @@ spots = Array[ExtResource("2_spot")]([SubResource("Resource_house_1"), SubResour
 enemies = Array[ExtResource("7_enemy")]([ExtResource("10_grunt")])
 spawn_points = Array[ExtResource("4_spawn")]([SubResource("Resource_west")])
 nights = Array[ExtResource("6_night")]([SubResource("Resource_night_1"), SubResource("Resource_night_2")])
-castle_max_health = 40
+castle_max_health = 4000
 castle_radius = 3.5
