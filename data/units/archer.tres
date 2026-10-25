@@ -6,11 +6,11 @@
 script = ExtResource("1_unit")
 id = &"archer"
 display_name = "Archer"
-max_health = 6
+max_health = 600
 move_speed = 3.8
 radius = 0.4
 attack_range = 8.5
-attack_damage = 1
+attack_damage = 100
 attack_interval = 0.9
 guard_range = 10.0
 leash_range = 14.0

@@ -6,11 +6,11 @@
 script = ExtResource("1_unit")
 id = &"footman"
 display_name = "Footman"
-max_health = 10
+max_health = 1000
 move_speed = 4.0
 radius = 0.45
 attack_range = 1.2
-attack_damage = 1
+attack_damage = 100
 attack_interval = 0.6
 guard_range = 7.0
 leash_range = 12.0

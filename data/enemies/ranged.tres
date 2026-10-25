@@ -6,11 +6,11 @@
 script = ExtResource("1_enemy")
 id = &"ranged"
 display_name = "Skirmisher"
-max_health = 4
+max_health = 400
 move_speed = 2.8
 radius = 0.45
 attack_range = 7.0
-attack_damage = 2
+attack_damage = 200
 attack_interval = 1.6
 aggro_range = 9.0
 leash_range = 12.0
