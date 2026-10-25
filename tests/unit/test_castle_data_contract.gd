@@ -1,16 +1,21 @@
 extends GutTest
 ## The shipped castle numbers, pinned on purpose (D-01, D-04, BLDG-08): four tiers on the rising
-## cost line 6 / 10 / 16, health 100 / 140 / 200 above the map's 70, arrow damage 3 / 4 / 5 and
-## dawn income 2 / 3 / 4 above the map's 2 and 1, the arrow's reach, interval and speed unchanged
+## cost line 6 / 10 / 16, health 10000 / 14000 / 20000 above the map's 7000, arrow damage
+## 300 / 400 / 500 (the map's own is 200) and dawn income 2 / 3 / 4 above the map's 2 and 1, the
+## arrow's reach, interval and speed unchanged
 ## from the map's. Tier I carries only its (never charged) cost: its health, arrow and income are
 ## the map's own castle fields, so no number has two homes. These are the plan 05-02 starting
 ## points; plan 05-11 fits them with the bots and re-pins them here deliberately.
+## Gap round G-05-2 (owner UAT decision 2026-10-25, plans 05-13 to 05-24): every health and damage
+## number is 100 times larger, the owner's hard requirement, so percentages and rounding to the
+## nearest unit work as written; the numbers below moved x100 and nothing else did; here: castle
+## tiers 10000 / 14000 / 20000 above the map's 7000, arrows 300 / 400 / 500.
 
 const CASTLE_PATH := "res://data/buildings/castle_center.tres"
 const MAP_PATH := "res://data/maps/prototype_map.tres"
 const COSTS: Array[int] = [6, 10, 16]
-const HEALTH: Array[int] = [100, 140, 200]
-const ARROW_DAMAGE: Array[int] = [3, 4, 5]
+const HEALTH: Array[int] = [10000, 14000, 20000]
+const ARROW_DAMAGE: Array[int] = [300, 400, 500]
 const DAWN_INCOME: Array[int] = [2, 3, 4]
 const TIER_TWO_CARDS: Array[StringName] = [
 	&"royal_training", &"commander", &"masons", &"prosperity"

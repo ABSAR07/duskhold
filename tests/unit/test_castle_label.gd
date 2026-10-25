@@ -4,6 +4,10 @@ extends GutTest
 ## already picked in pick order. At the top tier it reads Max tier with all three picks. A card's
 ## own numbers line is generated from its modifiers. Expectations are read from castle_center.tres,
 ## so a retune of the castle numbers cannot break the test (test_castle_data_contract pins them).
+## Gap round G-05-2 (owner UAT decision 2026-10-25, plans 05-13 to 05-24): every health and damage
+## number is 100 times larger, the owner's hard requirement, so percentages and rounding to the
+## nearest unit work as written; the numbers below moved x100 and nothing else did; here: the castle
+## label's Health 10000 and Arrow 300, Royal Training's +100 king damage.
 
 const FIXTURE := "res://tests/fixtures/fixture_map_castle.tres"
 const TUNING := "res://data/tuning/loop_tuning.tres"
@@ -55,7 +59,7 @@ func test_at_tier_one_the_label_offers_castle_two_with_the_tier_two_numbers() ->
 
 
 func test_the_shipped_tier_two_effect_reads_as_the_plan_says() -> void:
-	assert_eq(_label()["effect"], "Health 100 · Arrow 3 · 2 gold at dawn", "tier II as shipped")
+	assert_eq(_label()["effect"], "Health 10000 · Arrow 300 · 2 gold at dawn", "tier II as shipped")
 
 
 func test_after_tier_two_the_title_is_castle_three_and_the_pick_is_listed() -> void:
@@ -123,8 +127,8 @@ func test_a_house_plot_has_no_picks() -> void:
 	assert_eq(SpotLabelModel.describe(_ctx, HOUSE, 0)["picks"], "", "the House lists none")
 
 
-func test_royal_training_reads_plus_25_percent_health_and_plus_1_damage() -> void:
-	assert_eq(_card(&"royal_training").effect_line(), "+25% king health, +1 king damage", "line")
+func test_royal_training_reads_plus_25_percent_health_and_plus_100_damage() -> void:
+	assert_eq(_card(&"royal_training").effect_line(), "+25% king health, +100 king damage", "line")
 
 
 func test_headsmans_edge_reads_two_multipliers() -> void:

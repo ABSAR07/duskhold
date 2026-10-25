@@ -1,8 +1,12 @@
 extends GutTest
 ## D-17, D-18, D-19: the king's weapon is data. The shipped sword carries the signed-off passive
-## (3 m, 5 damage, 0.7 s) and slam (4 m, 4 damage, 9 s), the king points at it, a WeaponDef made
+## (3 m, 500 damage, 0.7 s) and slam (4 m, 400 damage, 9 s), the king points at it, a WeaponDef made
 ## with no data behaves like the old KingDef defaults, and bad slam numbers are never armed
 ## (T-03-08).
+## Gap round G-05-2 (owner UAT decision 2026-10-25, plans 05-13 to 05-24): every health and damage
+## number is 100 times larger, the owner's hard requirement, so percentages and rounding to the
+## nearest unit work as written; the numbers below moved x100 and nothing else did; here: the
+## sword's passive 500 and slam 400.
 
 const SWORD_PATH := "res://data/king/sword.tres"
 const KING_PATH := "res://data/king/king.tres"
@@ -26,7 +30,7 @@ func test_the_shipped_sword_has_the_signed_off_passive() -> void:
 	assert_eq(sword.id, &"sword", "id")
 	assert_eq(sword.display_name, "Sword", "name")
 	assert_eq(sword.attack_range, 3.0, "passive reach is 3 m")
-	assert_eq(sword.attack_damage, 5, "passive damage is 5")
+	assert_eq(sword.attack_damage, 500, "passive damage is 500")
 	assert_eq(sword.attack_interval, 0.7, "passive interval is 0.7 s")
 
 
@@ -36,7 +40,7 @@ func test_the_shipped_sword_has_the_signed_off_slam() -> void:
 	if sword == null:
 		return
 	assert_eq(sword.slam_radius, 4.0, "slam radius is 4 m")
-	assert_eq(sword.slam_damage, 4, "slam damage is 4")
+	assert_eq(sword.slam_damage, 400, "slam damage is 400")
 	assert_eq(sword.slam_cooldown_seconds, 9.0, "slam cooldown is 9 s")
 	assert_true(sword.is_slam_armed(), "the shipped slam is armed")
 

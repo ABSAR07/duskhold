@@ -9,6 +9,10 @@ extends GutTest
 ## the arrow speed 1.5x on 2026-10-07 (G-02-13); the other castle numbers are unchanged. A castle
 ## number that is not finite (INF, -INF, NaN) or an attacking castle whose interval is below one
 ## simulation step is reported too, since either would fire every tick or never (WR-02).
+## Gap round G-05-2 (owner UAT decision 2026-10-25, plans 05-13 to 05-24): every health and damage
+## number is 100 times larger, the owner's hard requirement, so percentages and rounding to the
+## nearest unit work as written; the numbers below moved x100 and nothing else did; here: the
+## grunt's 600 against the king's 500 (no one-shot).
 
 const SMOKE_FIXTURE := "res://tests/fixtures/fixture_map_replay_smoke.tres"
 const BAD_DAMAGE: int = -1
@@ -18,7 +22,7 @@ const BAD_NUMBER: float = -1.0
 const REACH_SLACK_M: float = 0.25
 const GRUNT_SHOTS: int = 3
 const SKIRMISHER_SHOTS: int = 2
-const GRUNT_HEALTH: int = 6
+const GRUNT_HEALTH: int = 600
 const SHIPPED_INTERVAL_S: float = 1.5
 ## The owner's castle (G-02-13): 22 m reach, 27 m/s arrows, so an arrow at the edge of the reach
 ## flies 25 ticks, under the 45-tick interval.
@@ -111,7 +115,9 @@ func test_the_castle_kills_a_grunt_in_three_shots_and_a_skirmisher_in_two_and_re
 	if map.castle_attack_damage <= 0:
 		return
 	assert_eq(
-		grunt.max_health, GRUNT_HEALTH, "a grunt stays at 6 hp (5 would let the king one-shot)"
+		grunt.max_health,
+		GRUNT_HEALTH,
+		"a grunt stays at 600 hp (500 would let the king's 500 one-shot it)"
 	)
 	assert_eq(
 		_shots_to_kill(grunt.max_health, map.castle_attack_damage), GRUNT_SHOTS, "three for a grunt"

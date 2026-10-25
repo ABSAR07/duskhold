@@ -7,6 +7,10 @@ extends GutTest
 ## unchanged then. Round 2 (G-03-11, plan 03-17) moved exactly one number outside the nights, the
 ## first tower tier's shot interval, pinned by its own test below; every other number here is
 ## unchanged, and any change that breaks this test is a regression.
+## Gap round G-05-2 (owner UAT decision 2026-10-25, plans 05-13 to 05-24): every health and damage
+## number is 100 times larger, the owner's hard requirement, so percentages and rounding to the
+## nearest unit work as written; the numbers below moved x100 and nothing else did; here: the
+## footman's 100 (D-07 at the same ratio), Tower I 300 and 5000, Tower II 600.
 
 const MAP_PATH := "res://data/maps/prototype_map.tres"
 const TOWER_PATH := "res://data/buildings/tower.tres"
@@ -28,8 +32,8 @@ const BARRACKS_SPOT: int = 8
 const ARCHERY_SPOT: int = 9
 const MIN_CLEARANCE_M: float = 5.0
 ## The footman is a fifth of the king (D-06); its blow is the integer nearest a fifth of the king's
-## passive 5 (D-07), written as a literal so the weapon migration of plan 03-04 does not touch it.
-const FOOTMAN_DAMAGE: int = 1
+## passive 500 (D-07), written as a literal so the weapon migration of plan 03-04 does not touch it.
+const FOOTMAN_DAMAGE: int = 100
 const KING_HEALTH_PER_FOOTMAN: int = 5
 ## Round 2 (G-03-11, plan 03-17): every number the retune moved outside the nights, old to new. The
 ## first tower tier fired every 0.8 s and now fires every 0.9 s (the owner's goals: the balanced bot
@@ -98,7 +102,7 @@ func test_the_footman_is_a_fifth_of_the_king_and_the_archer_is_frailer_with_a_lo
 	var archer: UnitDef = load(ARCHER_PATH)
 	var grunt: EnemyDef = load(GRUNT_PATH)
 	assert_eq(footman.max_health * KING_HEALTH_PER_FOOTMAN, king.max_health, "five footmen (D-06)")
-	assert_eq(footman.attack_damage, FOOTMAN_DAMAGE, "a footman strikes for 1 (D-07)")
+	assert_eq(footman.attack_damage, FOOTMAN_DAMAGE, "a footman strikes for 100 (D-07)")
 	assert_gt(footman.max_health, archer.max_health, "the archer is frailer")
 	assert_gt(archer.attack_range, grunt.attack_range, "the archer outreaches a grunt")
 
@@ -151,9 +155,9 @@ func test_round_two_slowed_the_first_tower_tier_and_nothing_else_of_the_tower() 
 		"Round 2: tier 1 fires every 0.9 s (was 0.8 s)"
 	)
 	assert_eq(tiers[0].cost, 4, "tier 1 still costs 4")
-	assert_eq(tiers[0].attack_damage, 3, "tier 1 still strikes for 3")
+	assert_eq(tiers[0].attack_damage, 300, "tier 1 still strikes for 300")
 	assert_eq(tiers[0].attack_range, 9.0, "tier 1 still reaches 9 m")
-	assert_eq(tiers[0].max_health, 50, "tier 1 still has 50 health")
+	assert_eq(tiers[0].max_health, 5000, "tier 1 still has 5000 health")
 	assert_eq(tiers[1].attack_interval, TOWER_TIER_TWO_INTERVAL_S, "tier 2 still fires every 0.7 s")
 	assert_eq(tiers[1].cost, 6, "tier 2 still costs 6")
-	assert_eq(tiers[1].attack_damage, 6, "tier 2 still strikes for 6")
+	assert_eq(tiers[1].attack_damage, 600, "tier 2 still strikes for 600")
