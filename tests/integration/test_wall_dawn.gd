@@ -2,6 +2,8 @@ extends GutTest
 ## LOOP-04, D-05: dawn heals every hurt wall segment and rebuilds every broken one for free, after
 ## the repairs and before the payout, announced once. A dawn with nothing to restore announces
 ## nothing, and the rebuilt wall blocks again on the next night.
+## Gap round G-05-2: a break is 100000 damage and a hurt 400, against the shipped 3000-health
+## segments.
 
 const FIXTURE := "res://tests/fixtures/fixture_map_walls.tres"
 const TUNING := "res://data/tuning/loop_tuning.tres"
@@ -56,8 +58,8 @@ func test_dawn_restores_every_segment_once_before_the_rebuilt_list_and_the_payou
 	var recorder: SimRecorder = SimRecorder.attach(ctx)
 	ctx.commands.submit(BuildIntent.new(RING))
 	ctx.commands.submit(StartNightIntent.new())
-	ctx.walls.damage_segment(5, 1000)
-	ctx.walls.damage_segment(6, 4)
+	ctx.walls.damage_segment(5, 100000)
+	ctx.walls.damage_segment(6, 400)
 	assert_false(ctx.walls.is_intact(5), "the night broke a segment")
 	assert_lt(ctx.walls.health_of(6), ctx.walls.max_health_of(6), "and hurt another")
 	var version: int = ctx.walls.version()
@@ -79,7 +81,7 @@ func test_a_second_restore_at_the_same_dawn_changes_nothing() -> void:
 	var ctx: RunContext = _timed_context()
 	ctx.commands.submit(BuildIntent.new(RING))
 	ctx.commands.submit(StartNightIntent.new())
-	ctx.walls.damage_segment(2, 1000)
+	ctx.walls.damage_segment(2, 100000)
 	assert_true(_step_until(ctx, RunManager.RunPhase.DAWN), "dawn")
 	var recorder: SimRecorder = SimRecorder.attach(ctx)
 	var version: int = ctx.walls.version()

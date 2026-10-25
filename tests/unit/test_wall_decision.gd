@@ -3,6 +3,9 @@ extends GutTest
 ## destruction, walking ticks, the strict rule and its hysteresis) and the per-segment published
 ## time to destruction: summed over the crowd aggroed within the neighbour span of the same run,
 ## evaluated only on the segment's own staggered tick, held in between.
+## Gap round G-05-2 (owner decision 2026-10-25): health and damage are 100 times larger, so
+## the shipped grunt deals 2000 per 10 s and a shipped segment holds 3000; every expected tick
+## count is unchanged.
 
 const RING_FIXTURE := "res://tests/fixtures/fixture_map_walls.tres"
 const GAP_FIXTURE := "res://tests/fixtures/fixture_map_walls_gap.tres"
@@ -10,7 +13,7 @@ const TUNING := "res://data/tuning/nav_tuning.tres"
 const RING: StringName = &"wall_ring"
 const RUN: StringName = &"wall_west"
 const SECOND_RUN: StringName = &"wall_east"
-const GRUNT_PER_300: int = 20
+const GRUNT_PER_300: int = 2000
 const CADENCE: int = 15
 const MIDDLE: int = 5
 const FIRST_RUN_LAST: int = 5
@@ -73,7 +76,7 @@ func _due_tick(segment: int, from: int) -> int:
 
 
 func test_damage_per_300_is_damage_per_ten_seconds_in_integers() -> void:
-	assert_eq(WallDecision.damage_per_300(2, 30), GRUNT_PER_300, "the grunt: 2 per second")
+	assert_eq(WallDecision.damage_per_300(200, 30), GRUNT_PER_300, "the grunt: 200 per second")
 	assert_eq(WallDecision.damage_per_300(3, 48), 18, "integer division rounds down")
 	assert_eq(WallDecision.damage_per_300(5, 0), 1500, "an interval under a tick counts as one")
 
@@ -81,8 +84,8 @@ func test_damage_per_300_is_damage_per_ten_seconds_in_integers() -> void:
 func test_time_to_destruction_rounds_up_and_a_zero_sum_is_never() -> void:
 	assert_eq(WallDecision.ttd_ticks(30, 0), SimClock.MAX_TICKS, "nobody hits it")
 	assert_eq(WallDecision.ttd_ticks(30, -5), SimClock.MAX_TICKS, "a negative sum is nobody")
-	assert_eq(WallDecision.ttd_ticks(30, GRUNT_PER_300), 450, "30 hp at 20 per 10 s")
-	assert_eq(WallDecision.ttd_ticks(31, GRUNT_PER_300), 465, "rounded up, not down")
+	assert_eq(WallDecision.ttd_ticks(3000, GRUNT_PER_300), 450, "3000 hp at 2000 per 10 s")
+	assert_eq(WallDecision.ttd_ticks(3100, GRUNT_PER_300), 465, "rounded up, not down")
 	assert_eq(WallDecision.ttd_ticks(0, GRUNT_PER_300), 0, "a broken segment is gone at once")
 
 
@@ -128,7 +131,7 @@ func test_five_grunts_on_a_segment_publish_its_time_to_destruction_across_the_sp
 	assert_eq(_decision.ttd_of(MIDDLE), SimClock.MAX_TICKS, "nothing is known at the start")
 	for segment: int in range(MIDDLE - 2, MIDDLE + 3):
 		_decide(_due_tick(segment, 30 * (segment + 1)), MIDDLE, 5)
-		assert_eq(_decision.ttd_of(segment), 90, "segment %d: 30 hp at 100 per 10 s" % segment)
+		assert_eq(_decision.ttd_of(segment), 90, "segment %d: 3000 hp at 10000 per 10 s" % segment)
 		assert_eq(_decision.evaluated_count(), 1, "one segment was due and aggroed near")
 	_decide(_due_tick(MIDDLE - 3, 200), MIDDLE, 5)
 	assert_eq(_decision.ttd_of(MIDDLE - 3), SimClock.MAX_TICKS, "three away is not counted")
@@ -150,20 +153,20 @@ func test_a_segment_is_evaluated_only_on_its_own_tick_and_keeps_its_value_betwee
 	_ring_decision()
 	var first: int = _due_tick(MIDDLE, 30)
 	_decide(first, MIDDLE, 1)
-	assert_eq(_decision.ttd_of(MIDDLE), 450, "30 hp at 20 per 10 s")
-	_walls.damage_segment(MIDDLE, 10)
+	assert_eq(_decision.ttd_of(MIDDLE), 450, "3000 hp at 2000 per 10 s")
+	_walls.damage_segment(MIDDLE, 1000)
 	for offset: int in range(1, CADENCE):
 		_decide(first + offset, MIDDLE, 1)
 		assert_eq(_decision.ttd_of(MIDDLE), 450, "not due at +%d: the old value stands" % offset)
 	_decide(first + CADENCE, MIDDLE, 1)
-	assert_eq(_decision.ttd_of(MIDDLE), 300, "due again: 20 hp now")
+	assert_eq(_decision.ttd_of(MIDDLE), 300, "due again: 2000 hp now")
 
 
 func test_a_due_segment_with_nobody_near_goes_back_to_never() -> void:
 	_ring_decision()
 	var first: int = _due_tick(MIDDLE, 30)
 	_decide(first, MIDDLE, 2)
-	assert_eq(_decision.ttd_of(MIDDLE), 225, "two grunts: 30 hp at 40 per 10 s")
+	assert_eq(_decision.ttd_of(MIDDLE), 225, "two grunts: 3000 hp at 4000 per 10 s")
 	_decide(first + CADENCE, MIDDLE, 0)
 	assert_eq(_decision.ttd_of(MIDDLE), SimClock.MAX_TICKS, "the crowd left")
 	assert_eq(_decision.evaluated_count(), 0, "nothing was evaluated")
@@ -171,7 +174,7 @@ func test_a_due_segment_with_nobody_near_goes_back_to_never() -> void:
 
 func test_a_million_health_against_a_thousand_attackers_stays_exact() -> void:
 	var sum: int = 1000 * GRUNT_PER_300
-	assert_eq(WallDecision.ttd_ticks(1000000, sum), 15000, "exact in 64-bit integers")
+	assert_eq(WallDecision.ttd_ticks(100000000, sum), 15000, "exact in 64-bit integers")
 	assert_eq(WallDecision.ttd_ticks(1000000, 1), 300000000, "300 million ticks, no overflow")
 	assert_eq(WallDecision.ttd_ticks(1 << 40, 1), SimClock.MAX_TICKS, "saturates at never")
 	_ring_decision()
@@ -179,7 +182,7 @@ func test_a_million_health_against_a_thousand_attackers_stays_exact() -> void:
 	for _attacker: int in range(1000):
 		_decision.add_attacker(MIDDLE, GRUNT_PER_300)
 	_decision.end_tick()
-	assert_eq(_decision.ttd_of(MIDDLE), 1, "30 hp at 20000 per 10 s is under a tick: 1")
+	assert_eq(_decision.ttd_of(MIDDLE), 1, "3000 hp at 2000000 per 10 s is under a tick: 1")
 
 
 func test_the_numbers_come_from_the_shipped_tuning() -> void:

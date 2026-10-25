@@ -3,6 +3,7 @@ extends GutTest
 ## wall line does so inside the 4 m gap, never round a run end, and no wall is hit; on the sealed
 ## ring the enemies still break in; two segments breaking in one tick rebuild the field once; a map
 ## with no wall builds no field.
+## Gap round G-05-2: a break is 100000 damage against the shipped 3000-health segments.
 
 const GAP_FIXTURE := "res://tests/fixtures/fixture_map_walls_gap.tres"
 const RING_FIXTURE := "res://tests/fixtures/fixture_map_walls.tres"
@@ -133,8 +134,8 @@ func test_two_breaks_in_one_tick_rebuild_the_field_once() -> void:
 	assert_gt(built, 0, "the purchase built the field")
 	ctx.step()
 	assert_eq(pathing.field_version(), built, "a step with no change builds nothing")
-	ctx.walls.damage_segment(1, 1000)
-	ctx.walls.damage_segment(2, 1000)
+	ctx.walls.damage_segment(1, 100000)
+	ctx.walls.damage_segment(2, 100000)
 	assert_eq(pathing.field_version(), built, "the field waits for the next step")
 	ctx.step()
 	assert_eq(pathing.field_version(), built + 1, "two breaks, one rebuild")
