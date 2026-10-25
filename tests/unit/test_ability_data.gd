@@ -8,6 +8,10 @@ extends GutTest
 ## Three draft names were replaced under the CLAUDE.md IP rule (no Thronefall names):
 ## Assassin's Training is Headsman's Edge, Rallying Banner is War Horns and Magic Armor is
 ## Warded Mail (the king takes a quarter less damage through king.damage_taken x0.75).
+## Gap round G-05-2 (owner UAT decision 2026-10-25, plans 05-13 to 05-24): every health and damage
+## number is 100 times larger, the owner's hard requirement, so percentages and rounding to the
+## nearest unit work as written; the numbers below moved x100 and nothing else did; here: Royal
+## Training's flat +100 king damage, the king's 300 base and 800 with both cards.
 
 const CASTLE_PATH := "res://data/buildings/castle_center.tres"
 const ABILITY_DIR := "res://data/abilities/"
@@ -34,7 +38,7 @@ const IDS: Array[StringName] = [
 ## id -> [display name, [[stat, bucket, value], ...]] in modifier order.
 const CARDS: Dictionary = {
 	&"royal_training":
-	["Royal Training", [[&"king.max_health", PERCENT, 25], [&"king.attack_damage", FLAT, 1]]],
+	["Royal Training", [[&"king.max_health", PERCENT, 25], [&"king.attack_damage", FLAT, 100]]],
 	&"commander":
 	["Commander", [[&"unit.max_health", PERCENT, 25], [&"unit.attack_damage", PERCENT, 25]]],
 	&"masons":
@@ -65,8 +69,8 @@ const CARDS: Dictionary = {
 }
 ## Names of the Phase 5 draft that echo Thronefall's own perks (CLAUDE.md IP rule).
 const BANNED_NAMES: Array[String] = ["Assassin's Training", "Magic Armor", "Rallying Banner"]
-const KING_BASE_DAMAGE: int = 3
-const KING_DAMAGE_AFTER_BOTH: int = 8
+const KING_BASE_DAMAGE: int = 300
+const KING_DAMAGE_AFTER_BOTH: int = 800
 
 
 func _def() -> BuildingDef:
@@ -192,7 +196,7 @@ func test_every_numbers_line_is_the_modifiers_text_joined_in_order() -> void:
 		assert_false(card.effect_line().is_empty(), "%s says something" % card.id)
 
 
-func test_royal_training_then_headsmans_edge_makes_king_damage_8_in_either_order() -> void:
+func test_royal_training_then_headsmans_edge_makes_king_damage_800_in_either_order() -> void:
 	var forward: StatStack = StatStack.new()
 	forward.add_source(&"royal_training", _card(&"royal_training").modifiers)
 	forward.add_source(&"headsmans_edge", _card(&"headsmans_edge").modifiers)

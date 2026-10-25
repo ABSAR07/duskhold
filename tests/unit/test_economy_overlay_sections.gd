@@ -5,6 +5,10 @@ extends GutTest
 ## its boats and cap. Every row builder is a pure read: collecting the rows changes no simulation
 ## value and emits no event. The Mine's and the Harbor's numbers are set on a deep copy so a later
 ## fit of the shipped numbers cannot break this test.
+## Gap round G-05-2 (owner UAT decision 2026-10-25, plans 05-13 to 05-24): every health and damage
+## number is 100 times larger, the owner's hard requirement, so percentages and rounding to the
+## nearest unit work as written; the numbers below moved x100 and nothing else did; here: the
+## Shrine's wake threshold of 10000 (five grunt kills of 600 stay asleep).
 
 const OVERLAY_SCENE := "res://ui/overlay/debug_overlay.tscn"
 const FIXTURE := "res://tests/fixtures/fixture_map_one_night.tres"
@@ -20,7 +24,7 @@ const HARBOR: StringName = &"harbor_1"
 const BOAT_CAP: int = 3
 const SHRINE_WEST: StringName = &"shrine_west"
 const SHRINE_EAST: StringName = &"shrine_east"
-const SHRINE_THRESHOLD: int = 100
+const SHRINE_THRESHOLD: int = 10000
 const SHRINE_ASLEEP_DEATHS: int = 5
 const SHRINE_RADIUS: float = 18.0
 
@@ -237,7 +241,7 @@ func test_a_dormant_shrine_row_reads_its_credit_against_the_threshold() -> void:
 	var rows: Array = EconomyOverlaySections.economy_rows(ctx)
 	var threshold: int = SHRINE_THRESHOLD
 	var expected: String = "asleep %d of %d" % [SHRINE_ASLEEP_DEATHS * grunt, threshold]
-	assert_eq(_value(rows, SHRINE_WEST), expected, "shrine_west: asleep 30 of 100")
+	assert_eq(_value(rows, SHRINE_WEST), expected, "shrine_west: asleep 3000 of 10000")
 
 
 func test_an_awake_shrine_row_reads_its_credit() -> void:

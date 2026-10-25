@@ -3,12 +3,16 @@ extends GutTest
 ## Field's, the Fishing Harbor's and the Shrine's numbers, their plots and the pond are pinned
 ## here and nowhere else (the behaviour tests set their own on a deep copy). D-12 fixes the step and
 ## the floor: each paying dawn pays 1 less, down to a floor of 1, never 0. The Mine's cost 4, first
-## payout 3 and health 20, the Mill's, the Field's, the Harbor's and the Shrine's numbers are the
+## payout 3 and health 2000, the Mill's, the Field's, the Harbor's and the Shrine's numbers are the
 ## planner's starting numbers; plan 05-11 refits them with the bots, and does it by
 ## editing this file in the same commit (a deliberate retune, never a silent one). Plan 05-11
 ## measured them (05-BALANCE-REPORT.md) and the order lever of the D-15 ladder met the bar, so it
 ## fitted none of them: every number below is still the planner's starting number. The .tres
 ## files store IncomeCurve as its integer, so the enum order is pinned too.
+## Gap round G-05-2 (owner UAT decision 2026-10-25, plans 05-13 to 05-24): every health and damage
+## number is 100 times larger, the owner's hard requirement, so percentages and rounding to the
+## nearest unit work as written; the numbers below moved x100 and nothing else did; here: the
+## economy buildings' health and the Shrine's 300 / 3000 / 10000.
 
 const MINE_PATH := "res://data/buildings/gold_mine.tres"
 const MILL_PATH := "res://data/buildings/mill.tres"
@@ -31,28 +35,28 @@ const COST: int = 4
 const FIRST_PAYOUT: int = 3
 const STEP: int = 1
 const FLOOR: int = 1
-const MAX_HEALTH: int = 20
+const MAX_HEALTH: int = 2000
 const BODY_RADIUS: float = 1.5
 const EFFECT_LINE := "Pays 3 gold, then 1 less each dawn, never below 1"
 ## The Mill (D-12, D-13): three FLAT tiers; the last needs the castle at tier II (D-03), the first
 ## shipped top tier to be gated.
 const MILL_COSTS: Array[int] = [3, 4, 6]
 const MILL_INCOMES: Array[int] = [1, 2, 3]
-const MILL_HEALTHS: Array[int] = [15, 20, 25]
+const MILL_HEALTHS: Array[int] = [1500, 2000, 2500]
 const MILL_CASTLE_TIERS: Array[int] = [0, 0, 2]
 const MILL_BODY_RADIUS: float = 1.5
 ## The Field (D-10): one FLAT tier. The cost is 2, not 1, because the cheapest shipped hold must
 ## last at least 0.5 s (UAT G-01-4, test_loop_tuning_contract) and a 1 gold hold lasts 0.25 s.
 const FIELD_COST: int = 2
 const FIELD_INCOME: int = 1
-const FIELD_HEALTH: int = 8
+const FIELD_HEALTH: int = 800
 const FIELD_BODY_RADIUS: float = 1.2
 const FIELD_PLOTS: Array[StringName] = [&"field_1", &"field_2", &"field_3"]
 ## The Fishing Harbor (D-12, ECON-05): two BOATS tiers; the second needs castle tier II (D-03).
 const HARBOR_COSTS: Array[int] = [3, 6]
 const HARBOR_CAPS: Array[int] = [3, 5]
 const HARBOR_BOAT_GOLD: Array[int] = [1, 1]
-const HARBOR_HEALTHS: Array[int] = [18, 24]
+const HARBOR_HEALTHS: Array[int] = [1800, 2400]
 const HARBOR_CASTLE_TIERS: Array[int] = [0, 2]
 const HARBOR_BODY_RADIUS: float = 1.5
 ## The visual-only pond (D-11): at the south edge of the built-up area, the Harbor on its shore.
@@ -62,13 +66,13 @@ const POND_RADIUS: float = 8.0
 ## The Shrine (plan 05-09), [ASSUMED] starting numbers that plan 05-11 fits with the bots.
 const SHRINE_COST: int = 3
 const SHRINE_INCOME: int = 1
-const SHRINE_DAMAGE: int = 3
+const SHRINE_DAMAGE: int = 300
 const SHRINE_REACH: float = 9.0
 const SHRINE_INTERVAL: float = 1.1
 const SHRINE_BOLT_SPEED: float = 20.0
-const SHRINE_HEALTH: int = 30
+const SHRINE_HEALTH: int = 3000
 const SHRINE_WAKE_RADIUS: float = 18.0
-const SHRINE_WAKE_THRESHOLD: int = 100
+const SHRINE_WAKE_THRESHOLD: int = 10000
 const SHRINE_SYNERGY: int = 20
 const SHRINE_BODY_RADIUS: float = 1.2
 
@@ -103,7 +107,7 @@ func test_the_cost_first_payout_and_health_are_pinned_until_the_fit() -> void:
 	var tier: BuildingTierDef = _mine().tier_def(1)
 	assert_eq(tier.cost, COST, "cost 4")
 	assert_eq(tier.dawn_income, FIRST_PAYOUT, "the first payout 3")
-	assert_eq(tier.max_health, MAX_HEALTH, "20 health")
+	assert_eq(tier.max_health, MAX_HEALTH, "2000 health")
 	assert_eq(tier.attack_damage, 0, "a Mine does not shoot")
 	assert_eq(tier.squad_size, 0, "and fields no squad")
 

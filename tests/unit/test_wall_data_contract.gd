@@ -1,12 +1,17 @@
 extends GutTest
 ## BLDG-10 / D-03: the shipped Wall, pinned on purpose. Three linear tiers (barricade, stone,
 ## reinforced) that differ only in price and in the health of each segment: costs 2 / 4 / 6 and
-## health 30 / 60 / 90 (a linear +30). A wall pays no income, strikes nothing and fields no squad.
+## health 3000 / 6000 / 9000 (a linear +3000). A wall pays no income, strikes nothing and fields
+## no squad.
+## Gap round G-05-2 (owner UAT decision 2026-10-25, plans 05-13 to 05-24): every health and damage
+## number is 100 times larger, the owner's hard requirement, so percentages and rounding to the
+## nearest unit work as written; the numbers below moved x100 and nothing else did; here: Wall
+## health 3000 / 6000 / 9000.
 
 const WALL_PATH := "res://data/buildings/wall.tres"
 const MAP_PATH := "res://data/maps/prototype_map.tres"
 const COSTS: Array[int] = [2, 4, 6]
-const HEALTHS: Array[int] = [30, 60, 90]
+const HEALTHS: Array[int] = [3000, 6000, 9000]
 
 
 func _wall() -> BuildingDef:
@@ -24,7 +29,7 @@ func test_costs_are_two_four_and_six() -> void:
 		assert_eq(_wall().tier_def(index + 1).cost, COSTS[index], "tier %d cost" % (index + 1))
 
 
-func test_health_per_segment_is_thirty_sixty_and_ninety() -> void:
+func test_health_per_segment_is_three_six_and_nine_thousand() -> void:
 	for index: int in range(HEALTHS.size()):
 		var health: int = _wall().tier_def(index + 1).max_health
 		assert_eq(health, HEALTHS[index], "tier %d health" % (index + 1))

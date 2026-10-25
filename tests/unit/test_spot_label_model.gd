@@ -1,6 +1,10 @@
 extends GutTest
 ## BLDG-02 / D-07 / D-08: SpotLabelModel.describe turns RunContext data into the label content.
 ## It is pure: no Nodes and no mutation of the context. Expectations come from .tres data.
+## Gap round G-05-2 (owner UAT decision 2026-10-25, plans 05-13 to 05-24): every health and damage
+## number is 100 times larger, the owner's hard requirement, so percentages and rounding to the
+## nearest unit work as written; the numbers below moved x100 and nothing else did; here: the wall
+## spot labels read 3000 / 6000 / 9000 health each.
 
 const PROTOTYPE_MAP := "res://data/maps/prototype_map.tres"
 const POOR_MAP := "res://tests/fixtures/fixture_map_poor.tres"
@@ -146,7 +150,7 @@ func test_an_empty_wall_plot_names_the_tier_and_the_run() -> void:
 	var content: Dictionary = _describe(ctx, WALL_SPOT)
 	assert_eq(content.get("title"), "Wall I", "the title names the barricade tier")
 	assert_eq(content.get("cost"), wall.tier_def(1).cost, "at the tier I price")
-	assert_eq(content.get("effect"), "12 segments, 30 health each", "the run and its health")
+	assert_eq(content.get("effect"), "12 segments, 3000 health each", "the run and its health")
 
 
 func test_a_built_wall_offers_the_next_tier_with_its_health() -> void:
@@ -154,18 +158,18 @@ func test_a_built_wall_offers_the_next_tier_with_its_health() -> void:
 	_build(ctx, WALL_SPOT, 1)
 	var content: Dictionary = _describe(ctx, WALL_SPOT)
 	assert_eq(content.get("title"), "Wall II", "tier II is offered")
-	assert_eq(content.get("effect"), "12 segments, 60 health each", "with twice the health")
+	assert_eq(content.get("effect"), "12 segments, 6000 health each", "with twice the health")
 
 
-func test_a_wall_at_max_tier_names_its_ninety_health() -> void:
+func test_a_wall_at_max_tier_names_its_nine_thousand_health() -> void:
 	var ctx: RunContext = _context(PROTOTYPE_MAP, RICH_GOLD)
 	_build(ctx, WALL_SPOT, 3)
 	var content: Dictionary = _describe(ctx, WALL_SPOT)
 	assert_eq(content.get("title"), "Wall III", "the current tier")
 	assert_eq(content.get("max_tier"), true, "nothing left to buy")
-	assert_eq(content.get("effect"), "12 segments, 90 health each", "and 90 health")
+	assert_eq(content.get("effect"), "12 segments, 9000 health each", "and 9000 health")
 
 
 func test_the_ring_plot_counts_sixteen_segments() -> void:
 	var ctx: RunContext = _context(PROTOTYPE_MAP, RICH_GOLD)
-	assert_eq(_describe(ctx, &"wall_ring").get("effect"), "16 segments, 30 health each", "ring")
+	assert_eq(_describe(ctx, &"wall_ring").get("effect"), "16 segments, 3000 health each", "ring")
