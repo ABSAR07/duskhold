@@ -14,12 +14,12 @@ value = 200
 script = ExtResource("2_mod")
 stat = &"king.attack_interval"
 bucket = 2
-value = 150
+value = 125
 
 [resource]
 script = ExtResource("1_choice")
 id = &"headsmans_edge"
 display_name = "Headsman's Edge"
-flavour = "One heavy cut in place of two light ones."
+flavour = "Heavier cuts that land only a little slower."
 icon = ExtResource("3_icon")
 modifiers = Array[ExtResource("2_mod")]([SubResource("Resource_damage"), SubResource("Resource_interval")])

@@ -134,7 +134,7 @@ func test_royal_training_reads_plus_25_percent_health_and_plus_100_damage() -> v
 
 func test_headsmans_edge_reads_two_multipliers() -> void:
 	var line: String = _card(&"headsmans_edge").effect_line()
-	assert_eq(line, "x2 king damage, x1.5 king attack interval", "line")
+	assert_eq(line, "x2 king damage, x1.25 king attack interval", "line")
 
 
 func test_a_card_with_no_modifiers_has_an_empty_line() -> void:

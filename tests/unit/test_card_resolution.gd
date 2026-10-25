@@ -19,12 +19,15 @@ const WALL_ID: StringName = &"wall"
 const SHRINE_ID: StringName = &"shrine"
 const SHRINE_DAMAGE: StringName = &"shrine.damage"
 const SYNERGY_SOURCE: StringName = &"shrine_synergy"
+const GOLD_STAT: StringName = &"castle.base_income"
 const PERCENT: StatModifierDef.Bucket = StatModifierDef.Bucket.PERCENT
 const FLAT: StatModifierDef.Bucket = StatModifierDef.Bucket.FLAT
 ## A card must land between half and one and a half times what its text writes.
 const BAND_LOW: float = 0.5
 const BAND_HIGH: float = 1.5
 const FLOAT_TOLERANCE: float = 0.000001
+## The owner's scale: every integer health and damage base is at least this (UAT G-05-2).
+const SCALE_FLOOR: int = 100
 ## Half a unit, plus a hair for the float arithmetic of the reference value.
 const HALF_UNIT: float = 0.500001
 
@@ -266,3 +269,87 @@ func test_every_float_modifier_lands_exactly_and_moves_its_stat() -> void:
 			result, float(case["exact"]), FLOAT_TOLERANCE, "%s is exact" % case["name"]
 		)
 		assert_ne(result, float(case["base"]), "%s moves" % case["name"])
+
+
+## The shipped Shrine synergy, as the IncomeState source: +synergy_percent per other awake Shrine,
+## here for one other (the shipped map has two Shrine plots, so one is always awake beside any).
+func _synergy_mods() -> Array[StatModifierDef]:
+	var percent: int = 0
+	for tier: BuildingTierDef in _def_of(SHRINE_ID).tiers:
+		percent = maxi(percent, tier.synergy_percent)
+	var mod: StatModifierDef = StatModifierDef.new()
+	mod.stat = SHRINE_DAMAGE
+	mod.bucket = PERCENT
+	mod.value = percent
+	var mods: Array[StatModifierDef] = [mod]
+	return mods
+
+
+func _shrine_plots() -> int:
+	var plots: int = 0
+	for spot: BuildSpotDef in _map.spots:
+		if spot.building_id == SHRINE_ID:
+			plots += 1
+	return plots
+
+
+func test_golden_age_on_top_of_the_shrine_synergy_adds_a_quarter_of_the_base() -> void:
+	assert_gte(_shrine_plots(), 2, "two Shrine plots, so one other Shrine can be awake")
+	var synergy: Array[StatModifierDef] = _synergy_mods()
+	assert_gt(synergy[0].value, 0, "the shipped Shrine has a synergy percent")
+	var golden: ChoiceDef = _card(&"golden_age")
+	var with_card: Array[StatModifierDef] = []
+	with_card.append_array(synergy)
+	with_card.append_array(_mods_on(golden, SHRINE_DAMAGE))
+	var plain: StatStack = StatStack.new()
+	plain.add_source(SYNERGY_SOURCE, synergy)
+	var boosted: StatStack = StatStack.new()
+	boosted.add_source(SYNERGY_SOURCE, synergy)
+	boosted.add_source(golden.id, golden.modifiers)
+	var group: Dictionary = _bases[SHRINE_DAMAGE]
+	assert_gt(group.size(), 0, "a shrine base exists")
+	for label: String in group:
+		var base: int = int(group[label])
+		var written: float = _exact(float(base), with_card) - _exact(float(base), synergy)
+		var moved: float = float(
+			boosted.int_value(SHRINE_DAMAGE, base) - plain.int_value(SHRINE_DAMAGE, base)
+		)
+		assert_true(
+			_in_band(written, moved), "%s: Golden Age adds %s of %s" % [label, moved, written]
+		)
+
+
+## Every integer health and damage base lies between the owner's 100 and the stack's int64 bound
+## (StatStack.MAX_ABS_BASE, the largest the stack accepts); the largest shipped base is castle
+## tier IV's 20000. Gold (castle.base_income) is not rescaled and is exempt.
+func test_every_integer_health_and_damage_base_lies_between_100_and_the_stack_bound() -> void:
+	var checked: int = 0
+	for stat: StringName in _bases:
+		if stat == GOLD_STAT or not StatIds.is_int(stat):
+			continue
+		var group: Dictionary = _bases[stat]
+		for label: String in group:
+			var base: int = int(group[label])
+			checked += 1
+			assert_gte(base, SCALE_FLOOR, "%s at %s is at the owner's scale" % [stat, label])
+			assert_lte(base, StatStack.MAX_ABS_BASE, "%s at %s fits the stack" % [stat, label])
+	assert_gt(checked, 0, "integer bases were checked")
+
+
+## Negative control: the old footman blow (a base of 1) rounds a +25% to no change, so the band
+## rejects it; the same modifier on 100 lands and passes; a card that doubled would fail too.
+func test_the_band_rejects_a_quarter_on_a_base_of_one_and_accepts_it_on_one_hundred() -> void:
+	var mod: StatModifierDef = StatModifierDef.new()
+	mod.stat = &"unit.attack_damage"
+	mod.bucket = PERCENT
+	mod.value = 25
+	var mods: Array[StatModifierDef] = [mod]
+	var stack: StatStack = StatStack.new()
+	assert_true(stack.add_source(&"control", mods), "the control source is armed")
+	var old_blow: int = stack.int_value(mod.stat, 1)
+	var old_written: float = _exact(1.0, mods) - 1.0
+	assert_false(_in_band(old_written, float(old_blow - 1)), "+25%% on 1 (%d) fails" % old_blow)
+	var new_blow: int = stack.int_value(mod.stat, SCALE_FLOOR)
+	var new_written: float = _exact(float(SCALE_FLOOR), mods) - SCALE_FLOOR
+	assert_true(_in_band(new_written, float(new_blow - SCALE_FLOOR)), "+25% on 100 passes")
+	assert_false(_in_band(new_written, new_written * 2.0), "a doubled effect fails")

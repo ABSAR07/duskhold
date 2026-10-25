@@ -17,6 +17,13 @@ extends GutTest
 ## Prosperity +1 to +2: a flat dawn card is worth its value times the dawns left to pay, and the
 ## debug session measured +2 matching Masons on wins and gold while +1 trailed (plan 05-23
 ## re-measures it).
+## Golden Age's income +2 to +4: a flat dawn card is worth its value times the paying dawns left,
+## tier IV comes about one paying dawn after tier II's day-6 pick, so +4 pays about what
+## Prosperity's +2 pays at its tier; its +25% shrine damage stays.
+## Headsman's Edge interval x1.5 to x1.25: against the one-hit kills of the shipped roster the old
+## card was a third slower for no extra kill on skirmishers and after Royal Training; the worst
+## case is now a fifth slower and the best case, grunts without Royal Training, is 1000 against
+## 600: one blow instead of two at 1.25 times the interval; its x2 king damage stays.
 
 const CASTLE_PATH := "res://data/buildings/castle_center.tres"
 const ABILITY_DIR := "res://data/abilities/"
@@ -52,7 +59,7 @@ const CARDS: Dictionary = {
 	&"headsmans_edge":
 	[
 		"Headsman's Edge",
-		[[&"king.attack_damage", MULTIPLIER, 200], [&"king.attack_interval", MULTIPLIER, 150]]
+		[[&"king.attack_damage", MULTIPLIER, 200], [&"king.attack_interval", MULTIPLIER, 125]]
 	],
 	&"engineers": ["Engineers", [[&"tower.damage", PERCENT, 25], [&"tower.range", PERCENT, 15]]],
 	&"war_horns": ["War Horns", [[&"squad.respawn_seconds", MULTIPLIER, 60]]],
@@ -70,7 +77,7 @@ const CARDS: Dictionary = {
 		[[&"building.max_health", MULTIPLIER, 150], [&"wall.max_health", MULTIPLIER, 150]]
 	],
 	&"golden_age":
-	["Golden Age", [[&"castle.base_income", FLAT, 2], [&"shrine.damage", PERCENT, 25]]],
+	["Golden Age", [[&"castle.base_income", FLAT, 4], [&"shrine.damage", PERCENT, 25]]],
 }
 ## Names of the Phase 5 draft that echo Thronefall's own perks (CLAUDE.md IP rule).
 const BANNED_NAMES: Array[String] = ["Assassin's Training", "Magic Armor", "Rallying Banner"]
@@ -213,10 +220,10 @@ func test_royal_training_then_headsmans_edge_makes_king_damage_800_in_either_ord
 	assert_eq(reverse.int_value(&"king.attack_damage", KING_BASE_DAMAGE), want, "same either way")
 
 
-func test_headsmans_edge_slows_the_blow_by_half_again() -> void:
+func test_headsmans_edge_slows_the_blow_by_a_quarter() -> void:
 	var stack: StatStack = StatStack.new()
 	stack.add_source(&"headsmans_edge", _card(&"headsmans_edge").modifiers)
-	assert_almost_eq(stack.float_value(&"king.attack_interval", 0.8), 1.2, 0.0001, "0.8 s to 1.2 s")
+	assert_almost_eq(stack.float_value(&"king.attack_interval", 0.8), 1.0, 0.0001, "0.8 s to 1.0 s")
 
 
 func test_every_name_and_flavour_fits_and_is_plain_text() -> void:
