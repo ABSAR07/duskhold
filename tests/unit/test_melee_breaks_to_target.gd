@@ -6,6 +6,9 @@ extends GutTest
 ## the gap, (c) the castle is never a target behind a wall. The release rules and the crowd count
 ## (D-08) follow. Hand-built worlds far from the castle; the wall at x = 102 (z 80 to 120) stands
 ## between x = 101.6 and 102.4, and every line runs at z = 101 so it crosses a segment's middle.
+##
+## Gap round G-05-2 (owner UAT decision 2026-10-25): every health and damage number is 100 times
+## larger; this test's own amounts moved with them so it checks what it checked before.
 
 const GRUNT_PATH := "res://data/enemies/grunt.tres"
 const FOOTMAN_PATH := "res://data/units/footman.tres"
@@ -177,7 +180,7 @@ func test_a_king_behind_the_wall_pulls_the_grunt_to_the_segment_and_then_to_him(
 	_step(0)
 	assert_eq(_enemies.target_of(id), _wall_target(segment), "it takes the segment in the way")
 	assert_eq(_behind(id), PendingHits.KIND_KING, "and remembers the king behind it")
-	_walls.damage_segment(segment, 1000)
+	_walls.damage_segment(segment, 100000)
 	_step(1)
 	assert_eq(_enemies.target_of(id), {"kind": PendingHits.KIND_KING, "id": 0}, "he is back")
 	assert_eq(_behind(id), &"", "the memory is spent")

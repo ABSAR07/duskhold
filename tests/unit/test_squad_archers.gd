@@ -4,6 +4,9 @@ extends GutTest
 ## attack_range, then stop and fire arrows that land SimClock.flight_ticks(distance, speed) ticks
 ## later through PendingHits; a skirmisher can target and wound an archer. The plot sits on the x
 ## axis so the post lands on exact floats: with the castle at the origin the anchor is (-7, 0).
+##
+## Gap round G-05-2 (owner UAT decision 2026-10-25): every health and damage number is 100 times
+## larger; this test's own amounts moved with them so it checks what it checked before.
 
 const FIXTURE := "res://tests/fixtures/fixture_map_squads.tres"
 const GRUNT_PATH := "res://data/enemies/grunt.tres"
@@ -15,7 +18,7 @@ const SPOT := &"archery_1"
 const PLOT := Vector3(-10.5, 0.0, 0.0)
 const ANCHOR := Vector2(-7.0, 0.0)
 ## Hit points of a test dummy: high enough that nothing dies unless a test says so.
-const DUMMY_HEALTH: int = 500
+const DUMMY_HEALTH: int = 50000
 const STOP_EPSILON: float = 0.02
 ## The tick of the first night step the helper runs (the day step that raises the squad is tick 0).
 const FIRST_STEP_TICK: int = 1

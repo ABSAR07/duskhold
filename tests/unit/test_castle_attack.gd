@@ -7,13 +7,16 @@ extends GutTest
 ## literals are the shipped castle's numbers since the owner's decision of 2026-10-07 (G-02-13:
 ## reach 22 m, arrows 27 m/s), with the 6 m / 27 m/s flight of 7 ticks. A non-finite or sub-step
 ## number never arms the castle (review WR-02), so it can never fire every tick.
+##
+## Gap round G-05-2 (owner UAT decision 2026-10-25): every health and damage number is 100 times
+## larger; this test's own amounts moved with them so it checks what it checked before.
 
 const GRUNT_PATH := "res://data/enemies/grunt.tres"
 const RANGED_PATH := "res://data/enemies/ranged.tres"
 const TOWER_PATH := "res://data/buildings/tower.tres"
 const HOUSE_PATH := "res://data/buildings/house.tres"
 const KING_PATH := "res://data/king/king.tres"
-const DAMAGE: int = 2
+const DAMAGE: int = 200
 const REACH: float = 22.0
 const INTERVAL_S: float = 1.5
 const PROJECTILE_SPEED: float = 27.0

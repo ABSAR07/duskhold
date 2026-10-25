@@ -2,6 +2,9 @@ extends GutTest
 ## D-11 targeting and the castle fight, on a hand-built night (EnemySystem, CastleState and
 ## PendingHits, no RunContext). Numbers come from grunt.tres; the castle is the MapConfig default
 ## (radius 3.5) at the origin.
+##
+## Gap round G-05-2 (owner UAT decision 2026-10-25): every health and damage number is 100 times
+## larger; this test's own amounts moved with them so it checks what it checked before.
 
 const GRUNT_PATH := "res://data/enemies/grunt.tres"
 const KING_PATH := "res://data/king/king.tres"
@@ -10,6 +13,9 @@ const KING_FAR := Vector2(500.0, 500.0)
 const TUNING_PATH := "res://data/tuning/loop_tuning.tres"
 ## Slack for "standing at the stop distance": float32 positions land a hair off the exact value.
 const EDGE_EPSILON: float = 0.02
+## A fresh MapConfig's castle at the shipped scale: castle_max_health = 4000 (the def's own
+## default of 40 stays, a frozen golden fixture may rely on it).
+const CASTLE_HEALTH: int = 4000
 
 var _grunt: EnemyDef
 var _map: MapConfig
@@ -28,6 +34,7 @@ var _castle_hp_after: Array[int] = []
 func before_each() -> void:
 	_grunt = load(GRUNT_PATH)
 	_map = MapConfig.new()
+	_map.castle_max_health = CASTLE_HEALTH
 	_build()
 
 
@@ -101,7 +108,7 @@ func test_a_marching_grunt_strikes_once_it_has_reached_the_edge() -> void:
 
 
 func test_the_castle_hp_clamps_at_zero_and_is_destroyed_exactly_once() -> void:
-	_map.castle_max_health = 3
+	_map.castle_max_health = 300
 	_build()
 	for index: int in range(3):
 		_enemies.spawn(_grunt, Vector2(_stop_distance(), float(index) * 0.01))
@@ -118,7 +125,7 @@ func test_the_castle_hp_clamps_at_zero_and_is_destroyed_exactly_once() -> void:
 
 
 func test_a_destroyed_castle_is_no_target_and_enemies_stand_still() -> void:
-	_map.castle_max_health = 2
+	_map.castle_max_health = 200
 	_build()
 	_enemies.spawn(_grunt, Vector2(_stop_distance(), 0.0))
 	_tick(0)
@@ -201,8 +208,8 @@ func test_nearest_enemy_prefers_the_nearer_then_the_lower_id_and_is_inclusive() 
 	var tie_a: int = _enemies.spawn(_grunt, Vector2(0.0, -5.0))
 	_enemies.spawn(_grunt, Vector2(0.0, 5.0))
 	assert_eq(TargetQuery.nearest_enemy(_enemies, Vector2(0.0, 0.0), 5.0), near, "near still wins")
-	_enemies.damage(far, 100, PendingHits.KIND_KING)
-	_enemies.damage(near, 100, PendingHits.KIND_KING)
+	_enemies.damage(far, 10000, PendingHits.KIND_KING)
+	_enemies.damage(near, 10000, PendingHits.KIND_KING)
 	assert_eq(TargetQuery.nearest_enemy(_enemies, Vector2.ZERO, 5.0), tie_a, "lower id on a tie")
 
 

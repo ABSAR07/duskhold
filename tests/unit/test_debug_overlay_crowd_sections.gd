@@ -6,6 +6,9 @@ extends GutTest
 ## counts. Every row builder is a pure read of getters: collecting them emits no event and builds no
 ## goal field. A RunContext on the wall fixture, stepped with ctx.step(), no scene tree except for
 ## the one test that binds a real overlay.
+##
+## Gap round G-05-2 (owner UAT decision 2026-10-25): every health and damage number is 100 times
+## larger; this test's own amounts moved with them so it checks what it checked before.
 
 const FIXTURE := "res://tests/fixtures/fixture_map_walls_gap.tres"
 const OVERLAY_SCENE := "res://ui/overlay/debug_overlay.tscn"
@@ -15,7 +18,7 @@ const EM_DASH := "—"
 const FAR_AWAY := Vector2(-30.0, 0.0)
 const STUCK_STEPS: int = 100
 const SPAWN_NEVER_S: float = 600.0
-const FIVE_GRUNTS_PER_300: int = 100
+const FIVE_GRUNTS_PER_300: int = 10000
 const READ_ONLY_REPEATS: int = 100
 const NEW_LABELS: Array[String] = [
 	"Runs built",
@@ -109,7 +112,7 @@ func test_the_fastest_breach_is_the_shortest_published_time_to_destruction() -> 
 	decision.end_tick()
 	var rows: Array = CrowdOverlaySections.wall_rows(ctx)
 	assert_eq(_row(rows, "Walls evaluated"), "1", "one segment weighed")
-	assert_eq(_row(rows, "Fastest breach"), "3.0 s", "30 hp against 100 per 10 s is 90 ticks")
+	assert_eq(_row(rows, "Fastest breach"), "3.0 s", "3000 hp against 10000 per 10 s is 90 ticks")
 
 
 func test_the_field_rows_follow_the_castle_field() -> void:
