@@ -2,6 +2,9 @@ extends GutTest
 ## D-04, D-05: an intact segment is solid to a circle and blocks a straight line; a broken or
 ## unbuilt one does neither. The wall under test is one straight run along z = 0 from x = 0 to
 ## x = 12 in four segments of 3 m, with a second run beyond it that has a gap in the middle.
+##
+## Gap round G-05-2 (owner UAT decision 2026-10-25): every health and damage number is 100 times
+## larger; this test's own amounts moved with them so it checks what it checked before.
 
 const WALL_PATH := "res://data/buildings/wall.tres"
 const RUN_ID: StringName = &"wall_line"
@@ -84,7 +87,7 @@ func test_unbuilt_and_broken_segments_push_nothing() -> void:
 	var inside: Vector2 = Vector2(1.5, 0.2)
 	assert_eq(WallSolids.push_out(_walls, inside, RADIUS), inside, "nothing is built yet")
 	_build()
-	_walls.damage_segment(0, 1000)
+	_walls.damage_segment(0, 100000)
 	assert_eq(WallSolids.push_out(_walls, inside, RADIUS), inside, "a hole pushes nothing")
 	var next_to_it: Vector2 = Vector2(4.5, 0.2)
 	assert_ne(WallSolids.push_out(_walls, next_to_it, RADIUS), next_to_it, "its neighbour does")
@@ -139,7 +142,7 @@ func test_of_two_crossed_segments_the_nearer_one_blocks() -> void:
 func test_a_clear_line_and_a_broken_run_block_nothing() -> void:
 	_build()
 	assert_eq(WallSolids.first_blocking(_walls, Vector2(0.0, 5.0), Vector2(12.0, 5.0), 0.5), -1)
-	_walls.damage_segment(2, 1000)
+	_walls.damage_segment(2, 100000)
 	assert_eq(WallSolids.first_blocking(_walls, Vector2(7.0, 5.0), Vector2(7.0, -5.0), 0.5), -1)
 	assert_eq(WallSolids.first_blocking(_walls, Vector2(4.0, 5.0), Vector2(4.0, -5.0), 0.5), 1)
 

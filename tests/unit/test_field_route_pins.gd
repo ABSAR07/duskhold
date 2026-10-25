@@ -15,10 +15,15 @@ extends GutTest
 ## string.
 ## The pins were computed on the GDScript implementation and are never edited: the native field
 ## and route must reproduce them unchanged.
+##
+## Gap round G-05-2 (owner UAT decision 2026-10-25): every health and damage number is 100 times
+## larger; this test's own amounts moved with them so it checks what it checked before. The pins
+## were not edited: their inputs moved with the scale (or, for the wall decision, keep the Phase 4
+## numbers the pins were computed on).
 
 const BASE_SEED: int = 41800
 const POINTS: int = 2000
-const BREAK_DAMAGE: int = 1000000
+const BREAK_DAMAGE: int = 100000000
 const HANDFUL: int = 4
 const FAR_METRES: float = 300.0
 const GOAL_RADII: Array[float] = [1.0, 0.5, 2.0]

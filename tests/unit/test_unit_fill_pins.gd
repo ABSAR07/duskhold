@@ -15,6 +15,11 @@ extends GutTest
 ## were computed on the GDScript fill and are never edited: the native fill must reproduce them
 ## unchanged. The view only reads the run, so the golden digests do not move (the replay wrappers
 ## prove it).
+##
+## Gap round G-05-2 (owner UAT decision 2026-10-25): every health and damage number is 100 times
+## larger; this test's own amounts moved with them so it checks what it checked before. The pins
+## were not edited: their inputs moved with the scale (or, for the wall decision, keep the Phase 4
+## numbers the pins were computed on).
 
 const Probe := preload("res://tools/stress/step_attribution.gd")
 const DELTAS: Array[float] = [1.0 / 144.0, 1.0 / 60.0, 1.0 / 240.0, 0.021, 1.0 / 30.0, 0.0047]
@@ -27,7 +32,7 @@ const FRAMES_PER_TICK: int = 2
 const HURT_EVERY: int = 6
 const RESTORE_FRAMES: Array[int] = [700, 1500]
 const KILL_FRAME: int = 1000
-const KILL_DAMAGE: int = 99
+const KILL_DAMAGE: int = 9900
 ## D-10's unit bar: the stress night must put at least this many friendly units on screen at once.
 const STRESS_VIEW_FLOOR: int = 50
 const PINS: Dictionary = {
@@ -142,7 +147,7 @@ func _hurt_run() -> Dictionary:
 		ctx.advance(delta)
 		var ids: Array[int] = ctx.squads.get_units().ids()
 		if not ids.is_empty() and frame % HURT_EVERY == 0:
-			ctx.squads.damage_unit(ids[(frame / HURT_EVERY) % ids.size()], 1, &"test")
+			ctx.squads.damage_unit(ids[(frame / HURT_EVERY) % ids.size()], 100, &"test")
 		if frame == KILL_FRAME and not ids.is_empty():
 			ctx.squads.damage_unit(ids[ids.size() / 2], KILL_DAMAGE, &"test")
 		if RESTORE_FRAMES.has(frame):

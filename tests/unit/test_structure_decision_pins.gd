@@ -17,6 +17,11 @@ extends GutTest
 ##
 ## The pins were computed on the GDScript implementation and are never edited: the native structure
 ## index and decision state must reproduce them unchanged.
+##
+## Gap round G-05-2 (owner UAT decision 2026-10-25): every health and damage number is 100 times
+## larger; this test's own amounts moved with them so it checks what it checked before. The pins
+## were not edited: their inputs moved with the scale (or, for the wall decision, keep the Phase 4
+## numbers the pins were computed on).
 
 const BASE_SEED: int = 42300
 const QUERIES: int = 2000
@@ -25,6 +30,10 @@ const RADII: Array[float] = [0.0, 0.5]
 const REACHES: Array[float] = [-1.0, 7.0]
 const PROTOTYPE_MAP := "res://data/maps/prototype_map.tres"
 const RING_MAP := "res://tests/fixtures/fixture_map_walls.tres"
+## The wall health the decision pins were computed on (Phase 4). The x100 rescale moved the
+## shipped wall to 3000 / 6000 / 9000 and the seeded damage draws read it, so the pinned
+## worlds keep these numbers, as PHASE_FIVE_PLOTS keeps them free of the Phase 5 plots.
+const PHASE_FOUR_WALL_HEALTH: Array[int] = [30, 60, 90]
 const TUNING_PATH := "res://data/tuning/nav_tuning.tres"
 const FOOTMAN_PATH := "res://data/units/footman.tres"
 const HOUSE_PATH := "res://data/buildings/house.tres"
@@ -186,7 +195,12 @@ static func world_bytes(world: String) -> Dictionary:
 
 ## The packed published times and evaluated counts of one decision scenario.
 static func decision_bytes(scenario: String) -> PackedByteArray:
-	var map: MapConfig = load(RING_MAP) if scenario == "ring" else load(PROTOTYPE_MAP)
+	var source: MapConfig = load(RING_MAP) if scenario == "ring" else load(PROTOTYPE_MAP)
+	var map: MapConfig = source.duplicate_deep(Resource.DEEP_DUPLICATE_ALL)
+	for building_def: BuildingDef in map.buildings:
+		if building_def.id == &"wall":
+			for index: int in range(building_def.tiers.size()):
+				building_def.tiers[index].max_health = PHASE_FOUR_WALL_HEALTH[index]
 	var events: SimEvents = SimEvents.new()
 	var buildings: BuildingSystem = BuildingSystem.new(map, events)
 	var walls: WallSystem = WallSystem.new(map, buildings, events)
