@@ -4,10 +4,10 @@ extends HBoxContainer
 ## clockwise as the slam recharges, a one-shot flash when it is ready, a caption "Slam" above it),
 ## then a 192x24 health bar with "hp / max" beside it. It never hides. Display only: it polls the
 ## simulation each frame (health, knockout, cooldown ratio) and never writes it. Every part
-## ignores the mouse. The widget row spans x 16..376 and y 648..704 at 1280x720, the caption
+## ignores the mouse. The widget row spans x 16..408 and y 648..704 at 1280x720, the caption
 ## reaches up to y 624, and nothing of it enters the protected clear centre.
 ##
-## Knocked out (KING-06): the bar is empty and the label reads "0 / 50" in red. The bar, the plate
+## Knocked out (KING-06): the bar is empty and the label reads "0 / 5000" in red. The bar, the plate
 ## panel (its own self_modulate), the sword icon and the slam glyph dim to alpha 0.4; the count and
 ## the "Slam" caption stay at full alpha (G-03-13). Neither sits on a panel (the label is beside the
 ## bar, the caption above the plate), and the opaque black outline Godot draws around every glyph is
@@ -26,7 +26,10 @@ const GLYPH_SIZE: int = 24
 const GLYPH_MIN_X: float = -12.0
 const ABILITY_ACTION: StringName = &"ability"
 const BAR_SIZE := Vector2(192.0, 24.0)
-const LABEL_MIN_WIDTH: float = 96.0
+## Holds "6250 / 6250" (Royal Training's king at full health, the widest label the shipped
+## game shows) at size 22 bold, so the row never shifts as health changes. UAT G-05-2, the
+## x100 rescale: the numbers are shown as they are, with no division.
+const LABEL_MIN_WIDTH: float = 128.0
 const ROW_SEPARATION: int = 8
 const CAPTION_SIZE := Vector2(56.0, 24.0)
 const CAPTION_OFFSET := Vector2(0.0, -24.0)
