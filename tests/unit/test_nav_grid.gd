@@ -3,6 +3,8 @@ extends GutTest
 ## centres lie within half thickness plus the largest agent radius of it, the gap stays open, a
 ## broken segment opens after a rebuild, and no route leaks through a wall at any angle or offset
 ## (RESEARCH F5). The size of the grid is capped (T-04-13).
+## Gap round G-05-2 (owner UAT decision 2026-10-25): every health and damage number is 100
+## times larger; this test's felling blow moved with them so it fells what it felled before.
 
 const GAP_FIXTURE := "res://tests/fixtures/fixture_map_walls_gap.tres"
 const PROTOTYPE_MAP := "res://data/maps/prototype_map.tres"
@@ -173,7 +175,7 @@ func test_a_broken_segment_opens_after_a_rebuild() -> void:
 	var before: int = _cells_owned_by(grid, 2)
 	var version: int = grid.version()
 	assert_gt(before, 0, "segment 2 owns cells")
-	_walls.damage_segment(2, 1000)
+	_walls.damage_segment(2, 100000)
 	assert_eq(_cells_owned_by(grid, 2), before, "the grid does not change until rebuilt")
 	grid.rebuild(_walls)
 	assert_eq(_cells_owned_by(grid, 2), 0, "the broken segment owns nothing")

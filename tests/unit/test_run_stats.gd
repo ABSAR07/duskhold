@@ -2,6 +2,8 @@ extends GutTest
 ## RunStats (D-15): the five numbers of the results screen, counted from the run's own events. The
 ## listener never emits or changes anything. Counts are checked first against hand-emitted events,
 ## then against a scripted two-night run on a deep-copied fixture.
+## Gap round G-05-2 (owner UAT decision 2026-10-25): every health and damage number is 100
+## times larger; this test's felling blow moved with them so it fells what it felled before.
 
 const FIXTURE := "res://tests/fixtures/fixture_map_one_night.tres"
 const TUNING := "res://data/tuning/loop_tuning.tres"
@@ -141,7 +143,7 @@ func test_buildings_lost_and_knockouts_follow_a_real_night() -> void:
 	var ctx: RunContext = _context()
 	assert_eq(ctx.commands.submit(BuildIntent.new(&"tower_1")), CommandProcessor.OK, "a Tower")
 	assert_eq(ctx.commands.submit(StartNightIntent.new()), CommandProcessor.OK, "the night starts")
-	ctx.buildings.damage_building(&"tower_1", 1000)
+	ctx.buildings.damage_building(&"tower_1", 100000)
 	ctx.king.take_damage(ctx.king.get_max_health())
 	assert_eq(ctx.stats.buildings_lost(), 1, "the Tower fell")
 	assert_eq(ctx.stats.king_knockouts(), 1, "the king was knocked out once")

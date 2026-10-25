@@ -4,6 +4,8 @@ extends GutTest
 ## buildings that stood through the night pay income, while the castle's base income (G-02-1) is
 ## paid on every waveless-map dawn regardless. Every amount is read from house.tres, tower.tres and
 ## the maps, so retuning cannot break these tests.
+## Gap round G-05-2 (owner UAT decision 2026-10-25): every health and damage number is 100
+## times larger; this test's felling blow moved with them so it fells what it felled before.
 
 const FIXTURE := "res://tests/fixtures/fixture_map_one_night.tres"
 const TUNING := "res://data/tuning/loop_tuning.tres"
@@ -409,7 +411,7 @@ func test_rebuilding_charges_nothing_and_skips_a_building_that_never_fell() -> v
 	var buildings: BuildingSystem = BuildingSystem.new(map, events)
 	buildings.apply_next_tier(HOUSE_A)
 	buildings.apply_next_tier(HOUSE_B)
-	buildings.damage_building(HOUSE_B, 1000)
+	buildings.damage_building(HOUSE_B, 100000)
 	buildings.damage_building(HOUSE_A, 2)
 	var hurt: int = buildings.health_of(HOUSE_A)
 

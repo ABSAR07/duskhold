@@ -5,6 +5,8 @@ extends GutTest
 ## gate fixture carries an inline tower whose tier II needs castle II, so shipped tower.tres stays
 ## ungated. [assumed-contract BLDG-09]: exactly at the required tier unlocks, one below refuses, 0
 ## never refuses and MAX_TIER wins at the top.
+## Gap round G-05-2 (owner UAT decision 2026-10-25): every health and damage number is 100
+## times larger; this test's felling blow moved with them so it fells what it felled before.
 
 const FIXTURE := "res://tests/fixtures/fixture_map_gate.tres"
 const ONE_NIGHT := "res://tests/fixtures/fixture_map_one_night.tres"
@@ -136,7 +138,7 @@ func test_on_a_map_without_a_castle_plot_a_castle_requirement_never_applies() ->
 func test_a_destroyed_required_plot_does_not_relock_a_built_plot() -> void:
 	_build(_ctx, HOUSE_A)
 	_build(_ctx, HOUSE_B)
-	_ctx.buildings.damage_building(HOUSE_A, 1000)
+	_ctx.buildings.damage_building(HOUSE_A, 100000)
 	assert_true(_ctx.buildings.is_destroyed(HOUSE_A), "house_a fell")
 	assert_eq(_ctx.commands.validate_build(HOUSE_B), CommandProcessor.OK, "house_b upgrades free")
 
