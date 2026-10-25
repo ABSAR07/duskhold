@@ -359,7 +359,7 @@ Plans:
      - a Shrine, which activates after enough nearby enemy deaths, then attacks, pays, and strengthens other active Shrines
   4. Bonuses from building upgrades and castle abilities combine in one fixed, documented order. Automated tests verify single-modifier and combined-modifier cases.
 
-**Plans**: 18/24 plans executed (planned 2026-10-21: 12 plans in 11 waves, one chain with 05-04 and 05-05 side by side; research P1 to P8 and the one approved golden step folded in; 05-13 to 05-24 close the UAT gaps G-05-2 and G-05-7: first planned 2026-10-24 as five plans around a per-attacker rounding carry, replanned 2026-10-25 as twelve plans in twelve waves after the owner's hard requirement to scale every health and damage number by 100)
+**Plans**: 19/24 plans executed (planned 2026-10-21: 12 plans in 11 waves, one chain with 05-04 and 05-05 side by side; research P1 to P8 and the one approved golden step folded in; 05-13 to 05-24 close the UAT gaps G-05-2 and G-05-7: first planned 2026-10-24 as five plans around a per-attacker rounding carry, replanned 2026-10-25 as twelve plans in twelve waves after the owner's hard requirement to scale every health and damage number by 100)
 
 Plans:
 
@@ -418,7 +418,7 @@ Plans:
 - [x] 05-18: The PLAT-01 pins stay byte-identical (their inputs scaled or frozen at the Phase 4 numbers) and the combat tests keep their intent at the new scale (G-05-2)
 
 **Gap wave 7** *(blocked on 05-18)*
-- [ ] 05-19: The tests that fell shipped buildings, segments and units with their own blows fell them again at the x100 scale (G-05-2)
+- [x] 05-19: The tests that fell shipped buildings, segments and units with their own blows fell them again at the x100 scale (G-05-2)
 
 **Gap wave 8** *(blocked on 05-19)*
 - [ ] 05-20: The HUD shows the scaled numbers as they are, the king widget's label widened to 128 px, the HUD tests and shot scenarios at the new scale, ten real-window shots reviewed (G-05-2)
@@ -570,7 +570,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 2. Night Defense & Playtest Gate | 22/22 | Complete    | 2026-10-08 |
 | 3. King Combat & Troops | 19/19 | Complete    | 2026-10-15 |
 | 4. Crowd-Scale Battles & Walls | 28/28 | Complete    | 2026-10-21 |
-| 5. Castle Center & Economy Depth | 18/24 | In Progress|  |
+| 5. Castle Center & Economy Depth | 19/24 | In Progress|  |
 | 6. Enemy Roster & Tower Specializations | 0/TBD | Not started | - |
 | 7. Army Variety & Heroes | 0/TBD | Not started | - |
 | 8. Art, Readability & Sound | 0/TBD | Not started | - |
