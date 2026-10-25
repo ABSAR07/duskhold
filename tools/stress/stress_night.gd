@@ -51,7 +51,7 @@ const REQUESTED_SIZE := Vector2i(1920, 1080)
 ## The king stands here for the whole night, between the tower rows and clear of the wall.
 const KING_PARK := Vector3(0.0, 0.0, 14.0)
 ## The king's health pool: the night must not end in the king's death countdown.
-const KING_HEALTH: int = 100000
+const KING_HEALTH: int = 10000000
 ## The play area every enemy, unit and arrow of the night stays inside.
 const FRAME_MIN := Vector3(-44.0, 0.0, -16.0)
 const FRAME_MAX := Vector3(44.0, 3.0, 64.0)

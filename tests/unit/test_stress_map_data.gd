@@ -3,13 +3,16 @@ extends GutTest
 ## long wall with a single 4 m gate, one huge night of 300 stress grunts that match the shipped
 ## grunt in everything but health, an unarmed castle on the low-z side, and the pass geometry the
 ## harness derives from it (the finish line and the sink come from this data, never from code).
+## Gap round G-05-2 (owner decision 2026-10-25): health and damage are 100 times larger, so the
+## stress grunt strikes for the shipped 200 and every huge pool is 10000000; every ratio of the
+## stress night is unchanged.
 
 const GRUNT := "res://data/enemies/grunt.tres"
 const WALL_Z: float = 30.0
 const GAP_HALF_CM: int = 200
 const WALL_Z_CM: int = 3000
 const NIGHT_SIZE: int = 300
-const HUGE_HEALTH: int = 100000
+const HUGE_HEALTH: int = 10000000
 const FOOTMAN := "res://data/units/footman.tres"
 const TOWER_PLOTS: int = 20
 const BARRACKS_PLOTS: int = 2
@@ -191,7 +194,7 @@ func test_the_stress_tower_tier_shoots_slow_arrows_often() -> void:
 	assert_eq(tier.projectile_speed, 5.0, "slow arrows keep about 200 or more in the air")
 	assert_eq(tier.attack_interval, 0.15, "every 0.15 s")
 	assert_eq(tier.attack_range, 30.0, "from 30 m")
-	assert_eq(tier.attack_damage, 1, "real hits of 1 through PendingHits")
+	assert_eq(tier.attack_damage, 100, "real hits of 100 through PendingHits")
 	assert_eq(tier.max_health, HUGE_HEALTH, "it outlives the surge")
 
 

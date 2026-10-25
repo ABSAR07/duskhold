@@ -2,7 +2,7 @@ extends SceneTree
 ## Headless step attribution of the stress-night shape (PLAT-01, plan 04-20): where the 4 to 5 ms
 ## of one RunContext.step() go, by the variant method of 04-FRAME-REPORT.md. It builds the stress
 ## shape exactly as `step_bench.gd --map=stress` does (plan 04-15: the tools stress map with every
-## night group's count set to enemies / 4, the king def deep-copied with max_health 100000 and the
+## night group's count set to enemies / 4, the king def deep-copied with max_health 10000000 and the
 ## king reported at (0, 14) before every step, every chosen plot built once, StartNightIntent, the
 ## warm-up steps untimed) in four variants that differ ONLY in which build plots are bought:
 ##   full          every plot (the gate wall, the towers and the barracks)
@@ -69,7 +69,7 @@ const KING_PATH := "res://data/king/king.tres"
 const TUNING_PATH := "res://data/tuning/loop_tuning.tres"
 ## The stress shape's king parking spot and health pool (the stress night's own values).
 const KING_PARK := Vector2(0.0, 14.0)
-const KING_HEALTH: int = 100000
+const KING_HEALTH: int = 10000000
 const MICROS_PER_MS: float = 1000.0
 const VARIANT_FULL: String = "full"
 const VARIANT_NO_TOWERS: String = "no_towers"

@@ -9,7 +9,7 @@ extends SceneTree
 ##
 ## With --map=stress it builds the stress-night shape instead (plan 04-15, the PLAT-01 load of the
 ## G-04-5 diagnosis): the tools-only stress map with every night group's count set to enemies / 4,
-## the king (100000 health) parked at (0, 14) and reported there before the day step and before
+## the king (10000000 health) parked at (0, 14) and reported there before the day step and before
 ## every night step, every plot built once, the night started, then `warmup` untimed steps (the
 ## crowd spawns and reaches the gate) and `steps` timed ones. Its line is
 ##   STEP_BENCH map=stress enemies=<n> warmup=<n> steps=<n> mean_ms=<x.xx> p95_ms=<x.xx>
@@ -51,14 +51,14 @@ const STRESS_MAP_PATH: String = "res://tools/stress/stress_map.tres"
 const KING_PATH: String = "res://data/king/king.tres"
 ## The stress shape's king parking spot and health pool (the stress night's own values).
 const KING_PARK := Vector2(0.0, 14.0)
-const KING_HEALTH: int = 100000
+const KING_HEALTH: int = 10000000
 ## The stress map's night groups: the enemy total is shared over this many.
 const STRESS_GROUPS: int = 4
 const MAP_PATH: String = "res://data/maps/prototype_map.tres"
 const TUNING_PATH: String = "res://data/tuning/loop_tuning.tres"
 const SPAWN_SEED: int = 1
 ## The castle must outlive the timed steps whatever the machine does; a bench run is no balance run.
-const CASTLE_HEALTH: int = 10000000
+const CASTLE_HEALTH: int = 1000000000
 const GRUNT_ID: StringName = &"grunt"
 const FLAG_ENEMIES: String = "--enemies="
 const FLAG_STEPS: String = "--steps="
@@ -190,7 +190,7 @@ func _build(enemy_count: int) -> RunContext:
 
 
 ## The stress-night shape (plan 04-15, the interfaces of the G-04-5 diagnosis probe): the tools
-## stress map copied with every night group's count set to enemies / 4, the king (100000 health)
+## stress map copied with every night group's count set to enemies / 4, the king (10000000 health)
 ## parked at (0, 14) and reported there before the day step, every plot built once, the night
 ## started. The crowd spawns by the night's own schedule during the warm-up steps.
 func _build_stress(enemy_count: int) -> RunContext:
